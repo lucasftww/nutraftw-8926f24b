@@ -56,9 +56,28 @@ export default function ProductDetail() {
           <h1 className="font-display text-3xl md:text-4xl font-extrabold text-foreground mt-2 mb-4">
             {p.name}
           </h1>
-          <p className="font-display text-4xl font-extrabold text-primary mb-6">{formatBRL(p.price)}</p>
+          {(() => {
+            const hasSale = p.sale_price != null && Number(p.sale_price) > 0 && Number(p.sale_price) < Number(p.price);
+            const finalPrice = hasSale ? Number(p.sale_price) : Number(p.price);
+            const discountPct = hasSale
+              ? Math.round(((Number(p.price) - Number(p.sale_price)) / Number(p.price)) * 100)
+              : 0;
+            return (
+              <div className="mb-6 flex items-baseline gap-3 flex-wrap">
+                {hasSale && (
+                  <span className="text-lg text-muted-foreground line-through">{formatBRL(Number(p.price))}</span>
+                )}
+                <span className="font-display text-4xl font-extrabold text-primary">{formatBRL(finalPrice)}</span>
+                {hasSale && (
+                  <span className="bg-secondary text-secondary-foreground text-xs font-extrabold uppercase tracking-wider px-2 py-1 rounded-full">
+                    -{discountPct}%
+                  </span>
+                )}
+              </div>
+            );
+          })()}
 
-          {p.description && <p className="text-muted-foreground mb-6 leading-relaxed">{p.description}</p>}
+          {p.description && <p className="text-muted-foreground mb-6 leading-relaxed whitespace-pre-line">{p.description}</p>}
 
           <div className="space-y-3 mb-6 text-sm">
             {p.active_principle && (
@@ -95,12 +114,16 @@ export default function ProductDetail() {
               size="lg"
               className="flex-1"
               onClick={() => {
+                const finalPrice =
+                  p.sale_price != null && Number(p.sale_price) > 0 && Number(p.sale_price) < Number(p.price)
+                    ? Number(p.sale_price)
+                    : Number(p.price);
                 add(
                   {
                     product_id: p.id,
                     slug: p.slug,
                     name: p.name,
-                    price: Number(p.price),
+                    price: finalPrice,
                     image_url: p.image_url,
                   },
                   qty

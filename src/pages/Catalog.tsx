@@ -13,6 +13,7 @@ interface Product {
   name: string;
   description: string | null;
   price: number;
+  sale_price: number | null;
   image_url: string | null;
   is_featured: boolean;
   category: { id: string; name: string; slug: string } | null;
@@ -37,8 +38,9 @@ export default function Catalog() {
         supabase.from("categories").select("id, name, slug").order("display_order"),
         supabase
           .from("products")
-          .select("id, slug, name, description, price, image_url, is_featured, category:categories(id, name, slug)")
+          .select("id, slug, name, description, price, sale_price, image_url, is_featured, category:categories(id, name, slug)")
           .eq("is_active", true)
+          .order("is_featured", { ascending: false })
           .order("created_at", { ascending: false }),
       ]);
       setCategories((cats as any) || []);
@@ -128,56 +130,72 @@ export default function Catalog() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-              {filtered.map((p) => (
-                <article key={p.id} className="product-card group">
-                  <Link to={`/produto/${p.slug}`} className="aspect-square overflow-hidden bg-muted/30 block">
-                    <img
-                      src={p.image_url || "/assets/no-image.svg"}
-                      alt={p.name}
-                      loading="lazy"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </Link>
-                  <div className="p-4 flex flex-col flex-1">
-                    {p.category && (
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-secondary mb-1">
-                        {p.category.name}
+              {filtered.map((p) => {
+                const hasSale = p.sale_price != null && Number(p.sale_price) > 0 && Number(p.sale_price) < Number(p.price);
+                const finalPrice = hasSale ? Number(p.sale_price) : Number(p.price);
+                const discountPct = hasSale
+                  ? Math.round(((Number(p.price) - Number(p.sale_price)) / Number(p.price)) * 100)
+                  : 0;
+                return (
+                  <article key={p.id} className="product-card group relative">
+                    {hasSale && (
+                      <span className="absolute top-3 left-3 z-10 bg-secondary text-secondary-foreground text-[10px] font-extrabold uppercase tracking-wider px-2 py-1 rounded-full shadow">
+                        Oferta -{discountPct}%
                       </span>
                     )}
-                    <h3 className="font-bold text-foreground text-base mb-1 line-clamp-2 leading-tight">
-                      {p.name}
-                    </h3>
-                    {p.description && (
-                      <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{p.description}</p>
-                    )}
-                    <div className="mt-auto space-y-2">
-                      <p className="font-display text-xl font-extrabold text-primary">{formatBRL(p.price)}</p>
-                      <div className="flex flex-col gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full"
-                          onClick={() => {
-                            add({
-                              product_id: p.id,
-                              slug: p.slug,
-                              name: p.name,
-                              price: Number(p.price),
-                              image_url: p.image_url,
-                            });
-                            openCart();
-                          }}
-                        >
-                          Ao carrinho
-                        </Button>
-                        <Button asChild size="sm" className="w-full">
-                          <Link to={`/produto/${p.slug}`}>Ver produto</Link>
-                        </Button>
+                    <Link to={`/produto/${p.slug}`} className="aspect-square overflow-hidden bg-muted/30 block">
+                      <img
+                        src={p.image_url || "/assets/no-image.svg"}
+                        alt={p.name}
+                        loading="lazy"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    </Link>
+                    <div className="p-4 flex flex-col flex-1">
+                      {p.category && (
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-secondary mb-1">
+                          {p.category.name}
+                        </span>
+                      )}
+                      <h3 className="font-bold text-foreground text-base mb-1 line-clamp-2 leading-tight">
+                        {p.name}
+                      </h3>
+                      <div className="mt-auto space-y-2 pt-3">
+                        <div className="leading-tight">
+                          {hasSale && (
+                            <p className="text-xs text-muted-foreground line-through">{formatBRL(Number(p.price))}</p>
+                          )}
+                          <p className="font-display text-xl font-extrabold text-primary">
+                            {formatBRL(finalPrice)}
+                          </p>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            onClick={() => {
+                              add({
+                                product_id: p.id,
+                                slug: p.slug,
+                                name: p.name,
+                                price: finalPrice,
+                                image_url: p.image_url,
+                              });
+                              openCart();
+                            }}
+                          >
+                            Ao carrinho
+                          </Button>
+                          <Button asChild size="sm" className="w-full">
+                            <Link to={`/produto/${p.slug}`}>Ver produto</Link>
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </article>
-              ))}
+                  </article>
+                );
+              })}
             </div>
           )}
         </section>
