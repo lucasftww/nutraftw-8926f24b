@@ -11,6 +11,7 @@
     "build:dev": "mkdir -p dist && cp -r public/* dist/ 2>/dev/null || true && echo 'static dist ready'"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.104.1",
     "bcryptjs": "^2.4.3",
     "compression": "^1.8.1",
     "dotenv": "^16.4.5",
