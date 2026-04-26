@@ -1,0 +1,4 @@
+/* Tipografia local — sem pedidos a domínios externos */
+html {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}

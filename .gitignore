@@ -1,0 +1,8 @@
+node_modules/
+.env
+.env.local
+data/*.db
+data/*.db-shm
+data/*.db-wal
+public/uploads/products/*
+!public/uploads/products/.gitkeep
