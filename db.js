@@ -81,7 +81,22 @@ function runAll(sql, params = []) {
 export async function openDb() {
   if (db) return db;
   ensureDir();
-  const SQL = await initSqlJs();
+  const sqlWasmPath = path.join(
+    __dirname,
+    "node_modules",
+    "sql.js",
+    "dist",
+    "sql-wasm.wasm"
+  );
+  const SQL = await initSqlJs({
+    // Explicit path avoids wasm resolution failures in hosted preview containers.
+    locateFile: (file) => {
+      if (file === "sql-wasm.wasm" && fs.existsSync(sqlWasmPath)) {
+        return sqlWasmPath;
+      }
+      return file;
+    },
+  });
   if (fs.existsSync(dbPath)) {
     const buf = fs.readFileSync(dbPath);
     db = new SQL.Database(buf);
