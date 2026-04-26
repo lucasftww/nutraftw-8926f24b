@@ -74,7 +74,7 @@ export function Header() {
               </Link>
             </div>
 
-            <div className="relative flex-1 max-w-md mx-8 hidden md:block">
+            <form onSubmit={submitSearch} className="relative flex-1 max-w-md mx-8 hidden md:block">
               <div className="relative group">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors z-10" />
                 <input
@@ -84,7 +84,7 @@ export function Header() {
                   className="w-full h-11 pl-10 pr-4 rounded-full bg-muted border-2 border-transparent focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none text-sm"
                 />
               </div>
-            </div>
+            </form>
 
             <div className="flex items-center gap-2">
               <Link
