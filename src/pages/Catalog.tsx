@@ -129,7 +129,7 @@ export default function Catalog() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {filtered.map((p) => (
-                <article key={p.id} className="product-card">
+                <article key={p.id} className="product-card group">
                   <Link to={`/produto/${p.slug}`} className="aspect-square overflow-hidden bg-muted/30 block">
                     <img
                       src={p.image_url || "/assets/no-image.svg"}

@@ -69,5 +69,4 @@
            shadow-card hover:shadow-elegant hover:border-primary/30
            transition-all duration-300 overflow-hidden;
   }
-  .product-card { @apply group; }
 }
