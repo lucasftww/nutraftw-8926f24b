@@ -1,6 +1,4 @@
-import { create } from "zustand";
-
-// Lightweight Zustand-like store sem dependência extra
+// Lightweight reactive store sem dependência extra
 type Listener = () => void;
 
 export interface CartLine {
