@@ -1775,6 +1775,28 @@ app.get(["/checkout", "/checkout/"], (_req, res) => {
 });
 app.use(express.static(publicDir));
 
+// Health check: valida que index.html e admin.html existem e o servidor responde.
+app.get("/healthz", async (_req, res) => {
+  const checks = [
+    { name: "/", file: path.join(publicDir, "index.html") },
+    { name: "/admin", file: path.join(publicDir, "admin.html") },
+  ];
+  const results = [];
+  let allOk = true;
+  for (const c of checks) {
+    try {
+      await fs.promises.access(c.file, fs.constants.R_OK);
+      results.push({ route: c.name, ok: true });
+    } catch (err) {
+      allOk = false;
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(`[healthz] ${c.name} FAILED:`, msg);
+      results.push({ route: c.name, ok: false, error: msg });
+    }
+  }
+  res.status(allOk ? 200 : 500).json({ ok: allOk, checks: results });
+});
+
 app.use((err, _req, res, _next) => {
   console.error(err);
   if (isProd) {
