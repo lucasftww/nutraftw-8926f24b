@@ -212,6 +212,7 @@ export type Database = {
           is_featured: boolean
           name: string
           price: number
+          sale_price: number | null
           slug: string
           stock: number
           updated_at: string
@@ -228,6 +229,7 @@ export type Database = {
           is_featured?: boolean
           name: string
           price?: number
+          sale_price?: number | null
           slug: string
           stock?: number
           updated_at?: string
@@ -244,6 +246,7 @@ export type Database = {
           is_featured?: boolean
           name?: string
           price?: number
+          sale_price?: number | null
           slug?: string
           stock?: number
           updated_at?: string
