@@ -57,6 +57,8 @@ export function Header() {
             <div className="relative group">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors z-10" />
               <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
                 placeholder="Buscar produtos..."
                 className="w-full h-11 pl-10 pr-4 rounded-full bg-muted border-2 border-transparent focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none text-sm"
               />
