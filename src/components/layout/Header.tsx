@@ -1,11 +1,34 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { ShoppingBag, CircleUserRound, Search, Menu } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
 
 export function Header() {
   const { user, isAdmin } = useAuth();
   const { count, openCart } = useCart();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get("q") ?? "");
+
+  useEffect(() => {
+    setQuery(searchParams.get("q") ?? "");
+  }, [searchParams]);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const current = searchParams.get("q") ?? "";
+      if (query === current) return;
+      const params = new URLSearchParams(searchParams);
+      if (query) params.set("q", query);
+      else params.delete("q");
+      const qs = params.toString();
+      navigate(`/${qs ? `?${qs}` : ""}`, { replace: location.pathname === "/" });
+    }, 200);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
 
   const accountHref = isAdmin ? "/admin" : user ? "/minha-conta" : "/login";
 
@@ -34,6 +57,8 @@ export function Header() {
             <div className="relative group">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors z-10" />
               <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
                 placeholder="Buscar produtos..."
                 className="w-full h-11 pl-10 pr-4 rounded-full bg-muted border-2 border-transparent focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none text-sm"
               />

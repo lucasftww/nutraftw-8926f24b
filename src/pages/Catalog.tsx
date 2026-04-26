@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Search, SlidersHorizontal, ArrowRight, ShoppingCart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
@@ -26,7 +26,14 @@ export default function Catalog() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCats, setSelectedCats] = useState<Set<string>>(new Set());
-  const [query, setQuery] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const query = searchParams.get("q") ?? "";
+  const setQuery = (v: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (v) params.set("q", v);
+    else params.delete("q");
+    setSearchParams(params, { replace: true });
+  };
   const [loading, setLoading] = useState(true);
   const { add, openCart } = useCart();
 
