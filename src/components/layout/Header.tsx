@@ -121,7 +121,7 @@ export function Header() {
 
           {/* Mobile expanding search */}
           {mobileSearchOpen && (
-            <div className="md:hidden pb-3">
+            <form onSubmit={submitSearch} className="md:hidden pb-3">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
@@ -132,7 +132,7 @@ export function Header() {
                   className="w-full h-11 pl-10 pr-4 rounded-full bg-muted border-2 border-transparent focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none text-sm"
                 />
               </div>
-            </div>
+            </form>
           )}
         </div>
       </header>
