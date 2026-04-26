@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,15 +8,39 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatBRL } from "@/lib/utils";
 import { toast } from "sonner";
+import { ShieldCheck, Truck, Lock, CreditCard, QrCode, ArrowLeft } from "lucide-react";
 
 const SHIPPING = 80;
-const INSURANCE_RATE = 0.10;
+const INSURANCE_RATE = 0.1;
+const PIX_DISCOUNT = 0.05;
+
+const onlyDigits = (s: string) => s.replace(/\D/g, "");
+
+const maskCPF = (s: string) =>
+  onlyDigits(s)
+    .slice(0, 11)
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+
+const maskPhone = (s: string) => {
+  const d = onlyDigits(s).slice(0, 11);
+  if (d.length <= 10)
+    return d.replace(/(\d{2})(\d{0,4})(\d{0,4}).*/, (_, a, b, c) =>
+      [a && `(${a}`, a && a.length === 2 ? ") " : "", b, c && `-${c}`].filter(Boolean).join("")
+    );
+  return d.replace(/(\d{2})(\d{5})(\d{0,4}).*/, "($1) $2-$3");
+};
+
+const maskCEP = (s: string) =>
+  onlyDigits(s).slice(0, 8).replace(/(\d{5})(\d)/, "$1-$2");
 
 export default function Checkout() {
   const { lines, total, clear } = useCart();
   const { user } = useAuth();
   const nav = useNavigate();
   const [submitting, setSubmitting] = useState(false);
+  const [cepLoading, setCepLoading] = useState(false);
   const [form, setForm] = useState({
     full_name: "",
     cpf: "",
@@ -28,15 +52,66 @@ export default function Checkout() {
     district: "",
     city: "",
     state: "",
+    notes: "",
     payment_method: "pix" as "pix" | "credit_card",
   });
 
+  // Pre-fill from profile
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) return;
+        setForm((f) => ({
+          ...f,
+          full_name: f.full_name || data.full_name || "",
+          cpf: f.cpf || (data.cpf ? maskCPF(data.cpf) : ""),
+          phone: f.phone || (data.phone ? maskPhone(data.phone) : ""),
+          zip: f.zip || (data.address_zip ? maskCEP(data.address_zip) : ""),
+          street: f.street || data.address_street || "",
+          number: f.number || data.address_number || "",
+          complement: f.complement || data.address_complement || "",
+          district: f.district || data.address_district || "",
+          city: f.city || data.address_city || "",
+          state: f.state || data.address_state || "",
+        }));
+      });
+  }, [user]);
+
+  // ViaCEP autocomplete
+  useEffect(() => {
+    const cep = onlyDigits(form.zip);
+    if (cep.length !== 8) return;
+    setCepLoading(true);
+    fetch(`https://viacep.com.br/ws/${cep}/json/`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.erro) return;
+        setForm((f) => ({
+          ...f,
+          street: f.street || d.logradouro || "",
+          district: f.district || d.bairro || "",
+          city: f.city || d.localidade || "",
+          state: f.state || d.uf || "",
+        }));
+      })
+      .catch(() => {})
+      .finally(() => setCepLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.zip]);
+
   const insurance = Math.round(total * INSURANCE_RATE * 100) / 100;
-  const grandTotal = total + SHIPPING + insurance;
+  const baseTotal = total + SHIPPING + insurance;
+  const pixDiscount = form.payment_method === "pix" ? Math.round(baseTotal * PIX_DISCOUNT * 100) / 100 : 0;
+  const grandTotal = baseTotal - pixDiscount;
 
   if (lines.length === 0)
     return (
-      <div className="container py-20 text-center">
+      <div className="max-w-7xl mx-auto px-4 py-20 text-center">
         <p className="text-muted-foreground mb-4">Seu carrinho está vazio.</p>
         <Button onClick={() => nav("/")}>Voltar ao catálogo</Button>
       </div>
@@ -44,14 +119,31 @@ export default function Checkout() {
 
   if (!user)
     return (
-      <div className="container py-20 text-center">
+      <div className="max-w-7xl mx-auto px-4 py-20 text-center">
         <p className="text-muted-foreground mb-4">Faça login para finalizar o pedido.</p>
         <Button onClick={() => nav("/login?next=/checkout")}>Entrar</Button>
       </div>
     );
 
+  function validate() {
+    if (onlyDigits(form.cpf).length !== 11) {
+      toast.error("CPF inválido.");
+      return false;
+    }
+    if (onlyDigits(form.phone).length < 10) {
+      toast.error("Telefone inválido.");
+      return false;
+    }
+    if (onlyDigits(form.zip).length !== 8) {
+      toast.error("CEP inválido.");
+      return false;
+    }
+    return true;
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (!validate()) return;
     setSubmitting(true);
     try {
       const { data: order, error: oErr } = await supabase
@@ -64,16 +156,17 @@ export default function Checkout() {
           shipping: SHIPPING,
           insurance,
           total: grandTotal,
+          notes: form.notes || null,
           shipping_full_name: form.full_name,
-          shipping_cpf: form.cpf,
-          shipping_phone: form.phone,
-          shipping_zip: form.zip,
+          shipping_cpf: onlyDigits(form.cpf),
+          shipping_phone: onlyDigits(form.phone),
+          shipping_zip: onlyDigits(form.zip),
           shipping_street: form.street,
           shipping_number: form.number,
           shipping_complement: form.complement,
           shipping_district: form.district,
           shipping_city: form.city,
-          shipping_state: form.state,
+          shipping_state: form.state.toUpperCase(),
         })
         .select()
         .single();
@@ -102,102 +195,257 @@ export default function Checkout() {
   }
 
   return (
-    <div className="container py-8 md:py-12">
-      <h1 className="font-display text-3xl md:text-4xl font-extrabold text-primary mb-8">Finalizar pedido</h1>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
+      <button
+        onClick={() => nav(-1)}
+        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6"
+      >
+        <ArrowLeft className="h-4 w-4" /> Voltar
+      </button>
 
-      <form onSubmit={submit} className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8">
-        <div className="bg-card rounded-2xl border border-border p-6 space-y-6">
-          <section>
-            <h2 className="font-bold text-lg mb-4">Dados de entrega</h2>
+      <h1 className="font-display text-2xl md:text-3xl font-extrabold text-primary mb-2">
+        Finalizar pedido
+      </h1>
+      <p className="text-sm text-muted-foreground mb-8">
+        Preencha seus dados de entrega e escolha a forma de pagamento.
+      </p>
+
+      <form onSubmit={submit} className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 lg:gap-8">
+        <div className="space-y-6">
+          {/* Address */}
+          <section className="bg-card rounded-2xl border border-border p-5 md:p-6">
+            <h2 className="font-bold text-lg mb-1">Dados de entrega</h2>
+            <p className="text-xs text-muted-foreground mb-5">
+              Confira atentamente — usamos esses dados na nota fiscal e na entrega.
+            </p>
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2 sm:col-span-2">
                 <Label>Nome completo *</Label>
-                <Input required value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
+                <Input
+                  required
+                  value={form.full_name}
+                  onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+                  placeholder="Seu nome completo"
+                />
               </div>
               <div className="space-y-2">
                 <Label>CPF *</Label>
-                <Input required value={form.cpf} onChange={(e) => setForm({ ...form, cpf: e.target.value })} />
+                <Input
+                  required
+                  value={form.cpf}
+                  onChange={(e) => setForm({ ...form, cpf: maskCPF(e.target.value) })}
+                  placeholder="000.000.000-00"
+                  inputMode="numeric"
+                />
               </div>
               <div className="space-y-2">
                 <Label>Telefone *</Label>
-                <Input required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+                <Input
+                  required
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: maskPhone(e.target.value) })}
+                  placeholder="(11) 99999-9999"
+                  inputMode="tel"
+                />
               </div>
               <div className="space-y-2">
-                <Label>CEP *</Label>
-                <Input required value={form.zip} onChange={(e) => setForm({ ...form, zip: e.target.value })} />
-              </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label>Rua *</Label>
-                <Input required value={form.street} onChange={(e) => setForm({ ...form, street: e.target.value })} />
-              </div>
-              <div className="space-y-2">
-                <Label>Número *</Label>
-                <Input required value={form.number} onChange={(e) => setForm({ ...form, number: e.target.value })} />
-              </div>
-              <div className="space-y-2">
-                <Label>Complemento</Label>
-                <Input value={form.complement} onChange={(e) => setForm({ ...form, complement: e.target.value })} />
-              </div>
-              <div className="space-y-2">
-                <Label>Bairro *</Label>
-                <Input required value={form.district} onChange={(e) => setForm({ ...form, district: e.target.value })} />
+                <Label>
+                  CEP * {cepLoading && <span className="text-xs text-muted-foreground ml-1">buscando…</span>}
+                </Label>
+                <Input
+                  required
+                  value={form.zip}
+                  onChange={(e) => setForm({ ...form, zip: maskCEP(e.target.value) })}
+                  placeholder="00000-000"
+                  inputMode="numeric"
+                />
               </div>
               <div className="space-y-2">
                 <Label>Cidade *</Label>
-                <Input required value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+                <Input
+                  required
+                  value={form.city}
+                  onChange={(e) => setForm({ ...form, city: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Rua *</Label>
+                <Input
+                  required
+                  value={form.street}
+                  onChange={(e) => setForm({ ...form, street: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Número *</Label>
+                <Input
+                  required
+                  value={form.number}
+                  onChange={(e) => setForm({ ...form, number: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Complemento</Label>
+                <Input
+                  value={form.complement}
+                  onChange={(e) => setForm({ ...form, complement: e.target.value })}
+                  placeholder="Apto, bloco…"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Bairro *</Label>
+                <Input
+                  required
+                  value={form.district}
+                  onChange={(e) => setForm({ ...form, district: e.target.value })}
+                />
               </div>
               <div className="space-y-2">
                 <Label>UF *</Label>
-                <Input required maxLength={2} value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} />
+                <Input
+                  required
+                  maxLength={2}
+                  value={form.state}
+                  onChange={(e) =>
+                    setForm({ ...form, state: e.target.value.toUpperCase().replace(/[^A-Z]/g, "") })
+                  }
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Observações</Label>
+                <textarea
+                  value={form.notes}
+                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  placeholder="Algo que devemos saber sobre a entrega?"
+                  className="w-full min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary"
+                />
               </div>
             </div>
           </section>
 
-          <section>
+          {/* Payment */}
+          <section className="bg-card rounded-2xl border border-border p-5 md:p-6">
             <h2 className="font-bold text-lg mb-4">Forma de pagamento</h2>
-            <div className="grid grid-cols-2 gap-3">
-              {(["pix", "credit_card"] as const).map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => setForm({ ...form, payment_method: m })}
-                  className={`p-4 rounded-xl border-2 text-sm font-semibold transition-all ${
-                    form.payment_method === m
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-border text-muted-foreground hover:border-primary/40"
-                  }`}
-                >
-                  {m === "pix" ? "PIX" : "Cartão de crédito"}
-                </button>
-              ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, payment_method: "pix" })}
+                className={`relative p-4 rounded-xl border-2 text-left transition-all ${
+                  form.payment_method === "pix"
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:border-primary/40"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <QrCode className="w-6 h-6 text-primary" />
+                  <div>
+                    <div className="font-bold text-sm">PIX</div>
+                    <div className="text-xs text-muted-foreground">Aprovação imediata</div>
+                  </div>
+                </div>
+                <span className="absolute top-2 right-2 bg-secondary text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  −5%
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, payment_method: "credit_card" })}
+                className={`p-4 rounded-xl border-2 text-left transition-all ${
+                  form.payment_method === "credit_card"
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:border-primary/40"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <CreditCard className="w-6 h-6 text-primary" />
+                  <div>
+                    <div className="font-bold text-sm">Cartão de crédito</div>
+                    <div className="text-xs text-muted-foreground">Em até 12x</div>
+                  </div>
+                </div>
+              </button>
             </div>
           </section>
+
+          {/* Trust */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="flex flex-col items-center text-center gap-1 p-3 rounded-xl border border-border/60 bg-background">
+              <ShieldCheck className="w-5 h-5 text-primary" />
+              <span className="text-[11px] font-bold">Compra segura</span>
+            </div>
+            <div className="flex flex-col items-center text-center gap-1 p-3 rounded-xl border border-border/60 bg-background">
+              <Truck className="w-5 h-5 text-primary" />
+              <span className="text-[11px] font-bold">Envio para todo BR</span>
+            </div>
+            <div className="flex flex-col items-center text-center gap-1 p-3 rounded-xl border border-border/60 bg-background">
+              <Lock className="w-5 h-5 text-primary" />
+              <span className="text-[11px] font-bold">Dados criptografados</span>
+            </div>
+          </div>
         </div>
 
-        <aside className="bg-card rounded-2xl border border-border p-6 h-fit lg:sticky lg:top-24">
+        {/* Summary */}
+        <aside className="bg-card rounded-2xl border border-border p-5 md:p-6 h-fit lg:sticky lg:top-24">
           <h2 className="font-bold text-lg mb-4">Resumo</h2>
-          <div className="space-y-3 mb-4">
+          <div className="space-y-3 mb-4 max-h-64 overflow-y-auto pr-1">
             {lines.map((l) => (
-              <div key={l.product_id} className="flex justify-between text-sm">
-                <span className="text-foreground line-clamp-1">
-                  {l.qty}× {l.name}
-                </span>
-                <span className="font-medium shrink-0 ml-2">{formatBRL(l.price * l.qty)}</span>
+              <div key={l.product_id} className="flex gap-3">
+                <div className="w-12 h-12 rounded-lg border border-border bg-muted/30 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                  <img
+                    src={l.image_url || "/assets/no-image.svg"}
+                    alt={l.name}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-foreground line-clamp-2">{l.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {l.qty}× {formatBRL(l.price)}
+                  </p>
+                </div>
+                <span className="text-xs font-bold shrink-0">{formatBRL(l.price * l.qty)}</span>
               </div>
             ))}
           </div>
           <div className="space-y-2 py-4 border-t border-border text-sm">
-            <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatBRL(total)}</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Frete</span><span>{formatBRL(SHIPPING)}</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Seguro (10%)</span><span>{formatBRL(insurance)}</span></div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Subtotal</span>
+              <span>{formatBRL(total)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Frete</span>
+              <span>{formatBRL(SHIPPING)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Seguro (10%)</span>
+              <span>{formatBRL(insurance)}</span>
+            </div>
+            {pixDiscount > 0 && (
+              <div className="flex justify-between text-secondary font-semibold">
+                <span>Desconto PIX (5%)</span>
+                <span>−{formatBRL(pixDiscount)}</span>
+              </div>
+            )}
           </div>
-          <div className="flex justify-between items-center pt-4 border-t border-border mb-4">
+          <div className="flex justify-between items-center pt-4 border-t border-border mb-5">
             <span className="font-bold">Total</span>
-            <span className="font-display text-2xl font-extrabold text-primary">{formatBRL(grandTotal)}</span>
+            <div className="text-right">
+              <div className="font-display text-2xl font-extrabold text-primary">
+                {formatBRL(grandTotal)}
+              </div>
+              {form.payment_method === "credit_card" && (
+                <div className="text-[11px] text-muted-foreground">
+                  ou 12x de {formatBRL(grandTotal / 12)}
+                </div>
+              )}
+            </div>
           </div>
-          <Button type="submit" disabled={submitting} className="w-full" size="lg">
+          <Button type="submit" disabled={submitting} className="w-full h-12 rounded-full" size="lg">
             {submitting ? "A processar…" : "Confirmar pedido"}
           </Button>
+          <p className="text-[11px] text-muted-foreground text-center mt-3">
+            Ao confirmar, você concorda com nossos termos de compra.
+          </p>
         </aside>
       </form>
     </div>
