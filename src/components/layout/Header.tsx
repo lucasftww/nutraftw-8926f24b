@@ -49,6 +49,16 @@ export function Header() {
     setMobileSearchOpen(false);
   }, [location.pathname]);
 
+  // Lock body scroll while mobile drawer is open
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [mobileMenuOpen]);
+
   const accountHref = isAdmin ? "/admin" : user ? "/minha-conta" : "/login";
 
   return (
