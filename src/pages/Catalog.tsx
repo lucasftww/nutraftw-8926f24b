@@ -250,12 +250,12 @@ export default function Catalog() {
                             />
                           </Link>
                           {hasSale && (
-                            <div className="absolute top-3 left-3 bg-destructive text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                            <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-destructive text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 sm:py-1 rounded-full shadow-lg">
                               OFERTA
                             </div>
                           )}
                           {p.is_featured && (
-                            <div className="absolute top-3 right-3 bg-secondary text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                            <div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-secondary text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 sm:py-1 rounded-full shadow-lg">
                               LANÇAMENTO
                             </div>
                           )}
@@ -291,10 +291,10 @@ export default function Catalog() {
                             <div className="flex flex-col gap-2">
                               <Link
                                 to={`/produto/${p.slug}`}
-                                className="inline-flex items-center justify-center transition-all bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 border border-primary/20 h-12 px-6 font-medium w-full rounded-xl text-sm"
+                                className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap transition-all bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 border border-primary/20 h-10 sm:h-12 px-3 sm:px-6 font-medium w-full rounded-xl text-xs sm:text-sm"
                               >
                                 Ver produto
-                                <ArrowRight className="w-4 h-4 ml-1.5" />
+                                <ArrowRight className="w-4 h-4" />
                               </Link>
                               <button
                                 onClick={() => {
@@ -307,10 +307,10 @@ export default function Catalog() {
                                   });
                                   openCart();
                                 }}
-                                className="inline-flex items-center justify-center transition-all border-2 border-primary/20 text-primary hover:bg-primary/5 hover:border-primary/40 h-12 px-6 font-medium w-full rounded-xl text-sm"
+                                className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap transition-all border-2 border-primary/20 text-primary hover:bg-primary/5 hover:border-primary/40 h-10 sm:h-12 px-3 sm:px-6 font-medium w-full rounded-xl text-xs sm:text-sm"
                               >
-                                <ShoppingCart className="w-4 h-4 mr-1.5" />
-                                Adicionar ao carrinho
+                                <ShoppingCart className="w-4 h-4 shrink-0" />
+                                <span className="truncate"><span className="sm:hidden">Comprar</span><span className="hidden sm:inline">Adicionar ao carrinho</span></span>
                               </button>
                             </div>
                           </div>
