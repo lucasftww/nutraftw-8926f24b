@@ -26,8 +26,14 @@ export default function Catalog() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCats, setSelectedCats] = useState<Set<string>>(new Set());
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get("q") ?? "";
+  const setQuery = (v: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (v) params.set("q", v);
+    else params.delete("q");
+    setSearchParams(params, { replace: true });
+  };
   const [loading, setLoading] = useState(true);
   const { add, openCart } = useCart();
 
