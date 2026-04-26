@@ -250,12 +250,12 @@ export default function Catalog() {
                             />
                           </Link>
                           {hasSale && (
-                            <div className="absolute top-3 left-3 bg-destructive text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                            <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-destructive text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 sm:py-1 rounded-full shadow-lg">
                               OFERTA
                             </div>
                           )}
                           {p.is_featured && (
-                            <div className="absolute top-3 right-3 bg-secondary text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                            <div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-secondary text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 sm:py-1 rounded-full shadow-lg">
                               LANÇAMENTO
                             </div>
                           )}
