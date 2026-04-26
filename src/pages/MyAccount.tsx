@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -6,48 +6,94 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { LogOut } from "lucide-react";
+import { LogOut, User as UserIcon, MapPin, ShoppingBag, Eye, Loader2 } from "lucide-react";
+import { formatBRL } from "@/lib/utils";
+import { CustomerOrderDetail } from "@/components/account/CustomerOrderDetail";
+
+type Tab = "profile" | "address" | "orders";
+
+const TABS: { id: Tab; label: string; icon: any }[] = [
+  { id: "profile", label: "Dados pessoais", icon: UserIcon },
+  { id: "address", label: "Endereço", icon: MapPin },
+  { id: "orders", label: "Meus pedidos", icon: ShoppingBag },
+];
+
+const STATUS_LABELS: Record<string, { label: string; color: string }> = {
+  pending: { label: "Aguardando pagamento", color: "bg-amber-100 text-amber-700" },
+  paid: { label: "Pago", color: "bg-emerald-100 text-emerald-700" },
+  processing: { label: "Em preparação", color: "bg-blue-100 text-blue-700" },
+  shipped: { label: "Enviado", color: "bg-indigo-100 text-indigo-700" },
+  delivered: { label: "Entregue", color: "bg-green-100 text-green-700" },
+  cancelled: { label: "Cancelado", color: "bg-red-100 text-red-700" },
+  refunded: { label: "Reembolsado", color: "bg-gray-100 text-gray-700" },
+};
+
+const maskCPF = (v: string) => v.replace(/\D/g, "").slice(0, 11).replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+const maskPhone = (v: string) => {
+  const d = v.replace(/\D/g, "").slice(0, 11);
+  if (d.length <= 10) return d.replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{4})(\d)/, "$1-$2");
+  return d.replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2");
+};
+const maskCEP = (v: string) => v.replace(/\D/g, "").slice(0, 8).replace(/(\d{5})(\d)/, "$1-$2");
 
 export default function MyAccount() {
   const { user } = useAuth();
   const nav = useNavigate();
+  const [tab, setTab] = useState<Tab>("profile");
   const [profile, setProfile] = useState<any>({});
   const [orders, setOrders] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
+  const [cepLoading, setCepLoading] = useState(false);
+  const [orderId, setOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
-    supabase
-      .from("profiles")
-      .select("*")
-      .eq("user_id", user.id)
-      .maybeSingle()
+    supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle()
       .then(({ data }) => setProfile(data || {}));
-    supabase
-      .from("orders")
-      .select("id, status, total, created_at")
-      .order("created_at", { ascending: false })
+    supabase.from("orders").select("id, status, total, created_at").order("created_at", { ascending: false })
       .then(({ data }) => setOrders(data || []));
   }, [user]);
+
+  async function lookupCEP(cep: string) {
+    const digits = cep.replace(/\D/g, "");
+    if (digits.length !== 8) return;
+    setCepLoading(true);
+    try {
+      const r = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+      const d = await r.json();
+      if (d.erro) {
+        toast.error("CEP não encontrado");
+        return;
+      }
+      setProfile((p: any) => ({
+        ...p,
+        address_street: d.logradouro || p.address_street,
+        address_district: d.bairro || p.address_district,
+        address_city: d.localidade || p.address_city,
+        address_state: d.uf || p.address_state,
+      }));
+    } catch {
+      toast.error("Erro ao buscar CEP");
+    } finally {
+      setCepLoading(false);
+    }
+  }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    const { error } = await supabase
-      .from("profiles")
-      .update({
-        full_name: profile.full_name,
-        phone: profile.phone,
-        cpf: profile.cpf,
-        address_zip: profile.address_zip,
-        address_street: profile.address_street,
-        address_number: profile.address_number,
-        address_complement: profile.address_complement,
-        address_district: profile.address_district,
-        address_city: profile.address_city,
-        address_state: profile.address_state,
-      })
-      .eq("user_id", user!.id);
+    const { error } = await supabase.from("profiles").update({
+      full_name: profile.full_name || null,
+      phone: profile.phone?.replace(/\D/g, "") || null,
+      cpf: profile.cpf?.replace(/\D/g, "") || null,
+      address_zip: profile.address_zip?.replace(/\D/g, "") || null,
+      address_street: profile.address_street || null,
+      address_number: profile.address_number || null,
+      address_complement: profile.address_complement || null,
+      address_district: profile.address_district || null,
+      address_city: profile.address_city || null,
+      address_state: profile.address_state || null,
+    }).eq("user_id", user!.id);
     setSaving(false);
     if (error) toast.error(error.message);
     else toast.success("Perfil atualizado!");
@@ -58,121 +104,164 @@ export default function MyAccount() {
     nav("/", { replace: true });
   }
 
+  const stats = useMemo(() => {
+    const total = orders.reduce((s, o) => s + Number(o.total || 0), 0);
+    return { count: orders.length, total };
+  }, [orders]);
+
   return (
-    <div className="container py-8 md:py-12 max-w-3xl">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="font-display text-3xl md:text-4xl font-extrabold text-primary">Minha conta</h1>
-        <Button variant="outline" onClick={logout}>
-          <LogOut className="h-4 w-4" /> Sair
-        </Button>
+    <div className="container py-8 md:py-12 max-w-5xl">
+      <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
+        <div>
+          <h1 className="font-display text-3xl md:text-4xl font-extrabold text-primary">Minha conta</h1>
+          <p className="text-sm text-muted-foreground mt-1">{user?.email}</p>
+        </div>
+        <Button variant="outline" onClick={logout}><LogOut className="h-4 w-4" /> Sair</Button>
       </div>
 
-      <form onSubmit={save} className="bg-card rounded-2xl border border-border p-6 space-y-4 mb-8">
-        <h2 className="font-bold text-lg mb-2">Dados pessoais</h2>
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Nome completo</Label>
-            <Input
-              value={profile.full_name || ""}
-              onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>E-mail</Label>
-            <Input value={user?.email || ""} disabled />
-          </div>
-          <div className="space-y-2">
-            <Label>Telefone</Label>
-            <Input
-              value={profile.phone || ""}
-              onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>CPF</Label>
-            <Input
-              value={profile.cpf || ""}
-              onChange={(e) => setProfile({ ...profile, cpf: e.target.value })}
-            />
-          </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+        <div className="bg-card rounded-2xl border border-border p-4">
+          <p className="text-xs text-muted-foreground">Total de pedidos</p>
+          <p className="text-2xl font-bold mt-1">{stats.count}</p>
         </div>
-
-        <h2 className="font-bold text-lg mt-4 mb-2">Endereço</h2>
-        <div className="grid sm:grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <Label>CEP</Label>
-            <Input
-              value={profile.address_zip || ""}
-              onChange={(e) => setProfile({ ...profile, address_zip: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2 sm:col-span-2">
-            <Label>Rua</Label>
-            <Input
-              value={profile.address_street || ""}
-              onChange={(e) => setProfile({ ...profile, address_street: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Número</Label>
-            <Input
-              value={profile.address_number || ""}
-              onChange={(e) => setProfile({ ...profile, address_number: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Complemento</Label>
-            <Input
-              value={profile.address_complement || ""}
-              onChange={(e) => setProfile({ ...profile, address_complement: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Bairro</Label>
-            <Input
-              value={profile.address_district || ""}
-              onChange={(e) => setProfile({ ...profile, address_district: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2 sm:col-span-2">
-            <Label>Cidade</Label>
-            <Input
-              value={profile.address_city || ""}
-              onChange={(e) => setProfile({ ...profile, address_city: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>UF</Label>
-            <Input
-              value={profile.address_state || ""}
-              onChange={(e) => setProfile({ ...profile, address_state: e.target.value })}
-              maxLength={2}
-            />
-          </div>
+        <div className="bg-card rounded-2xl border border-border p-4">
+          <p className="text-xs text-muted-foreground">Total gasto</p>
+          <p className="text-2xl font-bold mt-1 text-primary">{formatBRL(stats.total)}</p>
         </div>
-        <Button type="submit" disabled={saving}>{saving ? "A guardar…" : "Guardar alterações"}</Button>
-      </form>
+        <div className="bg-card rounded-2xl border border-border p-4 hidden md:block">
+          <p className="text-xs text-muted-foreground">Cliente desde</p>
+          <p className="text-2xl font-bold mt-1">
+            {profile?.created_at ? new Date(profile.created_at).toLocaleDateString("pt-BR", { month: "short", year: "numeric" }) : "—"}
+          </p>
+        </div>
+      </div>
 
-      <div className="bg-card rounded-2xl border border-border p-6">
-        <h2 className="font-bold text-lg mb-4">Meus pedidos</h2>
-        {orders.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Você ainda não fez nenhum pedido.</p>
-        ) : (
-          <div className="space-y-3">
-            {orders.map((o) => (
-              <div key={o.id} className="flex justify-between items-center p-4 rounded-xl border border-border">
-                <div>
-                  <p className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</p>
-                  <p className="font-semibold capitalize">{o.status}</p>
-                </div>
-                <p className="font-display font-bold text-primary">
-                  {Number(o.total).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                </p>
+      <div className="flex gap-1 mb-6 border-b border-border overflow-x-auto">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
+              tab === t.id ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <t.icon className="h-4 w-4" />
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {(tab === "profile" || tab === "address") && (
+        <form onSubmit={save} className="bg-card rounded-2xl border border-border p-6 space-y-4">
+          {tab === "profile" && (
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Nome completo</Label>
+                <Input value={profile.full_name || ""} onChange={(e) => setProfile({ ...profile, full_name: e.target.value })} />
               </div>
-            ))}
+              <div className="space-y-2">
+                <Label>E-mail</Label>
+                <Input value={user?.email || ""} disabled />
+              </div>
+              <div className="space-y-2">
+                <Label>Telefone</Label>
+                <Input value={maskPhone(profile.phone || "")} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} placeholder="(00) 00000-0000" />
+              </div>
+              <div className="space-y-2">
+                <Label>CPF</Label>
+                <Input value={maskCPF(profile.cpf || "")} onChange={(e) => setProfile({ ...profile, cpf: e.target.value })} placeholder="000.000.000-00" />
+              </div>
+            </div>
+          )}
+
+          {tab === "address" && (
+            <div className="grid sm:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label>CEP</Label>
+                <div className="relative">
+                  <Input
+                    value={maskCEP(profile.address_zip || "")}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setProfile({ ...profile, address_zip: v });
+                      if (v.replace(/\D/g, "").length === 8) lookupCEP(v);
+                    }}
+                    placeholder="00000-000"
+                  />
+                  {cepLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />}
+                </div>
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Rua</Label>
+                <Input value={profile.address_street || ""} onChange={(e) => setProfile({ ...profile, address_street: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Número</Label>
+                <Input value={profile.address_number || ""} onChange={(e) => setProfile({ ...profile, address_number: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Complemento</Label>
+                <Input value={profile.address_complement || ""} onChange={(e) => setProfile({ ...profile, address_complement: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Bairro</Label>
+                <Input value={profile.address_district || ""} onChange={(e) => setProfile({ ...profile, address_district: e.target.value })} />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Cidade</Label>
+                <Input value={profile.address_city || ""} onChange={(e) => setProfile({ ...profile, address_city: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>UF</Label>
+                <Input value={profile.address_state || ""} onChange={(e) => setProfile({ ...profile, address_state: e.target.value.toUpperCase() })} maxLength={2} />
+              </div>
+            </div>
+          )}
+
+          <div className="pt-2 border-t border-border flex justify-end">
+            <Button type="submit" disabled={saving}>{saving ? "A guardar…" : "Guardar alterações"}</Button>
           </div>
-        )}
-      </div>
+        </form>
+      )}
+
+      {tab === "orders" && (
+        <div className="bg-card rounded-2xl border border-border overflow-hidden">
+          {orders.length === 0 ? (
+            <div className="text-center py-16 px-6">
+              <ShoppingBag className="h-12 w-12 mx-auto text-muted-foreground/40 mb-3" />
+              <p className="text-muted-foreground">Você ainda não fez nenhum pedido.</p>
+              <Button className="mt-4" onClick={() => nav("/")}>Explorar produtos</Button>
+            </div>
+          ) : (
+            <ul className="divide-y divide-border">
+              {orders.map((o) => {
+                const status = STATUS_LABELS[o.status] || { label: o.status, color: "bg-muted" };
+                return (
+                  <li key={o.id} className="flex items-center justify-between gap-3 p-4 hover:bg-muted/30 transition-colors">
+                    <div className="min-w-0">
+                      <p className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(o.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
+                      </p>
+                      <span className={`inline-flex mt-1 px-2 py-0.5 rounded-full text-xs font-semibold ${status.color}`}>
+                        {status.label}
+                      </span>
+                    </div>
+                    <div className="text-right flex items-center gap-3">
+                      <p className="font-display font-bold text-primary">{formatBRL(o.total)}</p>
+                      <button onClick={() => setOrderId(o.id)} className="p-2 hover:bg-muted rounded-lg" aria-label="Ver detalhes">
+                        <Eye className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {orderId && <CustomerOrderDetail orderId={orderId} onClose={() => setOrderId(null)} />}
     </div>
   );
 }
