@@ -65,8 +65,9 @@
            hover:border-primary hover:bg-primary/5 transition-all;
   }
   .product-card {
-    @apply group flex flex-col bg-card rounded-2xl border border-border/60
+    @apply flex flex-col bg-card rounded-2xl border border-border/60
            shadow-card hover:shadow-elegant hover:border-primary/30
            transition-all duration-300 overflow-hidden;
   }
+  .product-card { @apply group; }
 }
