@@ -26,7 +26,8 @@ export default function Catalog() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCats, setSelectedCats] = useState<Set<string>>(new Set());
-  const [query, setQuery] = useState("");
+  const [searchParams] = useSearchParams();
+  const query = searchParams.get("q") ?? "";
   const [loading, setLoading] = useState(true);
   const { add, openCart } = useCart();
 
