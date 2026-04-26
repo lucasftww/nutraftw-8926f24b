@@ -7,14 +7,17 @@ export function formatBRL(cents) {
 export function productImageUrl(url) {
   const s = url != null ? String(url).trim() : "";
   if (!s) return "/assets/no-image.svg";
+  if (s.startsWith("data:image/")) return s;
   if (
     s.startsWith("https://") ||
     s.startsWith("http://") ||
+    s.startsWith("//") ||
     s.startsWith("/")
   ) {
     return s;
   }
-  return "/assets/no-image.svg";
+  // Relative path from importer (e.g. "uploads/products/x.jpg") → make absolute
+  return "/" + s.replace(/^\.?\/?/, "");
 }
 
 export async function api(path, opts = {}) {
