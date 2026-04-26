@@ -310,7 +310,9 @@ export default function Catalog() {
                                 className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap transition-all border-2 border-primary/20 text-primary hover:bg-primary/5 hover:border-primary/40 h-10 sm:h-12 px-3 sm:px-6 font-medium w-full rounded-xl text-xs sm:text-sm"
                               >
                                 <ShoppingCart className="w-4 h-4 shrink-0" />
-                                <span className="truncate"><span className="sm:hidden">Comprar</span><span className="hidden sm:inline">Adicionar ao carrinho</span></span>
+                                <span className="sm:hidden">Comprar</span>
+                                <span className="hidden sm:inline xl:hidden">Adicionar</span>
+                                <span className="hidden xl:inline">Adicionar ao carrinho</span>
                               </button>
                             </div>
                           </div>
