@@ -1,5 +1,6 @@
 import { X, Minus, Plus, ShoppingBag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { useCart } from "@/hooks/useCart";
 import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,15 @@ import { Button } from "@/components/ui/button";
 export function CartDrawer() {
   const { lines, total, open, closeCart, setQty, remove } = useCart();
   const nav = useNavigate();
+
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
 
   return (
     <>

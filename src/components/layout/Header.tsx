@@ -18,7 +18,9 @@ export function Header() {
     setQuery(searchParams.get("q") ?? "");
   }, [searchParams]);
 
+  // Only sync URL while on home — avoids unmount/focus loss when typing from other routes
   useEffect(() => {
+    if (location.pathname !== "/") return;
     const t = setTimeout(() => {
       const current = searchParams.get("q") ?? "";
       if (query === current) return;
@@ -26,17 +28,36 @@ export function Header() {
       if (query) params.set("q", query);
       else params.delete("q");
       const qs = params.toString();
-      navigate(`/${qs ? `?${qs}` : ""}`, { replace: location.pathname === "/" });
+      navigate(`/${qs ? `?${qs}` : ""}`, { replace: true });
     }, 200);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query]);
+  }, [query, location.pathname]);
+
+  const submitSearch = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const params = new URLSearchParams();
+    if (query) params.set("q", query);
+    const qs = params.toString();
+    navigate(`/${qs ? `?${qs}` : ""}`);
+    setMobileSearchOpen(false);
+  };
 
   // Close menus on route change
   useEffect(() => {
     setMobileMenuOpen(false);
     setMobileSearchOpen(false);
   }, [location.pathname]);
+
+  // Lock body scroll while mobile drawer is open
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [mobileMenuOpen]);
 
   const accountHref = isAdmin ? "/admin" : user ? "/minha-conta" : "/login";
 
@@ -63,7 +84,7 @@ export function Header() {
               </Link>
             </div>
 
-            <div className="relative flex-1 max-w-md mx-8 hidden md:block">
+            <form onSubmit={submitSearch} className="relative flex-1 max-w-md mx-8 hidden md:block">
               <div className="relative group">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors z-10" />
                 <input
@@ -73,7 +94,7 @@ export function Header() {
                   className="w-full h-11 pl-10 pr-4 rounded-full bg-muted border-2 border-transparent focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none text-sm"
                 />
               </div>
-            </div>
+            </form>
 
             <div className="flex items-center gap-2">
               <Link
@@ -110,7 +131,7 @@ export function Header() {
 
           {/* Mobile expanding search */}
           {mobileSearchOpen && (
-            <div className="md:hidden pb-3">
+            <form onSubmit={submitSearch} className="md:hidden pb-3">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
@@ -121,7 +142,7 @@ export function Header() {
                   className="w-full h-11 pl-10 pr-4 rounded-full bg-muted border-2 border-transparent focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none text-sm"
                 />
               </div>
-            </div>
+            </form>
           )}
         </div>
       </header>
