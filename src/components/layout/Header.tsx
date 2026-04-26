@@ -18,7 +18,9 @@ export function Header() {
     setQuery(searchParams.get("q") ?? "");
   }, [searchParams]);
 
+  // Only sync URL while on home — avoids unmount/focus loss when typing from other routes
   useEffect(() => {
+    if (location.pathname !== "/") return;
     const t = setTimeout(() => {
       const current = searchParams.get("q") ?? "";
       if (query === current) return;
@@ -26,11 +28,20 @@ export function Header() {
       if (query) params.set("q", query);
       else params.delete("q");
       const qs = params.toString();
-      navigate(`/${qs ? `?${qs}` : ""}`, { replace: location.pathname === "/" });
+      navigate(`/${qs ? `?${qs}` : ""}`, { replace: true });
     }, 200);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query]);
+  }, [query, location.pathname]);
+
+  const submitSearch = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const params = new URLSearchParams();
+    if (query) params.set("q", query);
+    const qs = params.toString();
+    navigate(`/${qs ? `?${qs}` : ""}`);
+    setMobileSearchOpen(false);
+  };
 
   // Close menus on route change
   useEffect(() => {
