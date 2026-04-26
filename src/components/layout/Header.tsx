@@ -1,94 +1,77 @@
-import { Link, NavLink } from "react-router-dom";
-import { ShoppingCart, CircleUserRound, Menu } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ShoppingBag, CircleUserRound, Search, Menu } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
-import { useState } from "react";
 
 export function Header() {
   const { user, isAdmin } = useAuth();
   const { count, openCart } = useCart();
-  const [mobileOpen, setMobileOpen] = useState(false);
 
   const accountHref = isAdmin ? "/admin" : user ? "/minha-conta" : "/login";
-  const accountLabel = isAdmin ? "Admin" : user ? "Minha conta" : "Entrar";
 
   return (
-    <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
-      <div className="container flex items-center justify-between h-16 md:h-20 gap-4">
-        <Link to="/" className="flex items-center gap-2 shrink-0">
-          <img src="/logo-gimports.webp" alt="GIMPORTS" className="h-9 md:h-11 w-auto" />
-          <span className="hidden sm:inline font-display text-xl md:text-2xl font-extrabold text-primary tracking-tight">
-            GIMPORTS
-          </span>
-        </Link>
-
-        <nav className="hidden md:flex items-center gap-8">
-          <NavLink
-            to="/"
-            end
-            className={({ isActive }) =>
-              `text-sm font-semibold transition-colors ${isActive ? "text-primary" : "text-muted-foreground hover:text-primary"}`
-            }
-          >
-            Catálogo
-          </NavLink>
-          <NavLink
-            to="/sobre"
-            className={({ isActive }) =>
-              `text-sm font-semibold transition-colors ${isActive ? "text-primary" : "text-muted-foreground hover:text-primary"}`
-            }
-          >
-            Sobre
-          </NavLink>
-        </nav>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={openCart}
-            className="relative inline-flex items-center justify-center h-10 w-10 md:h-11 md:w-11 rounded-full border border-primary/20 hover:border-primary text-primary transition-colors"
-            aria-label="Abrir carrinho"
-          >
-            <ShoppingCart className="h-5 w-5" />
-            {count > 0 && (
-              <span className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1 rounded-full bg-destructive text-white text-[10px] font-bold flex items-center justify-center">
-                {count > 99 ? "99+" : count}
+    <header className="sticky top-0 z-40 w-full glass border-b border-border/50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 md:h-20">
+          <div className="flex items-center gap-3">
+            <button
+              aria-label="Menu"
+              className="md:hidden p-2 -ml-2 rounded-xl hover:bg-muted transition-colors"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+            <Link to="/" className="flex items-center gap-2 group cursor-pointer">
+              <div className="overflow-hidden rounded-full h-9 w-9 md:h-10 md:w-10 border-2 border-primary/10 group-hover:border-primary/30 transition-colors bg-primary flex items-center justify-center">
+                <span className="text-primary-foreground font-extrabold text-sm">G</span>
+              </div>
+              <span className="font-display font-bold text-xl tracking-tight text-primary hidden sm:block">
+                GIMPORTS
               </span>
-            )}
-          </button>
-
-          <Link
-            to={accountHref}
-            className="hidden md:inline-flex items-center gap-2 h-11 px-4 rounded-full border border-primary/20 hover:border-primary text-primary font-semibold text-sm transition-colors"
-          >
-            <CircleUserRound className="h-5 w-5" />
-            {accountLabel}
-          </Link>
-
-          <button
-            className="md:hidden inline-flex items-center justify-center h-10 w-10 rounded-full border border-border text-foreground"
-            onClick={() => setMobileOpen((v) => !v)}
-            aria-label="Menu"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-        </div>
-      </div>
-
-      {mobileOpen && (
-        <div className="md:hidden border-t border-border bg-background animate-fade-in">
-          <div className="container py-4 flex flex-col gap-3">
-            <Link to="/" className="font-semibold text-foreground" onClick={() => setMobileOpen(false)}>
-              Catálogo
-            </Link>
-            <Link to="/sobre" className="font-semibold text-foreground" onClick={() => setMobileOpen(false)}>
-              Sobre
-            </Link>
-            <Link to={accountHref} className="font-semibold text-primary" onClick={() => setMobileOpen(false)}>
-              {accountLabel}
             </Link>
           </div>
+
+          <div className="relative flex-1 max-w-md mx-8 hidden md:block">
+            <div className="relative group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors z-10" />
+              <input
+                placeholder="Buscar produtos..."
+                className="w-full h-11 pl-10 pr-4 rounded-full bg-muted border-2 border-transparent focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none text-sm"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Link
+              to={accountHref}
+              className="hidden md:inline-flex items-center gap-2 h-10 md:h-11 px-3 md:px-4 rounded-full border border-primary/20 hover:border-primary text-primary font-semibold text-sm transition-colors"
+            >
+              <CircleUserRound className="w-5 h-5" />
+              Minha Conta
+            </Link>
+
+            <button
+              aria-label="Buscar"
+              className="md:hidden p-2 rounded-xl hover:bg-muted transition-colors"
+            >
+              <Search className="w-5 h-5" />
+            </button>
+
+            <button
+              onClick={openCart}
+              className="inline-flex items-center justify-center transition-all border-2 text-primary hover:bg-primary/5 font-medium relative rounded-full h-10 md:h-11 px-3 md:px-4 border-primary/20 hover:border-primary"
+              aria-label="Abrir carrinho"
+            >
+              <ShoppingBag className="w-5 h-5 md:mr-2 text-primary" />
+              <span className="font-semibold text-primary hidden md:inline">Carrinho</span>
+              {count > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 flex h-5 min-w-[20px] px-1 items-center justify-center rounded-full bg-secondary text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
+                  {count > 99 ? "99+" : count}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
-      )}
+      </div>
     </header>
   );
 }
