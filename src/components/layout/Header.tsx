@@ -1,11 +1,34 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { ShoppingBag, CircleUserRound, Search, Menu } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
 
 export function Header() {
   const { user, isAdmin } = useAuth();
   const { count, openCart } = useCart();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get("q") ?? "");
+
+  useEffect(() => {
+    setQuery(searchParams.get("q") ?? "");
+  }, [searchParams]);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const current = searchParams.get("q") ?? "";
+      if (query === current) return;
+      const params = new URLSearchParams(searchParams);
+      if (query) params.set("q", query);
+      else params.delete("q");
+      const qs = params.toString();
+      navigate(`/${qs ? `?${qs}` : ""}`, { replace: location.pathname === "/" });
+    }, 200);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
 
   const accountHref = isAdmin ? "/admin" : user ? "/minha-conta" : "/login";
 
