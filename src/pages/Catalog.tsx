@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Search, SlidersHorizontal, ArrowRight, ShoppingCart } from "lucide-react";
+import { Search, SlidersHorizontal, ShoppingCart, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { useCart } from "@/hooks/useCart";
+import { VitrineHero } from "@/components/vitrine/VitrineHero";
 
 interface Product {
   id: string;
@@ -28,8 +29,9 @@ export default function Catalog() {
   const [selectedCats, setSelectedCats] = useState<Set<string>>(new Set());
   const [searchParams, setSearchParams] = useSearchParams();
   const urlQuery = searchParams.get("q") ?? "";
-  // Local state for input — debounced into URL to avoid focus loss / loops with Header
   const [query, setQuery] = useState(urlQuery);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
   useEffect(() => {
     setQuery(urlQuery);
   }, [urlQuery]);
@@ -44,6 +46,7 @@ export default function Catalog() {
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
+
   const [loading, setLoading] = useState(true);
   const { add, openCart } = useCart();
 
@@ -76,266 +79,278 @@ export default function Catalog() {
     });
   };
 
-  const filtered = products.filter((p) => {
-    if (selectedCats.size > 0 && (!p.category || !selectedCats.has(p.category.slug)))
-      return false;
-    if (query) {
-      const q = query.toLowerCase();
-      return (
-        p.name.toLowerCase().includes(q) ||
-        (p.description?.toLowerCase().includes(q) ?? false)
-      );
+  const filtered = useMemo(
+    () =>
+      products.filter((p) => {
+        if (selectedCats.size > 0 && (!p.category || !selectedCats.has(p.category.slug)))
+          return false;
+        if (query) {
+          const q = query.toLowerCase();
+          return (
+            p.name.toLowerCase().includes(q) ||
+            (p.description?.toLowerCase().includes(q) ?? false)
+          );
+        }
+        return true;
+      }),
+    [products, selectedCats, query]
+  );
+
+  // Group by category for the section style
+  const grouped = useMemo(() => {
+    const promos = filtered.filter(
+      (p) =>
+        p.sale_price != null &&
+        Number(p.sale_price) > 0 &&
+        Number(p.sale_price) < Number(p.price)
+    );
+    const byCat = new Map<string, { name: string; items: Product[] }>();
+    for (const p of filtered) {
+      const key = p.category?.slug ?? "outros";
+      const name = p.category?.name ?? "Outros";
+      if (!byCat.has(key)) byCat.set(key, { name, items: [] });
+      byCat.get(key)!.items.push(p);
     }
-    return true;
-  });
+    return { promos, sections: Array.from(byCat.values()) };
+  }, [filtered]);
 
   return (
-    <main className="flex-1 flex flex-col">
-      <section className="py-6 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full flex-1">
-        <div className="flex flex-col gap-3 mb-6 lg:mb-8">
-          <h2 className="text-2xl font-bold text-foreground lg:hidden">Catálogo</h2>
+    <>
+      <VitrineHero />
 
-          {/* Mobile search + chips */}
-          <div className="lg:hidden flex flex-col gap-2">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Buscar produto..."
-                className="w-full h-11 pl-9 pr-10 rounded-2xl border border-input bg-white text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary"
-              />
-            </div>
-            <div className="flex gap-2 overflow-x-auto py-1 no-scrollbar">
-              <button
-                onClick={() => setSelectedCats(new Set())}
-                className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold border transition-colors ${
-                  selectedCats.size === 0
-                    ? "bg-primary text-white border-primary shadow-sm"
-                    : "bg-white text-muted-foreground border-border hover:border-primary/50"
-                }`}
-              >
-                Todas
-              </button>
-              {categories.map((c) => {
-                const active = selectedCats.has(c.slug);
-                return (
-                  <button
-                    key={c.id}
-                    onClick={() => toggleCat(c.slug)}
-                    className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold border transition-colors ${
-                      active
-                        ? "bg-primary text-white border-primary shadow-sm"
-                        : "bg-white text-muted-foreground border-border hover:border-primary/50"
-                    }`}
-                  >
-                    {c.name}
-                  </button>
-                );
-              })}
-            </div>
+      <div className="mx-auto w-full max-w-3xl px-3 sm:px-4">
+        {/* Search + Filters bar */}
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Buscar produtos..."
+              className="w-full h-12 pl-11 pr-4 rounded-2xl bg-background border border-border/70 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary"
+            />
           </div>
+          <button
+            onClick={() => setFiltersOpen(true)}
+            className="inline-flex items-center gap-2 h-12 px-4 rounded-2xl bg-background border border-border/70 text-sm font-semibold shadow-sm hover:border-primary/40 transition-colors"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            Filtros
+            {selectedCats.size > 0 && (
+              <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+                {selectedCats.size}
+              </span>
+            )}
+          </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 lg:gap-8">
-          {/* Desktop sidebar */}
-          <aside className="hidden lg:block sticky top-[100px] self-start space-y-6 bg-white/70 backdrop-blur-md p-6 rounded-[2rem] border border-border/60 shadow-sm">
-            <div className="flex items-center gap-2 pb-5 border-b border-border/50">
-              <SlidersHorizontal className="w-5 h-5 text-primary" />
-              <h2 className="font-bold text-lg">Filtros</h2>
+        {/* Active filter chips */}
+        {selectedCats.size > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {[...selectedCats].map((slug) => {
+              const c = categories.find((x) => x.slug === slug);
+              if (!c) return null;
+              return (
+                <button
+                  key={slug}
+                  onClick={() => toggleCat(slug)}
+                  className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15"
+                >
+                  {c.name}
+                  <X className="h-3 w-3" />
+                </button>
+              );
+            })}
+            <button
+              onClick={() => setSelectedCats(new Set())}
+              className="text-xs font-semibold text-muted-foreground hover:text-foreground self-center"
+            >
+              Limpar
+            </button>
+          </div>
+        )}
+
+        {/* Sections */}
+        <div className="mt-6 pb-12 space-y-10">
+          {loading ? (
+            <p className="text-center py-20 text-muted-foreground text-sm">A carregar catálogo…</p>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-20 rounded-3xl border-2 border-dashed border-border bg-background">
+              <p className="text-muted-foreground text-sm">Nenhum produto encontrado.</p>
             </div>
+          ) : (
+            <>
+              {grouped.promos.length > 0 && (
+                <Section title="Promoções" items={grouped.promos.slice(0, 8)} onAdd={(p, price) => {
+                  add({ product_id: p.id, slug: p.slug, name: p.name, price, image_url: p.image_url });
+                  openCart();
+                }} />
+              )}
+              {grouped.sections.map((s) => (
+                <Section
+                  key={s.name}
+                  title={s.name}
+                  items={s.items}
+                  onAdd={(p, price) => {
+                    add({ product_id: p.id, slug: p.slug, name: p.name, price, image_url: p.image_url });
+                    openCart();
+                  }}
+                />
+              ))}
+            </>
+          )}
+        </div>
+      </div>
 
-            <div className="space-y-6">
-              <div>
-                <h3 className="font-bold text-sm text-foreground mb-3 uppercase tracking-wider">
-                  Buscar produto
-                </h3>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-                  <input
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Nome do produto..."
-                    className="w-full h-10 pl-9 pr-3 rounded-xl border border-input bg-white text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary"
-                  />
-                </div>
+      {/* Filters drawer (mobile + desktop) */}
+      {filtersOpen && (
+        <div className="fixed inset-0 z-50">
+          <div className="absolute inset-0 bg-foreground/40" onClick={() => setFiltersOpen(false)} />
+          <aside className="absolute right-0 top-0 h-full w-[88%] max-w-sm bg-background shadow-2xl flex flex-col animate-in slide-in-from-right">
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal className="h-5 w-5 text-primary" />
+                <h2 className="font-bold text-lg">Filtros</h2>
               </div>
-
-              <div className="border-t border-border/50" />
-
-              <div>
-                <h3 className="font-bold text-sm text-foreground mb-3 uppercase tracking-wider">
-                  Categorias
-                </h3>
-                <div className="space-y-3">
-                  {categories.map((c) => {
-                    const checked = selectedCats.has(c.slug);
-                    return (
-                      <label
-                        key={c.id}
-                        className="flex items-center gap-3 cursor-pointer group"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={() => toggleCat(c.slug)}
-                          className="sr-only"
-                          aria-label={`Filtrar categoria ${c.name}`}
-                        />
-                        <div
-                          className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors shadow-sm ${
-                            checked
-                              ? "bg-primary border-primary"
-                              : "border-border group-hover:border-primary/50 bg-white"
-                          }`}
-                        >
-                          {checked && (
-                            <svg
-                              className="w-3 h-3 text-white"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="3"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M5 13l4 4L19 7"
-                              />
-                            </svg>
-                          )}
-                        </div>
-                        <span
-                          className={`text-sm font-medium leading-none transition-colors ${
-                            checked
-                              ? "text-foreground"
-                              : "text-muted-foreground group-hover:text-foreground"
-                          }`}
-                        >
-                          {c.name}
-                        </span>
-                      </label>
-                    );
-                  })}
-                </div>
-                {selectedCats.size > 0 && (
-                  <button
-                    onClick={() => setSelectedCats(new Set())}
-                    className="mt-4 text-xs font-semibold text-primary hover:underline"
-                  >
-                    Limpar filtros
-                  </button>
-                )}
-              </div>
+              <button
+                onClick={() => setFiltersOpen(false)}
+                className="p-2 rounded-xl hover:bg-muted"
+                aria-label="Fechar filtros"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
-          </aside>
-
-          {/* Product grid */}
-          <section>
-            {loading ? (
-              <p className="text-center py-20 text-muted-foreground">A carregar catálogo…</p>
-            ) : filtered.length === 0 ? (
-              <div className="text-center py-20 rounded-2xl border-2 border-dashed border-border bg-muted/20">
-                <p className="text-muted-foreground mb-3">Nenhum produto encontrado.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 items-stretch">
-                {filtered.map((p) => {
-                  const hasSale =
-                    p.sale_price != null &&
-                    Number(p.sale_price) > 0 &&
-                    Number(p.sale_price) < Number(p.price);
-                  const finalPrice = hasSale ? Number(p.sale_price) : Number(p.price);
+            <div className="flex-1 overflow-y-auto p-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
+                Categorias
+              </h3>
+              <div className="flex flex-col gap-1">
+                {categories.map((c) => {
+                  const checked = selectedCats.has(c.slug);
                   return (
-                    <div key={p.id} className="flex">
-                      <article className="product-card group">
-                        <div className="relative aspect-square overflow-hidden bg-muted/30 flex-shrink-0">
-                          <Link to={`/produto/${p.slug}`}>
-                            <img
-                              src={p.image_url || "/assets/no-image.svg"}
-                              alt={p.name}
-                              loading="lazy"
-                              decoding="async"
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            />
-                          </Link>
-                          {hasSale && (
-                            <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-destructive text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 sm:py-1 rounded-full shadow-lg">
-                              OFERTA
-                            </div>
-                          )}
-                          {p.is_featured && (
-                            <div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-secondary text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 sm:py-1 rounded-full shadow-lg">
-                              LANÇAMENTO
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="p-4 flex flex-col flex-1">
-                          {p.category && (
-                            <div className="mb-1 text-xs font-semibold text-secondary tracking-wider uppercase">
-                              {p.category.name}
-                            </div>
-                          )}
-                          <h3 className="font-bold text-foreground text-base mb-1 line-clamp-2 leading-tight">
-                            {p.name}
-                          </h3>
-                          {p.description && (
-                            <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
-                              {p.description}
-                            </p>
-                          )}
-
-                          <div className="mt-auto">
-                            <div className="flex flex-col mb-3">
-                              {hasSale && (
-                                <span className="text-xs text-muted-foreground line-through decoration-destructive/50">
-                                  {formatBRL(Number(p.price))}
-                                </span>
-                              )}
-                              <span className="font-bold text-xl text-primary">
-                                {formatBRL(finalPrice)}
-                              </span>
-                            </div>
-
-                            <div className="flex flex-col gap-2">
-                              <Link
-                                to={`/produto/${p.slug}`}
-                                className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap transition-all bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 border border-primary/20 h-10 sm:h-12 px-3 sm:px-6 font-medium w-full rounded-xl text-xs sm:text-sm"
-                              >
-                                Ver produto
-                                <ArrowRight className="w-4 h-4" />
-                              </Link>
-                              <button
-                                onClick={() => {
-                                  add({
-                                    product_id: p.id,
-                                    slug: p.slug,
-                                    name: p.name,
-                                    price: finalPrice,
-                                    image_url: p.image_url,
-                                  });
-                                  openCart();
-                                }}
-                                className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap transition-all border-2 border-primary/20 text-primary hover:bg-primary/5 hover:border-primary/40 h-10 sm:h-12 px-3 sm:px-6 font-medium w-full rounded-xl text-xs sm:text-sm"
-                              >
-                                <ShoppingCart className="w-4 h-4 shrink-0" />
-                                <span className="sm:hidden">Comprar</span>
-                                <span className="hidden sm:inline xl:hidden">Adicionar</span>
-                                <span className="hidden xl:inline">Adicionar ao carrinho</span>
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </article>
-                    </div>
+                    <label
+                      key={c.id}
+                      className="flex items-center gap-3 cursor-pointer h-11 px-3 rounded-xl hover:bg-muted"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleCat(c.slug)}
+                        className="sr-only"
+                      />
+                      <div
+                        className={`h-5 w-5 rounded-md border flex items-center justify-center transition-colors ${
+                          checked ? "bg-primary border-primary" : "border-border bg-background"
+                        }`}
+                      >
+                        {checked && (
+                          <svg className="h-3 w-3 text-primary-foreground" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </div>
+                      <span className="text-sm font-medium">{c.name}</span>
+                    </label>
                   );
                 })}
               </div>
-            )}
-          </section>
+            </div>
+            <div className="p-4 border-t border-border flex gap-2">
+              <button
+                onClick={() => setSelectedCats(new Set())}
+                className="flex-1 h-11 rounded-xl border border-border text-sm font-semibold hover:bg-muted"
+              >
+                Limpar
+              </button>
+              <button
+                onClick={() => setFiltersOpen(false)}
+                className="flex-1 h-11 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary-glow"
+              >
+                Ver resultados
+              </button>
+            </div>
+          </aside>
         </div>
-      </section>
-    </main>
+      )}
+    </>
+  );
+}
+
+function Section({
+  title,
+  items,
+  onAdd,
+}: {
+  title: string;
+  items: Product[];
+  onAdd: (p: Product, finalPrice: number) => void;
+}) {
+  if (items.length === 0) return null;
+  return (
+    <section>
+      <h2 className="font-display text-xl sm:text-2xl font-extrabold text-foreground mb-3">
+        {title}
+      </h2>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+        {items.map((p) => {
+          const hasSale =
+            p.sale_price != null &&
+            Number(p.sale_price) > 0 &&
+            Number(p.sale_price) < Number(p.price);
+          const finalPrice = hasSale ? Number(p.sale_price) : Number(p.price);
+          const discountPct = hasSale
+            ? Math.round((1 - Number(p.sale_price) / Number(p.price)) * 100)
+            : 0;
+          return (
+            <article
+              key={p.id}
+              className="group flex flex-col rounded-2xl bg-background border border-border/60 overflow-hidden shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:shadow-md transition-shadow"
+            >
+              <Link to={`/produto/${p.slug}`} className="relative block aspect-square bg-muted/40">
+                <img
+                  src={p.image_url || "/assets/no-image.svg"}
+                  alt={p.name}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                />
+                {hasSale && (
+                  <span className="absolute top-2 right-2 rounded-md bg-success text-success-foreground text-[11px] font-bold px-1.5 py-0.5 shadow">
+                    -{discountPct}%
+                  </span>
+                )}
+              </Link>
+
+              <div className="flex flex-col flex-1 p-3">
+                <Link to={`/produto/${p.slug}`} className="block">
+                  <h3 className="font-semibold text-foreground text-[13px] leading-snug line-clamp-2 min-h-[34px]">
+                    {p.name}
+                  </h3>
+                </Link>
+
+                <div className="mt-2">
+                  {hasSale && (
+                    <div className="text-[11px] text-muted-foreground line-through leading-none">
+                      {formatBRL(Number(p.price))}
+                    </div>
+                  )}
+                  <div className="font-extrabold text-foreground text-[17px] leading-tight mt-0.5">
+                    {formatBRL(finalPrice)}
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => onAdd(p, finalPrice)}
+                  className="mt-3 inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-primary text-primary-foreground text-[13px] font-semibold hover:bg-primary-glow transition-colors"
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                  Adicionar
+                </button>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </section>
   );
 }
