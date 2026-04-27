@@ -57,14 +57,6 @@ export function VitrineHero() {
             >
               <Instagram className="h-5 w-5" />
             </a>
-
-            <Link
-              to="/login"
-              aria-label="Acesso da conta"
-              className="inline-flex items-center justify-center h-14 w-14 rounded-full border border-input bg-background shadow-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-            >
-              <MapPin className="h-5 w-5" />
-            </Link>
           </div>
         </div>
       </div>
