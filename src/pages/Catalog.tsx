@@ -117,31 +117,34 @@ export default function Catalog() {
     <>
       <VitrineHero />
 
-      <div className="mx-auto w-full max-w-3xl px-4 mt-7 sm:mt-9">
-        {/* Search + Filters bar */}
-        <div className="flex items-center gap-2.5">
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar produtos..."
-              className="w-full h-12 pl-11 pr-4 rounded-2xl bg-background border border-border text-[14px] shadow-sm placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/15 focus-visible:border-primary transition-colors"
-            />
+      <div className="container mx-auto px-4 py-1">
+        <div className="w-full max-w-3xl mx-auto space-y-4">
+          {/* Search + Filters bar (estilo CDE) */}
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Buscar produtos..."
+                className="flex h-9 w-full rounded-md border border-input bg-transparent pl-9 pr-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              />
+            </div>
+            <button
+              onClick={() => setFiltersOpen(true)}
+              className="inline-flex items-center gap-1.5 h-9 px-4 py-2 rounded-md border border-input bg-background text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              Filtros
+              {selectedCats.size > 0 && (
+                <span className="inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+                  {selectedCats.size}
+                </span>
+              )}
+            </button>
           </div>
-          <button
-            onClick={() => setFiltersOpen(true)}
-            className="inline-flex items-center gap-2 h-12 px-4 rounded-2xl bg-background border border-border text-[14px] font-semibold shadow-sm hover:border-primary/50 hover:text-primary transition-colors"
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-            Filtros
-            {selectedCats.size > 0 && (
-              <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
-                {selectedCats.size}
-              </span>
-            )}
-          </button>
         </div>
+      </div>
 
         {/* Active filter chips */}
         {selectedCats.size > 0 && (
