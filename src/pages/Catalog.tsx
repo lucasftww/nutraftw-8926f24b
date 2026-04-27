@@ -315,7 +315,7 @@ function Section({
                   className="h-full w-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
                 />
                 {hasSale && (
-                  <span className="absolute top-2 right-2 rounded-md bg-emerald-500 text-white text-[11px] font-bold px-1.5 py-0.5 shadow">
+                  <span className="absolute top-2 right-2 rounded-md bg-success text-success-foreground text-[11px] font-bold px-1.5 py-0.5 shadow">
                     -{discountPct}%
                   </span>
                 )}
