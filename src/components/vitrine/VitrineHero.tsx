@@ -34,19 +34,6 @@ export function VitrineHero() {
 
           {/* Action buttons */}
           <div className="mt-6 flex items-center gap-4">
-            <button
-              onClick={openCart}
-              aria-label="Abrir carrinho"
-              className="relative inline-flex items-center justify-center h-14 w-14 rounded-full border border-input bg-background shadow-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-            >
-              <ShoppingBag className="h-5 w-5" />
-              {count > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-success px-1 text-[10px] font-bold text-success-foreground ring-2 ring-background">
-                  {count > 99 ? "99+" : count}
-                </span>
-              )}
-            </button>
-
             <a
               href="https://instagram.com/gimports"
               target="_blank"
