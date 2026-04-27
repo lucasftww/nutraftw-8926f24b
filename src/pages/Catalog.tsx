@@ -4,7 +4,6 @@ import { Search, SlidersHorizontal, ShoppingCart, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { useCart } from "@/hooks/useCart";
-import { VitrineHero } from "@/components/vitrine/VitrineHero";
 
 interface Product {
   id: string;
@@ -115,9 +114,7 @@ export default function Catalog() {
 
   return (
     <>
-      <VitrineHero />
-
-      <div className="container mx-auto px-4 py-1">
+      <div className="container mx-auto px-4 pt-6 md:pt-10 pb-1">
         <div className="w-full max-w-3xl mx-auto space-y-4">
           {/* Search + Filters bar (estilo CDE) */}
           <div className="flex gap-2">
@@ -213,14 +210,6 @@ export default function Catalog() {
                   />
                 ))}
                 <div className="flex justify-center py-8" />
-                {grouped.sections.length > 0 && (
-                  <div className="mt-8 p-4 bg-muted/50 rounded-lg text-center">
-                    <p className="text-sm text-muted-foreground">
-                      Mostrando {grouped.sections.length}{" "}
-                      {grouped.sections.length === 1 ? "categoria" : "categorias"}
-                    </p>
-                  </div>
-                )}
               </>
             )}
           </div>
@@ -313,10 +302,13 @@ function Section({
   if (items.length === 0) return null;
   return (
     <div>
-      <div className="flex items-center justify-center mb-6">
-        <h2 className="text-xl md:text-2xl font-bold text-foreground text-center">{title}</h2>
+      <div className="mb-5 md:mb-7">
+        <h2 className="text-lg md:text-xl font-semibold tracking-tight text-foreground text-center">
+          {title}
+        </h2>
+        <div className="mx-auto mt-2 h-px w-10 bg-border" />
       </div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
         {items.map((p) => {
           const priceNum = Number(p.price);
           const saleNum = p.sale_price != null ? Number(p.sale_price) : 0;
@@ -327,67 +319,56 @@ function Section({
           const hasRealSale = discountPct >= 1;
           const finalPrice = hasRealSale ? saleNum : priceNum;
           return (
-            <div key={p.id} className="h-full">
-              <Link to={`/produto/${p.slug}`} className="block h-full">
-                <div className="rounded-xl border bg-card text-card-foreground shadow overflow-hidden h-full flex flex-col hover:shadow-lg transition-all duration-300 cursor-pointer">
-                  {/* Imagem em container branco interno */}
-                  <div className="relative aspect-square overflow-hidden p-2 md:p-3">
-                    <div className="w-full h-full bg-white rounded-lg overflow-hidden border border-border shadow-sm">
-                      <img
-                        src={p.image_url || "/assets/no-image.svg"}
-                        alt={p.name}
-                        loading="lazy"
-                        decoding="async"
-                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                        className="w-full h-full object-cover transition-opacity duration-500"
-                      />
-                    </div>
-                    {hasRealSale && (
-                      <div className="absolute top-3 right-3 md:top-5 md:right-5 flex flex-col gap-1.5">
-                        <div className="inline-flex items-center rounded-md font-semibold shadow bg-success text-success-foreground border-transparent text-[10px] md:text-xs px-1.5 md:px-2 py-0.5 md:py-1">
-                          -{discountPct}%
-                        </div>
-                      </div>
-                    )}
-                  </div>
+            <Link
+              key={p.id}
+              to={`/produto/${p.slug}`}
+              className="group flex flex-col h-full rounded-2xl bg-card overflow-hidden transition-all duration-300 hover:-translate-y-0.5"
+            >
+              {/* Imagem */}
+              <div className="relative aspect-square overflow-hidden bg-white rounded-2xl">
+                <img
+                  src={p.image_url || "/assets/no-image.svg"}
+                  alt={p.name}
+                  loading="lazy"
+                  decoding="async"
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                />
+                {hasRealSale && (
+                  <span className="absolute top-2 left-2 inline-flex items-center rounded-full bg-foreground/90 text-background text-[10px] font-semibold px-2 py-0.5 backdrop-blur-sm">
+                    -{discountPct}%
+                  </span>
+                )}
+              </div>
 
-                  {/* Conteúdo */}
-                  <div className="p-2 md:p-4 flex-1 flex flex-col">
-                    <h3 className="font-semibold text-xs md:text-sm leading-tight mb-2 md:mb-3 line-clamp-2 min-h-[32px] md:min-h-[35px] text-foreground">
-                      {p.name}
-                    </h3>
-                    <div className="mt-auto">
-                      <div className="space-y-0.5 md:space-y-1">
-                        {hasRealSale && (
-                          <div className="text-[10px] md:text-xs text-muted-foreground line-through">
-                            {formatBRL(priceNum)}
-                          </div>
-                        )}
-                        <div className="text-sm md:text-lg font-bold text-primary">
-                          {formatBRL(finalPrice)}
-                        </div>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1.5 md:mt-2 line-clamp-2">
-                        Entrega em todo o Brasil
-                      </p>
-                      <div className="mt-2 md:mt-3 pt-1.5 md:pt-2 border-t border-border">
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            onAdd(p, finalPrice);
-                          }}
-                          className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-primary text-primary-foreground shadow hover:bg-primary/90 rounded-md px-3 w-full text-[10px] md:text-xs h-7 md:h-8"
-                        >
-                          <ShoppingCart className="h-3 w-3 md:h-3.5 md:w-3.5" />
-                          Adicionar
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+              {/* Conteúdo */}
+              <div className="pt-3 pb-1 px-1 flex-1 flex flex-col">
+                <h3 className="font-medium text-sm leading-snug line-clamp-2 min-h-[2.5rem] text-foreground">
+                  {p.name}
+                </h3>
+                <div className="mt-2 flex items-baseline gap-2">
+                  <span className="text-base md:text-lg font-bold text-foreground">
+                    {formatBRL(finalPrice)}
+                  </span>
+                  {hasRealSale && (
+                    <span className="text-xs text-muted-foreground line-through">
+                      {formatBRL(priceNum)}
+                    </span>
+                  )}
                 </div>
-              </Link>
-            </div>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onAdd(p, finalPrice);
+                  }}
+                  className="mt-3 inline-flex items-center justify-center gap-1.5 whitespace-nowrap font-semibold transition-colors bg-primary text-primary-foreground hover:bg-primary-glow rounded-full w-full text-xs h-9"
+                >
+                  <ShoppingCart className="h-3.5 w-3.5" />
+                  Adicionar
+                </button>
+              </div>
+            </Link>
           );
         })}
       </div>
