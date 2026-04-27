@@ -212,6 +212,15 @@ export default function Catalog() {
                     }}
                   />
                 ))}
+                <div className="flex justify-center py-8" />
+                {grouped.sections.length > 0 && (
+                  <div className="mt-8 p-4 bg-muted/50 rounded-lg text-center">
+                    <p className="text-sm text-muted-foreground">
+                      Mostrando {grouped.sections.length}{" "}
+                      {grouped.sections.length === 1 ? "categoria" : "categorias"}
+                    </p>
+                  </div>
+                )}
               </>
             )}
           </div>
