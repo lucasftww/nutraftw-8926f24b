@@ -4,7 +4,6 @@ import { Search, SlidersHorizontal, ShoppingCart, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { useCart } from "@/hooks/useCart";
-import { VitrineHero } from "@/components/vitrine/VitrineHero";
 
 interface Product {
   id: string;
@@ -115,9 +114,7 @@ export default function Catalog() {
 
   return (
     <>
-      <VitrineHero />
-
-      <div className="container mx-auto px-4 py-1">
+      <div className="container mx-auto px-4 pt-6 md:pt-10 pb-1">
         <div className="w-full max-w-3xl mx-auto space-y-4">
           {/* Search + Filters bar (estilo CDE) */}
           <div className="flex gap-2">
