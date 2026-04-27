@@ -21,13 +21,20 @@ export default function Login() {
     setLoading(true);
     try {
       if (mode === "login") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data: signIn, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Bem-vindo!");
-        // Aguarda role load
-        const { data: roles } = await supabase.from("user_roles").select("role").limit(5);
-        const isAdmin = roles?.some((r: any) => r.role === "admin");
-        nav(isAdmin ? "/admin" : next, { replace: true });
+        const uid = signIn.user?.id;
+        if (uid) {
+          const { data: roles } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", uid);
+          const isAdmin = roles?.some((r: any) => r.role === "admin");
+          nav(isAdmin ? "/admin" : next, { replace: true });
+        } else {
+          nav(next, { replace: true });
+        }
       } else {
         const { error } = await supabase.auth.signUp({
           email,
