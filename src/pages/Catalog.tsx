@@ -293,29 +293,29 @@ function Section({
       </h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
         {items.map((p) => {
-          const hasSale =
-            p.sale_price != null &&
-            Number(p.sale_price) > 0 &&
-            Number(p.sale_price) < Number(p.price);
-          const finalPrice = hasSale ? Number(p.sale_price) : Number(p.price);
-          const discountPct = hasSale
-            ? Math.round((1 - Number(p.sale_price) / Number(p.price)) * 100)
-            : 0;
+          const priceNum = Number(p.price);
+          const saleNum = p.sale_price != null ? Number(p.sale_price) : 0;
+          const discountPct =
+            saleNum > 0 && saleNum < priceNum
+              ? Math.round((1 - saleNum / priceNum) * 100)
+              : 0;
+          const hasRealSale = discountPct >= 1;
+          const finalPrice = hasRealSale ? saleNum : priceNum;
           return (
             <article
               key={p.id}
-              className="group flex flex-col rounded-2xl bg-background border border-border/60 overflow-hidden shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:shadow-md transition-shadow"
+              className="group flex flex-col rounded-2xl bg-background border border-border/60 overflow-hidden shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:shadow-lg hover:border-border transition-all"
             >
-              <Link to={`/produto/${p.slug}`} className="relative block aspect-square bg-muted/40">
+              <Link to={`/produto/${p.slug}`} className="relative block aspect-square bg-muted/40 overflow-hidden">
                 <img
                   src={p.image_url || "/assets/no-image.svg"}
                   alt={p.name}
                   loading="lazy"
                   decoding="async"
-                  className="h-full w-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                  className="h-full w-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
                 />
-                {hasSale && (
-                  <span className="absolute top-2 right-2 rounded-md bg-success text-success-foreground text-[11px] font-bold px-1.5 py-0.5 shadow">
+                {hasRealSale && (
+                  <span className="absolute top-2 right-2 rounded-md bg-success text-success-foreground text-[11px] font-bold px-1.5 py-0.5 shadow-sm">
                     -{discountPct}%
                   </span>
                 )}
