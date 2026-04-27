@@ -27,13 +27,23 @@ export default function Catalog() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCats, setSelectedCats] = useState<Set<string>>(new Set());
   const [searchParams, setSearchParams] = useSearchParams();
-  const query = searchParams.get("q") ?? "";
-  const setQuery = (v: string) => {
-    const params = new URLSearchParams(searchParams);
-    if (v) params.set("q", v);
-    else params.delete("q");
-    setSearchParams(params, { replace: true });
-  };
+  const urlQuery = searchParams.get("q") ?? "";
+  // Local state for input — debounced into URL to avoid focus loss / loops with Header
+  const [query, setQuery] = useState(urlQuery);
+  useEffect(() => {
+    setQuery(urlQuery);
+  }, [urlQuery]);
+  useEffect(() => {
+    if (query === urlQuery) return;
+    const t = setTimeout(() => {
+      const params = new URLSearchParams(searchParams);
+      if (query) params.set("q", query);
+      else params.delete("q");
+      setSearchParams(params, { replace: true });
+    }, 200);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
   const [loading, setLoading] = useState(true);
   const { add, openCart } = useCart();
 
