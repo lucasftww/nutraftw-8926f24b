@@ -143,77 +143,80 @@ export default function Catalog() {
               )}
             </button>
           </div>
-        </div>
-      </div>
 
-        {/* Active filter chips */}
-        {selectedCats.size > 0 && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {[...selectedCats].map((slug) => {
-              const c = categories.find((x) => x.slug === slug);
-              if (!c) return null;
-              return (
-                <button
-                  key={slug}
-                  onClick={() => toggleCat(slug)}
-                  className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15 transition-colors"
-                >
-                  {c.name}
-                  <X className="h-3 w-3" />
-                </button>
-              );
-            })}
-            <button
-              onClick={() => setSelectedCats(new Set())}
-              className="text-xs font-semibold text-muted-foreground hover:text-foreground self-center"
-            >
-              Limpar
-            </button>
-          </div>
-        )}
-
-        {/* Sections */}
-        <div className="mt-7 pb-16 space-y-12">
-          {loading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="rounded-2xl bg-background border border-border/60 overflow-hidden animate-pulse">
-                  <div className="aspect-square bg-muted" />
-                  <div className="p-3.5 space-y-2">
-                    <div className="h-3 w-4/5 bg-muted rounded" />
-                    <div className="h-3 w-2/5 bg-muted rounded" />
-                    <div className="h-9 w-full bg-muted rounded-xl mt-2" />
-                  </div>
-                </div>
-              ))}
+          {/* Active filter chips */}
+          {selectedCats.size > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {[...selectedCats].map((slug) => {
+                const c = categories.find((x) => x.slug === slug);
+                if (!c) return null;
+                return (
+                  <button
+                    key={slug}
+                    onClick={() => toggleCat(slug)}
+                    className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15 transition-colors"
+                  >
+                    {c.name}
+                    <X className="h-3 w-3" />
+                  </button>
+                );
+              })}
+              <button
+                onClick={() => setSelectedCats(new Set())}
+                className="text-xs font-semibold text-muted-foreground hover:text-foreground self-center"
+              >
+                Limpar
+              </button>
             </div>
-          ) : filtered.length === 0 ? (
-            <div className="text-center py-20 rounded-3xl border-2 border-dashed border-border bg-background">
-              <p className="text-muted-foreground text-sm">Nenhum produto encontrado.</p>
-            </div>
-          ) : (
-            <>
-              {grouped.promos.length > 0 && (
-                <Section title="Promoções" items={grouped.promos.slice(0, 8)} onAdd={(p, price) => {
-                  add({ product_id: p.id, slug: p.slug, name: p.name, price, image_url: p.image_url });
-                  openCart();
-                }} />
-              )}
-              {grouped.sections.map((s) => (
-                <Section
-                  key={s.name}
-                  title={s.name}
-                  items={s.items}
-                  onAdd={(p, price) => {
-                    add({ product_id: p.id, slug: p.slug, name: p.name, price, image_url: p.image_url });
-                    openCart();
-                  }}
-                />
-              ))}
-            </>
           )}
         </div>
       </div>
+
+      {/* Sections */}
+      <section className="py-2">
+        <div className="container mx-auto px-4">
+          <div className="space-y-12 pb-16">
+            {loading ? (
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="rounded-xl bg-card border shadow overflow-hidden animate-pulse">
+                    <div className="aspect-square bg-muted" />
+                    <div className="p-3 space-y-2">
+                      <div className="h-3 w-4/5 bg-muted rounded" />
+                      <div className="h-3 w-2/5 bg-muted rounded" />
+                      <div className="h-8 w-full bg-muted rounded mt-2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="text-center py-20 rounded-xl border-2 border-dashed border-border bg-background">
+                <p className="text-muted-foreground text-sm">Nenhum produto encontrado.</p>
+              </div>
+            ) : (
+              <>
+                {grouped.promos.length > 0 && (
+                  <Section title="Promoções" items={grouped.promos.slice(0, 8)} onAdd={(p, price) => {
+                    add({ product_id: p.id, slug: p.slug, name: p.name, price, image_url: p.image_url });
+                    openCart();
+                  }} />
+                )}
+                {grouped.sections.map((s) => (
+                  <Section
+                    key={s.name}
+                    title={s.name}
+                    items={s.items}
+                    onAdd={(p, price) => {
+                      add({ product_id: p.id, slug: p.slug, name: p.name, price, image_url: p.image_url });
+                      openCart();
+                    }}
+                  />
+                ))}
+              </>
+            )}
+          </div>
+        </div>
+      </section>
 
       {/* Filters drawer (mobile + desktop) */}
       {filtersOpen && (
