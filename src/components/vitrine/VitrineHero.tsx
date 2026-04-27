@@ -1,5 +1,4 @@
-import { Link } from "react-router-dom";
-import { ShoppingBag, Instagram, MapPin } from "lucide-react";
+import { ShoppingBag, Instagram } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import logoImg from "@/assets/vitrine-logo.png";
 
@@ -57,14 +56,6 @@ export function VitrineHero() {
             >
               <Instagram className="h-5 w-5" />
             </a>
-
-            <Link
-              to="/login"
-              aria-label="Acesso da conta"
-              className="inline-flex items-center justify-center h-14 w-14 rounded-full border border-input bg-background shadow-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-            >
-              <MapPin className="h-5 w-5" />
-            </Link>
           </div>
         </div>
       </div>
