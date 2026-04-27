@@ -1,38 +1,21 @@
 import { Link } from "react-router-dom";
 import { ShoppingBag, Instagram, MapPin } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
-import heroImg from "@/assets/vitrine-hero.jpg";
 import logoImg from "@/assets/vitrine-logo.png";
 
 /**
- * Vitrine hero — replica fiel do estilo VitrineTurbo / CDE FARMA.
- * Capa arredondada larga + logo circular grande sobreposto + bio + 3 botões circulares.
+ * Vitrine hero — sem capa de perfil.
+ * Logo circular + nome + bio + 3 botões circulares.
  */
 export function VitrineHero() {
   const { count, openCart } = useCart();
 
   return (
-    <header className="relative w-full">
-      {/* Cover */}
-      <div className="px-4 pt-4 pb-0">
-        <div className="container mx-auto">
-          <div className="w-full overflow-hidden rounded-[36px] sm:rounded-[52px] bg-muted aspect-[1530/465]">
-            <img
-              src={heroImg}
-              alt="Capa do perfil de GIMPORTS"
-              loading="eager"
-              decoding="async"
-              fetchPriority="high"
-              className="w-full h-full object-cover"
-            />
-          </div>
-        </div>
-      </div>
-
+    <header className="relative w-full pt-6">
       <div className="container mx-auto px-5">
-        <div className="relative -mt-16 sm:-mt-20 mb-4 flex flex-col items-center">
+        <div className="flex flex-col items-center">
           {/* Logo bubble */}
-          <span className="relative flex shrink-0 overflow-hidden rounded-full w-36 h-36 sm:w-48 sm:h-48 border-4 border-background bg-background shadow-lg">
+          <span className="relative flex shrink-0 overflow-hidden rounded-full w-32 h-32 sm:w-40 sm:h-40 border-4 border-background bg-background shadow-lg">
             <img
               src={logoImg}
               alt="GIMPORTS"
@@ -86,7 +69,7 @@ export function VitrineHero() {
         </div>
       </div>
 
-      <div className="mt-6 mb-2" />
+      <div className="mt-6" />
     </header>
   );
 }
