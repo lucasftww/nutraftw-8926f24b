@@ -298,9 +298,14 @@ function Section({
   if (items.length === 0) return null;
   return (
     <section>
-      <h2 className="font-display text-xl sm:text-2xl font-extrabold text-foreground mb-3">
-        {title}
-      </h2>
+      <div className="mb-4 flex items-end justify-between">
+        <h2 className="font-display text-[19px] sm:text-2xl font-extrabold text-foreground tracking-tight">
+          {title}
+        </h2>
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          {items.length} {items.length === 1 ? "item" : "itens"}
+        </span>
+      </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
         {items.map((p) => {
           const priceNum = Number(p.price);
