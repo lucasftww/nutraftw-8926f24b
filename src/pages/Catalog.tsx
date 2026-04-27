@@ -98,12 +98,11 @@ export default function Catalog() {
 
   // Group by category for the section style
   const grouped = useMemo(() => {
-    const promos = filtered.filter(
-      (p) =>
-        p.sale_price != null &&
-        Number(p.sale_price) > 0 &&
-        Number(p.sale_price) < Number(p.price)
-    );
+    const promos = filtered.filter((p) => {
+      const pr = Number(p.price);
+      const sp = p.sale_price != null ? Number(p.sale_price) : 0;
+      return sp > 0 && sp < pr && Math.round((1 - sp / pr) * 100) >= 1;
+    });
     const byCat = new Map<string, { name: string; items: Product[] }>();
     for (const p of filtered) {
       const key = p.category?.slug ?? "outros";
@@ -118,21 +117,21 @@ export default function Catalog() {
     <>
       <VitrineHero />
 
-      <div className="mx-auto w-full max-w-3xl px-3 sm:px-4">
+      <div className="mx-auto w-full max-w-3xl px-4 mt-7 sm:mt-9">
         {/* Search + Filters bar */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Buscar produtos..."
-              className="w-full h-12 pl-11 pr-4 rounded-2xl bg-background border border-border/70 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary"
+              className="w-full h-12 pl-11 pr-4 rounded-2xl bg-background border border-border text-[14px] shadow-sm placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/15 focus-visible:border-primary transition-colors"
             />
           </div>
           <button
             onClick={() => setFiltersOpen(true)}
-            className="inline-flex items-center gap-2 h-12 px-4 rounded-2xl bg-background border border-border/70 text-sm font-semibold shadow-sm hover:border-primary/40 transition-colors"
+            className="inline-flex items-center gap-2 h-12 px-4 rounded-2xl bg-background border border-border text-[14px] font-semibold shadow-sm hover:border-primary/50 hover:text-primary transition-colors"
           >
             <SlidersHorizontal className="h-4 w-4" />
             Filtros
@@ -154,7 +153,7 @@ export default function Catalog() {
                 <button
                   key={slug}
                   onClick={() => toggleCat(slug)}
-                  className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15"
+                  className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15 transition-colors"
                 >
                   {c.name}
                   <X className="h-3 w-3" />
@@ -171,9 +170,20 @@ export default function Catalog() {
         )}
 
         {/* Sections */}
-        <div className="mt-6 pb-12 space-y-10">
+        <div className="mt-7 pb-16 space-y-12">
           {loading ? (
-            <p className="text-center py-20 text-muted-foreground text-sm">A carregar catálogo…</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="rounded-2xl bg-background border border-border/60 overflow-hidden animate-pulse">
+                  <div className="aspect-square bg-muted" />
+                  <div className="p-3.5 space-y-2">
+                    <div className="h-3 w-4/5 bg-muted rounded" />
+                    <div className="h-3 w-2/5 bg-muted rounded" />
+                    <div className="h-9 w-full bg-muted rounded-xl mt-2" />
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : filtered.length === 0 ? (
             <div className="text-center py-20 rounded-3xl border-2 border-dashed border-border bg-background">
               <p className="text-muted-foreground text-sm">Nenhum produto encontrado.</p>
@@ -288,60 +298,65 @@ function Section({
   if (items.length === 0) return null;
   return (
     <section>
-      <h2 className="font-display text-xl sm:text-2xl font-extrabold text-foreground mb-3">
-        {title}
-      </h2>
+      <div className="mb-4 flex items-end justify-between">
+        <h2 className="font-display text-[19px] sm:text-2xl font-extrabold text-foreground tracking-tight">
+          {title}
+        </h2>
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          {items.length} {items.length === 1 ? "item" : "itens"}
+        </span>
+      </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
         {items.map((p) => {
-          const hasSale =
-            p.sale_price != null &&
-            Number(p.sale_price) > 0 &&
-            Number(p.sale_price) < Number(p.price);
-          const finalPrice = hasSale ? Number(p.sale_price) : Number(p.price);
-          const discountPct = hasSale
-            ? Math.round((1 - Number(p.sale_price) / Number(p.price)) * 100)
-            : 0;
+          const priceNum = Number(p.price);
+          const saleNum = p.sale_price != null ? Number(p.sale_price) : 0;
+          const discountPct =
+            saleNum > 0 && saleNum < priceNum
+              ? Math.round((1 - saleNum / priceNum) * 100)
+              : 0;
+          const hasRealSale = discountPct >= 1;
+          const finalPrice = hasRealSale ? saleNum : priceNum;
           return (
             <article
               key={p.id}
-              className="group flex flex-col rounded-2xl bg-background border border-border/60 overflow-hidden shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:shadow-md transition-shadow"
+              className="group flex flex-col rounded-2xl bg-background border border-border/60 overflow-hidden shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:shadow-lg hover:border-border transition-all"
             >
-              <Link to={`/produto/${p.slug}`} className="relative block aspect-square bg-muted/40">
+              <Link to={`/produto/${p.slug}`} className="relative block aspect-square bg-muted/40 overflow-hidden">
                 <img
                   src={p.image_url || "/assets/no-image.svg"}
                   alt={p.name}
                   loading="lazy"
                   decoding="async"
-                  className="h-full w-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                  className="h-full w-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
                 />
-                {hasSale && (
-                  <span className="absolute top-2 right-2 rounded-md bg-success text-success-foreground text-[11px] font-bold px-1.5 py-0.5 shadow">
+                {hasRealSale && (
+                  <span className="absolute top-2 right-2 rounded-md bg-success text-success-foreground text-[11px] font-bold px-1.5 py-0.5 shadow-sm">
                     -{discountPct}%
                   </span>
                 )}
               </Link>
 
-              <div className="flex flex-col flex-1 p-3">
+              <div className="flex flex-col flex-1 p-3.5">
                 <Link to={`/produto/${p.slug}`} className="block">
-                  <h3 className="font-semibold text-foreground text-[13px] leading-snug line-clamp-2 min-h-[34px]">
+                  <h3 className="font-semibold text-foreground text-[13.5px] leading-snug line-clamp-2 min-h-[36px]">
                     {p.name}
                   </h3>
                 </Link>
 
-                <div className="mt-2">
-                  {hasSale && (
+                <div className="mt-2.5">
+                  {hasRealSale && (
                     <div className="text-[11px] text-muted-foreground line-through leading-none">
-                      {formatBRL(Number(p.price))}
+                      {formatBRL(priceNum)}
                     </div>
                   )}
-                  <div className="font-extrabold text-foreground text-[17px] leading-tight mt-0.5">
+                  <div className="font-extrabold text-foreground text-[18px] leading-tight mt-0.5 tracking-tight">
                     {formatBRL(finalPrice)}
                   </div>
                 </div>
 
                 <button
                   onClick={() => onAdd(p, finalPrice)}
-                  className="mt-3 inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-primary text-primary-foreground text-[13px] font-semibold hover:bg-primary-glow transition-colors"
+                  className="mt-3 inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-primary text-primary-foreground text-[13px] font-semibold hover:bg-primary-glow active:scale-[0.98] transition-all shadow-sm"
                 >
                   <ShoppingCart className="h-4 w-4" />
                   Adicionar
