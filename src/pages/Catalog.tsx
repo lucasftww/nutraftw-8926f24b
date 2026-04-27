@@ -303,16 +303,11 @@ function Section({
 }) {
   if (items.length === 0) return null;
   return (
-    <section>
-      <div className="mb-4 flex items-end justify-between">
-        <h2 className="font-display text-[19px] sm:text-2xl font-extrabold text-foreground tracking-tight">
-          {title}
-        </h2>
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-          {items.length} {items.length === 1 ? "item" : "itens"}
-        </span>
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl md:text-2xl font-bold text-foreground">{title}</h2>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         {items.map((p) => {
           const priceNum = Number(p.price);
           const saleNum = p.sale_price != null ? Number(p.sale_price) : 0;
@@ -323,55 +318,70 @@ function Section({
           const hasRealSale = discountPct >= 1;
           const finalPrice = hasRealSale ? saleNum : priceNum;
           return (
-            <article
-              key={p.id}
-              className="group flex flex-col rounded-2xl bg-background border border-border/60 overflow-hidden shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:shadow-lg hover:border-border transition-all"
-            >
-              <Link to={`/produto/${p.slug}`} className="relative block aspect-square bg-muted/40 overflow-hidden">
-                <img
-                  src={p.image_url || "/assets/no-image.svg"}
-                  alt={p.name}
-                  loading="lazy"
-                  decoding="async"
-                  className="h-full w-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
-                />
-                {hasRealSale && (
-                  <span className="absolute top-2 right-2 rounded-md bg-success text-success-foreground text-[11px] font-bold px-1.5 py-0.5 shadow-sm">
-                    -{discountPct}%
-                  </span>
-                )}
-              </Link>
-
-              <div className="flex flex-col flex-1 p-3.5">
-                <Link to={`/produto/${p.slug}`} className="block">
-                  <h3 className="font-semibold text-foreground text-[13.5px] leading-snug line-clamp-2 min-h-[36px]">
-                    {p.name}
-                  </h3>
-                </Link>
-
-                <div className="mt-2.5">
-                  {hasRealSale && (
-                    <div className="text-[11px] text-muted-foreground line-through leading-none">
-                      {formatBRL(priceNum)}
+            <div key={p.id} className="h-full">
+              <Link to={`/produto/${p.slug}`} className="block h-full">
+                <div className="rounded-xl border bg-card text-card-foreground shadow overflow-hidden h-full flex flex-col hover:shadow-lg transition-all duration-300 cursor-pointer">
+                  {/* Imagem em container branco interno */}
+                  <div className="relative aspect-square overflow-hidden p-2 md:p-3">
+                    <div className="w-full h-full bg-white rounded-lg overflow-hidden border border-border shadow-sm">
+                      <img
+                        src={p.image_url || "/assets/no-image.svg"}
+                        alt={p.name}
+                        loading="lazy"
+                        decoding="async"
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                        className="w-full h-full object-cover transition-opacity duration-500"
+                      />
                     </div>
-                  )}
-                  <div className="font-extrabold text-foreground text-[18px] leading-tight mt-0.5 tracking-tight">
-                    {formatBRL(finalPrice)}
+                    {hasRealSale && (
+                      <div className="absolute top-3 right-3 md:top-5 md:right-5 flex flex-col gap-1.5">
+                        <div className="inline-flex items-center rounded-md font-semibold shadow bg-success text-success-foreground border-transparent text-[10px] md:text-xs px-1.5 md:px-2 py-0.5 md:py-1">
+                          -{discountPct}%
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Conteúdo */}
+                  <div className="p-2 md:p-4 flex-1 flex flex-col">
+                    <h3 className="font-semibold text-xs md:text-sm leading-tight mb-2 md:mb-3 line-clamp-2 min-h-[32px] md:min-h-[35px] text-foreground">
+                      {p.name}
+                    </h3>
+                    <div className="mt-auto">
+                      <div className="space-y-0.5 md:space-y-1">
+                        {hasRealSale && (
+                          <div className="text-[10px] md:text-xs text-muted-foreground line-through">
+                            {formatBRL(priceNum)}
+                          </div>
+                        )}
+                        <div className="text-sm md:text-lg font-bold text-primary">
+                          {formatBRL(finalPrice)}
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1.5 md:mt-2 line-clamp-2">
+                        Entrega em todo o Brasil
+                      </p>
+                      <div className="mt-2 md:mt-3 pt-1.5 md:pt-2 border-t border-border">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onAdd(p, finalPrice);
+                          }}
+                          className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-primary text-primary-foreground shadow hover:bg-primary/90 rounded-md px-3 w-full text-[10px] md:text-xs h-7 md:h-8"
+                        >
+                          <ShoppingCart className="h-3 w-3 md:h-3.5 md:w-3.5" />
+                          Adicionar
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-
-                <button
-                  onClick={() => onAdd(p, finalPrice)}
-                  className="mt-3 inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-primary text-primary-foreground text-[13px] font-semibold hover:bg-primary-glow active:scale-[0.98] transition-all shadow-sm"
-                >
-                  <ShoppingCart className="h-4 w-4" />
-                  Adicionar
-                </button>
-              </div>
-            </article>
+              </Link>
+            </div>
           );
         })}
       </div>
-    </section>
+    </div>
   );
 }
