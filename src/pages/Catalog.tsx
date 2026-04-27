@@ -313,8 +313,8 @@ function Section({
   if (items.length === 0) return null;
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl md:text-2xl font-bold text-foreground">{title}</h2>
+      <div className="flex items-center justify-center mb-6">
+        <h2 className="text-xl md:text-2xl font-bold text-foreground text-center">{title}</h2>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         {items.map((p) => {
