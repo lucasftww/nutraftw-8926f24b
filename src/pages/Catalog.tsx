@@ -321,27 +321,27 @@ function Section({
                 )}
               </Link>
 
-              <div className="flex flex-col flex-1 p-3">
+              <div className="flex flex-col flex-1 p-3.5">
                 <Link to={`/produto/${p.slug}`} className="block">
-                  <h3 className="font-semibold text-foreground text-[13px] leading-snug line-clamp-2 min-h-[34px]">
+                  <h3 className="font-semibold text-foreground text-[13.5px] leading-snug line-clamp-2 min-h-[36px]">
                     {p.name}
                   </h3>
                 </Link>
 
-                <div className="mt-2">
-                  {hasSale && (
+                <div className="mt-2.5">
+                  {hasRealSale && (
                     <div className="text-[11px] text-muted-foreground line-through leading-none">
-                      {formatBRL(Number(p.price))}
+                      {formatBRL(priceNum)}
                     </div>
                   )}
-                  <div className="font-extrabold text-foreground text-[17px] leading-tight mt-0.5">
+                  <div className="font-extrabold text-foreground text-[18px] leading-tight mt-0.5 tracking-tight">
                     {formatBRL(finalPrice)}
                   </div>
                 </div>
 
                 <button
                   onClick={() => onAdd(p, finalPrice)}
-                  className="mt-3 inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-primary text-primary-foreground text-[13px] font-semibold hover:bg-primary-glow transition-colors"
+                  className="mt-3 inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-primary text-primary-foreground text-[13px] font-semibold hover:bg-primary-glow active:scale-[0.98] transition-all shadow-sm"
                 >
                   <ShoppingCart className="h-4 w-4" />
                   Adicionar
