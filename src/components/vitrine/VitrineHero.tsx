@@ -1,5 +1,4 @@
-import { Link } from "react-router-dom";
-import { ShoppingBag, Instagram, MapPin } from "lucide-react";
+import { ShoppingBag, Instagram } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import logoImg from "@/assets/vitrine-logo.png";
 
