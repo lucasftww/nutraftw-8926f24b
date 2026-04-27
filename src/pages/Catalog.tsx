@@ -98,12 +98,11 @@ export default function Catalog() {
 
   // Group by category for the section style
   const grouped = useMemo(() => {
-    const promos = filtered.filter(
-      (p) =>
-        p.sale_price != null &&
-        Number(p.sale_price) > 0 &&
-        Number(p.sale_price) < Number(p.price)
-    );
+    const promos = filtered.filter((p) => {
+      const pr = Number(p.price);
+      const sp = p.sale_price != null ? Number(p.sale_price) : 0;
+      return sp > 0 && sp < pr && Math.round((1 - sp / pr) * 100) >= 1;
+    });
     const byCat = new Map<string, { name: string; items: Product[] }>();
     for (const p of filtered) {
       const key = p.category?.slug ?? "outros";
