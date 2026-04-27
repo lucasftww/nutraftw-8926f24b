@@ -1,4 +1,4 @@
-import { ShoppingBag, Instagram } from "lucide-react";
+import { Instagram } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import logoImg from "@/assets/vitrine-logo.png";
 
