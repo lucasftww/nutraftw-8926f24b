@@ -6,7 +6,7 @@ import { Outlet, useLocation } from "react-router-dom";
 export function MainLayout() {
   useLocation();
   return (
-    <div className="min-h-screen flex flex-col overflow-x-hidden bg-muted/30">
+    <div className="min-h-screen flex flex-col overflow-x-hidden bg-background">
       <Header />
       <main className="flex-1">
         <Outlet />
