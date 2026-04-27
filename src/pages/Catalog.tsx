@@ -117,21 +117,21 @@ export default function Catalog() {
     <>
       <VitrineHero />
 
-      <div className="mx-auto w-full max-w-3xl px-3 sm:px-4">
+      <div className="mx-auto w-full max-w-3xl px-4 mt-7 sm:mt-9">
         {/* Search + Filters bar */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Buscar produtos..."
-              className="w-full h-12 pl-11 pr-4 rounded-2xl bg-background border border-border/70 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary"
+              className="w-full h-12 pl-11 pr-4 rounded-2xl bg-background border border-border text-[14px] shadow-sm placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/15 focus-visible:border-primary transition-colors"
             />
           </div>
           <button
             onClick={() => setFiltersOpen(true)}
-            className="inline-flex items-center gap-2 h-12 px-4 rounded-2xl bg-background border border-border/70 text-sm font-semibold shadow-sm hover:border-primary/40 transition-colors"
+            className="inline-flex items-center gap-2 h-12 px-4 rounded-2xl bg-background border border-border text-[14px] font-semibold shadow-sm hover:border-primary/50 hover:text-primary transition-colors"
           >
             <SlidersHorizontal className="h-4 w-4" />
             Filtros
@@ -153,7 +153,7 @@ export default function Catalog() {
                 <button
                   key={slug}
                   onClick={() => toggleCat(slug)}
-                  className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15"
+                  className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15 transition-colors"
                 >
                   {c.name}
                   <X className="h-3 w-3" />
@@ -170,9 +170,20 @@ export default function Catalog() {
         )}
 
         {/* Sections */}
-        <div className="mt-6 pb-12 space-y-10">
+        <div className="mt-7 pb-16 space-y-12">
           {loading ? (
-            <p className="text-center py-20 text-muted-foreground text-sm">A carregar catálogo…</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="rounded-2xl bg-background border border-border/60 overflow-hidden animate-pulse">
+                  <div className="aspect-square bg-muted" />
+                  <div className="p-3.5 space-y-2">
+                    <div className="h-3 w-4/5 bg-muted rounded" />
+                    <div className="h-3 w-2/5 bg-muted rounded" />
+                    <div className="h-9 w-full bg-muted rounded-xl mt-2" />
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : filtered.length === 0 ? (
             <div className="text-center py-20 rounded-3xl border-2 border-dashed border-border bg-background">
               <p className="text-muted-foreground text-sm">Nenhum produto encontrado.</p>
