@@ -1,14 +1,11 @@
 import { Instagram } from "lucide-react";
-import { useCart } from "@/hooks/useCart";
 import logoImg from "@/assets/vitrine-logo.png";
 
 /**
  * Vitrine hero — sem capa de perfil.
- * Logo circular + nome + bio + 3 botões circulares.
+ * Logo circular + nome + bio + botão Instagram.
  */
 export function VitrineHero() {
-  const { count, openCart } = useCart();
-
   return (
     <header className="relative w-full pt-6">
       <div className="container mx-auto px-5">
