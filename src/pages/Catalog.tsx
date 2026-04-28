@@ -25,6 +25,14 @@ interface Category {
   slug: string;
 }
 
+const SORT_KEYS = ["categoria", "recentes", "az"] as const;
+type SortKey = (typeof SORT_KEYS)[number];
+const SORT_LABELS: Record<SortKey, string> = {
+  categoria: "Por categoria",
+  recentes: "Mais recentes",
+  az: "A–Z",
+};
+
 export default function Catalog() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
