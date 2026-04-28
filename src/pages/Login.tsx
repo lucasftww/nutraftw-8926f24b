@@ -111,8 +111,12 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              minLength={6}
+              minLength={8}
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
             />
+            {mode === "register" && (
+              <p className="text-xs text-muted-foreground">Mínimo 8 caracteres.</p>
+            )}
           </div>
           <Button type="submit" disabled={loading} className="w-full" size="lg">
             {loading ? "Aguarde…" : mode === "login" ? "Entrar" : "Criar conta"}
