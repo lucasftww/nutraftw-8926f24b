@@ -22,6 +22,8 @@ function load() {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) lines = parsed.filter((l) => l && typeof l.product_id === "string");
+    } else {
+      lines = [];
     }
   } catch {}
 }
@@ -33,7 +35,16 @@ function persist() {
   listeners.forEach((l) => l());
 }
 
-if (typeof window !== "undefined") load();
+if (typeof window !== "undefined") {
+  load();
+  // Sincroniza o carrinho entre abas/janelas. Sem isto, abrir o site em
+  // duas abas leva a contagens divergentes e o cliente fica confuso.
+  window.addEventListener("storage", (e) => {
+    if (e.key !== STORAGE_KEY) return;
+    load();
+    listeners.forEach((l) => l());
+  });
+}
 
 export const cart = {
   subscribe(l: Listener) {

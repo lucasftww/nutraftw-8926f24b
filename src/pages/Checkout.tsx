@@ -72,7 +72,11 @@ export default function Checkout() {
       .select("*")
       .eq("user_id", user.id)
       .maybeSingle()
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) {
+          console.error("[Checkout] profile prefill failed", error);
+          return;
+        }
         if (!data) return;
         setForm((f) => ({
           ...f,
@@ -167,6 +171,8 @@ export default function Checkout() {
   const selectedShipping = shippingOptions.find((o) => o.id === shippingId);
   const shippingValue = selectedShipping ? Number(selectedShipping.price) : SHIPPING_FALLBACK;
   const insurance = insuranceOn ? Math.round(total * INSURANCE_RATE * 100) / 100 : 0;
+  // Mesmas fórmulas usadas no RPC `create_order` para garantir que o resumo
+  // exibido aqui bate com o total que o servidor vai gravar.
   const couponDiscount = !coupon ? 0 :
     coupon.discount_type === "percent"
       ? Math.round(total * Number(coupon.discount_value) / 100 * 100) / 100

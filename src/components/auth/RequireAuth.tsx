@@ -1,7 +1,8 @@
+import { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
-export function RequireAuth({ children, adminOnly = false }: { children: JSX.Element; adminOnly?: boolean }) {
+export function RequireAuth({ children, adminOnly = false }: { children: ReactNode; adminOnly?: boolean }) {
   const { user, loading, isAdmin } = useAuth();
   const location = useLocation();
   if (loading) return <div className="container py-20 text-center text-muted-foreground">Carregando…</div>;
@@ -10,5 +11,5 @@ export function RequireAuth({ children, adminOnly = false }: { children: JSX.Ele
     return <Navigate to={`/login?next=${next}`} replace />;
   }
   if (adminOnly && !isAdmin) return <Navigate to="/" replace />;
-  return children;
+  return <>{children}</>;
 }
