@@ -474,13 +474,24 @@ export default function Checkout() {
               <span>{formatBRL(total)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Frete</span>
-              <span>{formatBRL(SHIPPING)}</span>
+              <span className="text-muted-foreground">
+                Frete{shippingInfo?.label ? ` · ${shippingInfo.label}` : ""}
+                {shippingInfo?.min && shippingInfo?.max && (
+                  <span className="block text-[10px]">{shippingInfo.min}–{shippingInfo.max} dias úteis</span>
+                )}
+              </span>
+              <span>{formatBRL(shippingValue)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Seguro (10%)</span>
               <span>{formatBRL(insurance)}</span>
             </div>
+            {couponDiscount > 0 && (
+              <div className="flex justify-between text-secondary font-semibold">
+                <span>Cupom {coupon?.code}</span>
+                <span>−{formatBRL(couponDiscount)}</span>
+              </div>
+            )}
             {pixDiscount > 0 && (
               <div className="flex justify-between text-secondary font-semibold">
                 <span>Desconto PIX (5%)</span>
@@ -488,6 +499,31 @@ export default function Checkout() {
               </div>
             )}
           </div>
+
+          {/* Cupom */}
+          <div className="border-t border-border pt-4 pb-4">
+            {coupon ? (
+              <div className="flex items-center justify-between bg-secondary/10 rounded-lg px-3 py-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <Check className="h-4 w-4 text-secondary" />
+                  <span className="font-semibold">{coupon.code}</span>
+                  <span className="text-xs text-muted-foreground">aplicado</span>
+                </div>
+                <button type="button" onClick={() => { setCoupon(null); setCouponInput(""); }} className="text-xs text-muted-foreground hover:text-destructive">remover</button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input className="pl-9 uppercase" placeholder="Cupom de desconto" value={couponInput} onChange={(e) => setCouponInput(e.target.value.toUpperCase())} />
+                </div>
+                <Button type="button" variant="outline" disabled={couponLoading || !couponInput.trim()} onClick={applyCoupon}>
+                  {couponLoading ? "…" : "Aplicar"}
+                </Button>
+              </div>
+            )}
+          </div>
+
           <div className="flex justify-between items-center pt-4 border-t border-border mb-5">
             <span className="font-bold">Total</span>
             <div className="text-right">
