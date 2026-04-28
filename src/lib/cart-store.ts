@@ -19,7 +19,10 @@ const listeners = new Set<Listener>();
 function load() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) lines = JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) lines = parsed.filter((l) => l && typeof l.product_id === "string");
+    }
   } catch {}
 }
 
@@ -37,21 +40,29 @@ export const cart = {
     listeners.add(l);
     return () => listeners.delete(l);
   },
-  getLines: () => lines,
+  // Retorna cópia para evitar mutação externa do estado do store.
+  getLines: () => lines.map((l) => ({ ...l })),
   getCount: () => lines.reduce((s, l) => s + l.qty, 0),
   getTotal: () => lines.reduce((s, l) => s + l.price * l.qty, 0),
   isOpen: () => drawerOpen,
   add(line: Omit<CartLine, "qty">, qty = 1) {
     const i = lines.findIndex((l) => l.product_id === line.product_id);
-    if (i >= 0) lines[i].qty += qty;
-    else lines.push({ ...line, qty });
+    if (i >= 0) {
+      // Substitui o item por uma nova referência (imutável) em vez de mutar.
+      lines = lines.map((l, idx) => (idx === i ? { ...l, qty: l.qty + qty } : l));
+    } else {
+      lines = [...lines, { ...line, qty }];
+    }
     persist();
   },
   setQty(product_id: string, qty: number) {
     const i = lines.findIndex((l) => l.product_id === product_id);
     if (i < 0) return;
-    if (qty <= 0) lines.splice(i, 1);
-    else lines[i].qty = qty;
+    if (qty <= 0) {
+      lines = lines.filter((_, idx) => idx !== i);
+    } else {
+      lines = lines.map((l, idx) => (idx === i ? { ...l, qty } : l));
+    }
     persist();
   },
   remove(product_id: string) {
@@ -63,10 +74,12 @@ export const cart = {
     persist();
   },
   openDrawer() {
+    if (drawerOpen) return;
     drawerOpen = true;
     listeners.forEach((l) => l());
   },
   closeDrawer() {
+    if (!drawerOpen) return;
     drawerOpen = false;
     listeners.forEach((l) => l());
   },
