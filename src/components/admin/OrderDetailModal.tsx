@@ -64,11 +64,40 @@ export function OrderDetailModal({ orderId, onClose }: { orderId: string; onClos
             </section>
 
             <section className="bg-muted/30 rounded-xl p-4 space-y-1 text-sm">
-              <div className="flex justify-between"><span>Subtotal</span><span>{formatBRL(order.subtotal)}</span></div>
-              <div className="flex justify-between"><span>Frete</span><span>{formatBRL(order.shipping)}</span></div>
-              <div className="flex justify-between"><span>Seguro</span><span>{formatBRL(order.insurance)}</span></div>
-              <div className="flex justify-between font-bold text-base pt-2 border-t border-border"><span>Total</span><span className="text-primary">{formatBRL(order.total)}</span></div>
-              <p className="text-xs text-muted-foreground pt-2">Pagamento: {order.payment_method || "—"}</p>
+              {(() => {
+                const sub = Number(order.subtotal || 0);
+                const ship = Number(order.shipping || 0);
+                const ins = Number(order.insurance || 0);
+                const disc = Number(order.discount || 0);
+                const total = Number(order.total || 0);
+                const beforePix = sub + ship + ins - disc;
+                // pix_discount não é persistido; deriva da diferença para refletir 5% real aplicado.
+                const pixDisc = order.payment_method === "pix" ? Math.max(0, beforePix - total) : 0;
+                return (
+                  <>
+                    <div className="flex justify-between"><span>Subtotal</span><span>{formatBRL(sub)}</span></div>
+                    <div className="flex justify-between"><span>Frete</span><span>{formatBRL(ship)}</span></div>
+                    <div className="flex justify-between"><span>Seguro</span><span>{formatBRL(ins)}</span></div>
+                    {disc > 0 && (
+                      <div className="flex justify-between text-emerald-700">
+                        <span>Cupom{order.coupon_code ? ` (${order.coupon_code})` : ""}</span>
+                        <span>− {formatBRL(disc)}</span>
+                      </div>
+                    )}
+                    {pixDisc > 0 && (
+                      <div className="flex justify-between text-emerald-700">
+                        <span>Desconto PIX (5%)</span>
+                        <span>− {formatBRL(pixDisc)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between font-bold text-base pt-2 border-t border-border">
+                      <span>Total</span>
+                      <span className="text-primary">{formatBRL(total)}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground pt-2">Pagamento: {order.payment_method || "—"}</p>
+                  </>
+                );
+              })()}
             </section>
 
             {order.notes && (
