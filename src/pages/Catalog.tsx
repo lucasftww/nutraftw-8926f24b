@@ -29,12 +29,19 @@ export default function Catalog() {
   const [selectedCats, setSelectedCats] = useState<Set<string>>(new Set());
   const [searchParams, setSearchParams] = useSearchParams();
   const urlQuery = searchParams.get("q") ?? "";
+  const urlCategoria = searchParams.get("categoria") ?? "";
   const [query, setQuery] = useState(urlQuery);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     setQuery(urlQuery);
   }, [urlQuery]);
+  useEffect(() => {
+    if (urlCategoria) {
+      setSelectedCats(new Set([urlCategoria]));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlCategoria]);
   useEffect(() => {
     if (query === urlQuery) return;
     const t = setTimeout(() => {
