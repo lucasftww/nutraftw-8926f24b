@@ -168,12 +168,6 @@ export default function ProductDetail() {
             decoding="async"
             className="w-full h-full object-cover aspect-square"
           />
-          {hasSale && (
-            <div className="absolute top-4 left-4 inline-flex items-center gap-2 bg-destructive text-destructive-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow">
-              <span>OFERTA</span>
-              <span>−{discountPct}%</span>
-            </div>
-          )}
         </div>
 
         {/* Info */}
@@ -227,25 +221,6 @@ export default function ProductDetail() {
                 {formatBRL(finalPrice)}
               </span>
             </div>
-          </div>
-
-          {/* Quantity */}
-          <div className="flex items-center gap-3 bg-background border-2 border-border rounded-full p-1 h-12 w-fit">
-            <button
-              className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted text-lg"
-              onClick={() => setQty(Math.max(1, qty - 1))}
-              aria-label="Diminuir"
-            >
-              −
-            </button>
-            <span className="font-bold w-6 text-center">{qty}</span>
-            <button
-              className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted text-lg"
-              onClick={() => setQty(qty + 1)}
-              aria-label="Aumentar"
-            >
-              +
-            </button>
           </div>
 
           {/* CTA */}
