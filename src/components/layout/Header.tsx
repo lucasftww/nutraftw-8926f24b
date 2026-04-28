@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
-import logoGimports from "@/assets/logo-gimports.png";
+import logoGimports from "@/assets/logo-gimports.svg";
 
 export function Header() {
   const { user, isAdmin } = useAuth();
