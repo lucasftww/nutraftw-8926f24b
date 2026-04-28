@@ -1,4 +1,4 @@
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, ShieldCheck, Truck, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useCurrentProduct } from "@/contexts/CurrentProductContext";
@@ -93,6 +93,18 @@ export function ProductFooter() {
         </div>
 
         <div className="mt-10 pt-6 border-t border-border text-center">
+          {/* Selos de confiança discretos */}
+          <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-4 text-xs text-muted-foreground">
+            <li className="inline-flex items-center gap-1.5">
+              <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Produtos originais
+            </li>
+            <li className="inline-flex items-center gap-1.5">
+              <Truck className="h-3.5 w-3.5 text-primary" /> Envio para todo o Brasil
+            </li>
+            <li className="inline-flex items-center gap-1.5">
+              <Lock className="h-3.5 w-3.5 text-primary" /> Pagamento seguro
+            </li>
+          </ul>
           <p className="text-xs text-muted-foreground">
             © {year} GIMPORTS · Todos os direitos reservados
           </p>
