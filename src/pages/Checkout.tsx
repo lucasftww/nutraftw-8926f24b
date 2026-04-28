@@ -8,9 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatBRL } from "@/lib/utils";
 import { toast } from "sonner";
-import { ShieldCheck, Truck, Lock, CreditCard, QrCode, ArrowLeft } from "lucide-react";
+import { ShieldCheck, Truck, Lock, CreditCard, QrCode, ArrowLeft, Ticket, Check } from "lucide-react";
 
-const SHIPPING = 80;
+const SHIPPING_FALLBACK = 80;
 const INSURANCE_RATE = 0.1;
 const PIX_DISCOUNT = 0.05;
 
@@ -41,6 +41,11 @@ export default function Checkout() {
   const nav = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [cepLoading, setCepLoading] = useState(false);
+  const [shippingValue, setShippingValue] = useState<number>(SHIPPING_FALLBACK);
+  const [shippingInfo, setShippingInfo] = useState<{ label?: string; min?: number; max?: number } | null>(null);
+  const [coupon, setCoupon] = useState<any | null>(null);
+  const [couponInput, setCouponInput] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
   const [form, setForm] = useState({
     full_name: "",
     cpf: "",
@@ -104,8 +109,57 @@ export default function Checkout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.zip]);
 
+  // Frete dinâmico por UF
+  useEffect(() => {
+    const uf = form.state.toUpperCase();
+    if (uf.length !== 2) return;
+    (supabase as any)
+      .from("shipping_rates")
+      .select("*")
+      .eq("state", uf)
+      .eq("active", true)
+      .order("price")
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }: any) => {
+        if (data) {
+          setShippingValue(Number(data.price));
+          setShippingInfo({ label: data.label, min: data.delivery_days_min, max: data.delivery_days_max });
+        } else {
+          setShippingValue(SHIPPING_FALLBACK);
+          setShippingInfo(null);
+        }
+      });
+  }, [form.state]);
+
+  async function applyCoupon() {
+    const code = couponInput.trim().toUpperCase();
+    if (!code) return;
+    setCouponLoading(true);
+    try {
+      const { data, error } = await (supabase as any)
+        .from("coupons")
+        .select("*")
+        .eq("code", code)
+        .eq("active", true)
+        .maybeSingle();
+      if (error || !data) { toast.error("Cupom inválido"); return; }
+      if (data.expires_at && new Date(data.expires_at) < new Date()) { toast.error("Cupom expirado"); return; }
+      if (data.max_uses && data.uses >= data.max_uses) { toast.error("Cupom esgotado"); return; }
+      if (Number(data.min_subtotal) > total) { toast.error(`Mínimo de ${formatBRL(Number(data.min_subtotal))} para usar este cupom`); return; }
+      setCoupon(data);
+      toast.success("Cupom aplicado!");
+    } finally {
+      setCouponLoading(false);
+    }
+  }
+
   const insurance = Math.round(total * INSURANCE_RATE * 100) / 100;
-  const baseTotal = total + SHIPPING + insurance;
+  const couponDiscount = !coupon ? 0 :
+    coupon.discount_type === "percent"
+      ? Math.round(total * Number(coupon.discount_value) / 100 * 100) / 100
+      : Math.min(Number(coupon.discount_value), total);
+  const baseTotal = total + shippingValue + insurance - couponDiscount;
   const pixDiscount = form.payment_method === "pix" ? Math.round(baseTotal * PIX_DISCOUNT * 100) / 100 : 0;
   const grandTotal = baseTotal - pixDiscount;
 
@@ -146,15 +200,15 @@ export default function Checkout() {
     if (!validate()) return;
     setSubmitting(true);
     try {
-      const { data: order, error: oErr } = await supabase
-        .from("orders")
-        .insert({
+      const orderInsert: any = {
           user_id: user!.id,
           status: "pending",
           payment_method: form.payment_method,
           subtotal: total,
-          shipping: SHIPPING,
+          shipping: shippingValue,
           insurance,
+          discount: couponDiscount,
+          coupon_code: coupon?.code || null,
           total: grandTotal,
           notes: form.notes || null,
           shipping_full_name: form.full_name,
@@ -167,7 +221,10 @@ export default function Checkout() {
           shipping_district: form.district,
           shipping_city: form.city,
           shipping_state: form.state.toUpperCase(),
-        })
+      };
+      const { data: order, error: oErr } = await supabase
+        .from("orders")
+        .insert(orderInsert)
         .select()
         .single();
       if (oErr) throw oErr;
@@ -183,6 +240,10 @@ export default function Checkout() {
       }));
       const { error: iErr } = await supabase.from("order_items").insert(items);
       if (iErr) throw iErr;
+
+      if (coupon) {
+        await (supabase as any).from("coupons").update({ uses: (coupon.uses || 0) + 1 }).eq("id", coupon.id);
+      }
 
       clear();
       toast.success("Pedido criado! Em breve entraremos em contato.");
@@ -413,13 +474,24 @@ export default function Checkout() {
               <span>{formatBRL(total)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Frete</span>
-              <span>{formatBRL(SHIPPING)}</span>
+              <span className="text-muted-foreground">
+                Frete{shippingInfo?.label ? ` · ${shippingInfo.label}` : ""}
+                {shippingInfo?.min && shippingInfo?.max && (
+                  <span className="block text-[10px]">{shippingInfo.min}–{shippingInfo.max} dias úteis</span>
+                )}
+              </span>
+              <span>{formatBRL(shippingValue)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Seguro (10%)</span>
               <span>{formatBRL(insurance)}</span>
             </div>
+            {couponDiscount > 0 && (
+              <div className="flex justify-between text-secondary font-semibold">
+                <span>Cupom {coupon?.code}</span>
+                <span>−{formatBRL(couponDiscount)}</span>
+              </div>
+            )}
             {pixDiscount > 0 && (
               <div className="flex justify-between text-secondary font-semibold">
                 <span>Desconto PIX (5%)</span>
@@ -427,6 +499,31 @@ export default function Checkout() {
               </div>
             )}
           </div>
+
+          {/* Cupom */}
+          <div className="border-t border-border pt-4 pb-4">
+            {coupon ? (
+              <div className="flex items-center justify-between bg-secondary/10 rounded-lg px-3 py-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <Check className="h-4 w-4 text-secondary" />
+                  <span className="font-semibold">{coupon.code}</span>
+                  <span className="text-xs text-muted-foreground">aplicado</span>
+                </div>
+                <button type="button" onClick={() => { setCoupon(null); setCouponInput(""); }} className="text-xs text-muted-foreground hover:text-destructive">remover</button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input className="pl-9 uppercase" placeholder="Cupom de desconto" value={couponInput} onChange={(e) => setCouponInput(e.target.value.toUpperCase())} />
+                </div>
+                <Button type="button" variant="outline" disabled={couponLoading || !couponInput.trim()} onClick={applyCoupon}>
+                  {couponLoading ? "…" : "Aplicar"}
+                </Button>
+              </div>
+            )}
+          </div>
+
           <div className="flex justify-between items-center pt-4 border-t border-border mb-5">
             <span className="font-bold">Total</span>
             <div className="text-right">

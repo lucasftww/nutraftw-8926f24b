@@ -1,11 +1,56 @@
 import { Instagram } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import logoImg from "@/assets/vitrine-logo.png";
 
 /**
- * Vitrine hero — sem capa de perfil.
- * Layout limpo, centralizado: logo + nome + bio + Instagram.
+ * Vitrine hero — usa banner ativo do admin se disponível,
+ * caso contrário cai para o layout padrão (logo + bio).
  */
 export function VitrineHero() {
+  const [banner, setBanner] = useState<any | null>(null);
+
+  useEffect(() => {
+    (supabase as any)
+      .from("site_banners")
+      .select("*")
+      .eq("active", true)
+      .order("display_order")
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }: any) => setBanner(data || null));
+  }, []);
+
+  if (banner && banner.image_url) {
+    return (
+      <header className="relative w-full pt-4 sm:pt-6 pb-2">
+        <div className="container mx-auto px-5">
+          <a
+            href={banner.cta_url || "#"}
+            className="block relative rounded-2xl overflow-hidden shadow-lg group"
+          >
+            <img
+              src={banner.image_url}
+              alt={banner.title || "Banner"}
+              className="w-full aspect-[16/6] sm:aspect-[16/5] object-cover transition-transform group-hover:scale-105"
+            />
+            {(banner.title || banner.subtitle) && (
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-5 sm:p-8 text-white">
+                {banner.title && <h1 className="text-xl sm:text-3xl font-bold tracking-tight">{banner.title}</h1>}
+                {banner.subtitle && <p className="text-sm sm:text-base mt-1 opacity-90">{banner.subtitle}</p>}
+                {banner.cta_label && (
+                  <span className="mt-3 inline-flex w-max items-center px-4 py-2 rounded-full bg-background text-foreground text-sm font-semibold">
+                    {banner.cta_label}
+                  </span>
+                )}
+              </div>
+            )}
+          </a>
+        </div>
+      </header>
+    );
+  }
+
   return (
     <header className="relative w-full pt-8 sm:pt-12 pb-2">
       <div className="container mx-auto px-5">
