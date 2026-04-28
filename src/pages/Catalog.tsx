@@ -413,7 +413,7 @@ function Section({
               {title}
             </h2>
             {isPromo && (
-              <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-secondary text-white text-[11px] font-bold uppercase tracking-wide px-2.5 py-1 shadow-sm animate-pulse">
+              <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-secondary text-white text-[11px] font-bold uppercase tracking-wide px-2.5 py-1 shadow-sm">
                 🔥 Ofertas
               </span>
             )}
@@ -449,7 +449,7 @@ function Section({
             <Link
               key={p.id}
               to={`/produto/${p.slug}`}
-              className={`group flex flex-col h-full rounded-2xl bg-card overflow-hidden transition-all duration-300 hover:-translate-y-0.5 ${isOut ? "opacity-70" : ""}`}
+              className={`flex flex-col h-full rounded-2xl bg-card overflow-hidden ${isOut ? "opacity-70" : ""}`}
             >
               {/* Imagem */}
               <div className="relative aspect-square overflow-hidden bg-white rounded-2xl">
@@ -459,7 +459,7 @@ function Section({
                   loading="lazy"
                   decoding="async"
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                  className="w-full h-full object-cover"
                 />
                 {badge && (
                   <span className={`absolute top-2 left-2 inline-flex items-center rounded-full text-[10px] font-bold tracking-wide px-2 py-0.5 shadow-sm ${badge.cls}`}>
@@ -496,7 +496,7 @@ function Section({
                     onAdd(p, finalPrice);
                   }}
                   disabled={isOut}
-                  className="mt-3 inline-flex items-center justify-center gap-1.5 whitespace-nowrap font-semibold transition-colors bg-primary text-primary-foreground hover:bg-primary-glow rounded-full w-full text-xs h-9 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
+                  className="mt-3 inline-flex items-center justify-center gap-1.5 whitespace-nowrap font-semibold bg-primary text-primary-foreground hover:bg-primary-glow rounded-full w-full text-xs h-9 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
                 >
                   <ShoppingCart className="h-3.5 w-3.5" />
                   {isOut ? "Esgotado" : "Adicionar"}
