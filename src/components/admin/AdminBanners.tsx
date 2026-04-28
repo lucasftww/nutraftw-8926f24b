@@ -6,13 +6,22 @@ import { Label } from "@/components/ui/label";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { Plus, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 
 export function AdminBanners() {
   const [items, setItems] = useState<any[]>([]);
   const [editing, setEditing] = useState<any | null>(null);
+  const [error, setError] = useState<AdminErrorInfo | null>(null);
 
   async function load() {
-    const { data } = await supabase.from("site_banners" as any).select("*").order("display_order").order("created_at", { ascending: false });
+    setError(null);
+    const { data, error: err } = await supabase.from("site_banners" as any).select("*").order("display_order").order("created_at", { ascending: false });
+    if (err) {
+      const info = logSupabaseError("Carregar banners", err, { table: "site_banners" });
+      setError(info);
+      toast.error(`Banners: ${info.message}`);
+      return;
+    }
     setItems((data as any[]) || []);
   }
   useEffect(() => { load(); }, []);
@@ -32,15 +41,24 @@ export function AdminBanners() {
     const { error } = f.id
       ? await supabase.from("site_banners" as any).update(payload).eq("id", f.id)
       : await supabase.from("site_banners" as any).insert(payload);
-    if (error) toast.error(error.message);
-    else { toast.success("Banner guardado"); setEditing(null); load(); }
+    if (error) {
+      logSupabaseError("Guardar banner", error, { id: f.id, payload });
+      toast.error(error.message);
+    } else { toast.success("Banner guardado"); setEditing(null); load(); }
   }
 
   async function del(id: string) {
     if (!confirm("Remover banner?")) return;
-    await supabase.from("site_banners" as any).delete().eq("id", id);
+    const { error: err } = await supabase.from("site_banners" as any).delete().eq("id", id);
+    if (err) {
+      logSupabaseError("Remover banner", err, { id });
+      toast.error(err.message);
+      return;
+    }
     load();
   }
+
+  if (error) return <AdminErrorBanner error={error} onRetry={load} />;
 
   return (
     <>

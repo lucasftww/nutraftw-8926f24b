@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { refreshSiteSettings } from "@/hooks/useSiteSettings";
+import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 
 const FIELDS: { key: string; label: string; type: "text" | "textarea" | "toggle" | "number"; help?: string }[] = [
   { key: "checkout_enable_pix", label: "Aceitar PIX no checkout", type: "toggle" },
@@ -19,14 +20,22 @@ const FIELDS: { key: string; label: string; type: "text" | "textarea" | "toggle"
 export function AdminSettings() {
   const [values, setValues] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<AdminErrorInfo | null>(null);
 
-  useEffect(() => {
-    (supabase as any).from("site_settings").select("*").then(({ data }: any) => {
-      const v: Record<string, string> = {};
-      (data || []).forEach((r: any) => { v[r.key] = r.value ?? ""; });
-      setValues(v);
-    });
-  }, []);
+  async function load() {
+    setError(null);
+    const { data, error: err } = await (supabase as any).from("site_settings").select("*");
+    if (err) {
+      const info = logSupabaseError("Carregar configurações", err, { table: "site_settings" });
+      setError(info);
+      toast.error(`Configurações: ${info.message}`);
+      return;
+    }
+    const v: Record<string, string> = {};
+    (data || []).forEach((r: any) => { v[r.key] = r.value ?? ""; });
+    setValues(v);
+  }
+  useEffect(() => { load(); }, []);
 
   async function save() {
     setSaving(true);
@@ -37,11 +46,14 @@ export function AdminSettings() {
       await refreshSiteSettings();
       toast.success("Configurações guardadas");
     } catch (e: any) {
+      logSupabaseError("Guardar configurações", e);
       toast.error(e.message);
     } finally {
       setSaving(false);
     }
   }
+
+  if (error) return <AdminErrorBanner error={error} onRetry={load} />;
 
   return (
     <div className="bg-card rounded-2xl border border-border p-6 max-w-2xl space-y-5">

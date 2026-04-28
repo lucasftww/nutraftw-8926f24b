@@ -5,13 +5,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 
 export function AdminCoupons() {
   const [items, setItems] = useState<any[]>([]);
   const [editing, setEditing] = useState<any | null>(null);
+  const [error, setError] = useState<AdminErrorInfo | null>(null);
 
   async function load() {
-    const { data } = await supabase.from("coupons" as any).select("*").order("created_at", { ascending: false });
+    setError(null);
+    const { data, error: err } = await supabase.from("coupons" as any).select("*").order("created_at", { ascending: false });
+    if (err) {
+      const info = logSupabaseError("Carregar cupons", err, { table: "coupons" });
+      setError(info);
+      toast.error(`Cupons: ${info.message}`);
+      return;
+    }
     setItems((data as any[]) || []);
   }
   useEffect(() => { load(); }, []);
@@ -32,15 +41,22 @@ export function AdminCoupons() {
     const { error } = f.id
       ? await supabase.from("coupons" as any).update(payload).eq("id", f.id)
       : await supabase.from("coupons" as any).insert(payload);
-    if (error) toast.error(error.message);
-    else { toast.success("Cupom guardado"); setEditing(null); load(); }
+    if (error) {
+      logSupabaseError("Guardar cupom", error, { id: f.id, code: payload.code });
+      toast.error(error.message);
+    } else { toast.success("Cupom guardado"); setEditing(null); load(); }
   }
 
   async function del(id: string) {
     if (!confirm("Remover cupom?")) return;
     const { error } = await supabase.from("coupons" as any).delete().eq("id", id);
-    if (error) toast.error(error.message); else { toast.success("Removido"); load(); }
+    if (error) {
+      logSupabaseError("Remover cupom", error, { id });
+      toast.error(error.message);
+    } else { toast.success("Removido"); load(); }
   }
+
+  if (error) return <AdminErrorBanner error={error} onRetry={load} />;
 
   return (
     <>
