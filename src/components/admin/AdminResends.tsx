@@ -18,10 +18,11 @@ export function AdminResends() {
   const [filter, setFilter] = useState<"pending" | "all">("pending");
 
   async function load() {
-    const q = supabase.from("orders").select("*").order("resend_requested_at", { ascending: false, nullsFirst: false });
-    const { data } = filter === "pending"
-      ? await q.in("resend_status", ["requested", "in_preparation"])
-      : await q.not("resend_status", "is", null);
+    const base: any = supabase.from("orders").select("*");
+    const q = filter === "pending"
+      ? base.in("resend_status", ["requested", "in_preparation"])
+      : base.not("resend_status", "is", null);
+    const { data } = await q.order("resend_requested_at", { ascending: false, nullsFirst: false });
     setItems((data as any[]) || []);
   }
   useEffect(() => { load(); }, [filter]);
