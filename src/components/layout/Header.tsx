@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import logoGimports from "@/assets/logo-gimports.svg";
 
 export function Header() {
@@ -19,15 +20,8 @@ export function Header() {
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
-  // Lock body scroll while drawer is open
-  useEffect(() => {
-    if (!mobileMenuOpen) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [mobileMenuOpen]);
+  // Lock body scroll while drawer is open (compartilhado com CartDrawer via contador)
+  useBodyScrollLock(mobileMenuOpen);
 
   const accountHref = isAdmin ? "/admin" : user ? "/minha-conta" : "/login";
   const accountLabel = user ? (isAdmin ? "Painel" : "Minha conta") : "Entrar";
