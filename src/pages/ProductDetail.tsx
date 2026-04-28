@@ -11,7 +11,6 @@ export default function ProductDetail() {
   const { slug } = useParams();
   const [p, setP] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [qty, setQty] = useState(1);
   const [related, setRelated] = useState<any[]>([]);
   const { add, openCart } = useCart();
 
@@ -138,6 +137,7 @@ export default function ProductDetail() {
             alt={p.name}
             loading="eager"
             decoding="async"
+            onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
             className="w-full h-full object-cover aspect-square"
           />
         </div>
@@ -197,6 +197,7 @@ export default function ProductDetail() {
 
           {/* CTA */}
           <Button
+            disabled={(p.stock ?? 0) <= 0}
             className="w-full h-14 rounded-xl text-base font-semibold bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 border border-primary/20 transition-all"
             onClick={() => {
               add(
@@ -207,13 +208,13 @@ export default function ProductDetail() {
                   price: finalPrice,
                   image_url: p.image_url,
                 },
-                qty
+                1
               );
               openCart();
             }}
           >
             <ShoppingCart className="w-5 h-5 mr-2" />
-            Adicionar ao carrinho
+            {(p.stock ?? 0) <= 0 ? "Esgotado" : "Adicionar ao carrinho"}
           </Button>
         </div>
       </div>

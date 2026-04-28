@@ -50,7 +50,9 @@ export default function MyAccount() {
     if (!user) return;
     supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle()
       .then(({ data }) => setProfile(data || {}));
-    supabase.from("orders").select("id, status, total, created_at").order("created_at", { ascending: false })
+    supabase.from("orders").select("id, status, total, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
       .then(({ data }) => setOrders(data || []));
   }, [user]);
 
