@@ -229,7 +229,10 @@ export default function Catalog() {
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [hasMore, loading, paginated]);
+    // Não dependemos de `paginated` aqui — ele é recriado a cada render
+    // e estava recriando o observer toda vez (vazamento + flicker).
+    // O updater de setVisibleCount já garante valor atual.
+  }, [hasMore, loading]);
 
   // Contagem de produtos por categoria (para mostrar no filtro)
   const countByCat = useMemo(() => {
