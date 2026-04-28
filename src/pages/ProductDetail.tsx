@@ -17,6 +17,7 @@ export default function ProductDetail() {
 
   useEffect(() => {
     if (!slug) return;
+    let cancelled = false;
     setLoading(true);
     supabase
       .from("products")
@@ -24,10 +25,15 @@ export default function ProductDetail() {
       .eq("slug", slug)
       .eq("is_active", true)
       .maybeSingle()
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) console.error("[ProductDetail] load failed", error);
         setP(data);
         setLoading(false);
       });
+    return () => {
+      cancelled = true;
+    };
   }, [slug]);
 
   useEffect(() => {
@@ -35,6 +41,7 @@ export default function ProductDetail() {
       setRelated([]);
       return;
     }
+    let cancelled = false;
     supabase
       .from("products")
       .select("id, slug, name, price, sale_price, image_url")
@@ -42,7 +49,14 @@ export default function ProductDetail() {
       .eq("category_id", p.category_id)
       .neq("id", p.id)
       .limit(4)
-      .then(({ data }) => setRelated((data as any) || []));
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) console.error("[ProductDetail] related failed", error);
+        setRelated((data as any) || []);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [p?.category_id, p?.id]);
 
   const hasSaleEarly =

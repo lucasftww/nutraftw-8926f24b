@@ -77,8 +77,9 @@ export default function Catalog() {
   });
 
   useEffect(() => {
+    let cancelled = false;
     async function load() {
-      const [{ data: cats }, { data: prods }] = await Promise.all([
+      const [catsRes, prodsRes] = await Promise.all([
         supabase.from("categories").select("id, name, slug").order("display_order"),
         supabase
           .from("products")
@@ -89,11 +90,17 @@ export default function Catalog() {
           .order("is_featured", { ascending: false })
           .order("created_at", { ascending: false }),
       ]);
-      setCategories((cats as any) || []);
-      setProducts((prods as any) || []);
+      if (cancelled) return;
+      if (catsRes.error) console.error("[Catalog] categories", catsRes.error);
+      if (prodsRes.error) console.error("[Catalog] products", prodsRes.error);
+      setCategories((catsRes.data as any) || []);
+      setProducts((prodsRes.data as any) || []);
       setLoading(false);
     }
     load();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const toggleCat = (slug: string) => {
