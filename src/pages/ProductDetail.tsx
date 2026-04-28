@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ShoppingCart } from "lucide-react";
+import { ShieldCheck, Truck, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -195,9 +196,9 @@ export default function ProductDetail() {
         </ol>
       </nav>
 
-      <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+      <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start">
         {/* Image */}
-        <div className="relative rounded-3xl border border-border/60 overflow-hidden bg-muted/20 shadow-sm w-full max-w-md mx-auto lg:max-w-none">
+        <div className="relative rounded-3xl border border-border/60 overflow-hidden bg-gradient-to-br from-muted/40 to-background shadow-[var(--shadow-soft)] w-full max-w-md mx-auto lg:max-w-none lg:sticky lg:top-20">
           <img
             src={p.image_url || "/assets/no-image.svg"}
             alt={p.name}
@@ -206,15 +207,23 @@ export default function ProductDetail() {
             onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
             className="w-full h-full object-cover aspect-square"
           />
+          {hasSale && (
+            <span className="absolute top-3 right-3 inline-flex items-center rounded-full bg-secondary text-white text-xs font-bold px-2.5 py-1 shadow-md">
+              -{discountPct}%
+            </span>
+          )}
         </div>
 
         {/* Info */}
         <div className="space-y-5 w-full max-w-md mx-auto lg:max-w-none text-center lg:text-left">
           <div>
             {p.category && (
-              <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
+              <Link
+                to={`/?categoria=${p.category.slug}`}
+                className="inline-flex items-center text-[11px] font-bold uppercase tracking-[0.12em] text-secondary hover:underline"
+              >
                 {p.category.name}
-              </p>
+              </Link>
             )}
             <h1 className="text-2xl md:text-3xl font-bold text-foreground mt-2 leading-tight">
               {p.name}
@@ -229,7 +238,7 @@ export default function ProductDetail() {
 
           {/* Tech sheet */}
           {(p.active_principle || p.composition) && (
-            <div className="space-y-3 text-sm bg-muted/40 rounded-2xl p-4 border border-border/50">
+            <div className="space-y-3 text-sm bg-muted/40 rounded-2xl p-4 border border-border/50 text-left">
               {p.active_principle && (
                 <div className="flex flex-col sm:flex-row sm:gap-2">
                   <span className="font-bold text-foreground sm:min-w-[140px]">
@@ -247,18 +256,26 @@ export default function ProductDetail() {
             </div>
           )}
 
-          {/* Price card */}
-          <div className="rounded-2xl border border-border bg-card p-4">
+          {/* Price card — destaque com gradiente sutil */}
+          <div className="rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/[0.04] to-secondary/[0.04] p-5 shadow-[var(--shadow-soft)]">
             <div className="flex items-baseline justify-center lg:justify-start gap-3 flex-wrap">
               {hasSale && (
                 <span className="text-base text-muted-foreground line-through">
                   {formatBRL(Number(p.price))}
                 </span>
               )}
-              <span className="text-3xl font-bold text-primary">
+              <span className="text-4xl font-extrabold tracking-tight text-primary">
                 {formatBRL(finalPrice)}
               </span>
+              {hasSale && (
+                <span className="inline-flex items-center rounded-full bg-secondary/10 text-secondary text-[11px] font-bold uppercase tracking-wide px-2 py-0.5">
+                  você economiza {formatBRL(Number(p.price) - finalPrice)}
+                </span>
+              )}
             </div>
+            <p className="mt-2 text-xs text-muted-foreground">
+              ou em até <span className="font-semibold text-foreground">3x sem juros</span> no cartão
+            </p>
           </div>
 
           {/* CTA */}
@@ -282,6 +299,25 @@ export default function ProductDetail() {
             <ShoppingCart className="w-5 h-5 mr-2" />
             {(p.stock ?? 0) <= 0 ? "Esgotado" : "Adicionar ao carrinho"}
           </Button>
+
+          {/* Selos de confiança */}
+          <ul className="grid grid-cols-3 gap-2 pt-2">
+            {[
+              { icon: Truck, label: "Envio Brasil" },
+              { icon: ShieldCheck, label: "Original" },
+              { icon: Lock, label: "Pgto seguro" },
+            ].map((b) => (
+              <li
+                key={b.label}
+                className="flex flex-col items-center gap-1 rounded-xl border border-border/60 bg-background py-2.5 px-1 text-center"
+              >
+                <b.icon className="h-4 w-4 text-primary" />
+                <span className="text-[11px] font-medium text-muted-foreground leading-tight">
+                  {b.label}
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-import { X, Minus, Plus, ShoppingBag } from "lucide-react";
+import { X, Minus, Plus, ShoppingBag, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "@/hooks/useCart";
 import { formatBRL } from "@/lib/utils";
@@ -35,9 +35,21 @@ export function CartDrawer() {
 
         <div className="flex-1 overflow-y-auto p-5">
           {lines.length === 0 ? (
-            <p className="text-center text-sm text-muted-foreground py-12">
-              O seu carrinho está vazio.
-            </p>
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="h-16 w-16 rounded-full bg-primary/10 text-primary inline-flex items-center justify-center mb-4">
+                <ShoppingBag className="h-7 w-7" />
+              </div>
+              <h4 className="font-semibold text-foreground">Seu carrinho está vazio</h4>
+              <p className="text-sm text-muted-foreground mt-1 max-w-[260px]">
+                Adicione produtos do catálogo para começar.
+              </p>
+              <button
+                onClick={closeCart}
+                className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
+              >
+                Explorar catálogo <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
           ) : (
             <div className="space-y-4">
               {lines.map((l) => (
