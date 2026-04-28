@@ -8,11 +8,9 @@ export function MainLayout() {
   const location = useLocation();
   const isProduct = location.pathname.startsWith("/produto/");
   return (
-    <div className="min-h-screen flex flex-col overflow-x-hidden bg-background">
+    <div className="min-h-screen flex flex-col overflow-x-hidden bg-background pt-12 md:pt-14 [&_:target]:scroll-mt-16 md:[&_:target]:scroll-mt-20">
       <Header />
-      {/* Spacer para compensar header fixo */}
-      <div aria-hidden className="h-12 md:h-14" />
-      <main className="flex-1">
+      <main className="flex-1 flex flex-col">
         <Outlet />
       </main>
       {isProduct ? <ProductFooter /> : <Footer />}
