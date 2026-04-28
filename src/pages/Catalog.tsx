@@ -139,6 +139,17 @@ export default function Catalog() {
     return { promos, sections: Array.from(byCat.values()) };
   }, [filtered]);
 
+  // Contagem de produtos por categoria (para mostrar no filtro)
+  const countByCat = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const p of products) {
+      const k = p.category?.slug;
+      if (!k) continue;
+      map.set(k, (map.get(k) ?? 0) + 1);
+    }
+    return map;
+  }, [products]);
+
   return (
     <>
       <div className="container mx-auto px-4 pt-6 md:pt-10 pb-1">
@@ -245,70 +256,127 @@ export default function Catalog() {
 
       {/* Filters drawer (mobile + desktop) */}
       {filtersOpen && (
-        <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-foreground/40" onClick={() => setFiltersOpen(false)} />
-          <aside className="absolute right-0 top-0 h-full w-[88%] max-w-sm bg-background shadow-2xl flex flex-col animate-in slide-in-from-right">
-            <div className="flex items-center justify-between p-4 border-b border-border">
-              <div className="flex items-center gap-2">
-                <SlidersHorizontal className="h-5 w-5 text-primary" />
-                <h2 className="font-bold text-lg">Filtros</h2>
+        <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Filtros do catálogo">
+          <div
+            className="absolute inset-0 bg-foreground/50 backdrop-blur-[2px] animate-in fade-in"
+            onClick={() => setFiltersOpen(false)}
+          />
+          <aside className="absolute right-0 top-0 h-full w-[92%] max-w-md bg-background shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
+            {/* Header — grande, claro, com contador */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <SlidersHorizontal className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h2 className="font-bold text-xl text-primary leading-tight">Filtros</h2>
+                  <p className="text-[13px] text-muted-foreground leading-tight">
+                    {selectedCats.size === 0
+                      ? "Toque para escolher uma categoria"
+                      : `${selectedCats.size} ${selectedCats.size === 1 ? "categoria selecionada" : "categorias selecionadas"}`}
+                  </p>
+                </div>
               </div>
               <button
                 onClick={() => setFiltersOpen(false)}
-                className="p-2 rounded-xl hover:bg-muted"
+                className="h-11 w-11 inline-flex items-center justify-center rounded-full hover:bg-muted active:bg-muted/80 transition-colors"
                 aria-label="Fechar filtros"
               >
-                <X className="h-5 w-5" />
+                <X className="h-6 w-6 text-primary" />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
-                Categorias
-              </h3>
-              <div className="flex flex-col gap-1">
+
+            {/* Lista de categorias — área de toque ampla, contagem visível */}
+            <div className="flex-1 overflow-y-auto px-4 py-4">
+              <div className="flex items-center justify-between px-2 mb-3">
+                <h3 className="text-[13px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Categorias
+                </h3>
+                {selectedCats.size > 0 && (
+                  <button
+                    onClick={() => setSelectedCats(new Set())}
+                    className="text-[13px] font-semibold text-primary hover:underline"
+                  >
+                    Limpar tudo
+                  </button>
+                )}
+              </div>
+              <ul className="flex flex-col gap-1.5">
                 {categories.map((c) => {
                   const checked = selectedCats.has(c.slug);
+                  const count = countByCat.get(c.slug) ?? 0;
                   return (
-                    <label
-                      key={c.id}
-                      className="flex items-center gap-3 cursor-pointer h-11 px-3 rounded-xl hover:bg-muted"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => toggleCat(c.slug)}
-                        className="sr-only"
-                      />
-                      <div
-                        className={`h-5 w-5 rounded-md border flex items-center justify-center transition-colors ${
-                          checked ? "bg-primary border-primary" : "border-border bg-background"
+                    <li key={c.id}>
+                      <label
+                        className={`flex items-center gap-4 cursor-pointer min-h-[56px] px-4 rounded-2xl border transition-all ${
+                          checked
+                            ? "bg-primary/5 border-primary/40 shadow-sm"
+                            : "bg-background border-border hover:bg-muted/60 hover:border-border"
                         }`}
                       >
-                        {checked && (
-                          <svg className="h-3 w-3 text-primary-foreground" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
-                        )}
-                      </div>
-                      <span className="text-sm font-medium">{c.name}</span>
-                    </label>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleCat(c.slug)}
+                          className="sr-only"
+                        />
+                        <div
+                          className={`h-6 w-6 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
+                            checked ? "bg-primary border-primary" : "border-muted-foreground/40 bg-background"
+                          }`}
+                          aria-hidden="true"
+                        >
+                          {checked && (
+                            <svg
+                              className="h-4 w-4 text-primary-foreground"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="3.5"
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
+                        <span
+                          className={`flex-1 text-base font-medium ${
+                            checked ? "text-primary" : "text-foreground"
+                          }`}
+                        >
+                          {c.name}
+                        </span>
+                        <span
+                          className={`text-[13px] font-semibold tabular-nums px-2.5 py-0.5 rounded-full ${
+                            checked
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          {count}
+                        </span>
+                      </label>
+                    </li>
                   );
                 })}
-              </div>
+              </ul>
             </div>
-            <div className="p-4 border-t border-border flex gap-2">
-              <button
-                onClick={() => setSelectedCats(new Set())}
-                className="flex-1 h-11 rounded-xl border border-border text-sm font-semibold hover:bg-muted"
-              >
-                Limpar
-              </button>
-              <button
-                onClick={() => setFiltersOpen(false)}
-                className="flex-1 h-11 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary-glow"
-              >
-                Ver resultados
-              </button>
+
+            {/* Rodapé com CTA grande */}
+            <div className="px-4 py-4 border-t border-border bg-background shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.08)]">
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setSelectedCats(new Set())}
+                  className="flex-1 h-14 rounded-2xl border-2 border-border text-base font-semibold text-foreground hover:bg-muted active:bg-muted/80 transition-colors"
+                >
+                  Limpar
+                </button>
+                <button
+                  onClick={() => setFiltersOpen(false)}
+                  className="flex-[1.4] h-14 rounded-2xl bg-primary text-primary-foreground text-base font-semibold hover:bg-primary-glow active:scale-[0.98] transition-all shadow-md"
+                >
+                  Ver {filtered.length} {filtered.length === 1 ? "produto" : "produtos"}
+                </button>
+              </div>
             </div>
           </aside>
         </div>
