@@ -374,7 +374,7 @@ export default function Catalog() {
                 </button>
                 <button
                   onClick={() => setFiltersOpen(false)}
-                  className="flex-[1.4] h-14 rounded-2xl bg-primary text-primary-foreground text-base font-semibold hover:bg-primary-glow active:scale-[0.98] transition-all shadow-md"
+                  className="flex-[1.4] h-14 rounded-2xl bg-primary text-primary-foreground text-base font-semibold hover:bg-primary-glow shadow-md"
                 >
                   Ver {filtered.length} {filtered.length === 1 ? "produto" : "produtos"}
                 </button>
