@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/useCart";
+import { useSEO } from "@/hooks/useSEO";
 
 export default function ProductDetail() {
   const { slug } = useParams();
@@ -27,6 +28,40 @@ export default function ProductDetail() {
         setLoading(false);
       });
   }, [slug]);
+
+  const hasSaleEarly =
+    p?.sale_price != null &&
+    Number(p.sale_price) > 0 &&
+    Number(p.sale_price) < Number(p.price);
+  const finalPriceEarly = p ? (hasSaleEarly ? Number(p.sale_price) : Number(p.price)) : 0;
+
+  useSEO(
+    p
+      ? {
+          title: `${p.name} | GIMPORTS`,
+          description:
+            (p.description || `Compre ${p.name} na GIMPORTS com envio para todo o Brasil.`).slice(0, 160),
+          image: p.image_url || undefined,
+          type: "product",
+          jsonLd: {
+            "@context": "https://schema.org",
+            "@type": "Product",
+            name: p.name,
+            description: p.description || undefined,
+            image: p.image_url || undefined,
+            sku: p.id,
+            category: p.category?.name,
+            offers: {
+              "@type": "Offer",
+              priceCurrency: "BRL",
+              price: finalPriceEarly.toFixed(2),
+              availability: "https://schema.org/InStock",
+              url: typeof window !== "undefined" ? window.location.href : undefined,
+            },
+          },
+        }
+      : { title: "Produto | GIMPORTS" }
+  );
 
   if (loading)
     return <div className="container py-20 text-center text-muted-foreground">A carregar…</div>;
@@ -66,6 +101,8 @@ export default function ProductDetail() {
             <img
               src={p.image_url || "/assets/no-image.svg"}
               alt={p.name}
+              loading="eager"
+              decoding="async"
               className="w-full h-full object-contain"
             />
           </div>
