@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import logoGimports from "@/assets/logo-gimports.png";
 
 export function Header() {
   const { user, isAdmin } = useAuth();
@@ -34,10 +35,10 @@ export function Header() {
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-40 w-full glass border-b border-border/50 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-background/70">
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
+        <div className="w-full pl-2 pr-5 sm:pl-3 sm:pr-8 lg:pl-4 lg:pr-12">
           <div className="flex items-center justify-between h-16 md:h-20 gap-6">
             {/* Esquerda: menu mobile + logo */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <button
                 aria-label="Menu"
                 onClick={() => setMobileMenuOpen(true)}
@@ -46,9 +47,11 @@ export function Header() {
                 <Menu className="w-6 h-6" />
               </button>
               <Link to="/" className="flex items-center gap-2.5 group cursor-pointer">
-                <div className="overflow-hidden rounded-full h-9 w-9 md:h-10 md:w-10 border-2 border-primary/10 group-hover:border-primary/30 transition-colors bg-primary flex items-center justify-center shadow-sm">
-                  <span className="text-primary-foreground font-extrabold text-sm">G</span>
-                </div>
+                <img
+                  src={logoGimports}
+                  alt="GIMPORTS"
+                  className="h-10 w-10 md:h-12 md:w-12 object-contain"
+                />
                 <span className="font-display font-bold text-lg md:text-xl tracking-tight text-primary hidden sm:block">
                   GIMPORTS
                 </span>
