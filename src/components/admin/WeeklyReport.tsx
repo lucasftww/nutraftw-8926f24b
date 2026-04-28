@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
+import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "./AdminErrorBanner";
+import { toast } from "sonner";
 import {
   startOfDay,
   endOfDay,
@@ -70,6 +72,8 @@ export function WeeklyReport() {
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [items, setItems] = useState<ItemRow[]>([]);
   const [prevOrders, setPrevOrders] = useState<OrderRow[]>([]);
+  const [error, setError] = useState<AdminErrorInfo | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   const days = range === "7d" ? 7 : range === "14d" ? 14 : 30;
 
@@ -85,6 +89,7 @@ export function WeeklyReport() {
     let cancelled = false;
     (async () => {
       setLoading(true);
+      setError(null);
       const [curOrdersRes, prevOrdersRes] = await Promise.all([
         (supabase as any)
           .from("orders")
@@ -99,15 +104,53 @@ export function WeeklyReport() {
           .lte("created_at", prevEnd.toISOString()),
       ]);
 
+      if (curOrdersRes.error) {
+        const info = logSupabaseError("Relatório · pedidos do período", curOrdersRes.error, {
+          table: "orders",
+          range,
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+        });
+        if (cancelled) return;
+        setError(info);
+        toast.error(`Relatório: ${info.message}`);
+        setLoading(false);
+        return;
+      }
+      if (prevOrdersRes.error) {
+        const info = logSupabaseError("Relatório · período anterior", prevOrdersRes.error, {
+          table: "orders",
+          range,
+          prevStart: prevStart.toISOString(),
+          prevEnd: prevEnd.toISOString(),
+        });
+        if (cancelled) return;
+        setError(info);
+        toast.error(`Relatório: ${info.message}`);
+        setLoading(false);
+        return;
+      }
+
       const curOrders = ((curOrdersRes.data as unknown) as OrderRow[]) || [];
       const paidIds = curOrders.filter((o) => PAID_STATUSES.includes(o.status)).map((o) => o.id);
 
       let curItems: ItemRow[] = [];
       if (paidIds.length > 0) {
-        const { data: it } = await supabase
+        const { data: it, error: itErr } = await supabase
           .from("order_items")
           .select("product_id, product_name, product_image_url, quantity, subtotal, unit_price, order_id")
           .in("order_id", paidIds);
+        if (itErr) {
+          const info = logSupabaseError("Relatório · itens dos pedidos", itErr, {
+            table: "order_items",
+            order_count: paidIds.length,
+          });
+          if (cancelled) return;
+          setError(info);
+          toast.error(`Relatório: ${info.message}`);
+          setLoading(false);
+          return;
+        }
         curItems = (it as ItemRow[]) || [];
       }
 
@@ -120,7 +163,11 @@ export function WeeklyReport() {
     return () => {
       cancelled = true;
     };
-  }, [startDate, endDate, prevStart, prevEnd]);
+  }, [startDate, endDate, prevStart, prevEnd, reloadKey, range]);
+
+  if (error) {
+    return <AdminErrorBanner error={error} onRetry={() => setReloadKey((k) => k + 1)} />;
+  }
 
   const paid = useMemo(() => orders.filter((o) => PAID_STATUSES.includes(o.status)), [orders]);
   const prevPaid = useMemo(() => prevOrders.filter((o) => PAID_STATUSES.includes(o.status)), [prevOrders]);
