@@ -6,6 +6,7 @@ import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/useCart";
 import { useSEO } from "@/hooks/useSEO";
+import { useRegisterCurrentProduct } from "@/contexts/CurrentProductContext";
 
 export default function ProductDetail() {
   const { slug } = useParams();
@@ -118,6 +119,11 @@ export default function ProductDetail() {
   const discountPct = hasSale
     ? Math.round(((Number(p.price) - Number(p.sale_price)) / Number(p.price)) * 100)
     : 0;
+
+  // Registra o produto atual para que o footer possa personalizar o CTA do WhatsApp.
+  useRegisterCurrentProduct(
+    p ? { name: p.name, slug: p.slug, price: finalPrice } : null
+  );
 
   return (
     <section className="py-6 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
