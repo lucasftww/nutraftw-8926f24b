@@ -6,6 +6,7 @@ import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/useCart";
 import { useSEO } from "@/hooks/useSEO";
+import { useRegisterCurrentProduct } from "@/contexts/CurrentProductContext";
 
 export default function ProductDetail() {
   const { slug } = useParams();
@@ -96,6 +97,22 @@ export default function ProductDetail() {
           ],
         }
       : { title: "Produto | GIMPORTS" }
+  );
+
+  // Registra o produto atual para o footer (antes de qualquer early return — regra dos hooks).
+  useRegisterCurrentProduct(
+    p
+      ? {
+          name: p.name,
+          slug: p.slug,
+          price:
+            p.sale_price != null &&
+            Number(p.sale_price) > 0 &&
+            Number(p.sale_price) < Number(p.price)
+              ? Number(p.sale_price)
+              : Number(p.price),
+        }
+      : null
   );
 
   if (loading)
