@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Search, SlidersHorizontal, ShoppingCart, X } from "lucide-react";
+import { Search, SlidersHorizontal, ShoppingCart, X, ArrowUpDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { useCart } from "@/hooks/useCart";
@@ -25,6 +25,14 @@ interface Category {
   slug: string;
 }
 
+const SORT_KEYS = ["categoria", "recentes", "az"] as const;
+type SortKey = (typeof SORT_KEYS)[number];
+const SORT_LABELS: Record<SortKey, string> = {
+  categoria: "Por categoria",
+  recentes: "Mais recentes",
+  az: "A–Z",
+};
+
 export default function Catalog() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -32,8 +40,17 @@ export default function Catalog() {
   const [searchParams, setSearchParams] = useSearchParams();
   const urlQuery = searchParams.get("q") ?? "";
   const urlCategoria = searchParams.get("categoria") ?? "";
+  const urlSort = (searchParams.get("ordenar") ?? "categoria") as SortKey;
   const [query, setQuery] = useState(urlQuery);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const sort: SortKey = SORT_KEYS.includes(urlSort) ? urlSort : "categoria";
+
+  const setSort = (next: SortKey) => {
+    const params = new URLSearchParams(searchParams);
+    if (next === "categoria") params.delete("ordenar");
+    else params.set("ordenar", next);
+    setSearchParams(params, { replace: true });
+  };
 
   useEffect(() => {
     setQuery(urlQuery);
@@ -129,6 +146,19 @@ export default function Catalog() {
     [products, selectedCats, query]
   );
 
+  // Lista ordenada (usada quando o sort não é "categoria")
+  const sorted = useMemo(() => {
+    const arr = [...filtered];
+    if (sort === "az") {
+      arr.sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }));
+    } else if (sort === "recentes") {
+      arr.sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+    }
+    return arr;
+  }, [filtered, sort]);
+
   // Group by category for the section style
   const grouped = useMemo(() => {
     const promos = filtered.filter((p) => {
@@ -186,6 +216,22 @@ export default function Catalog() {
                 </span>
               )}
             </button>
+            <div className="relative">
+              <ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <select
+                value={sort}
+                onChange={(e) => setSort(e.target.value as SortKey)}
+                aria-label="Ordenar produtos"
+                className="appearance-none h-9 pl-8 pr-7 rounded-md border border-input bg-background text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer"
+              >
+                {SORT_KEYS.map((k) => (
+                  <option key={k} value={k}>
+                    {SORT_LABELS[k]}
+                  </option>
+                ))}
+              </select>
+              <span aria-hidden="true" className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">▾</span>
+            </div>
           </div>
 
           {/* Active filter chips */}
@@ -239,23 +285,36 @@ export default function Catalog() {
               </div>
             ) : (
               <>
-                {grouped.promos.length > 0 && (
-                  <Section title="Promoções" items={grouped.promos.slice(0, 8)} onAdd={(p, price) => {
-                    add({ product_id: p.id, slug: p.slug, name: p.name, price, image_url: p.image_url });
-                    openCart();
-                  }} />
-                )}
-                {grouped.sections.map((s) => (
+                {sort === "categoria" ? (
+                  <>
+                    {grouped.promos.length > 0 && (
+                      <Section title="Promoções" items={grouped.promos.slice(0, 8)} onAdd={(p, price) => {
+                        add({ product_id: p.id, slug: p.slug, name: p.name, price, image_url: p.image_url });
+                        openCart();
+                      }} />
+                    )}
+                    {grouped.sections.map((s) => (
+                      <Section
+                        key={s.name}
+                        title={s.name}
+                        items={s.items}
+                        onAdd={(p, price) => {
+                          add({ product_id: p.id, slug: p.slug, name: p.name, price, image_url: p.image_url });
+                          openCart();
+                        }}
+                      />
+                    ))}
+                  </>
+                ) : (
                   <Section
-                    key={s.name}
-                    title={s.name}
-                    items={s.items}
+                    title={SORT_LABELS[sort]}
+                    items={sorted}
                     onAdd={(p, price) => {
                       add({ product_id: p.id, slug: p.slug, name: p.name, price, image_url: p.image_url });
                       openCart();
                     }}
                   />
-                ))}
+                )}
                 <div className="flex justify-center py-8" />
               </>
             )}
