@@ -11,6 +11,7 @@ import MyAccount from "@/pages/MyAccount";
 import Checkout from "@/pages/Checkout";
 import Admin from "@/pages/Admin";
 import NotFound from "@/pages/NotFound";
+import About from "@/pages/About";
 
 const qc = new QueryClient();
 
@@ -28,7 +29,7 @@ export default function App() {
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/minha-conta" element={<RequireAuth><MyAccount /></RequireAuth>} />
               <Route path="/admin" element={<RequireAuth adminOnly><Admin /></RequireAuth>} />
-              <Route path="/sobre" element={<div className="container py-12"><h1 className="font-display text-3xl font-extrabold text-primary">Sobre a GIMPORTS</h1><p className="mt-4 text-muted-foreground">Em breve.</p></div>} />
+              <Route path="/sobre" element={<About />} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>

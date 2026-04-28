@@ -4,6 +4,7 @@ import { Search, SlidersHorizontal, ShoppingCart, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { useCart } from "@/hooks/useCart";
+import { useSEO } from "@/hooks/useSEO";
 
 interface Product {
   id: string;
@@ -48,6 +49,23 @@ export default function Catalog() {
 
   const [loading, setLoading] = useState(true);
   const { add, openCart } = useCart();
+
+  useSEO({
+    title: "GIMPORTS — Catálogo de farmacêuticos importados",
+    description:
+      "Catálogo GIMPORTS com produtos farmacêuticos importados: peptídeos, suporte e mais, com preços transparentes e envio para todo o Brasil.",
+    type: "website",
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      itemListElement: products.slice(0, 20).map((p, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        url: `/produto/${p.slug}`,
+        name: p.name,
+      })),
+    },
+  });
 
   useEffect(() => {
     async function load() {
