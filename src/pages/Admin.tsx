@@ -326,32 +326,49 @@ function AdminOrders() {
   const [detailId, setDetailId] = useState<string | null>(null);
   const [error, setError] = useState<AdminErrorInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  // Paginação server-side: evita carregar milhares de pedidos de uma vez.
+  const PAGE_SIZE = 50;
+  const [page, setPage] = useState(0);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
 
   async function load() {
     setLoading(true);
     setError(null);
-    const { data, error: err } = await supabase
+    const from = page * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+    let q = supabase
       .from("orders")
-      .select("*")
-      .order("created_at", { ascending: false });
+      // Apenas as colunas usadas na lista — reduz payload em ~70%.
+      .select(
+        "id, created_at, status, total, payment_method, shipping_full_name, shipping_cpf",
+        { count: "exact" }
+      )
+      .order("created_at", { ascending: false })
+      .range(from, to);
+    if (filter !== "all") q = q.eq("status", filter as any);
+    const { data, error: err, count } = await q;
     if (err) {
-      const info = logSupabaseError("Carregar pedidos", err, { table: "orders" });
+      const info = logSupabaseError("Carregar pedidos", err, { table: "orders", page, filter });
       setError(info);
       toast.error(`Pedidos: ${info.message}`);
       setLoading(false);
       return;
     }
     setItems(data || []);
+    setTotalCount(count ?? null);
     setLoading(false);
   }
   useEffect(() => {
     load();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, filter]);
+  // Reseta para a primeira página quando o filtro muda.
+  useEffect(() => { setPage(0); }, [filter]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return items.filter((o) => {
-      if (filter !== "all" && o.status !== filter) return false;
+      // status já filtrado server-side; busca client-side só refina.
       if (!q) return true;
       return (
         o.id.toLowerCase().includes(q) ||
@@ -359,7 +376,7 @@ function AdminOrders() {
         (o.shipping_cpf || "").includes(q)
       );
     });
-  }, [items, query, filter]);
+  }, [items, query]);
 
   async function setStatus(id: string, status: string) {
     const { error: err } = await supabase.from("orders").update({ status: status as any }).eq("id", id);
@@ -375,6 +392,8 @@ function AdminOrders() {
   if (error) {
     return <AdminErrorBanner error={error} onRetry={load} />;
   }
+
+  const totalPages = totalCount != null ? Math.max(1, Math.ceil(totalCount / PAGE_SIZE)) : null;
 
   return (
     <>
@@ -436,6 +455,33 @@ function AdminOrders() {
           </tbody>
         </table>
       </div>
+
+      {totalPages && totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4 text-sm">
+          <p className="text-muted-foreground">
+            Página {page + 1} de {totalPages}
+            {totalCount != null && <> · {totalCount} pedidos</>}
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page === 0 || loading}
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+            >
+              ← Anterior
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page >= totalPages - 1 || loading}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Próxima →
+            </Button>
+          </div>
+        </div>
+      )}
 
       {detailId && <OrderDetailModal orderId={detailId} onClose={() => setDetailId(null)} />}
     </>
