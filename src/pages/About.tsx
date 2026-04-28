@@ -1,8 +1,11 @@
 import { Link } from "react-router-dom";
 import { ShieldCheck, Truck, Lock, MessageCircle } from "lucide-react";
 import { useSEO } from "@/hooks/useSEO";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 export default function About() {
+  const settings = useSiteSettings();
+  const wa = settings.whatsapp_number || "5511999999999";
   useSEO({
     title: "Sobre a GIMPORTS — quem somos e como trabalhamos",
     description:
@@ -53,7 +56,7 @@ export default function About() {
           Ver catálogo
         </Link>
         <a
-          href="https://wa.me/5511999999999"
+          href={`https://wa.me/${wa}`}
           target="_blank"
           rel="noreferrer"
           className="inline-flex items-center justify-center h-11 px-6 rounded-full border border-border text-foreground font-semibold text-sm hover:bg-muted transition-colors"
