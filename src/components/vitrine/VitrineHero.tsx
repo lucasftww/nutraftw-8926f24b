@@ -30,12 +30,14 @@ export function VitrineHero() {
         <div className="container mx-auto px-5">
           <a
             href={banner.cta_url || "#"}
-            className="block relative rounded-2xl overflow-hidden shadow-lg group"
+            className="block relative rounded-2xl overflow-hidden shadow-lg"
           >
             <img
               src={banner.image_url}
               alt={banner.title || "Banner"}
-              className="w-full aspect-[16/6] sm:aspect-[16/5] object-cover transition-transform group-hover:scale-105"
+              className="w-full aspect-[16/6] sm:aspect-[16/5] object-cover"
+              loading="eager"
+              decoding="async"
             />
             {(banner.title || banner.subtitle) && (
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-5 sm:p-8 text-white">

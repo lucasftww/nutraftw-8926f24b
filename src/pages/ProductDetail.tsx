@@ -250,7 +250,7 @@ export default function ProductDetail() {
           {/* CTA */}
           <Button
             disabled={(p.stock ?? 0) <= 0}
-            className="w-full h-14 rounded-xl text-base font-semibold bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 border border-primary/20 transition-all"
+            className="w-full h-14 rounded-xl text-base font-semibold bg-primary hover:bg-primary-glow text-primary-foreground shadow-md border border-primary/20"
             onClick={() => {
               add(
                 {
@@ -311,7 +311,7 @@ export default function ProductDetail() {
                 <Link
                   key={r.id}
                   to={`/produto/${r.slug}`}
-                  className="group flex flex-col h-full rounded-2xl bg-card overflow-hidden transition-all duration-300 hover:-translate-y-0.5"
+                  className="flex flex-col h-full rounded-2xl bg-card overflow-hidden"
                 >
                   <div className="relative aspect-square overflow-hidden bg-white rounded-2xl">
                     <img
@@ -320,7 +320,7 @@ export default function ProductDetail() {
                       loading="lazy"
                       decoding="async"
                       sizes="(max-width: 640px) 50vw, 25vw"
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                      className="w-full h-full object-cover"
                     />
                   </div>
                   <div className="pt-3 pb-1 px-1">
