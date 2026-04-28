@@ -56,9 +56,10 @@ export default function Login() {
   }
 
   async function loginGoogle() {
+    const target = next.startsWith("/") ? next : "/";
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/` },
+      options: { redirectTo: `${window.location.origin}${target}` },
     });
     if (error) toast.error(error.message);
   }
