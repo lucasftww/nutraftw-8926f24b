@@ -11,7 +11,7 @@ export function MainLayout() {
     <div className="min-h-screen flex flex-col overflow-x-hidden bg-background">
       <Header />
       {/* Spacer para compensar header fixo */}
-      <div aria-hidden className="h-16 md:h-20" />
+      <div aria-hidden className="h-12 md:h-14" />
       <main className="flex-1">
         <Outlet />
       </main>
