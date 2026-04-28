@@ -99,6 +99,22 @@ export default function ProductDetail() {
       : { title: "Produto | GIMPORTS" }
   );
 
+  // Registra o produto atual para o footer (antes de qualquer early return — regra dos hooks).
+  useRegisterCurrentProduct(
+    p
+      ? {
+          name: p.name,
+          slug: p.slug,
+          price:
+            p.sale_price != null &&
+            Number(p.sale_price) > 0 &&
+            Number(p.sale_price) < Number(p.price)
+              ? Number(p.sale_price)
+              : Number(p.price),
+        }
+      : null
+  );
+
   if (loading)
     return <div className="container py-20 text-center text-muted-foreground">A carregar…</div>;
   if (!p)
@@ -119,11 +135,6 @@ export default function ProductDetail() {
   const discountPct = hasSale
     ? Math.round(((Number(p.price) - Number(p.sale_price)) / Number(p.price)) * 100)
     : 0;
-
-  // Registra o produto atual para que o footer possa personalizar o CTA do WhatsApp.
-  useRegisterCurrentProduct(
-    p ? { name: p.name, slug: p.slug, price: finalPrice } : null
-  );
 
   return (
     <section className="py-6 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
