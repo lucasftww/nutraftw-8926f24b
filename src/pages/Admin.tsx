@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatBRL, slugify } from "@/lib/utils";
 import { toast } from "sonner";
-import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, Image as ImageIcon, RefreshCcw } from "lucide-react";
+import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, Image as ImageIcon, RefreshCcw, Settings } from "lucide-react";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { OrderDetailModal } from "@/components/admin/OrderDetailModal";
@@ -15,8 +15,9 @@ import { AdminCoupons } from "@/components/admin/AdminCoupons";
 import { AdminShipping } from "@/components/admin/AdminShipping";
 import { AdminBanners } from "@/components/admin/AdminBanners";
 import { AdminResends } from "@/components/admin/AdminResends";
+import { AdminSettings } from "@/components/admin/AdminSettings";
 
-type Tab = "dashboard" | "products" | "categories" | "orders" | "coupons" | "shipping" | "banners" | "resends";
+type Tab = "dashboard" | "products" | "categories" | "orders" | "coupons" | "shipping" | "banners" | "resends" | "settings";
 
 const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -27,6 +28,7 @@ const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "shipping", label: "Fretes", icon: Truck },
   { id: "banners", label: "Banners", icon: ImageIcon },
   { id: "resends", label: "Reenvios", icon: RefreshCcw },
+  { id: "settings", label: "Configurações", icon: Settings },
 ];
 
 export default function Admin() {
@@ -72,6 +74,7 @@ export default function Admin() {
       {tab === "shipping" && <AdminShipping />}
       {tab === "banners" && <AdminBanners />}
       {tab === "resends" && <AdminResends />}
+      {tab === "settings" && <AdminSettings />}
     </div>
   );
 }

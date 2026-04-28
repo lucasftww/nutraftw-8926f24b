@@ -3,11 +3,15 @@ import { ShoppingBag, CircleUserRound, Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 export function Header() {
   const { user, isAdmin } = useAuth();
   const { count, openCart } = useCart();
   const location = useLocation();
+  const settings = useSiteSettings();
+  const wa = settings.whatsapp_number || "5511999999999";
+  const waMsg = encodeURIComponent(settings.whatsapp_message || "");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Close menu on route change
@@ -126,7 +130,7 @@ export function Header() {
             </nav>
             <div className="p-4 border-t border-border">
               <a
-                href="https://wa.me/5511999999999"
+                href={`https://wa.me/${wa}${waMsg ? `?text=${waMsg}` : ""}`}
                 target="_blank"
                 rel="noreferrer"
                 className="block w-full text-center h-11 leading-[44px] rounded-full bg-[#25D366] text-white font-semibold text-sm"

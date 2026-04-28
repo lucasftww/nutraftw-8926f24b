@@ -1,6 +1,7 @@
 import { Instagram } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import logoImg from "@/assets/vitrine-logo.png";
 
 /**
@@ -9,6 +10,8 @@ import logoImg from "@/assets/vitrine-logo.png";
  */
 export function VitrineHero() {
   const [banner, setBanner] = useState<any | null>(null);
+  const settings = useSiteSettings();
+  const bio = settings.hero_bio || "✨ Sua parceira no cuidado com a saúde ⚖️ Produtos que auxiliam no emagrecimento 💊 Medicamentos, suplementos e vitaminas 🤝 Atendimento de confiança 📲 Fale conosco e saiba mais!";
 
   useEffect(() => {
     (supabase as any)
@@ -71,7 +74,7 @@ export function VitrineHero() {
 
           {/* Bio */}
           <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-xl leading-relaxed">
-            ✨ Sua parceira no cuidado com a saúde ⚖️ Produtos que auxiliam no emagrecimento 💊 Medicamentos, suplementos e vitaminas 🤝 Atendimento de confiança 📲 Fale conosco e saiba mais!
+            {bio}
           </p>
 
           {/* Action button */}

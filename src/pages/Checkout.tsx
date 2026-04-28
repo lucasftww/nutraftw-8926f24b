@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { formatBRL } from "@/lib/utils";
 import { toast } from "sonner";
 import { ShieldCheck, Truck, Lock, CreditCard, QrCode, ArrowLeft, Ticket, Check } from "lucide-react";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const SHIPPING_FALLBACK = 80;
 const INSURANCE_RATE = 0.1;
@@ -39,10 +40,12 @@ export default function Checkout() {
   const { lines, total, clear } = useCart();
   const { user } = useAuth();
   const nav = useNavigate();
+  const settings = useSiteSettings();
   const [submitting, setSubmitting] = useState(false);
   const [cepLoading, setCepLoading] = useState(false);
-  const [shippingValue, setShippingValue] = useState<number>(SHIPPING_FALLBACK);
-  const [shippingInfo, setShippingInfo] = useState<{ label?: string; min?: number; max?: number } | null>(null);
+  const [shippingOptions, setShippingOptions] = useState<any[]>([]);
+  const [shippingId, setShippingId] = useState<string | null>(null);
+  const [insuranceOn, setInsuranceOn] = useState<boolean>(true);
   const [coupon, setCoupon] = useState<any | null>(null);
   const [couponInput, setCouponInput] = useState("");
   const [couponLoading, setCouponLoading] = useState(false);
@@ -109,28 +112,35 @@ export default function Checkout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.zip]);
 
-  // Frete dinâmico por UF
+  // Frete dinâmico por UF — agora carrega TODAS as modalidades
   useEffect(() => {
     const uf = form.state.toUpperCase();
-    if (uf.length !== 2) return;
+    if (uf.length !== 2) { setShippingOptions([]); setShippingId(null); return; }
     (supabase as any)
       .from("shipping_rates")
       .select("*")
       .eq("state", uf)
       .eq("active", true)
       .order("price")
-      .limit(1)
-      .maybeSingle()
       .then(({ data }: any) => {
-        if (data) {
-          setShippingValue(Number(data.price));
-          setShippingInfo({ label: data.label, min: data.delivery_days_min, max: data.delivery_days_max });
-        } else {
-          setShippingValue(SHIPPING_FALLBACK);
-          setShippingInfo(null);
-        }
+        const arr = (data as any[]) || [];
+        setShippingOptions(arr);
+        setShippingId((cur) => arr.find((o) => o.id === cur)?.id || arr[0]?.id || null);
       });
   }, [form.state]);
+
+  // Aplica preferência admin para seguro
+  useEffect(() => {
+    if (settings.insurance_optional === "0") setInsuranceOn(true);
+  }, [settings.insurance_optional]);
+
+  // Garante método de pagamento válido conforme settings
+  useEffect(() => {
+    const pixOn = settings.checkout_enable_pix !== "0";
+    const cardOn = settings.checkout_enable_card !== "0";
+    if (form.payment_method === "pix" && !pixOn && cardOn) setForm((f) => ({ ...f, payment_method: "credit_card" }));
+    if (form.payment_method === "credit_card" && !cardOn && pixOn) setForm((f) => ({ ...f, payment_method: "pix" }));
+  }, [settings.checkout_enable_pix, settings.checkout_enable_card]);
 
   async function applyCoupon() {
     const code = couponInput.trim().toUpperCase();
@@ -154,7 +164,9 @@ export default function Checkout() {
     }
   }
 
-  const insurance = Math.round(total * INSURANCE_RATE * 100) / 100;
+  const selectedShipping = shippingOptions.find((o) => o.id === shippingId);
+  const shippingValue = selectedShipping ? Number(selectedShipping.price) : SHIPPING_FALLBACK;
+  const insurance = insuranceOn ? Math.round(total * INSURANCE_RATE * 100) / 100 : 0;
   const couponDiscount = !coupon ? 0 :
     coupon.discount_type === "percent"
       ? Math.round(total * Number(coupon.discount_value) / 100 * 100) / 100
@@ -384,10 +396,62 @@ export default function Checkout() {
             </div>
           </section>
 
+          {/* Frete */}
+          {shippingOptions.length > 0 && (
+            <section className="bg-card rounded-2xl border border-border p-5 md:p-6">
+              <h2 className="font-bold text-lg mb-1">Tipo de envio</h2>
+              <p className="text-xs text-muted-foreground mb-4">Escolha como prefere receber.</p>
+              <div className="grid sm:grid-cols-2 gap-3">
+                {shippingOptions.map((o) => (
+                  <button
+                    key={o.id}
+                    type="button"
+                    onClick={() => setShippingId(o.id)}
+                    className={`p-4 rounded-xl border-2 text-left transition-all ${
+                      shippingId === o.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-bold text-sm flex items-center gap-2"><Truck className="h-4 w-4" />{o.label}</div>
+                        {o.delivery_days_min && o.delivery_days_max && (
+                          <div className="text-xs text-muted-foreground mt-0.5">{o.delivery_days_min}–{o.delivery_days_max} dias úteis</div>
+                        )}
+                      </div>
+                      <span className="font-bold">{formatBRL(Number(o.price))}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {settings.insurance_optional !== "0" && (
+                <label className="mt-5 flex items-start gap-3 cursor-pointer p-3 rounded-xl border border-border bg-muted/20 hover:bg-muted/40 transition">
+                  <input
+                    type="checkbox"
+                    className="mt-1"
+                    checked={insuranceOn}
+                    onChange={(e) => setInsuranceOn(e.target.checked)}
+                  />
+                  <div className="flex-1">
+                    <div className="font-semibold text-sm flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4 text-primary" />
+                      Adicionar seguro de envio (+10%)
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Cobre extravio e avaria. Recomendado para pedidos acima de R$ 500.
+                    </p>
+                  </div>
+                  <span className="font-bold text-sm">+{formatBRL(Math.round(total * INSURANCE_RATE * 100) / 100)}</span>
+                </label>
+              )}
+            </section>
+          )}
+
           {/* Payment */}
           <section className="bg-card rounded-2xl border border-border p-5 md:p-6">
             <h2 className="font-bold text-lg mb-4">Forma de pagamento</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {settings.checkout_enable_pix !== "0" && (
               <button
                 type="button"
                 onClick={() => setForm({ ...form, payment_method: "pix" })}
@@ -408,6 +472,8 @@ export default function Checkout() {
                   −5%
                 </span>
               </button>
+              )}
+              {settings.checkout_enable_card !== "0" && (
               <button
                 type="button"
                 onClick={() => setForm({ ...form, payment_method: "credit_card" })}
@@ -425,6 +491,7 @@ export default function Checkout() {
                   </div>
                 </div>
               </button>
+              )}
             </div>
           </section>
 
@@ -475,17 +542,19 @@ export default function Checkout() {
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">
-                Frete{shippingInfo?.label ? ` · ${shippingInfo.label}` : ""}
-                {shippingInfo?.min && shippingInfo?.max && (
-                  <span className="block text-[10px]">{shippingInfo.min}–{shippingInfo.max} dias úteis</span>
+                Frete{selectedShipping?.label ? ` · ${selectedShipping.label}` : ""}
+                {selectedShipping?.delivery_days_min && selectedShipping?.delivery_days_max && (
+                  <span className="block text-[10px]">{selectedShipping.delivery_days_min}–{selectedShipping.delivery_days_max} dias úteis</span>
                 )}
               </span>
               <span>{formatBRL(shippingValue)}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Seguro (10%)</span>
-              <span>{formatBRL(insurance)}</span>
-            </div>
+            {insurance > 0 && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Seguro (10%)</span>
+                <span>{formatBRL(insurance)}</span>
+              </div>
+            )}
             {couponDiscount > 0 && (
               <div className="flex justify-between text-secondary font-semibold">
                 <span>Cupom {coupon?.code}</span>
