@@ -41,11 +41,13 @@ export function Header() {
             <div className="flex items-center gap-2 md:gap-3 min-w-0">
               <button
                 aria-label="Menu"
+                aria-expanded={mobileMenuOpen}
                 onClick={() => setMobileMenuOpen(true)}
-                className="md:hidden inline-flex items-center justify-center h-9 w-9 -ml-1 rounded-full hover:bg-muted transition-colors"
+                className="md:hidden inline-flex items-center justify-center h-9 w-9 -ml-1 rounded-full text-primary/80 hover:text-primary hover:bg-primary/5 active:bg-primary/10 active:scale-95 data-[open=true]:bg-primary/10 data-[open=true]:text-primary transition-all duration-150"
+                data-open={mobileMenuOpen}
               >
                 {/* Hambúrguer minimalista — 3 traços finos com bom espaço */}
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="w-5 h-5">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" className="w-[18px] h-[18px]">
                   <path d="M4 7h16" />
                   <path d="M4 12h16" />
                   <path d="M4 17h16" />
