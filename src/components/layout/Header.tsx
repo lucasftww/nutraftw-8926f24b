@@ -65,6 +65,20 @@ export function Header() {
 
             {/* Direita: conta + carrinho */}
             <div className="flex items-center justify-end gap-0.5 md:gap-1">
+              {/* WhatsApp — só desktop (no mobile fica no rodapé do drawer) */}
+              <a
+                href={`https://wa.me/${wa}${waMsg ? `?text=${waMsg}` : ""}`}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Suporte WhatsApp"
+                title="Suporte WhatsApp"
+                className="hidden md:inline-flex items-center justify-center h-9 w-9 rounded-full text-[#25D366] hover:bg-[#25D366]/10 transition-colors"
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor" className="w-[20px] h-[20px]">
+                  <path d="M20.5 3.5A11 11 0 0 0 3.7 17.3L2.5 21.5l4.3-1.1a11 11 0 0 0 13.7-16.9Zm-8.6 16.4a9 9 0 0 1-4.6-1.3l-.3-.2-2.6.7.7-2.5-.2-.3a9 9 0 1 1 7 3.6Zm5-6.7c-.3-.1-1.6-.8-1.9-.9s-.4-.1-.6.1-.7.9-.9 1.1-.3.1-.6 0a7.4 7.4 0 0 1-3.7-3.2c-.3-.5.3-.4.7-1.4.1-.2 0-.3 0-.5s-.6-1.5-.9-2-.5-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-1 2.3c0 1.4 1 2.7 1.2 2.9s2.1 3.2 5.1 4.4a16 16 0 0 0 1.7.6 4 4 0 0 0 1.9.1c.6-.1 1.6-.7 1.9-1.4s.3-1.2.2-1.4-.2-.2-.5-.3Z"/>
+                </svg>
+              </a>
+
               <Link
                 to={accountHref}
                 aria-label={accountLabel}
@@ -172,17 +186,6 @@ export function Header() {
                   <path d="M9 18l6-6-6-6" />
                 </svg>
               </Link>
-              {user && (
-                <Link
-                  to={accountHref}
-                  className="flex items-center justify-between h-12 text-[15px] font-semibold text-primary hover:bg-primary/5 transition-colors border-b border-border/50"
-                >
-                  {isAdmin ? "Painel Admin" : "Minha conta"}
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-primary/60">
-                    <path d="M9 18l6-6-6-6" />
-                  </svg>
-                </Link>
-              )}
             </nav>
 
             {/* Rodapé — WhatsApp, mesmo padding lateral */}
