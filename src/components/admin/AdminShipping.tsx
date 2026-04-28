@@ -5,15 +5,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 
 const UFS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 
 export function AdminShipping() {
   const [items, setItems] = useState<any[]>([]);
   const [editing, setEditing] = useState<any | null>(null);
+  const [error, setError] = useState<AdminErrorInfo | null>(null);
 
   async function load() {
-    const { data } = await supabase.from("shipping_rates" as any).select("*").order("state");
+    setError(null);
+    const { data, error: err } = await supabase.from("shipping_rates" as any).select("*").order("state");
+    if (err) {
+      const info = logSupabaseError("Carregar fretes", err, { table: "shipping_rates" });
+      setError(info);
+      toast.error(`Fretes: ${info.message}`);
+      return;
+    }
     setItems((data as any[]) || []);
   }
   useEffect(() => { load(); }, []);
@@ -32,15 +41,24 @@ export function AdminShipping() {
     const { error } = f.id
       ? await supabase.from("shipping_rates" as any).update(payload).eq("id", f.id)
       : await supabase.from("shipping_rates" as any).insert(payload);
-    if (error) toast.error(error.message);
-    else { toast.success("Frete guardado"); setEditing(null); load(); }
+    if (error) {
+      logSupabaseError("Guardar frete", error, { id: f.id, payload });
+      toast.error(error.message);
+    } else { toast.success("Frete guardado"); setEditing(null); load(); }
   }
 
   async function del(id: string) {
     if (!confirm("Remover frete?")) return;
-    await supabase.from("shipping_rates" as any).delete().eq("id", id);
+    const { error: err } = await supabase.from("shipping_rates" as any).delete().eq("id", id);
+    if (err) {
+      logSupabaseError("Remover frete", err, { id });
+      toast.error(err.message);
+      return;
+    }
     load();
   }
+
+  if (error) return <AdminErrorBanner error={error} onRetry={load} />;
 
   return (
     <>

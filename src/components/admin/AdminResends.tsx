@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { formatBRL } from "@/lib/utils";
 import { toast } from "sonner";
 import { PackageCheck, Truck } from "lucide-react";
+import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 
 const STATUS_OPTIONS = [
   { value: "", label: "—" },
@@ -16,22 +17,34 @@ const STATUS_OPTIONS = [
 export function AdminResends() {
   const [items, setItems] = useState<any[]>([]);
   const [filter, setFilter] = useState<"pending" | "all">("pending");
+  const [error, setError] = useState<AdminErrorInfo | null>(null);
 
   async function load() {
+    setError(null);
     const base: any = supabase.from("orders").select("*");
     const q = filter === "pending"
       ? base.in("resend_status", ["requested", "in_preparation"])
       : base.not("resend_status", "is", null);
-    const { data } = await q.order("resend_requested_at", { ascending: false, nullsFirst: false });
+    const { data, error: err } = await q.order("resend_requested_at", { ascending: false, nullsFirst: false });
+    if (err) {
+      const info = logSupabaseError("Carregar reenvios", err, { filter });
+      setError(info);
+      toast.error(`Reenvios: ${info.message}`);
+      return;
+    }
     setItems((data as any[]) || []);
   }
   useEffect(() => { load(); }, [filter]);
 
   async function update(id: string, patch: any) {
     const { error } = await supabase.from("orders").update(patch).eq("id", id);
-    if (error) toast.error(error.message);
-    else { toast.success("Atualizado"); load(); }
+    if (error) {
+      logSupabaseError("Atualizar reenvio", error, { id, patch });
+      toast.error(error.message);
+    } else { toast.success("Atualizado"); load(); }
   }
+
+  if (error) return <AdminErrorBanner error={error} onRetry={load} />;
 
   return (
     <>
