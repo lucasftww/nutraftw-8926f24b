@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, ShoppingCart } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -137,29 +137,11 @@ export default function ProductDetail() {
             <Link
               to="/"
               itemProp="item"
-              className="hover:text-primary transition-colors"
-            >
-              <span itemProp="name">Início</span>
-            </Link>
-            <meta itemProp="position" content="1" />
-          </li>
-          <li aria-hidden="true" className="text-muted-foreground/50">
-            ›
-          </li>
-          <li
-            itemProp="itemListElement"
-            itemScope
-            itemType="https://schema.org/ListItem"
-            className="inline-flex items-center"
-          >
-            <Link
-              to="/catalogo"
-              itemProp="item"
               className="hover:text-primary transition-colors font-medium"
             >
               <span itemProp="name">Catálogo</span>
             </Link>
-            <meta itemProp="position" content="2" />
+            <meta itemProp="position" content="1" />
           </li>
           <li aria-hidden="true" className="text-muted-foreground/50">
             ›
@@ -177,7 +159,7 @@ export default function ProductDetail() {
             >
               {p.name}
             </span>
-            <meta itemProp="position" content="3" />
+            <meta itemProp="position" content="2" />
           </li>
         </ol>
       </nav>
