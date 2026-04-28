@@ -1,23 +1,46 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
+import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "./AdminErrorBanner";
+import { toast } from "sonner";
 
 export function OrderDetailModal({ orderId, onClose }: { orderId: string; onClose: () => void }) {
   const [order, setOrder] = useState<any | null>(null);
   const [items, setItems] = useState<any[]>([]);
+  const [error, setError] = useState<AdminErrorInfo | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const [orderRes, itemsRes] = await Promise.all([
+      supabase.from("orders").select("*").eq("id", orderId).maybeSingle(),
+      supabase.from("order_items").select("*").eq("order_id", orderId),
+    ]);
+    if (orderRes.error) {
+      const info = logSupabaseError("Carregar pedido", orderRes.error, { table: "orders", order_id: orderId });
+      setError(info);
+      toast.error(`Pedido: ${info.message}`);
+      setLoading(false);
+      return;
+    }
+    if (itemsRes.error) {
+      const info = logSupabaseError("Carregar itens do pedido", itemsRes.error, { table: "order_items", order_id: orderId });
+      setError(info);
+      toast.error(`Itens: ${info.message}`);
+      setLoading(false);
+      return;
+    }
+    setOrder(orderRes.data);
+    setItems(itemsRes.data || []);
+    setLoading(false);
+  }, [orderId]);
 
   useEffect(() => {
-    (async () => {
-      const [{ data: o }, { data: it }] = await Promise.all([
-        supabase.from("orders").select("*").eq("id", orderId).maybeSingle(),
-        supabase.from("order_items").select("*").eq("order_id", orderId),
-      ]);
-      setOrder(o);
-      setItems(it || []);
-    })();
-  }, [orderId]);
+    load();
+  }, [load]);
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
@@ -27,8 +50,10 @@ export function OrderDetailModal({ orderId, onClose }: { orderId: string; onClos
           <button onClick={onClose} className="p-2 hover:bg-muted rounded-lg"><X className="h-4 w-4" /></button>
         </div>
 
-        {!order ? (
-          <p className="text-muted-foreground">Carregando…</p>
+        {error ? (
+          <AdminErrorBanner error={error} onRetry={load} />
+        ) : loading || !order ? (
+          <p className="text-muted-foreground">{loading ? "Carregando…" : "Pedido não encontrado."}</p>
         ) : (
           <>
             <section className="grid sm:grid-cols-2 gap-4 text-sm">

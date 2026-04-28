@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { Package, ShoppingBag, DollarSign, Users, TrendingUp, Clock, Receipt, Boxes } from "lucide-react";
+import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "./AdminErrorBanner";
+import { toast } from "sonner";
 
 type Stats = {
   totalRevenue: number;
@@ -20,18 +22,43 @@ type Stats = {
 export function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<AdminErrorInfo | null>(null);
 
-  useEffect(() => {
-    (async () => {
-      const [
-        { data: orders },
-        { data: products },
-        { count: customersCount },
-      ] = await Promise.all([
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [ordersRes, productsRes, customersRes] = await Promise.all([
         supabase.from("orders").select("id, total, status, created_at, shipping_full_name").order("created_at", { ascending: false }),
         supabase.from("products").select("id, name, stock, price, image_url"),
         supabase.from("profiles").select("id", { count: "exact", head: true }),
       ]);
+
+      if (ordersRes.error) {
+        const info = logSupabaseError("Carregar pedidos", ordersRes.error, { table: "orders" });
+        setError(info);
+        toast.error(`Pedidos: ${info.message}`);
+        setLoading(false);
+        return;
+      }
+      if (productsRes.error) {
+        const info = logSupabaseError("Carregar produtos", productsRes.error, { table: "products" });
+        setError(info);
+        toast.error(`Produtos: ${info.message}`);
+        setLoading(false);
+        return;
+      }
+      if (customersRes.error) {
+        const info = logSupabaseError("Contar clientes", customersRes.error, { table: "profiles" });
+        setError(info);
+        toast.error(`Clientes: ${info.message}`);
+        setLoading(false);
+        return;
+      }
+
+      const orders = ordersRes.data;
+      const products = productsRes.data;
+      const customersCount = customersRes.count;
 
       const paidOrders = (orders || []).filter((o) => ["paid", "processing", "shipped", "delivered"].includes(o.status));
       // Receita = soma do `total` das ordens pagas. `total` já é líquido (após cupom + PIX).
@@ -46,10 +73,20 @@ export function AdminDashboard() {
       let topProducts: any[] = [];
       if (paidOrders.length > 0) {
         const paidIds = paidOrders.map((o) => o.id);
-        const { data: oi } = await supabase
+        const { data: oi, error: oiErr } = await supabase
           .from("order_items")
           .select("product_id, product_name, product_image_url, quantity, subtotal")
           .in("order_id", paidIds);
+        if (oiErr) {
+          const info = logSupabaseError("Carregar itens dos pedidos", oiErr, {
+            table: "order_items",
+            order_count: paidIds.length,
+          });
+          setError(info);
+          toast.error(`Itens: ${info.message}`);
+          setLoading(false);
+          return;
+        }
         const agg = new Map<string, { id: string | null; name: string; image: string | null; qty: number; revenue: number }>();
         for (const it of (oi as any[]) || []) {
           const key = it.product_id || it.product_name;
@@ -76,8 +113,21 @@ export function AdminDashboard() {
         topProducts,
       });
       setLoading(false);
-    })();
+    } catch (e: any) {
+      const info = logSupabaseError("Dashboard", e);
+      setError(info);
+      toast.error(`Dashboard: ${info.message}`);
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  if (error) {
+    return <AdminErrorBanner error={error} onRetry={load} />;
+  }
 
   if (loading || !stats) {
     return <div className="text-center py-12 text-muted-foreground">Carregando métricas…</div>;
