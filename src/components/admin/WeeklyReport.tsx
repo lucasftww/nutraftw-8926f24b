@@ -46,6 +46,12 @@ type OrderRow = {
   total: number;
   status: string;
   created_at: string;
+  subtotal?: number;
+  shipping?: number;
+  insurance?: number;
+  discount?: number;
+  payment_method?: string | null;
+  coupon_code?: string | null;
 };
 
 type ItemRow = {
@@ -80,9 +86,9 @@ export function WeeklyReport() {
     (async () => {
       setLoading(true);
       const [curOrdersRes, prevOrdersRes] = await Promise.all([
-        supabase
+        (supabase as any)
           .from("orders")
-          .select("id, total, status, created_at")
+          .select("id, total, status, created_at, subtotal, shipping, insurance, discount, payment_method, coupon_code")
           .gte("created_at", startDate.toISOString())
           .lte("created_at", endDate.toISOString())
           .order("created_at", { ascending: true }),
@@ -93,7 +99,7 @@ export function WeeklyReport() {
           .lte("created_at", prevEnd.toISOString()),
       ]);
 
-      const curOrders = (curOrdersRes.data as OrderRow[]) || [];
+      const curOrders = ((curOrdersRes.data as unknown) as OrderRow[]) || [];
       const paidIds = curOrders.filter((o) => PAID_STATUSES.includes(o.status)).map((o) => o.id);
 
       let curItems: ItemRow[] = [];
@@ -126,6 +132,77 @@ export function WeeklyReport() {
   const aov = ordersCount > 0 ? revenue / ordersCount : 0;
   const prevAov = prevOrdersCount > 0 ? prevRevenue / prevOrdersCount : 0;
   const itemsSold = items.reduce((s, i) => s + Number(i.quantity || 0), 0);
+
+  // ───────── Reconciliação financeira ─────────
+  // Valida se o `total` gravado bate com: subtotal + shipping + insurance − discount − pix(5% se método=pix)
+  // e se o `subtotal` da ordem bate com a soma dos `order_items.subtotal`.
+  const reconciliation = useMemo(() => {
+    const itemsByOrder = new Map<string, number>();
+    for (const it of items) {
+      itemsByOrder.set(it.order_id, (itemsByOrder.get(it.order_id) || 0) + Number(it.subtotal || 0));
+    }
+
+    const round2 = (n: number) => Math.round(n * 100) / 100;
+    const TOL = 0.02; // 2 centavos de tolerância p/ arredondamento
+
+    let sumSubtotal = 0;
+    let sumShipping = 0;
+    let sumInsurance = 0;
+    let sumDiscount = 0;
+    let sumPixDiscount = 0;
+    let sumExpectedTotal = 0;
+    let sumActualTotal = 0;
+    let sumItemsSubtotal = 0;
+
+    const totalMismatches: { id: string; expected: number; actual: number; diff: number }[] = [];
+    const itemsMismatches: { id: string; orderSubtotal: number; itemsSubtotal: number; diff: number }[] = [];
+
+    for (const o of paid) {
+      const sub = Number(o.subtotal || 0);
+      const ship = Number(o.shipping || 0);
+      const ins = Number(o.insurance || 0);
+      const disc = Number(o.discount || 0);
+      const beforePix = round2(sub + ship + ins - disc);
+      const pixDisc = o.payment_method === "pix" ? round2(beforePix * 0.05) : 0;
+      const expected = round2(beforePix - pixDisc);
+      const actual = Number(o.total || 0);
+
+      sumSubtotal += sub;
+      sumShipping += ship;
+      sumInsurance += ins;
+      sumDiscount += disc;
+      sumPixDiscount += pixDisc;
+      sumExpectedTotal += expected;
+      sumActualTotal += actual;
+
+      if (Math.abs(expected - actual) > TOL) {
+        totalMismatches.push({ id: o.id, expected, actual, diff: round2(actual - expected) });
+      }
+
+      const itemsSub = round2(itemsByOrder.get(o.id) || 0);
+      sumItemsSubtotal += itemsSub;
+      // Só valida se há itens carregados para a ordem (evita falso-positivo p/ ordens sem itens cadastrados).
+      if (itemsByOrder.has(o.id) && Math.abs(itemsSub - sub) > TOL) {
+        itemsMismatches.push({ id: o.id, orderSubtotal: sub, itemsSubtotal: itemsSub, diff: round2(itemsSub - sub) });
+      }
+    }
+
+    return {
+      sumSubtotal: round2(sumSubtotal),
+      sumShipping: round2(sumShipping),
+      sumInsurance: round2(sumInsurance),
+      sumDiscount: round2(sumDiscount),
+      sumPixDiscount: round2(sumPixDiscount),
+      sumExpectedTotal: round2(sumExpectedTotal),
+      sumActualTotal: round2(sumActualTotal),
+      totalDiff: round2(sumActualTotal - sumExpectedTotal),
+      sumItemsSubtotal: round2(sumItemsSubtotal),
+      itemsSubtotalDiff: round2(sumItemsSubtotal - sumSubtotal),
+      totalMismatches,
+      itemsMismatches,
+      ordersChecked: paid.length,
+    };
+  }, [paid, items]);
 
   const dailySeries = useMemo(() => {
     const buckets = new Map<string, { revenue: number; orders: number }>();
@@ -385,6 +462,142 @@ export function WeeklyReport() {
           </div>
         </div>
       )}
+
+      {/* Validação financeira */}
+      {!loading && reconciliation.ordersChecked > 0 && (
+        <div className="bg-card rounded-2xl border border-border p-4 md:p-6">
+          <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
+            <h3 className="font-bold">Validação financeira</h3>
+            {reconciliation.totalMismatches.length === 0 && reconciliation.itemsMismatches.length === 0 ? (
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700">
+                ✓ Tudo bate ({reconciliation.ordersChecked} pedidos)
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-destructive/10 text-destructive">
+                ⚠ {reconciliation.totalMismatches.length + reconciliation.itemsMismatches.length} divergência(s)
+              </span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+            <Stat label="Subtotal" value={formatBRL(reconciliation.sumSubtotal)} />
+            <Stat label="Frete" value={formatBRL(reconciliation.sumShipping)} />
+            <Stat label="Seguro" value={formatBRL(reconciliation.sumInsurance)} />
+            <Stat label="Desconto cupom" value={`− ${formatBRL(reconciliation.sumDiscount)}`} />
+            <Stat label="Desconto PIX (5%)" value={`− ${formatBRL(reconciliation.sumPixDiscount)}`} />
+            <Stat label="Total esperado" value={formatBRL(reconciliation.sumExpectedTotal)} />
+            <Stat label="Total real (DB)" value={formatBRL(reconciliation.sumActualTotal)} highlight />
+            <Stat
+              label="Diferença"
+              value={formatBRL(Math.abs(reconciliation.totalDiff))}
+              tone={Math.abs(reconciliation.totalDiff) > 0.02 ? "danger" : "ok"}
+            />
+          </div>
+
+          <p className="text-[11px] text-muted-foreground mt-3 leading-relaxed">
+            Fórmula: <span className="font-mono">total = subtotal + frete + seguro − cupom − pix(5%)</span>.
+            Reconciliação também valida que <span className="font-mono">subtotal</span> da ordem é igual à soma dos itens (
+            {formatBRL(reconciliation.sumItemsSubtotal)} vs {formatBRL(reconciliation.sumSubtotal)} — diff{" "}
+            {formatBRL(Math.abs(reconciliation.itemsSubtotalDiff))}).
+          </p>
+
+          {(reconciliation.totalMismatches.length > 0 || reconciliation.itemsMismatches.length > 0) && (
+            <div className="mt-4 space-y-3">
+              {reconciliation.totalMismatches.length > 0 && (
+                <details className="rounded-lg border border-destructive/30 bg-destructive/5 p-3" open>
+                  <summary className="text-xs font-bold text-destructive cursor-pointer">
+                    Pedidos com total divergente ({reconciliation.totalMismatches.length})
+                  </summary>
+                  <div className="mt-2 overflow-x-auto">
+                    <table className="w-full text-xs min-w-[420px]">
+                      <thead className="text-muted-foreground">
+                        <tr>
+                          <th className="text-left py-1 pr-2">Pedido</th>
+                          <th className="text-right py-1 px-2">Esperado</th>
+                          <th className="text-right py-1 px-2">Real</th>
+                          <th className="text-right py-1 pl-2">Diff</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {reconciliation.totalMismatches.slice(0, 20).map((m) => (
+                          <tr key={m.id} className="border-t border-destructive/20">
+                            <td className="py-1 pr-2 font-mono">#{m.id.slice(0, 8)}</td>
+                            <td className="py-1 px-2 text-right tabular-nums">{formatBRL(m.expected)}</td>
+                            <td className="py-1 px-2 text-right tabular-nums">{formatBRL(m.actual)}</td>
+                            <td className="py-1 pl-2 text-right tabular-nums font-bold text-destructive">
+                              {m.diff > 0 ? "+" : ""}
+                              {formatBRL(m.diff)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </details>
+              )}
+              {reconciliation.itemsMismatches.length > 0 && (
+                <details className="rounded-lg border border-amber-300 bg-amber-50 p-3">
+                  <summary className="text-xs font-bold text-amber-800 cursor-pointer">
+                    Pedidos com subtotal ≠ soma dos itens ({reconciliation.itemsMismatches.length})
+                  </summary>
+                  <div className="mt-2 overflow-x-auto">
+                    <table className="w-full text-xs min-w-[420px]">
+                      <thead className="text-muted-foreground">
+                        <tr>
+                          <th className="text-left py-1 pr-2">Pedido</th>
+                          <th className="text-right py-1 px-2">Subtotal ordem</th>
+                          <th className="text-right py-1 px-2">Soma itens</th>
+                          <th className="text-right py-1 pl-2">Diff</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {reconciliation.itemsMismatches.slice(0, 20).map((m) => (
+                          <tr key={m.id} className="border-t border-amber-200">
+                            <td className="py-1 pr-2 font-mono">#{m.id.slice(0, 8)}</td>
+                            <td className="py-1 px-2 text-right tabular-nums">{formatBRL(m.orderSubtotal)}</td>
+                            <td className="py-1 px-2 text-right tabular-nums">{formatBRL(m.itemsSubtotal)}</td>
+                            <td className="py-1 pl-2 text-right tabular-nums font-bold text-amber-800">
+                              {m.diff > 0 ? "+" : ""}
+                              {formatBRL(m.diff)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </details>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  highlight,
+  tone,
+}: {
+  label: string;
+  value: string;
+  highlight?: boolean;
+  tone?: "ok" | "danger";
+}) {
+  const toneClass =
+    tone === "danger"
+      ? "text-destructive"
+      : tone === "ok"
+        ? "text-emerald-700"
+        : highlight
+          ? "text-primary"
+          : "text-foreground";
+  return (
+    <div className="rounded-xl border border-border bg-background px-3 py-2">
+      <p className="text-[11px] text-muted-foreground">{label}</p>
+      <p className={`text-sm font-bold tabular-nums mt-0.5 ${toneClass}`}>{value}</p>
     </div>
   );
 }
