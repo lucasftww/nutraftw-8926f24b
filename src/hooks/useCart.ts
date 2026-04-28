@@ -1,14 +1,15 @@
 import { useSyncExternalStore } from "react";
-import { cart, CartLine } from "@/lib/cart-store";
+import { cart } from "@/lib/cart-store";
+
+// Snapshot serializado garante re-render confiável quando carrinho/drawer mudam.
+const subscribe = (cb: () => void) => cart.subscribe(cb);
+const getSnapshot = () =>
+  JSON.stringify(cart.getLines()) + "|" + cart.isOpen();
+const getServerSnapshot = () => "[]|false";
 
 export function useCart() {
-  const subscribe = (cb: () => void) => cart.subscribe(cb);
-  const lines = useSyncExternalStore(
-    subscribe,
-    () => JSON.stringify(cart.getLines()) + "|" + cart.isOpen(),
-    () => "[]|false"
-  );
-  void lines; // ensures re-render
+  // useSyncExternalStore garante re-render; lemos os dados frescos do store.
+  useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   return {
     lines: cart.getLines(),
     count: cart.getCount(),
