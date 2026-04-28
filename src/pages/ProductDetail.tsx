@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, ShieldCheck, Truck, Lock, Package } from "lucide-react";
+import { ArrowLeft, ShieldCheck, Truck, Lock, Package, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ export default function ProductDetail() {
   const [p, setP] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [qty, setQty] = useState(1);
+  const [related, setRelated] = useState<any[]>([]);
   const { add, openCart } = useCart();
 
   useEffect(() => {
@@ -29,6 +30,21 @@ export default function ProductDetail() {
       });
   }, [slug]);
 
+  useEffect(() => {
+    if (!p?.category_id) {
+      setRelated([]);
+      return;
+    }
+    supabase
+      .from("products")
+      .select("id, slug, name, price, sale_price, image_url")
+      .eq("is_active", true)
+      .eq("category_id", p.category_id)
+      .neq("id", p.id)
+      .limit(4)
+      .then(({ data }) => setRelated((data as any) || []));
+  }, [p?.category_id, p?.id]);
+
   const hasSaleEarly =
     p?.sale_price != null &&
     Number(p.sale_price) > 0 &&
@@ -43,22 +59,42 @@ export default function ProductDetail() {
             (p.description || `Compre ${p.name} na GIMPORTS com envio para todo o Brasil.`).slice(0, 160),
           image: p.image_url || undefined,
           type: "product",
-          jsonLd: {
-            "@context": "https://schema.org",
-            "@type": "Product",
-            name: p.name,
-            description: p.description || undefined,
-            image: p.image_url || undefined,
-            sku: p.id,
-            category: p.category?.name,
-            offers: {
-              "@type": "Offer",
-              priceCurrency: "BRL",
-              price: finalPriceEarly.toFixed(2),
-              availability: "https://schema.org/InStock",
-              url: typeof window !== "undefined" ? window.location.href : undefined,
+          jsonLd: [
+            {
+              "@context": "https://schema.org",
+              "@type": "Product",
+              name: p.name,
+              description: p.description || undefined,
+              image: p.image_url || undefined,
+              sku: p.id,
+              category: p.category?.name,
+              offers: {
+                "@type": "Offer",
+                priceCurrency: "BRL",
+                price: finalPriceEarly.toFixed(2),
+                availability: "https://schema.org/InStock",
+                url: typeof window !== "undefined" ? window.location.href : undefined,
+              },
             },
-          },
+            {
+              "@context": "https://schema.org",
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                { "@type": "ListItem", position: 1, name: "Início", item: "/" },
+                ...(p.category
+                  ? [
+                      {
+                        "@type": "ListItem",
+                        position: 2,
+                        name: p.category.name,
+                        item: `/?categoria=${p.category.slug}`,
+                      },
+                      { "@type": "ListItem", position: 3, name: p.name },
+                    ]
+                  : [{ "@type": "ListItem", position: 2, name: p.name }]),
+              ],
+            },
+          ],
         }
       : { title: "Produto | GIMPORTS" }
   );
@@ -87,12 +123,39 @@ export default function ProductDetail() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
-      <Link
-        to="/"
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6"
-      >
-        <ArrowLeft className="h-4 w-4" /> Voltar ao catálogo
-      </Link>
+      {/* Breadcrumbs */}
+      <nav aria-label="Breadcrumb" className="mb-6">
+        <ol className="flex flex-wrap items-center gap-1 text-xs sm:text-sm text-muted-foreground">
+          <li>
+            <Link to="/" className="hover:text-primary transition-colors">
+              Início
+            </Link>
+          </li>
+          {p.category && (
+            <>
+              <ChevronRight className="h-3.5 w-3.5 opacity-60" />
+              <li>
+                <Link
+                  to={`/?categoria=${p.category.slug}`}
+                  className="hover:text-primary transition-colors"
+                >
+                  {p.category.name}
+                </Link>
+              </li>
+            </>
+          )}
+          <ChevronRight className="h-3.5 w-3.5 opacity-60" />
+          <li className="text-foreground font-medium line-clamp-1 max-w-[60vw] sm:max-w-none">
+            {p.name}
+          </li>
+        </ol>
+        <Link
+          to="/"
+          className="mt-3 inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-primary"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> Voltar ao catálogo
+        </Link>
+      </nav>
 
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] gap-6 lg:gap-12">
         {/* Image */}
@@ -254,6 +317,66 @@ export default function ProductDetail() {
           </a>
         </div>
       </div>
+
+      {/* Produtos relacionados */}
+      {related.length > 0 && (
+        <section className="mt-16 pt-10 border-t border-border">
+          <div className="flex items-end justify-between mb-6 gap-4">
+            <h2 className="font-display text-xl md:text-2xl font-bold text-foreground">
+              {p.category ? `Mais de ${p.category.name}` : "Você também pode gostar"}
+            </h2>
+            {p.category && (
+              <Link
+                to={`/?categoria=${p.category.slug}`}
+                className="text-sm font-semibold text-primary hover:underline whitespace-nowrap"
+              >
+                Ver categoria →
+              </Link>
+            )}
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
+            {related.map((r) => {
+              const rPrice = Number(r.price);
+              const rSale = r.sale_price != null ? Number(r.sale_price) : 0;
+              const rHasSale = rSale > 0 && rSale < rPrice;
+              const rFinal = rHasSale ? rSale : rPrice;
+              return (
+                <Link
+                  key={r.id}
+                  to={`/produto/${r.slug}`}
+                  className="group flex flex-col h-full rounded-2xl bg-card overflow-hidden transition-all duration-300 hover:-translate-y-0.5"
+                >
+                  <div className="relative aspect-square overflow-hidden bg-white rounded-2xl">
+                    <img
+                      src={r.image_url || "/assets/no-image.svg"}
+                      alt={r.name}
+                      loading="lazy"
+                      decoding="async"
+                      sizes="(max-width: 640px) 50vw, 25vw"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                    />
+                  </div>
+                  <div className="pt-3 pb-1 px-1">
+                    <h3 className="font-medium text-sm leading-snug line-clamp-2 min-h-[2.5rem] text-foreground">
+                      {r.name}
+                    </h3>
+                    <div className="mt-2 flex items-baseline gap-2">
+                      <span className="text-base font-bold text-foreground">
+                        {formatBRL(rFinal)}
+                      </span>
+                      {rHasSale && (
+                        <span className="text-xs text-muted-foreground line-through">
+                          {formatBRL(rPrice)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
