@@ -542,17 +542,19 @@ export default function Checkout() {
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">
-                Frete{shippingInfo?.label ? ` · ${shippingInfo.label}` : ""}
-                {shippingInfo?.min && shippingInfo?.max && (
-                  <span className="block text-[10px]">{shippingInfo.min}–{shippingInfo.max} dias úteis</span>
+                Frete{selectedShipping?.label ? ` · ${selectedShipping.label}` : ""}
+                {selectedShipping?.delivery_days_min && selectedShipping?.delivery_days_max && (
+                  <span className="block text-[10px]">{selectedShipping.delivery_days_min}–{selectedShipping.delivery_days_max} dias úteis</span>
                 )}
               </span>
               <span>{formatBRL(shippingValue)}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Seguro (10%)</span>
-              <span>{formatBRL(insurance)}</span>
-            </div>
+            {insurance > 0 && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Seguro (10%)</span>
+                <span>{formatBRL(insurance)}</span>
+              </div>
+            )}
             {couponDiscount > 0 && (
               <div className="flex justify-between text-secondary font-semibold">
                 <span>Cupom {coupon?.code}</span>
