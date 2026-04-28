@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { ShoppingBag, CircleUserRound, Menu, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
@@ -31,6 +31,7 @@ export function Header() {
   }, [mobileMenuOpen]);
 
   const accountHref = isAdmin ? "/admin" : user ? "/minha-conta" : "/login";
+  const accountLabel = user ? (isAdmin ? "Painel" : "Minha conta") : "Entrar";
 
   return (
     <>
@@ -44,7 +45,11 @@ export function Header() {
                 onClick={() => setMobileMenuOpen(true)}
                 className="md:hidden inline-flex items-center justify-center h-9 w-9 -ml-1 rounded-full hover:bg-muted transition-colors"
               >
-                <Menu className="w-5 h-5" />
+                {/* Hambúrguer minimalista — 2 traços finos com bom espaço */}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="w-5 h-5">
+                  <path d="M4 9h16" />
+                  <path d="M4 15h16" />
+                </svg>
               </button>
               <Link to="/" className="flex items-center gap-2 group cursor-pointer min-w-0">
                 <img
@@ -59,18 +64,34 @@ export function Header() {
             </div>
 
             {/* Direita: conta + carrinho */}
-            <div className="flex items-center justify-end gap-1.5 md:gap-2">
+            <div className="flex items-center justify-end gap-0.5 md:gap-1">
               <Link
                 to={accountHref}
-                className="hidden md:inline-flex items-center gap-2 h-9 px-4 rounded-full border border-primary/20 hover:border-primary text-primary font-semibold text-sm transition-colors"
+                aria-label={accountLabel}
+                title={accountLabel}
+                className="relative inline-flex items-center justify-center h-9 w-9 rounded-full text-primary hover:bg-primary/5 transition-colors"
               >
-                <CircleUserRound className="w-4 h-4" />
-                Minha Conta
+                {user ? (
+                  // Bonequinho preenchido (logado)
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-[22px] h-[22px]">
+                    <circle cx="12" cy="8" r="3.6" />
+                    <path d="M4.5 19.2c.7-3.4 3.7-5.7 7.5-5.7s6.8 2.3 7.5 5.7c.1.6-.4 1.1-1 1.1H5.5c-.6 0-1.1-.5-1-1.1Z" />
+                  </svg>
+                ) : (
+                  // Bonequinho outline (deslogado)
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-[22px] h-[22px]">
+                    <circle cx="12" cy="8" r="3.6" />
+                    <path d="M5 20c1-3.5 3.8-5.5 7-5.5s6 2 7 5.5" />
+                  </svg>
+                )}
+                {user && (
+                  <span aria-hidden className="absolute bottom-1 right-1 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-background" />
+                )}
               </Link>
 
               <button
                 onClick={openCart}
-                className="inline-flex items-center justify-center gap-2 transition-all text-primary hover:bg-primary/5 font-medium relative rounded-full h-9 px-2.5 md:px-3.5"
+                className="inline-flex items-center justify-center transition-all text-primary hover:bg-primary/5 font-medium relative rounded-full h-9 w-9"
                 aria-label="Abrir carrinho"
               >
                 <svg
@@ -81,14 +102,13 @@ export function Header() {
                   strokeWidth="1.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="w-5 h-5 text-primary shrink-0"
+                  className="w-[22px] h-[22px] text-primary shrink-0"
                 >
                   <path d="M3 4h2.2L7 15.5h11" />
                   <path d="M7 7h14l-1.6 7.2a1.5 1.5 0 0 1-1.5 1.3H7" />
                   <circle cx="9" cy="19" r="1.3" />
                   <circle cx="17" cy="19" r="1.3" />
                 </svg>
-                <span className="font-semibold text-primary text-sm hidden md:inline">Carrinho</span>
                 {count > 0 && (
                   <span className="absolute -top-1 -right-1 flex h-[18px] min-w-[18px] px-1 items-center justify-center rounded-full bg-secondary text-[10px] font-bold text-white shadow-sm ring-2 ring-background">
                     {count > 99 ? "99+" : count}
@@ -140,7 +160,10 @@ export function Header() {
                   to={accountHref}
                   className="w-full max-w-sm flex items-center justify-center gap-2 h-12 px-4 rounded-full border border-primary/20 hover:border-primary text-primary font-semibold transition-colors"
                 >
-                  <CircleUserRound className="w-5 h-5" />
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                    <circle cx="12" cy="8" r="3.6" />
+                    <path d="M5 20c1-3.5 3.8-5.5 7-5.5s6 2 7 5.5" />
+                  </svg>
                   {user ? (isAdmin ? "Painel Admin" : "Minha Conta") : "Entrar / Cadastrar"}
                 </Link>
                 <button
