@@ -1,16 +1,14 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import logoGimports from "@/assets/logo-gimports.svg";
-import { supabase } from "@/integrations/supabase/client";
 
 export function Header() {
   const { user, isAdmin } = useAuth();
   const { count, openCart } = useCart();
   const location = useLocation();
-  const navigate = useNavigate();
   const settings = useSiteSettings();
   const wa = settings.whatsapp_number || "5511999999999";
   const waMsg = encodeURIComponent(settings.whatsapp_message || "");
@@ -33,16 +31,6 @@ export function Header() {
 
   const accountHref = isAdmin ? "/admin" : user ? "/minha-conta" : "/login";
   const accountLabel = user ? (isAdmin ? "Painel" : "Minha conta") : "Entrar";
-
-  async function handleSignOut() {
-    setMobileMenuOpen(false);
-    await supabase.auth.signOut();
-    navigate("/");
-  }
-
-  // Iniciais para o avatar do drawer
-  const userEmail = user?.email || "";
-  const userInitial = userEmail ? userEmail[0].toUpperCase() : "?";
 
   return (
     <>
@@ -178,95 +166,51 @@ export function Header() {
               </div>
             </div>
 
-            {/* Navegação — mesma tipografia e divisores do header */}
-            <nav className="flex flex-col pl-2 pr-3 sm:pl-3 sm:pr-6">
+            {/* Navegação enxuta — Catálogo, Sobre e Minha conta (se logado) */}
+            <nav className="flex flex-col pl-3 pr-3 sm:pl-4 sm:pr-6">
               <Link
                 to="/"
-                className="flex items-center justify-between h-12 text-[15px] font-semibold text-primary hover:bg-primary/5 transition-colors border-b border-border/50"
+                className="grid grid-cols-[20px_1fr_16px] items-center gap-3 h-12 text-[15px] font-semibold text-primary hover:bg-primary/5 transition-colors border-b border-border/50"
               >
-                Catálogo
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-primary/60">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-primary/60">
+                  <rect x="3" y="4" width="18" height="16" rx="2" />
+                  <path d="M3 9h18" />
+                </svg>
+                <span>Catálogo</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-primary/40 justify-self-end">
                   <path d="M9 18l6-6-6-6" />
                 </svg>
               </Link>
               <Link
                 to="/sobre"
-                className="flex items-center justify-between h-12 text-[15px] font-semibold text-primary hover:bg-primary/5 transition-colors border-b border-border/50"
+                className="grid grid-cols-[20px_1fr_16px] items-center gap-3 h-12 text-[15px] font-semibold text-primary hover:bg-primary/5 transition-colors border-b border-border/50"
               >
-                Sobre
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-primary/60">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-primary/60">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 8h.01" />
+                  <path d="M11 12h1v4h1" />
+                </svg>
+                <span>Sobre</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-primary/40 justify-self-end">
                   <path d="M9 18l6-6-6-6" />
                 </svg>
               </Link>
-            </nav>
-
-            {/* Bloco de conta — adapta ao estado de login */}
-            <div className="pl-2 pr-3 sm:pl-3 sm:pr-6 pt-4 pb-2">
-              {user ? (
-                <>
-                  <div className="flex items-center gap-3 px-1 pb-3">
-                    <div className="relative inline-flex items-center justify-center h-10 w-10 rounded-full bg-primary text-primary-foreground font-semibold text-sm shrink-0">
-                      {userInitial}
-                      <span aria-hidden className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-background" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[13px] text-muted-foreground leading-tight">
-                        {isAdmin ? "Administrador" : "Conectado como"}
-                      </p>
-                      <p className="text-[14px] font-semibold text-primary truncate">{userEmail}</p>
-                    </div>
-                  </div>
-                  <div className="flex flex-col">
-                    <Link
-                      to={accountHref}
-                      className="flex items-center justify-between h-12 text-[15px] font-semibold text-primary hover:bg-primary/5 transition-colors border-t border-border/50"
-                    >
-                      {isAdmin ? "Painel Admin" : "Minha conta"}
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-primary/60">
-                        <path d="M9 18l6-6-6-6" />
-                      </svg>
-                    </Link>
-                    {!isAdmin && (
-                      <Link
-                        to="/minha-conta?tab=orders"
-                        className="flex items-center justify-between h-12 text-[15px] font-semibold text-primary hover:bg-primary/5 transition-colors border-t border-border/50"
-                      >
-                        Meus pedidos
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-primary/60">
-                          <path d="M9 18l6-6-6-6" />
-                        </svg>
-                      </Link>
-                    )}
-                    <button
-                      onClick={handleSignOut}
-                      className="flex items-center justify-between h-12 text-[15px] font-semibold text-destructive hover:bg-destructive/5 transition-colors border-t border-border/50 text-left"
-                    >
-                      Sair
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-destructive/70">
-                        <path d="M15 17l5-5-5-5" />
-                        <path d="M20 12H9" />
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                      </svg>
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <div className="flex flex-col gap-2 px-1">
-                  <Link
-                    to="/login"
-                    className="inline-flex items-center justify-center h-11 rounded-full bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity"
-                  >
-                    Entrar
-                  </Link>
-                  <Link
-                    to="/login?mode=signup"
-                    className="inline-flex items-center justify-center h-11 rounded-full border border-primary/20 text-primary font-semibold text-sm hover:border-primary transition-colors"
-                  >
-                    Criar conta grátis
-                  </Link>
-                </div>
+              {user && (
+                <Link
+                  to={accountHref}
+                  className="grid grid-cols-[20px_1fr_16px] items-center gap-3 h-12 text-[15px] font-semibold text-primary hover:bg-primary/5 transition-colors border-b border-border/50"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-primary/60">
+                    <circle cx="12" cy="8" r="3.6" />
+                    <path d="M5 20c1-3.5 3.8-5.5 7-5.5s6 2 7 5.5" />
+                  </svg>
+                  <span>{isAdmin ? "Painel Admin" : "Minha conta"}</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-primary/40 justify-self-end">
+                    <path d="M9 18l6-6-6-6" />
+                  </svg>
+                </Link>
               )}
-            </div>
+            </nav>
 
             {/* Rodapé — WhatsApp, mesmo padding lateral */}
             <div className="pl-2 pr-3 sm:pl-3 sm:pr-6 py-3">
