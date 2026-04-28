@@ -274,18 +274,32 @@ export default function ProductDetail() {
       {/* Produtos relacionados */}
       {related.length > 0 && (
         <section className="mt-16 pt-10 border-t border-border">
-          <div className="flex items-end justify-between mb-6 gap-4">
-            <h2 className="font-display text-xl md:text-2xl font-bold text-foreground">
-              {p.category ? `Mais de ${p.category.name}` : "Você também pode gostar"}
-            </h2>
-            {p.category && (
-              <Link
-                to={`/?categoria=${p.category.slug}`}
-                className="text-sm font-semibold text-primary hover:underline whitespace-nowrap"
-              >
-                Ver categoria →
-              </Link>
-            )}
+          {/* Cabeçalho de seção padronizado com o Catálogo (faixa de acento + contador) */}
+          <div className="mb-6 md:mb-8">
+            <div className="flex items-end justify-between gap-4 border-b-2 border-primary/15 pb-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <span
+                  aria-hidden="true"
+                  className="inline-block h-7 md:h-8 w-1.5 rounded-full bg-primary shrink-0"
+                />
+                <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-primary leading-none truncate">
+                  {p.category ? `Mais de ${p.category.name}` : "Você também pode gostar"}
+                </h2>
+              </div>
+              <div className="shrink-0 flex items-center gap-4">
+                {p.category && (
+                  <Link
+                    to={`/?categoria=${p.category.slug}`}
+                    className="hidden sm:inline text-sm font-semibold text-primary hover:underline whitespace-nowrap"
+                  >
+                    Ver categoria →
+                  </Link>
+                )}
+                <span className="text-[12px] md:text-[13px] font-semibold text-muted-foreground tabular-nums">
+                  {related.length} {related.length === 1 ? "produto" : "produtos"}
+                </span>
+              </div>
+            </div>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
             {related.map((r) => {
