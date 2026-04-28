@@ -70,7 +70,7 @@ export function Header() {
                 className="inline-flex items-center justify-center transition-all border-2 text-primary hover:bg-primary/5 font-medium relative rounded-full h-10 md:h-11 px-3 md:px-4 border-primary/20 hover:border-primary"
                 aria-label="Abrir carrinho"
               >
-                <ShoppingBag className="w-5 h-5 md:mr-2 text-primary" />
+                <span className="text-lg md:mr-2 leading-none" aria-hidden>🛒</span>
                 <span className="font-semibold text-primary hidden md:inline">Carrinho</span>
                 {count > 0 && (
                   <span className="absolute -top-1.5 -right-1.5 flex h-5 min-w-[20px] px-1 items-center justify-center rounded-full bg-secondary text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
