@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { formatBRL } from "@/lib/utils";
 import { toast } from "sonner";
 import { ShieldCheck, Truck, Lock, CreditCard, QrCode, ArrowLeft, Ticket, Check } from "lucide-react";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const SHIPPING_FALLBACK = 80;
 const INSURANCE_RATE = 0.1;
@@ -39,10 +40,12 @@ export default function Checkout() {
   const { lines, total, clear } = useCart();
   const { user } = useAuth();
   const nav = useNavigate();
+  const settings = useSiteSettings();
   const [submitting, setSubmitting] = useState(false);
   const [cepLoading, setCepLoading] = useState(false);
-  const [shippingValue, setShippingValue] = useState<number>(SHIPPING_FALLBACK);
-  const [shippingInfo, setShippingInfo] = useState<{ label?: string; min?: number; max?: number } | null>(null);
+  const [shippingOptions, setShippingOptions] = useState<any[]>([]);
+  const [shippingId, setShippingId] = useState<string | null>(null);
+  const [insuranceOn, setInsuranceOn] = useState<boolean>(true);
   const [coupon, setCoupon] = useState<any | null>(null);
   const [couponInput, setCouponInput] = useState("");
   const [couponLoading, setCouponLoading] = useState(false);
@@ -109,28 +112,35 @@ export default function Checkout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.zip]);
 
-  // Frete dinâmico por UF
+  // Frete dinâmico por UF — agora carrega TODAS as modalidades
   useEffect(() => {
     const uf = form.state.toUpperCase();
-    if (uf.length !== 2) return;
+    if (uf.length !== 2) { setShippingOptions([]); setShippingId(null); return; }
     (supabase as any)
       .from("shipping_rates")
       .select("*")
       .eq("state", uf)
       .eq("active", true)
       .order("price")
-      .limit(1)
-      .maybeSingle()
       .then(({ data }: any) => {
-        if (data) {
-          setShippingValue(Number(data.price));
-          setShippingInfo({ label: data.label, min: data.delivery_days_min, max: data.delivery_days_max });
-        } else {
-          setShippingValue(SHIPPING_FALLBACK);
-          setShippingInfo(null);
-        }
+        const arr = (data as any[]) || [];
+        setShippingOptions(arr);
+        setShippingId((cur) => arr.find((o) => o.id === cur)?.id || arr[0]?.id || null);
       });
   }, [form.state]);
+
+  // Aplica preferência admin para seguro
+  useEffect(() => {
+    if (settings.insurance_optional === "0") setInsuranceOn(true);
+  }, [settings.insurance_optional]);
+
+  // Garante método de pagamento válido conforme settings
+  useEffect(() => {
+    const pixOn = settings.checkout_enable_pix !== "0";
+    const cardOn = settings.checkout_enable_card !== "0";
+    if (form.payment_method === "pix" && !pixOn && cardOn) setForm((f) => ({ ...f, payment_method: "credit_card" }));
+    if (form.payment_method === "credit_card" && !cardOn && pixOn) setForm((f) => ({ ...f, payment_method: "pix" }));
+  }, [settings.checkout_enable_pix, settings.checkout_enable_card]);
 
   async function applyCoupon() {
     const code = couponInput.trim().toUpperCase();
@@ -154,7 +164,9 @@ export default function Checkout() {
     }
   }
 
-  const insurance = Math.round(total * INSURANCE_RATE * 100) / 100;
+  const selectedShipping = shippingOptions.find((o) => o.id === shippingId);
+  const shippingValue = selectedShipping ? Number(selectedShipping.price) : SHIPPING_FALLBACK;
+  const insurance = insuranceOn ? Math.round(total * INSURANCE_RATE * 100) / 100 : 0;
   const couponDiscount = !coupon ? 0 :
     coupon.discount_type === "percent"
       ? Math.round(total * Number(coupon.discount_value) / 100 * 100) / 100
