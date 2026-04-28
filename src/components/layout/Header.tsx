@@ -112,10 +112,8 @@ export function Header() {
             <div className="sticky top-0 z-10 w-full glass border-b border-border/50 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-background/70">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16 gap-4">
-                  <Link to="/" className="flex items-center gap-2">
-                    <div className="rounded-full h-9 w-9 bg-primary flex items-center justify-center shadow-sm">
-                      <span className="text-primary-foreground font-extrabold text-sm">G</span>
-                    </div>
+                  <Link to="/" className="flex items-center gap-2.5">
+                    <img src={logoGimports} alt="GIMPORTS" className="h-10 w-10 object-contain" />
                     <span className="font-display font-bold text-lg tracking-tight text-primary">GIMPORTS</span>
                   </Link>
                   <button
