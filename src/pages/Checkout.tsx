@@ -72,7 +72,11 @@ export default function Checkout() {
       .select("*")
       .eq("user_id", user.id)
       .maybeSingle()
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) {
+          console.error("[Checkout] profile prefill failed", error);
+          return;
+        }
         if (!data) return;
         setForm((f) => ({
           ...f,
