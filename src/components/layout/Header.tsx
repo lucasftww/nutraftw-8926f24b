@@ -121,7 +121,7 @@ export function Header() {
         </div>
       </header>
 
-      {/* Mobile drawer — alinhado ao header fixo */}
+      {/* Mobile drawer — herda exatamente os estilos do navbar */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div
@@ -129,69 +129,73 @@ export function Header() {
             onClick={() => setMobileMenuOpen(false)}
           />
           <aside className="absolute left-0 right-0 top-0 w-full bg-background shadow-2xl flex flex-col animate-in slide-in-from-top duration-300 max-h-[100dvh]">
-            {/* Cabeçalho do drawer — idêntico ao header fixo */}
-            <div className="sticky top-0 z-10 w-full glass border-b border-border/50 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-background/70">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between h-16 gap-4">
-                  <Link to="/" className="flex items-center gap-2.5">
-                    <img src={logoGimports} alt="GIMPORTS" className="h-10 w-10 object-contain" />
-                    <span className="font-display font-bold text-lg tracking-tight text-primary">GIMPORTS</span>
+            {/* Cabeçalho — mesmas medidas, padding e tipografia do header fixo */}
+            <div className="w-full glass border-b border-border/50 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-background/70">
+              <div className="w-full pl-2 pr-3 sm:pl-3 sm:pr-6">
+                <div className="flex items-center justify-between h-12 md:h-14 gap-4">
+                  <Link to="/" className="flex items-center gap-2 group cursor-pointer min-w-0">
+                    <img src={logoGimports} alt="GIMPORTS" className="h-7 w-7 md:h-8 md:w-8 object-contain shrink-0" />
+                    <span className="font-display font-semibold text-[15px] md:text-base tracking-tight text-primary truncate">
+                      GIMPORTS
+                    </span>
                   </Link>
                   <button
                     onClick={() => setMobileMenuOpen(false)}
-                    className="p-2 -mr-2 rounded-xl hover:bg-muted transition-colors"
                     aria-label="Fechar menu"
+                    className="inline-flex items-center justify-center h-9 w-9 -mr-1 rounded-full text-primary hover:bg-primary/5 transition-colors"
                   >
-                    <X className="w-6 h-6" />
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="w-5 h-5">
+                      <path d="M6 6l12 12" />
+                      <path d="M18 6L6 18" />
+                    </svg>
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* Navegação enxuta — sem duplicar o que já está no header */}
-            <nav className="px-5 py-4 flex flex-col">
+            {/* Navegação — mesma tipografia e divisores do header */}
+            <nav className="flex flex-col pl-2 pr-3 sm:pl-3 sm:pr-6">
               <Link
                 to="/"
-                className="flex items-center justify-between h-12 px-2 text-[15px] font-medium text-foreground hover:text-primary transition-colors border-b border-border/40"
+                className="flex items-center justify-between h-12 text-[15px] font-semibold text-primary hover:bg-primary/5 transition-colors border-b border-border/50"
               >
                 Catálogo
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-muted-foreground">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-primary/60">
                   <path d="M9 18l6-6-6-6" />
                 </svg>
               </Link>
               <Link
                 to="/sobre"
-                className="flex items-center justify-between h-12 px-2 text-[15px] font-medium text-foreground hover:text-primary transition-colors border-b border-border/40"
+                className="flex items-center justify-between h-12 text-[15px] font-semibold text-primary hover:bg-primary/5 transition-colors border-b border-border/50"
               >
                 Sobre
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-muted-foreground">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-primary/60">
                   <path d="M9 18l6-6-6-6" />
                 </svg>
               </Link>
               {user && (
                 <Link
                   to={accountHref}
-                  className="flex items-center justify-between h-12 px-2 text-[15px] font-medium text-foreground hover:text-primary transition-colors border-b border-border/40"
+                  className="flex items-center justify-between h-12 text-[15px] font-semibold text-primary hover:bg-primary/5 transition-colors border-b border-border/50"
                 >
                   {isAdmin ? "Painel Admin" : "Minha conta"}
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-muted-foreground">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-primary/60">
                     <path d="M9 18l6-6-6-6" />
                   </svg>
                 </Link>
               )}
             </nav>
 
-            <div className="border-t border-border/50">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-center">
-                <a
-                  href={`https://wa.me/${wa}${waMsg ? `?text=${waMsg}` : ""}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-full max-w-sm text-center h-12 leading-[48px] rounded-full bg-[#25D366] text-white font-semibold text-sm shadow-sm hover:opacity-90 transition-opacity"
-                >
-                  Suporte WhatsApp
-                </a>
-              </div>
+            {/* Rodapé — WhatsApp, mesmo padding lateral */}
+            <div className="pl-2 pr-3 sm:pl-3 sm:pr-6 py-3">
+              <a
+                href={`https://wa.me/${wa}${waMsg ? `?text=${waMsg}` : ""}`}
+                target="_blank"
+                rel="noreferrer"
+                className="block w-full text-center h-10 leading-[40px] rounded-full bg-[#25D366] text-white font-semibold text-sm hover:opacity-90 transition-opacity"
+              >
+                Suporte WhatsApp
+              </a>
             </div>
           </aside>
         </div>
