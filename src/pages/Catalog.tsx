@@ -216,6 +216,22 @@ export default function Catalog() {
                 </span>
               )}
             </button>
+            <div className="relative">
+              <ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <select
+                value={sort}
+                onChange={(e) => setSort(e.target.value as SortKey)}
+                aria-label="Ordenar produtos"
+                className="appearance-none h-9 pl-8 pr-7 rounded-md border border-input bg-background text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer"
+              >
+                {SORT_KEYS.map((k) => (
+                  <option key={k} value={k}>
+                    {SORT_LABELS[k]}
+                  </option>
+                ))}
+              </select>
+              <span aria-hidden="true" className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">▾</span>
+            </div>
           </div>
 
           {/* Active filter chips */}
@@ -269,23 +285,36 @@ export default function Catalog() {
               </div>
             ) : (
               <>
-                {grouped.promos.length > 0 && (
-                  <Section title="Promoções" items={grouped.promos.slice(0, 8)} onAdd={(p, price) => {
-                    add({ product_id: p.id, slug: p.slug, name: p.name, price, image_url: p.image_url });
-                    openCart();
-                  }} />
-                )}
-                {grouped.sections.map((s) => (
+                {sort === "categoria" ? (
+                  <>
+                    {grouped.promos.length > 0 && (
+                      <Section title="Promoções" items={grouped.promos.slice(0, 8)} onAdd={(p, price) => {
+                        add({ product_id: p.id, slug: p.slug, name: p.name, price, image_url: p.image_url });
+                        openCart();
+                      }} />
+                    )}
+                    {grouped.sections.map((s) => (
+                      <Section
+                        key={s.name}
+                        title={s.name}
+                        items={s.items}
+                        onAdd={(p, price) => {
+                          add({ product_id: p.id, slug: p.slug, name: p.name, price, image_url: p.image_url });
+                          openCart();
+                        }}
+                      />
+                    ))}
+                  </>
+                ) : (
                   <Section
-                    key={s.name}
-                    title={s.name}
-                    items={s.items}
+                    title={SORT_LABELS[sort]}
+                    items={sorted}
                     onAdd={(p, price) => {
                       add({ product_id: p.id, slug: p.slug, name: p.name, price, image_url: p.image_url });
                       openCart();
                     }}
                   />
-                ))}
+                )}
                 <div className="flex justify-center py-8" />
               </>
             )}
