@@ -10,6 +10,8 @@ export function MainLayout() {
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden bg-background">
       <Header />
+      {/* Spacer para compensar header fixo */}
+      <div aria-hidden className="h-16 md:h-20" />
       <main className="flex-1">
         <Outlet />
       </main>
