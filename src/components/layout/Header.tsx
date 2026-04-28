@@ -34,10 +34,10 @@ export function Header() {
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-40 w-full glass border-b border-border/50 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-background/70">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 md:h-20 gap-4">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
+          <div className="flex items-center justify-between h-16 md:h-20 gap-6">
             {/* Esquerda: menu mobile + logo */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <button
                 aria-label="Menu"
                 onClick={() => setMobileMenuOpen(true)}
@@ -45,7 +45,7 @@ export function Header() {
               >
                 <Menu className="w-6 h-6" />
               </button>
-              <Link to="/" className="flex items-center gap-2 group cursor-pointer">
+              <Link to="/" className="flex items-center gap-2.5 group cursor-pointer">
                 <div className="overflow-hidden rounded-full h-9 w-9 md:h-10 md:w-10 border-2 border-primary/10 group-hover:border-primary/30 transition-colors bg-primary flex items-center justify-center shadow-sm">
                   <span className="text-primary-foreground font-extrabold text-sm">G</span>
                 </div>
@@ -56,10 +56,10 @@ export function Header() {
             </div>
 
             {/* Direita: conta + carrinho */}
-            <div className="flex items-center justify-end gap-2">
+            <div className="flex items-center justify-end gap-3">
               <Link
                 to={accountHref}
-                className="hidden md:inline-flex items-center gap-2 h-11 px-4 rounded-full border border-primary/20 hover:border-primary text-primary font-semibold text-sm transition-colors"
+                className="hidden md:inline-flex items-center gap-2 h-11 px-5 rounded-full border border-primary/20 hover:border-primary text-primary font-semibold text-sm transition-colors"
               >
                 <CircleUserRound className="w-5 h-5" />
                 Minha Conta
@@ -67,10 +67,10 @@ export function Header() {
 
               <button
                 onClick={openCart}
-                className="inline-flex items-center justify-center transition-all border-2 text-primary hover:bg-primary/5 font-medium relative rounded-full h-10 md:h-11 px-3 md:px-4 border-primary/20 hover:border-primary"
+                className="inline-flex items-center justify-center gap-2 transition-all border-2 text-primary hover:bg-primary/5 font-medium relative rounded-full h-10 md:h-11 px-4 md:px-5 border-primary/20 hover:border-primary"
                 aria-label="Abrir carrinho"
               >
-                <span className="text-lg md:mr-2 leading-none" aria-hidden>🛒</span>
+                <span className="text-lg leading-none" aria-hidden>🛒</span>
                 <span className="font-semibold text-primary hidden md:inline">Carrinho</span>
                 {count > 0 && (
                   <span className="absolute -top-1.5 -right-1.5 flex h-5 min-w-[20px] px-1 items-center justify-center rounded-full bg-secondary text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
