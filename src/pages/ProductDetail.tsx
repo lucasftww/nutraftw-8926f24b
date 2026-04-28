@@ -137,7 +137,7 @@ export default function ProductDetail() {
     : 0;
 
   return (
-    <section className="py-6 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
+    <section className="py-6 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto w-full">
       {/* Breadcrumbs — reforçam a navegação até o Catálogo sem duplicar links */}
       <nav aria-label="Breadcrumb" className="mb-6">
         <ol
@@ -181,9 +181,9 @@ export default function ProductDetail() {
         </ol>
       </nav>
 
-      <div className="grid lg:grid-cols-2 gap-8 items-start">
+      <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
         {/* Image */}
-        <div className="relative rounded-3xl border border-border/60 overflow-hidden bg-muted/20 shadow-sm">
+        <div className="relative rounded-3xl border border-border/60 overflow-hidden bg-muted/20 shadow-sm w-full max-w-md mx-auto lg:max-w-none">
           <img
             src={p.image_url || "/assets/no-image.svg"}
             alt={p.name}
@@ -195,7 +195,7 @@ export default function ProductDetail() {
         </div>
 
         {/* Info */}
-        <div className="space-y-5">
+        <div className="space-y-5 w-full max-w-md mx-auto lg:max-w-none text-center lg:text-left">
           <div>
             {p.category && (
               <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
@@ -235,7 +235,7 @@ export default function ProductDetail() {
 
           {/* Price card */}
           <div className="rounded-2xl border border-border bg-card p-4">
-            <div className="flex items-baseline gap-3 flex-wrap">
+            <div className="flex items-baseline justify-center lg:justify-start gap-3 flex-wrap">
               {hasSale && (
                 <span className="text-base text-muted-foreground line-through">
                   {formatBRL(Number(p.price))}
