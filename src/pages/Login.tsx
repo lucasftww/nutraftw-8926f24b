@@ -7,13 +7,14 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 export default function Login() {
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const [params] = useSearchParams();
+  const initialMode = params.get("mode") === "signup" ? "register" : "login";
+  const [mode, setMode] = useState<"login" | "register">(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const nav = useNavigate();
-  const [params] = useSearchParams();
   const next = params.get("next") || "/minha-conta";
 
   async function onSubmit(e: React.FormEvent) {
