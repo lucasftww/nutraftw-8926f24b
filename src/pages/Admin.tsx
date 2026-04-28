@@ -88,14 +88,28 @@ function AdminProducts() {
   const [cats, setCats] = useState<any[]>([]);
   const [editing, setEditing] = useState<any | null>(null);
   const [query, setQuery] = useState("");
+  const [error, setError] = useState<AdminErrorInfo | null>(null);
 
   async function load() {
-    const [{ data: p }, { data: c }] = await Promise.all([
+    setError(null);
+    const [pr, cr] = await Promise.all([
       supabase.from("products").select("*, category:categories(name)").order("created_at", { ascending: false }),
       supabase.from("categories").select("*").order("display_order"),
     ]);
-    setItems(p || []);
-    setCats(c || []);
+    if (pr.error) {
+      const info = logSupabaseError("Carregar produtos", pr.error, { table: "products" });
+      setError(info);
+      toast.error(`Produtos: ${info.message}`);
+      return;
+    }
+    if (cr.error) {
+      const info = logSupabaseError("Carregar categorias", cr.error, { table: "categories" });
+      setError(info);
+      toast.error(`Categorias: ${info.message}`);
+      return;
+    }
+    setItems(pr.data || []);
+    setCats(cr.data || []);
   }
   useEffect(() => { load(); }, []);
 
@@ -128,8 +142,10 @@ function AdminProducts() {
     const { error } = f.id
       ? await supabase.from("products").update(payload).eq("id", f.id)
       : await supabase.from("products").insert(payload);
-    if (error) toast.error(error.message);
-    else {
+    if (error) {
+      logSupabaseError("Guardar produto", error, { id: f.id, name: payload.name });
+      toast.error(error.message);
+    } else {
       toast.success("Produto guardado");
       setEditing(null);
       load();
@@ -139,9 +155,13 @@ function AdminProducts() {
   async function del(id: string) {
     if (!confirm("Remover produto?")) return;
     const { error } = await supabase.from("products").delete().eq("id", id);
-    if (error) toast.error(error.message);
-    else { toast.success("Removido"); load(); }
+    if (error) {
+      logSupabaseError("Remover produto", error, { id });
+      toast.error(error.message);
+    } else { toast.success("Removido"); load(); }
   }
+
+  if (error) return <AdminErrorBanner error={error} onRetry={load} />;
 
   return (
     <>
@@ -233,9 +253,17 @@ function AdminProducts() {
 function AdminCategories() {
   const [items, setItems] = useState<any[]>([]);
   const [name, setName] = useState("");
+  const [error, setError] = useState<AdminErrorInfo | null>(null);
 
   async function load() {
-    const { data } = await supabase.from("categories").select("*").order("display_order");
+    setError(null);
+    const { data, error: err } = await supabase.from("categories").select("*").order("display_order");
+    if (err) {
+      const info = logSupabaseError("Carregar categorias", err, { table: "categories" });
+      setError(info);
+      toast.error(`Categorias: ${info.message}`);
+      return;
+    }
     setItems(data || []);
   }
   useEffect(() => { load(); }, []);
@@ -243,14 +271,23 @@ function AdminCategories() {
   async function add() {
     if (!name.trim()) return;
     const { error } = await supabase.from("categories").insert({ name, slug: slugify(name) });
-    if (error) toast.error(error.message);
-    else { setName(""); load(); }
+    if (error) {
+      logSupabaseError("Adicionar categoria", error, { name });
+      toast.error(error.message);
+    } else { setName(""); load(); }
   }
   async function del(id: string) {
     if (!confirm("Remover categoria?")) return;
-    await supabase.from("categories").delete().eq("id", id);
+    const { error: err } = await supabase.from("categories").delete().eq("id", id);
+    if (err) {
+      logSupabaseError("Remover categoria", err, { id });
+      toast.error(err.message);
+      return;
+    }
     load();
   }
+
+  if (error) return <AdminErrorBanner error={error} onRetry={load} />;
 
   return (
     <div className="bg-card rounded-2xl border border-border p-6">
