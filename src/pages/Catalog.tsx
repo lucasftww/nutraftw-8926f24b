@@ -131,8 +131,10 @@ export default function Catalog() {
     });
     const byCat = new Map<string, { name: string; items: Product[] }>();
     for (const p of filtered) {
-      const key = p.category?.slug ?? "outros";
-      const name = p.category?.name ?? "Outros";
+      // Ignora produtos sem categoria — a seção "Outros" foi removida.
+      if (!p.category?.slug) continue;
+      const key = p.category.slug;
+      const name = p.category.name;
       if (!byCat.has(key)) byCat.set(key, { name, items: [] });
       byCat.get(key)!.items.push(p);
     }
