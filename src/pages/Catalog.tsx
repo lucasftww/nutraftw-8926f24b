@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Search, SlidersHorizontal, ShoppingCart, X, ArrowUpDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -45,6 +45,11 @@ export default function Catalog() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const sort: SortKey = SORT_KEYS.includes(urlSort) ? urlSort : "categoria";
 
+  // Infinite scroll — carrega incrementalmente para reduzir tempo inicial de render
+  const PAGE_SIZE = 12;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
   const setSort = (next: SortKey) => {
     const params = new URLSearchParams(searchParams);
     if (next === "categoria") params.delete("ordenar");
@@ -72,6 +77,11 @@ export default function Catalog() {
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
+
+  // Reseta a paginação sempre que os critérios de listagem mudarem
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [query, selectedCats, sort]);
 
   const [loading, setLoading] = useState(true);
   const { add, openCart } = useCart();
@@ -159,16 +169,15 @@ export default function Catalog() {
     return arr;
   }, [filtered, sort]);
 
-  // Group by category for the section style
-  const grouped = useMemo(() => {
+  // Lista achatada para paginação no modo "categoria" (promos primeiro, depois cada categoria em ordem)
+  const groupedFlat = useMemo(() => {
     const promos = filtered.filter((p) => {
       const pr = Number(p.price);
       const sp = p.sale_price != null ? Number(p.sale_price) : 0;
       return sp > 0 && sp < pr && Math.round((1 - sp / pr) * 100) >= 1;
-    });
+    }).slice(0, 8);
     const byCat = new Map<string, { name: string; items: Product[] }>();
     for (const p of filtered) {
-      // Ignora produtos sem categoria — a seção "Outros" foi removida.
       if (!p.category?.slug) continue;
       const key = p.category.slug;
       const name = p.category.name;
@@ -177,6 +186,50 @@ export default function Catalog() {
     }
     return { promos, sections: Array.from(byCat.values()) };
   }, [filtered]);
+
+  // Aplica o limite de visibilidade respeitando a ordem (promos → seções)
+  const paginated = useMemo(() => {
+    if (sort === "categoria") {
+      let remaining = visibleCount;
+      const promos = groupedFlat.promos.slice(0, remaining);
+      remaining -= promos.length;
+      const sections: { name: string; items: Product[] }[] = [];
+      for (const s of groupedFlat.sections) {
+        if (remaining <= 0) break;
+        const items = s.items.slice(0, remaining);
+        if (items.length > 0) sections.push({ name: s.name, items });
+        remaining -= items.length;
+      }
+      return { promos, sections };
+    }
+    return { promos: [], sections: [{ name: SORT_LABELS[sort], items: sorted.slice(0, visibleCount) }] };
+  }, [sort, sorted, groupedFlat, visibleCount]);
+
+  const totalAvailable = useMemo(() => {
+    if (sort === "categoria") {
+      return groupedFlat.promos.length + groupedFlat.sections.reduce((acc, s) => acc + s.items.length, 0);
+    }
+    return sorted.length;
+  }, [sort, sorted, groupedFlat]);
+
+  const hasMore = visibleCount < totalAvailable;
+
+  // IntersectionObserver para carregar mais ao se aproximar do fim da lista
+  useEffect(() => {
+    if (!hasMore || loading) return;
+    const el = sentinelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setVisibleCount((c) => c + PAGE_SIZE);
+        }
+      },
+      { rootMargin: "600px 0px" }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasMore, loading, paginated]);
 
   // Contagem de produtos por categoria (para mostrar no filtro)
   const countByCat = useMemo(() => {
@@ -316,13 +369,13 @@ export default function Catalog() {
               <>
                 {sort === "categoria" ? (
                   <>
-                    {grouped.promos.length > 0 && (
-                      <Section title="Promoções" items={grouped.promos.slice(0, 8)} onAdd={(p, price) => {
+                    {paginated.promos.length > 0 && (
+                      <Section title="Promoções" items={paginated.promos} onAdd={(p, price) => {
                         add({ product_id: p.id, slug: p.slug, name: p.name, price, image_url: p.image_url });
                         openCart();
                       }} />
                     )}
-                    {grouped.sections.map((s) => (
+                    {paginated.sections.map((s) => (
                       <Section
                         key={s.name}
                         title={s.name}
@@ -337,14 +390,39 @@ export default function Catalog() {
                 ) : (
                   <Section
                     title={SORT_LABELS[sort]}
-                    items={sorted}
+                    items={paginated.sections[0]?.items ?? []}
                     onAdd={(p, price) => {
                       add({ product_id: p.id, slug: p.slug, name: p.name, price, image_url: p.image_url });
                       openCart();
                     }}
                   />
                 )}
-                <div className="flex justify-center py-8" />
+                {hasMore && (
+                  <div ref={sentinelRef} className="flex flex-col items-center gap-3 py-8">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5 w-full">
+                      {Array.from({ length: 4 }).map((_, i) => (
+                        <div key={i} className="rounded-2xl bg-card overflow-hidden">
+                          <div className="aspect-square skeleton-shimmer rounded-2xl" />
+                          <div className="pt-3 px-1 space-y-2">
+                            <div className="h-3 w-4/5 skeleton-shimmer rounded" />
+                            <div className="h-3 w-2/5 skeleton-shimmer rounded" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                      className="mt-2 inline-flex items-center justify-center h-10 px-5 rounded-full border border-input bg-background text-sm font-semibold hover:bg-accent transition-colors"
+                    >
+                      Carregar mais
+                    </button>
+                  </div>
+                )}
+                {!hasMore && totalAvailable > PAGE_SIZE && (
+                  <p className="text-center text-xs text-muted-foreground py-6">
+                    Você viu todos os {totalAvailable} produtos.
+                  </p>
+                )}
               </>
             )}
           </div>
