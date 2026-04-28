@@ -13,6 +13,12 @@ export function Footer() {
         </a>
         <div className="flex items-center gap-4 text-sm">
           <a
+            href="/sobre"
+            className="text-muted-foreground hover:text-primary transition-colors"
+          >
+            Sobre
+          </a>
+          <a
             href="/login"
             className="text-muted-foreground hover:text-primary transition-colors"
           >
