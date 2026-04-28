@@ -70,7 +70,21 @@ export function Header() {
                 className="inline-flex items-center justify-center gap-2 transition-all border-2 text-primary hover:bg-primary/5 font-medium relative rounded-full h-10 md:h-11 px-4 md:px-5 border-primary/20 hover:border-primary"
                 aria-label="Abrir carrinho"
               >
-                <span className="text-lg leading-none" aria-hidden>🛒</span>
+                <svg
+                  aria-hidden
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="w-5 h-5 text-primary"
+                >
+                  <path d="M3 4h2.2L7 15.5h11" />
+                  <path d="M7 7h14l-1.6 7.2a1.5 1.5 0 0 1-1.5 1.3H7" />
+                  <circle cx="9" cy="19" r="1.3" />
+                  <circle cx="17" cy="19" r="1.3" />
+                </svg>
                 <span className="font-semibold text-primary hidden md:inline">Carrinho</span>
                 {count > 0 && (
                   <span className="absolute -top-1.5 -right-1.5 flex h-5 min-w-[20px] px-1 items-center justify-center rounded-full bg-secondary text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
