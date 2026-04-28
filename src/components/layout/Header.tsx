@@ -1,16 +1,14 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import logoGimports from "@/assets/logo-gimports.svg";
-import { supabase } from "@/integrations/supabase/client";
 
 export function Header() {
   const { user, isAdmin } = useAuth();
   const { count, openCart } = useCart();
   const location = useLocation();
-  const navigate = useNavigate();
   const settings = useSiteSettings();
   const wa = settings.whatsapp_number || "5511999999999";
   const waMsg = encodeURIComponent(settings.whatsapp_message || "");
@@ -33,16 +31,6 @@ export function Header() {
 
   const accountHref = isAdmin ? "/admin" : user ? "/minha-conta" : "/login";
   const accountLabel = user ? (isAdmin ? "Painel" : "Minha conta") : "Entrar";
-
-  async function handleSignOut() {
-    setMobileMenuOpen(false);
-    await supabase.auth.signOut();
-    navigate("/");
-  }
-
-  // Iniciais para o avatar do drawer
-  const userEmail = user?.email || "";
-  const userInitial = userEmail ? userEmail[0].toUpperCase() : "?";
 
   return (
     <>
