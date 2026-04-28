@@ -40,13 +40,22 @@ export function useAuth() {
         setRole(null);
       }
     });
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      currentUid = s?.user?.id ?? null;
-      if (s?.user) fetchRole(s.user.id);
-      setLoading(false);
-    });
+    // Sempre liberar o loading, mesmo se o getSession falhar (rede, CORS,
+    // etc.) — caso contrário RequireAuth fica preso em "Carregando…".
+    supabase.auth
+      .getSession()
+      .then(({ data: { session: s } }) => {
+        setSession(s);
+        setUser(s?.user ?? null);
+        currentUid = s?.user?.id ?? null;
+        if (s?.user) fetchRole(s.user.id);
+      })
+      .catch((e) => {
+        console.error("[useAuth] getSession failed", e);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
     return () => sub.subscription.unsubscribe();
   }, []);
 
