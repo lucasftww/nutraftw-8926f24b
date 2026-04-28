@@ -35,42 +35,42 @@ export function Header() {
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-40 w-full glass border-b border-border/50 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-background/70">
-        <div className="w-full pl-2 pr-5 sm:pl-3 sm:pr-8 lg:pl-4 lg:pr-12">
-          <div className="flex items-center justify-between h-12 md:h-14 gap-6">
+        <div className="w-full pl-2 pr-3 sm:pl-3 sm:pr-6 lg:pl-4 lg:pr-10">
+          <div className="flex items-center justify-between h-12 md:h-14 gap-4">
             {/* Esquerda: menu mobile + logo */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 md:gap-3 min-w-0">
               <button
                 aria-label="Menu"
                 onClick={() => setMobileMenuOpen(true)}
-                className="md:hidden p-2 -ml-2 rounded-xl hover:bg-muted transition-colors"
+                className="md:hidden inline-flex items-center justify-center h-9 w-9 -ml-1 rounded-full hover:bg-muted transition-colors"
               >
-                <Menu className="w-6 h-6" />
+                <Menu className="w-5 h-5" />
               </button>
-              <Link to="/" className="flex items-center gap-2.5 group cursor-pointer">
+              <Link to="/" className="flex items-center gap-2 group cursor-pointer min-w-0">
                 <img
                   src={logoGimports}
                   alt="GIMPORTS"
-                  className="h-8 w-8 md:h-9 md:w-9 object-contain"
+                  className="h-7 w-7 md:h-8 md:w-8 object-contain shrink-0"
                 />
-                <span className="font-display font-semibold text-base md:text-lg tracking-tight text-primary hidden sm:block">
+                <span className="font-display font-semibold text-[15px] md:text-base tracking-tight text-primary hidden sm:block truncate">
                   GIMPORTS
                 </span>
               </Link>
             </div>
 
             {/* Direita: conta + carrinho */}
-            <div className="flex items-center justify-end gap-3">
+            <div className="flex items-center justify-end gap-1.5 md:gap-2">
               <Link
                 to={accountHref}
-                className="hidden md:inline-flex items-center gap-2 h-11 px-5 rounded-full border border-primary/20 hover:border-primary text-primary font-semibold text-sm transition-colors"
+                className="hidden md:inline-flex items-center gap-2 h-9 px-4 rounded-full border border-primary/20 hover:border-primary text-primary font-semibold text-sm transition-colors"
               >
-                <CircleUserRound className="w-5 h-5" />
+                <CircleUserRound className="w-4 h-4" />
                 Minha Conta
               </Link>
 
               <button
                 onClick={openCart}
-                className="inline-flex items-center justify-center gap-2 transition-all text-primary hover:bg-primary/5 font-medium relative rounded-full h-10 md:h-11 px-3 md:px-4"
+                className="inline-flex items-center justify-center gap-2 transition-all text-primary hover:bg-primary/5 font-medium relative rounded-full h-9 px-2.5 md:px-3.5"
                 aria-label="Abrir carrinho"
               >
                 <svg
@@ -81,16 +81,16 @@ export function Header() {
                   strokeWidth="1.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="w-5 h-5 text-primary"
+                  className="w-5 h-5 text-primary shrink-0"
                 >
                   <path d="M3 4h2.2L7 15.5h11" />
                   <path d="M7 7h14l-1.6 7.2a1.5 1.5 0 0 1-1.5 1.3H7" />
                   <circle cx="9" cy="19" r="1.3" />
                   <circle cx="17" cy="19" r="1.3" />
                 </svg>
-                <span className="font-semibold text-primary hidden md:inline">Carrinho</span>
+                <span className="font-semibold text-primary text-sm hidden md:inline">Carrinho</span>
                 {count > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 flex h-5 min-w-[20px] px-1 items-center justify-center rounded-full bg-secondary text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
+                  <span className="absolute -top-1 -right-1 flex h-[18px] min-w-[18px] px-1 items-center justify-center rounded-full bg-secondary text-[10px] font-bold text-white shadow-sm ring-2 ring-background">
                     {count > 99 ? "99+" : count}
                   </span>
                 )}
