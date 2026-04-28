@@ -395,13 +395,31 @@ function Section({
   onAdd: (p: Product, finalPrice: number) => void;
 }) {
   if (items.length === 0) return null;
+  const isPromo = /promo/i.test(title);
   return (
     <div>
-      <div className="mb-5 md:mb-7">
-        <h2 className="text-lg md:text-xl font-semibold tracking-tight text-foreground text-center">
-          {title}
-        </h2>
-        <div className="mx-auto mt-2 h-px w-10 bg-border" />
+      <div className="mb-6 md:mb-8">
+        <div className="flex items-end justify-between gap-4 border-b-2 border-primary/15 pb-3">
+          <div className="flex items-center gap-3">
+            <span
+              aria-hidden="true"
+              className={`inline-block h-7 md:h-8 w-1.5 rounded-full ${
+                isPromo ? "bg-secondary" : "bg-primary"
+              }`}
+            />
+            <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-primary leading-none">
+              {title}
+            </h2>
+            {isPromo && (
+              <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-secondary text-white text-[11px] font-bold uppercase tracking-wide px-2.5 py-1 shadow-sm animate-pulse">
+                🔥 Ofertas
+              </span>
+            )}
+          </div>
+          <span className="shrink-0 text-[12px] md:text-[13px] font-semibold text-muted-foreground tabular-nums">
+            {items.length} {items.length === 1 ? "produto" : "produtos"}
+          </span>
+        </div>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
         {items.map((p) => {
