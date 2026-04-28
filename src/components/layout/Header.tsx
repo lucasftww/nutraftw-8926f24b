@@ -67,7 +67,7 @@ export function Header() {
 
               <button
                 onClick={openCart}
-                className="inline-flex items-center justify-center gap-2 transition-all border-2 text-primary hover:bg-primary/5 font-medium relative rounded-full h-10 md:h-11 px-4 md:px-5 border-primary/20 hover:border-primary"
+                className="inline-flex items-center justify-center gap-2 transition-all text-primary hover:bg-primary/5 font-medium relative rounded-full h-10 md:h-11 px-3 md:px-4"
                 aria-label="Abrir carrinho"
               >
                 <svg
