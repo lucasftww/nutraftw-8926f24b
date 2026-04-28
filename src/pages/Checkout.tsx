@@ -396,10 +396,62 @@ export default function Checkout() {
             </div>
           </section>
 
+          {/* Frete */}
+          {shippingOptions.length > 0 && (
+            <section className="bg-card rounded-2xl border border-border p-5 md:p-6">
+              <h2 className="font-bold text-lg mb-1">Tipo de envio</h2>
+              <p className="text-xs text-muted-foreground mb-4">Escolha como prefere receber.</p>
+              <div className="grid sm:grid-cols-2 gap-3">
+                {shippingOptions.map((o) => (
+                  <button
+                    key={o.id}
+                    type="button"
+                    onClick={() => setShippingId(o.id)}
+                    className={`p-4 rounded-xl border-2 text-left transition-all ${
+                      shippingId === o.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-bold text-sm flex items-center gap-2"><Truck className="h-4 w-4" />{o.label}</div>
+                        {o.delivery_days_min && o.delivery_days_max && (
+                          <div className="text-xs text-muted-foreground mt-0.5">{o.delivery_days_min}–{o.delivery_days_max} dias úteis</div>
+                        )}
+                      </div>
+                      <span className="font-bold">{formatBRL(Number(o.price))}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {settings.insurance_optional !== "0" && (
+                <label className="mt-5 flex items-start gap-3 cursor-pointer p-3 rounded-xl border border-border bg-muted/20 hover:bg-muted/40 transition">
+                  <input
+                    type="checkbox"
+                    className="mt-1"
+                    checked={insuranceOn}
+                    onChange={(e) => setInsuranceOn(e.target.checked)}
+                  />
+                  <div className="flex-1">
+                    <div className="font-semibold text-sm flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4 text-primary" />
+                      Adicionar seguro de envio (+10%)
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Cobre extravio e avaria. Recomendado para pedidos acima de R$ 500.
+                    </p>
+                  </div>
+                  <span className="font-bold text-sm">+{formatBRL(Math.round(total * INSURANCE_RATE * 100) / 100)}</span>
+                </label>
+              )}
+            </section>
+          )}
+
           {/* Payment */}
           <section className="bg-card rounded-2xl border border-border p-5 md:p-6">
             <h2 className="font-bold text-lg mb-4">Forma de pagamento</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {settings.checkout_enable_pix !== "0" && (
               <button
                 type="button"
                 onClick={() => setForm({ ...form, payment_method: "pix" })}
@@ -420,6 +472,8 @@ export default function Checkout() {
                   −5%
                 </span>
               </button>
+              )}
+              {settings.checkout_enable_card !== "0" && (
               <button
                 type="button"
                 onClick={() => setForm({ ...form, payment_method: "credit_card" })}
@@ -437,6 +491,7 @@ export default function Checkout() {
                   </div>
                 </div>
               </button>
+              )}
             </div>
           </section>
 
