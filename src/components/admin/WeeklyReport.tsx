@@ -86,7 +86,7 @@ export function WeeklyReport() {
     (async () => {
       setLoading(true);
       const [curOrdersRes, prevOrdersRes] = await Promise.all([
-        supabase
+        (supabase as any)
           .from("orders")
           .select("id, total, status, created_at, subtotal, shipping, insurance, discount, payment_method, coupon_code")
           .gte("created_at", startDate.toISOString())
@@ -99,7 +99,7 @@ export function WeeklyReport() {
           .lte("created_at", prevEnd.toISOString()),
       ]);
 
-      const curOrders = (curOrdersRes.data as OrderRow[]) || [];
+      const curOrders = ((curOrdersRes.data as unknown) as OrderRow[]) || [];
       const paidIds = curOrders.filter((o) => PAID_STATUSES.includes(o.status)).map((o) => o.id);
 
       let curItems: ItemRow[] = [];
