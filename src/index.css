@@ -48,8 +48,12 @@
 
     --gradient-primary: linear-gradient(135deg, hsl(217 71% 23%), hsl(217 71% 35%));
     --gradient-hero: linear-gradient(135deg, hsl(217 71% 18%) 0%, hsl(217 71% 28%) 100%);
+    --gradient-price: linear-gradient(135deg, hsl(217 71% 23%), hsl(199 89% 40%));
+    --gradient-soft: linear-gradient(180deg, hsl(210 40% 98%), hsl(0 0% 100%));
     --shadow-elegant: 0 10px 30px -10px hsl(217 71% 23% / 0.3);
     --shadow-card: 0 2px 12px -4px hsl(217 33% 17% / 0.08);
+    --shadow-soft: 0 1px 2px hsl(217 33% 17% / 0.04), 0 4px 12px -4px hsl(217 33% 17% / 0.06);
+    --shadow-pop: 0 12px 32px -12px hsl(217 71% 23% / 0.25);
   }
 
   * { @apply border-border; }
@@ -81,4 +85,18 @@
   }
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { scrollbar-width: none; }
+  .skeleton-shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 0%,
+      hsl(210 40% 92%) 50%,
+      hsl(var(--muted)) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
 }
