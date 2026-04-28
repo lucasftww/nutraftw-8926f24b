@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, ShoppingCart } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -121,13 +121,48 @@ export default function ProductDetail() {
 
   return (
     <section className="py-6 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
-      <Link
-        to="/"
-        className="inline-flex items-center text-muted-foreground hover:text-foreground h-12 font-medium mb-6 text-sm"
-      >
-        <ArrowLeft className="w-4 h-4 mr-1.5" />
-        Voltar para produtos
-      </Link>
+      {/* Breadcrumbs — reforçam a navegação até o Catálogo sem duplicar links */}
+      <nav aria-label="Breadcrumb" className="mb-6">
+        <ol
+          className="flex items-center flex-wrap gap-1.5 text-sm text-muted-foreground"
+          itemScope
+          itemType="https://schema.org/BreadcrumbList"
+        >
+          <li
+            itemProp="itemListElement"
+            itemScope
+            itemType="https://schema.org/ListItem"
+            className="inline-flex items-center"
+          >
+            <Link
+              to="/"
+              itemProp="item"
+              className="hover:text-primary transition-colors font-medium"
+            >
+              <span itemProp="name">Catálogo</span>
+            </Link>
+            <meta itemProp="position" content="1" />
+          </li>
+          <li aria-hidden="true" className="text-muted-foreground/50">
+            ›
+          </li>
+          <li
+            itemProp="itemListElement"
+            itemScope
+            itemType="https://schema.org/ListItem"
+            className="inline-flex items-center min-w-0"
+            aria-current="page"
+          >
+            <span
+              itemProp="name"
+              className="text-foreground font-medium truncate max-w-[60vw] sm:max-w-xs"
+            >
+              {p.name}
+            </span>
+            <meta itemProp="position" content="2" />
+          </li>
+        </ol>
+      </nav>
 
       <div className="grid lg:grid-cols-2 gap-8 items-start">
         {/* Image */}
