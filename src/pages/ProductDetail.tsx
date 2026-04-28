@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, ShoppingCart, ChevronRight } from "lucide-react";
+import { ArrowLeft, ShoppingCart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -122,34 +122,6 @@ export default function ProductDetail() {
 
   return (
     <section className="py-6 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
-      {/* Breadcrumbs */}
-      <nav aria-label="Breadcrumb" className="mb-4">
-        <ol className="flex flex-wrap items-center gap-1 text-xs sm:text-sm text-muted-foreground">
-          <li>
-            <Link to="/" className="hover:text-primary transition-colors">
-              Início
-            </Link>
-          </li>
-          {p.category && (
-            <>
-              <ChevronRight className="h-3.5 w-3.5 opacity-60" />
-              <li>
-                <Link
-                  to={`/?categoria=${p.category.slug}`}
-                  className="hover:text-primary transition-colors"
-                >
-                  {p.category.name}
-                </Link>
-              </li>
-            </>
-          )}
-          <ChevronRight className="h-3.5 w-3.5 opacity-60" />
-          <li className="text-foreground font-medium line-clamp-1 max-w-[60vw] sm:max-w-none">
-            {p.name}
-          </li>
-        </ol>
-      </nav>
-
       <Link
         to="/"
         className="inline-flex items-center text-muted-foreground hover:text-foreground h-12 font-medium mb-6 text-sm"
