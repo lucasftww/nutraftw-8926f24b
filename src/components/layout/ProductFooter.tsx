@@ -1,6 +1,8 @@
 import { MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { useCurrentProduct } from "@/contexts/CurrentProductContext";
+import { formatBRL } from "@/lib/utils";
 
 /**
  * Footer rico (estilo KA Imports) usado na página de detalhes do produto.
@@ -14,6 +16,22 @@ export function ProductFooter() {
     settings.hero_bio ||
     "A sua loja de importados com os melhores preços e garantia de qualidade.";
   const year = new Date().getFullYear();
+  const { current } = useCurrentProduct();
+
+  // CTA dinâmico: muda texto e mensagem se houver um produto sendo visto.
+  const productUrl =
+    current && typeof window !== "undefined"
+      ? `${window.location.origin}/produto/${current.slug}`
+      : "";
+  const ctaLabel = current ? "Tirar dúvida no WhatsApp" : "Falar no WhatsApp";
+  const ctaText = current
+    ? `Olá! Tenho interesse no produto *${current.name}*${
+        current.price ? ` (${formatBRL(current.price)})` : ""
+      }.${productUrl ? `\nLink: ${productUrl}` : ""}\nPode me ajudar?`
+    : "Olá! Preciso de suporte.";
+  const helperText = current
+    ? `Pergunte sobre estoque, prazo de entrega ou desconto para ${current.name}.`
+    : "Precisa de ajuda? Fale com nosso suporte diretamente pelo WhatsApp.";
 
   return (
     <footer className="mt-12 border-t border-border bg-background">
@@ -60,18 +78,16 @@ export function ProductFooter() {
           <div>
             <h4 className="text-sm font-bold text-foreground mb-3">Atendimento</h4>
             <p className="text-sm text-muted-foreground leading-relaxed mb-4 max-w-md">
-              Precisa de ajuda? Fale com nosso suporte diretamente pelo WhatsApp.
+              {helperText}
             </p>
             <a
-              href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(
-                "Olá! Preciso de suporte."
-              )}`}
+              href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(ctaText)}`}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 h-12 rounded-full border-2 border-[#25D366] text-[#25D366] font-semibold text-sm hover:bg-[#25D366] hover:text-white transition-colors"
             >
               <MessageCircle className="w-4 h-4" />
-              Suporte via WhatsApp
+              {ctaLabel}
             </a>
           </div>
         </div>
