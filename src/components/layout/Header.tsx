@@ -45,10 +45,11 @@ export function Header() {
                 onClick={() => setMobileMenuOpen(true)}
                 className="md:hidden inline-flex items-center justify-center h-9 w-9 -ml-1 rounded-full hover:bg-muted transition-colors"
               >
-                {/* Hambúrguer minimalista — 2 traços finos com bom espaço */}
+                {/* Hambúrguer minimalista — 3 traços finos com bom espaço */}
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="w-5 h-5">
-                  <path d="M4 9h16" />
-                  <path d="M4 15h16" />
+                  <path d="M4 7h16" />
+                  <path d="M4 12h16" />
+                  <path d="M4 17h16" />
                 </svg>
               </button>
               <Link to="/" className="flex items-center gap-2 group cursor-pointer min-w-0">
@@ -147,40 +148,38 @@ export function Header() {
               </div>
             </div>
 
-            {/* Conteúdo centralizado, com a mesma largura do header */}
-            <div className="flex-1 overflow-y-auto">
-              <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col items-center gap-2 text-base">
-                <Link
-                  to="/"
-                  className="w-full max-w-sm flex items-center justify-center gap-2 h-12 px-4 rounded-full border border-primary/20 hover:border-primary text-primary font-semibold transition-colors"
-                >
-                  Catálogo
-                </Link>
+            {/* Navegação enxuta — sem duplicar o que já está no header */}
+            <nav className="px-5 py-4 flex flex-col">
+              <Link
+                to="/"
+                className="flex items-center justify-between h-12 px-2 text-[15px] font-medium text-foreground hover:text-primary transition-colors border-b border-border/40"
+              >
+                Catálogo
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-muted-foreground">
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </Link>
+              <Link
+                to="/sobre"
+                className="flex items-center justify-between h-12 px-2 text-[15px] font-medium text-foreground hover:text-primary transition-colors border-b border-border/40"
+              >
+                Sobre
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-muted-foreground">
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </Link>
+              {user && (
                 <Link
                   to={accountHref}
-                  className="w-full max-w-sm flex items-center justify-center gap-2 h-12 px-4 rounded-full border border-primary/20 hover:border-primary text-primary font-semibold transition-colors"
+                  className="flex items-center justify-between h-12 px-2 text-[15px] font-medium text-foreground hover:text-primary transition-colors border-b border-border/40"
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-                    <circle cx="12" cy="8" r="3.6" />
-                    <path d="M5 20c1-3.5 3.8-5.5 7-5.5s6 2 7 5.5" />
+                  {isAdmin ? "Painel Admin" : "Minha conta"}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-muted-foreground">
+                    <path d="M9 18l6-6-6-6" />
                   </svg>
-                  {user ? (isAdmin ? "Painel Admin" : "Minha Conta") : "Entrar / Cadastrar"}
                 </Link>
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    openCart();
-                  }}
-                  className="w-full max-w-sm flex items-center justify-center gap-2 h-12 px-4 rounded-full border border-primary/20 hover:border-primary text-primary font-semibold transition-colors relative"
-                >
-                  <span className="text-lg leading-none" aria-hidden>🛒</span>
-                  Carrinho
-                  {count > 0 && (
-                    <span className="absolute right-4 text-xs font-bold bg-secondary text-white px-2 py-0.5 rounded-full">{count}</span>
-                  )}
-                </button>
-              </nav>
-            </div>
+              )}
+            </nav>
 
             <div className="border-t border-border/50">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-center">
