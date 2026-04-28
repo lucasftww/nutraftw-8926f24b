@@ -36,7 +36,7 @@ export function Header() {
     <>
       <header className="fixed top-0 left-0 right-0 z-40 w-full glass border-b border-border/50 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-background/70">
         <div className="w-full pl-2 pr-5 sm:pl-3 sm:pr-8 lg:pl-4 lg:pr-12">
-          <div className="flex items-center justify-between h-16 md:h-20 gap-6">
+          <div className="flex items-center justify-between h-12 md:h-14 gap-6">
             {/* Esquerda: menu mobile + logo */}
             <div className="flex items-center gap-3">
               <button
@@ -50,9 +50,9 @@ export function Header() {
                 <img
                   src={logoGimports}
                   alt="GIMPORTS"
-                  className="h-10 w-10 md:h-12 md:w-12 object-contain"
+                  className="h-8 w-8 md:h-9 md:w-9 object-contain"
                 />
-                <span className="font-display font-bold text-lg md:text-xl tracking-tight text-primary hidden sm:block">
+                <span className="font-display font-semibold text-base md:text-lg tracking-tight text-primary hidden sm:block">
                   GIMPORTS
                 </span>
               </Link>
