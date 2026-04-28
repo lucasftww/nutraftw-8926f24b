@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, ShieldCheck, Truck, Lock, Package, ChevronRight } from "lucide-react";
+import { ArrowLeft, ShoppingCart, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -119,12 +119,11 @@ export default function ProductDetail() {
   const discountPct = hasSale
     ? Math.round(((Number(p.price) - Number(p.sale_price)) / Number(p.price)) * 100)
     : 0;
-  const pixPrice = finalPrice * 0.95;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
+    <section className="py-6 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
       {/* Breadcrumbs */}
-      <nav aria-label="Breadcrumb" className="mb-6">
+      <nav aria-label="Breadcrumb" className="mb-4">
         <ol className="flex flex-wrap items-center gap-1 text-xs sm:text-sm text-muted-foreground">
           <li>
             <Link to="/" className="hover:text-primary transition-colors">
@@ -149,28 +148,28 @@ export default function ProductDetail() {
             {p.name}
           </li>
         </ol>
-        <Link
-          to="/"
-          className="mt-3 inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-primary"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" /> Voltar ao catálogo
-        </Link>
       </nav>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] gap-6 lg:gap-12">
+      <Link
+        to="/"
+        className="inline-flex items-center text-muted-foreground hover:text-foreground h-12 font-medium mb-6 text-sm"
+      >
+        <ArrowLeft className="w-4 h-4 mr-1.5" />
+        Voltar para produtos
+      </Link>
+
+      <div className="grid lg:grid-cols-2 gap-8 items-start">
         {/* Image */}
-        <div className="space-y-3">
-          <div className="aspect-square rounded-3xl border border-border bg-white overflow-hidden flex items-center justify-center p-4 shadow-sm">
-            <img
-              src={p.image_url || "/assets/no-image.svg"}
-              alt={p.name}
-              loading="eager"
-              decoding="async"
-              className="w-full h-full object-contain"
-            />
-          </div>
+        <div className="relative rounded-3xl border border-border/60 overflow-hidden bg-muted/20 shadow-sm">
+          <img
+            src={p.image_url || "/assets/no-image.svg"}
+            alt={p.name}
+            loading="eager"
+            decoding="async"
+            className="w-full h-full object-cover aspect-square"
+          />
           {hasSale && (
-            <div className="inline-flex items-center gap-2 bg-destructive/10 text-destructive text-xs font-bold px-3 py-1.5 rounded-full">
+            <div className="absolute top-4 left-4 inline-flex items-center gap-2 bg-destructive text-destructive-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow">
               <span>OFERTA</span>
               <span>−{discountPct}%</span>
             </div>
@@ -178,43 +177,27 @@ export default function ProductDetail() {
         </div>
 
         {/* Info */}
-        <div>
-          {p.category && (
-            <span className="text-xs font-bold uppercase tracking-wider text-secondary">
-              {p.category.name}
-            </span>
-          )}
-          <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-extrabold text-foreground mt-2 mb-4">
-            {p.name}
-          </h1>
-
-          <div className="mb-6">
-            <div className="flex items-baseline gap-3 flex-wrap">
-              {hasSale && (
-                <span className="text-base text-muted-foreground line-through">
-                  {formatBRL(Number(p.price))}
-                </span>
-              )}
-              <span className="font-display text-3xl md:text-4xl font-extrabold text-primary">
-                {formatBRL(finalPrice)}
-              </span>
-            </div>
-            <p className="text-sm text-muted-foreground mt-1">
-              ou{" "}
-              <span className="font-bold text-foreground">{formatBRL(pixPrice)}</span> no PIX
-              <span className="ml-1 text-secondary font-semibold">(5% off)</span>
-            </p>
+        <div className="space-y-5">
+          <div>
+            {p.category && (
+              <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
+                {p.category.name}
+              </p>
+            )}
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground mt-2 leading-tight">
+              {p.name}
+            </h1>
           </div>
 
           {p.description && (
-            <p className="text-sm md:text-base text-muted-foreground mb-6 leading-relaxed whitespace-pre-line">
+            <p className="text-muted-foreground leading-relaxed whitespace-pre-line text-sm md:text-base">
               {p.description}
             </p>
           )}
 
           {/* Tech sheet */}
           {(p.active_principle || p.composition) && (
-            <div className="space-y-3 mb-6 text-sm bg-muted/40 rounded-2xl p-4 border border-border/50">
+            <div className="space-y-3 text-sm bg-muted/40 rounded-2xl p-4 border border-border/50">
               {p.active_principle && (
                 <div className="flex flex-col sm:flex-row sm:gap-2">
                   <span className="font-bold text-foreground sm:min-w-[140px]">
@@ -232,89 +215,59 @@ export default function ProductDetail() {
             </div>
           )}
 
-          {/* Quantity + CTA */}
-          <div className="flex items-center gap-3 mb-6">
-            <div className="flex items-center gap-3 bg-background border-2 border-border rounded-full p-1 h-12">
-              <button
-                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted text-lg"
-                onClick={() => setQty(Math.max(1, qty - 1))}
-                aria-label="Diminuir"
-              >
-                −
-              </button>
-              <span className="font-bold w-6 text-center">{qty}</span>
-              <button
-                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted text-lg"
-                onClick={() => setQty(qty + 1)}
-                aria-label="Aumentar"
-              >
-                +
-              </button>
+          {/* Price card */}
+          <div className="rounded-2xl border border-border bg-card p-4">
+            <div className="flex items-baseline gap-3 flex-wrap">
+              {hasSale && (
+                <span className="text-base text-muted-foreground line-through">
+                  {formatBRL(Number(p.price))}
+                </span>
+              )}
+              <span className="text-3xl font-bold text-primary">
+                {formatBRL(finalPrice)}
+              </span>
             </div>
-            <Button
-              size="lg"
-              className="flex-1 h-12 rounded-full"
-              onClick={() => {
-                add(
-                  {
-                    product_id: p.id,
-                    slug: p.slug,
-                    name: p.name,
-                    price: finalPrice,
-                    image_url: p.image_url,
-                  },
-                  qty
-                );
-                openCart();
-              }}
+          </div>
+
+          {/* Quantity */}
+          <div className="flex items-center gap-3 bg-background border-2 border-border rounded-full p-1 h-12 w-fit">
+            <button
+              className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted text-lg"
+              onClick={() => setQty(Math.max(1, qty - 1))}
+              aria-label="Diminuir"
             >
-              Adicionar ao carrinho
-            </Button>
+              −
+            </button>
+            <span className="font-bold w-6 text-center">{qty}</span>
+            <button
+              className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted text-lg"
+              onClick={() => setQty(qty + 1)}
+              aria-label="Aumentar"
+            >
+              +
+            </button>
           </div>
 
-          {/* Trust badges */}
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            <div className="flex items-center gap-3 p-3 rounded-xl border border-border/60 bg-background">
-              <Truck className="w-5 h-5 text-primary shrink-0" />
-              <div className="text-xs">
-                <p className="font-bold text-foreground">Envio rápido</p>
-                <p className="text-muted-foreground">Para todo o Brasil</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-3 rounded-xl border border-border/60 bg-background">
-              <ShieldCheck className="w-5 h-5 text-primary shrink-0" />
-              <div className="text-xs">
-                <p className="font-bold text-foreground">Garantia</p>
-                <p className="text-muted-foreground">Produto original</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-3 rounded-xl border border-border/60 bg-background">
-              <Lock className="w-5 h-5 text-primary shrink-0" />
-              <div className="text-xs">
-                <p className="font-bold text-foreground">Pagamento seguro</p>
-                <p className="text-muted-foreground">PIX e cartão</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-3 rounded-xl border border-border/60 bg-background">
-              <Package className="w-5 h-5 text-primary shrink-0" />
-              <div className="text-xs">
-                <p className="font-bold text-foreground">Embalagem discreta</p>
-                <p className="text-muted-foreground">Privacidade total</p>
-              </div>
-            </div>
-          </div>
-
-          {/* WhatsApp */}
-          <a
-            href={`https://wa.me/5511999999999?text=${encodeURIComponent(
-              `Olá! Tenho dúvidas sobre o produto: ${p.name}`
-            )}`}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex w-full items-center justify-center gap-2 h-11 rounded-full bg-[#25D366] text-white font-semibold text-sm hover:bg-[#20bd5a] transition-colors"
+          {/* CTA */}
+          <Button
+            className="w-full h-14 rounded-xl text-base font-semibold bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 border border-primary/20 transition-all"
+            onClick={() => {
+              add(
+                {
+                  product_id: p.id,
+                  slug: p.slug,
+                  name: p.name,
+                  price: finalPrice,
+                  image_url: p.image_url,
+                },
+                qty
+              );
+              openCart();
+            }}
           >
-            Tirar dúvidas no WhatsApp
-          </a>
+            <ShoppingCart className="w-5 h-5 mr-2" />
+            Adicionar ao carrinho
+          </Button>
         </div>
       </div>
 
@@ -377,6 +330,6 @@ export default function ProductDetail() {
           </div>
         </section>
       )}
-    </div>
+    </section>
   );
 }
