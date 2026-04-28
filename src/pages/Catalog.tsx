@@ -345,11 +345,23 @@ function Section({
               : 0;
           const hasRealSale = discountPct >= 1;
           const finalPrice = hasRealSale ? saleNum : priceNum;
+          const isOut = (p.stock ?? 0) <= 0;
+          const ageDays = (Date.now() - new Date(p.created_at).getTime()) / 86400000;
+          const isNew = !isOut && ageDays <= 30;
+          const badge = isOut
+            ? { label: "ESGOTADO", cls: "bg-destructive text-destructive-foreground" }
+            : hasRealSale
+            ? { label: "OFERTA", cls: "bg-secondary text-white" }
+            : isNew
+            ? { label: "LANÇAMENTO", cls: "bg-emerald-600 text-white" }
+            : p.is_featured
+            ? { label: "DESTAQUE", cls: "bg-primary text-primary-foreground" }
+            : null;
           return (
             <Link
               key={p.id}
               to={`/produto/${p.slug}`}
-              className="group flex flex-col h-full rounded-2xl bg-card overflow-hidden transition-all duration-300 hover:-translate-y-0.5"
+              className={`group flex flex-col h-full rounded-2xl bg-card overflow-hidden transition-all duration-300 hover:-translate-y-0.5 ${isOut ? "opacity-70" : ""}`}
             >
               {/* Imagem */}
               <div className="relative aspect-square overflow-hidden bg-white rounded-2xl">
@@ -361,8 +373,13 @@ function Section({
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                 />
-                {hasRealSale && (
-                  <span className="absolute top-2 left-2 inline-flex items-center rounded-full bg-foreground/90 text-background text-[10px] font-semibold px-2 py-0.5 backdrop-blur-sm">
+                {badge && (
+                  <span className={`absolute top-2 left-2 inline-flex items-center rounded-full text-[10px] font-bold tracking-wide px-2 py-0.5 shadow-sm ${badge.cls}`}>
+                    {badge.label}
+                  </span>
+                )}
+                {hasRealSale && !isOut && (
+                  <span className="absolute top-2 right-2 inline-flex items-center rounded-full bg-foreground/90 text-background text-[10px] font-semibold px-2 py-0.5 backdrop-blur-sm">
                     -{discountPct}%
                   </span>
                 )}
@@ -387,12 +404,14 @@ function Section({
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    if (isOut) return;
                     onAdd(p, finalPrice);
                   }}
-                  className="mt-3 inline-flex items-center justify-center gap-1.5 whitespace-nowrap font-semibold transition-colors bg-primary text-primary-foreground hover:bg-primary-glow rounded-full w-full text-xs h-9"
+                  disabled={isOut}
+                  className="mt-3 inline-flex items-center justify-center gap-1.5 whitespace-nowrap font-semibold transition-colors bg-primary text-primary-foreground hover:bg-primary-glow rounded-full w-full text-xs h-9 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
                 >
                   <ShoppingCart className="h-3.5 w-3.5" />
-                  Adicionar
+                  {isOut ? "Esgotado" : "Adicionar"}
                 </button>
               </div>
             </Link>
