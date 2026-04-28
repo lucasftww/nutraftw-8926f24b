@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Search, SlidersHorizontal, ShoppingCart, X } from "lucide-react";
+import { Search, SlidersHorizontal, ShoppingCart, X, ArrowUpDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { useCart } from "@/hooks/useCart";
@@ -32,8 +32,17 @@ export default function Catalog() {
   const [searchParams, setSearchParams] = useSearchParams();
   const urlQuery = searchParams.get("q") ?? "";
   const urlCategoria = searchParams.get("categoria") ?? "";
+  const urlSort = (searchParams.get("ordenar") ?? "categoria") as SortKey;
   const [query, setQuery] = useState(urlQuery);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const sort: SortKey = SORT_KEYS.includes(urlSort) ? urlSort : "categoria";
+
+  const setSort = (next: SortKey) => {
+    const params = new URLSearchParams(searchParams);
+    if (next === "categoria") params.delete("ordenar");
+    else params.set("ordenar", next);
+    setSearchParams(params, { replace: true });
+  };
 
   useEffect(() => {
     setQuery(urlQuery);
@@ -128,6 +137,19 @@ export default function Catalog() {
       }),
     [products, selectedCats, query]
   );
+
+  // Lista ordenada (usada quando o sort não é "categoria")
+  const sorted = useMemo(() => {
+    const arr = [...filtered];
+    if (sort === "az") {
+      arr.sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }));
+    } else if (sort === "recentes") {
+      arr.sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+    }
+    return arr;
+  }, [filtered, sort]);
 
   // Group by category for the section style
   const grouped = useMemo(() => {
