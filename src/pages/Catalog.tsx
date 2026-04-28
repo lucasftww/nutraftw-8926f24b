@@ -193,44 +193,56 @@ export default function Catalog() {
     <>
       <div className="container mx-auto px-4 pt-6 md:pt-10 pb-1">
         <div className="w-full max-w-3xl mx-auto space-y-4">
-          {/* Search + Filters bar (estilo CDE) */}
-          <div className="flex gap-2">
+          {/* Search bar — mobile: ocupa toda a largura; controles abaixo */}
+          <div className="space-y-2 sm:space-y-0 sm:flex sm:gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Buscar produtos..."
-                className="flex h-9 w-full rounded-md border border-input bg-transparent pl-9 pr-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                className="flex h-10 w-full rounded-full border border-input bg-background pl-10 pr-9 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary/40"
               />
-            </div>
-            <button
-              onClick={() => setFiltersOpen(true)}
-              className="inline-flex items-center gap-1.5 h-9 px-4 py-2 rounded-md border border-input bg-background text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors"
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              Filtros
-              {selectedCats.size > 0 && (
-                <span className="inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
-                  {selectedCats.size}
-                </span>
+              {query && (
+                <button
+                  onClick={() => setQuery("")}
+                  aria-label="Limpar busca"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
               )}
-            </button>
-            <div className="relative">
-              <ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-              <select
-                value={sort}
-                onChange={(e) => setSort(e.target.value as SortKey)}
-                aria-label="Ordenar produtos"
-                className="appearance-none h-9 pl-8 pr-7 rounded-md border border-input bg-background text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer"
+            </div>
+            {/* Controles em grid no mobile (2 colunas iguais) */}
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-2">
+              <button
+                onClick={() => setFiltersOpen(true)}
+                className="inline-flex items-center justify-center gap-1.5 h-10 px-4 rounded-full border border-input bg-background text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors"
               >
-                {SORT_KEYS.map((k) => (
-                  <option key={k} value={k}>
-                    {SORT_LABELS[k]}
-                  </option>
-                ))}
-              </select>
-              <span aria-hidden="true" className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">▾</span>
+                <SlidersHorizontal className="h-4 w-4" />
+                Filtros
+                {selectedCats.size > 0 && (
+                  <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
+                    {selectedCats.size}
+                  </span>
+                )}
+              </button>
+              <div className="relative">
+                <ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                <select
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value as SortKey)}
+                  aria-label="Ordenar produtos"
+                  className="appearance-none w-full h-10 pl-9 pr-7 rounded-full border border-input bg-background text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 cursor-pointer"
+                >
+                  {SORT_KEYS.map((k) => (
+                    <option key={k} value={k}>
+                      {SORT_LABELS[k]}
+                    </option>
+                  ))}
+                </select>
+                <span aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">▾</span>
+              </div>
             </div>
           </div>
 
@@ -483,26 +495,24 @@ function Section({
   const isPromo = /promo/i.test(title);
   return (
     <div>
-      <div className="mb-6 md:mb-8">
-        <div className="flex items-end justify-between gap-4 border-b-2 border-primary/15 pb-3">
-          <div className="flex items-center gap-3">
+      <div className="mb-4 md:mb-8">
+        <div className="flex items-center justify-between gap-3 border-b-2 border-primary/15 pb-2.5">
+          <div className="flex items-center gap-2.5 min-w-0">
             <span
               aria-hidden="true"
-              className={`inline-block h-7 md:h-8 w-1.5 rounded-full ${
+              className={`inline-block h-6 md:h-8 w-1 md:w-1.5 rounded-full shrink-0 ${
                 isPromo ? "bg-secondary" : "bg-primary"
               }`}
             />
-            <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-primary leading-none">
+            <h2 className="text-lg md:text-3xl font-extrabold tracking-tight text-primary leading-none truncate">
               {title}
             </h2>
             {isPromo && (
-              <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-secondary text-white text-[11px] font-bold uppercase tracking-wide px-2.5 py-1 shadow-sm">
-                🔥 Ofertas
-              </span>
+              <span aria-hidden="true" className="text-base md:text-lg">🔥</span>
             )}
           </div>
-          <span className="shrink-0 text-[12px] md:text-[13px] font-semibold text-muted-foreground tabular-nums">
-            {items.length} {items.length === 1 ? "produto" : "produtos"}
+          <span className="shrink-0 text-[11px] md:text-[13px] font-semibold text-muted-foreground tabular-nums">
+            {items.length} {items.length === 1 ? "item" : "itens"}
           </span>
         </div>
       </div>
