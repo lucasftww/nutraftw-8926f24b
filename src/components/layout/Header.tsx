@@ -83,60 +83,78 @@ export function Header() {
         </div>
       </header>
 
-      {/* Mobile drawer */}
+      {/* Mobile drawer — alinhado ao header fixo */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div
-            className="absolute inset-0 bg-foreground/40"
+            className="absolute inset-0 bg-foreground/40 animate-fade-in"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <aside className="absolute left-0 top-0 h-full w-[85%] max-w-xs bg-background shadow-2xl flex flex-col animate-in slide-in-from-left">
-            <div className="flex items-center justify-between p-4 border-b border-border">
-              <Link to="/" className="flex items-center gap-2">
-                <div className="rounded-full h-9 w-9 bg-primary flex items-center justify-center">
-                  <span className="text-primary-foreground font-extrabold text-sm">G</span>
+          <aside className="absolute left-0 right-0 top-0 w-full bg-background shadow-2xl flex flex-col animate-in slide-in-from-top duration-300 max-h-[100dvh]">
+            {/* Cabeçalho do drawer — idêntico ao header fixo */}
+            <div className="sticky top-0 z-10 w-full glass border-b border-border/50 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-background/70">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex items-center justify-between h-16 gap-4">
+                  <Link to="/" className="flex items-center gap-2">
+                    <div className="rounded-full h-9 w-9 bg-primary flex items-center justify-center shadow-sm">
+                      <span className="text-primary-foreground font-extrabold text-sm">G</span>
+                    </div>
+                    <span className="font-display font-bold text-lg tracking-tight text-primary">GIMPORTS</span>
+                  </Link>
+                  <button
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="p-2 -mr-2 rounded-xl hover:bg-muted transition-colors"
+                    aria-label="Fechar menu"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
                 </div>
-                <span className="font-display font-bold text-lg text-primary">GIMPORTS</span>
-              </Link>
-              <button
-                onClick={() => setMobileMenuOpen(false)}
-                className="p-2 rounded-xl hover:bg-muted"
-                aria-label="Fechar menu"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              </div>
             </div>
-            <nav className="flex-1 p-4 flex flex-col gap-1 text-sm">
-              <Link to="/" className="flex items-center gap-3 h-12 px-3 rounded-xl hover:bg-muted font-semibold">
-                Catálogo
-              </Link>
-              <Link to={accountHref} className="flex items-center gap-3 h-12 px-3 rounded-xl hover:bg-muted font-semibold">
-                <CircleUserRound className="w-5 h-5" />
-                {user ? (isAdmin ? "Painel Admin" : "Minha Conta") : "Entrar / Cadastrar"}
-              </Link>
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  openCart();
-                }}
-                className="flex items-center gap-3 h-12 px-3 rounded-xl hover:bg-muted font-semibold text-left"
-              >
-                <ShoppingBag className="w-5 h-5" />
-                Carrinho
-                {count > 0 && (
-                  <span className="ml-auto text-xs font-bold bg-secondary text-white px-2 py-0.5 rounded-full">{count}</span>
-                )}
-              </button>
-            </nav>
-            <div className="p-4 border-t border-border">
-              <a
-                href={`https://wa.me/${wa}${waMsg ? `?text=${waMsg}` : ""}`}
-                target="_blank"
-                rel="noreferrer"
-                className="block w-full text-center h-11 leading-[44px] rounded-full bg-[#25D366] text-white font-semibold text-sm"
-              >
-                Suporte WhatsApp
-              </a>
+
+            {/* Conteúdo centralizado, com a mesma largura do header */}
+            <div className="flex-1 overflow-y-auto">
+              <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col items-center gap-2 text-base">
+                <Link
+                  to="/"
+                  className="w-full max-w-sm flex items-center justify-center gap-2 h-12 px-4 rounded-full border border-primary/20 hover:border-primary text-primary font-semibold transition-colors"
+                >
+                  Catálogo
+                </Link>
+                <Link
+                  to={accountHref}
+                  className="w-full max-w-sm flex items-center justify-center gap-2 h-12 px-4 rounded-full border border-primary/20 hover:border-primary text-primary font-semibold transition-colors"
+                >
+                  <CircleUserRound className="w-5 h-5" />
+                  {user ? (isAdmin ? "Painel Admin" : "Minha Conta") : "Entrar / Cadastrar"}
+                </Link>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    openCart();
+                  }}
+                  className="w-full max-w-sm flex items-center justify-center gap-2 h-12 px-4 rounded-full border border-primary/20 hover:border-primary text-primary font-semibold transition-colors relative"
+                >
+                  <span className="text-lg leading-none" aria-hidden>🛒</span>
+                  Carrinho
+                  {count > 0 && (
+                    <span className="absolute right-4 text-xs font-bold bg-secondary text-white px-2 py-0.5 rounded-full">{count}</span>
+                  )}
+                </button>
+              </nav>
+            </div>
+
+            <div className="border-t border-border/50">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-center">
+                <a
+                  href={`https://wa.me/${wa}${waMsg ? `?text=${waMsg}` : ""}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full max-w-sm text-center h-12 leading-[48px] rounded-full bg-[#25D366] text-white font-semibold text-sm shadow-sm hover:opacity-90 transition-opacity"
+                >
+                  Suporte WhatsApp
+                </a>
+              </div>
             </div>
           </aside>
         </div>
