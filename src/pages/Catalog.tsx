@@ -15,6 +15,8 @@ interface Product {
   sale_price: number | null;
   image_url: string | null;
   is_featured: boolean;
+  stock: number;
+  created_at: string;
   category: { id: string; name: string; slug: string } | null;
 }
 interface Category {
