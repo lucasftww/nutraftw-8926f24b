@@ -83,7 +83,7 @@ export default function Catalog() {
         supabase
           .from("products")
           .select(
-            "id, slug, name, description, price, sale_price, image_url, is_featured, category:categories(id, name, slug)"
+            "id, slug, name, description, price, sale_price, image_url, is_featured, stock, created_at, category:categories(id, name, slug)"
           )
           .eq("is_active", true)
           .order("is_featured", { ascending: false })
