@@ -17,6 +17,7 @@ import { AdminShipping } from "@/components/admin/AdminShipping";
 import { AdminBanners } from "@/components/admin/AdminBanners";
 import { AdminResends } from "@/components/admin/AdminResends";
 import { AdminSettings } from "@/components/admin/AdminSettings";
+import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 
 type Tab = "dashboard" | "reports" | "products" | "categories" | "orders" | "coupons" | "shipping" | "banners" | "resends" | "settings";
 
@@ -286,9 +287,28 @@ function AdminOrders() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<string>("all");
   const [detailId, setDetailId] = useState<string | null>(null);
+  const [error, setError] = useState<AdminErrorInfo | null>(null);
+  const [loading, setLoading] = useState(true);
 
+  async function load() {
+    setLoading(true);
+    setError(null);
+    const { data, error: err } = await supabase
+      .from("orders")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (err) {
+      const info = logSupabaseError("Carregar pedidos", err, { table: "orders" });
+      setError(info);
+      toast.error(`Pedidos: ${info.message}`);
+      setLoading(false);
+      return;
+    }
+    setItems(data || []);
+    setLoading(false);
+  }
   useEffect(() => {
-    supabase.from("orders").select("*").order("created_at", { ascending: false }).then(({ data }) => setItems(data || []));
+    load();
   }, []);
 
   const filtered = useMemo(() => {
@@ -305,12 +325,18 @@ function AdminOrders() {
   }, [items, query, filter]);
 
   async function setStatus(id: string, status: string) {
-    const { error } = await supabase.from("orders").update({ status: status as any }).eq("id", id);
-    if (error) toast.error(error.message);
-    else {
+    const { error: err } = await supabase.from("orders").update({ status: status as any }).eq("id", id);
+    if (err) {
+      logSupabaseError("Atualizar estado do pedido", err, { order_id: id, new_status: status });
+      toast.error(`Falha ao atualizar: ${err.message}`);
+    } else {
       toast.success("Estado atualizado");
       setItems((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
     }
+  }
+
+  if (error) {
+    return <AdminErrorBanner error={error} onRetry={load} />;
   }
 
   return (
@@ -363,7 +389,13 @@ function AdminOrders() {
                 </td>
               </tr>
             ))}
-            {filtered.length === 0 && <tr><td colSpan={6} className="text-center py-12 text-muted-foreground">Nenhum pedido.</td></tr>}
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan={6} className="text-center py-12 text-muted-foreground">
+                  {loading ? "Carregando pedidos…" : "Nenhum pedido."}
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
