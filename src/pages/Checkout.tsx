@@ -212,50 +212,27 @@ export default function Checkout() {
     if (!validate()) return;
     setSubmitting(true);
     try {
-      const orderInsert: any = {
-          user_id: user!.id,
-          status: "pending",
-          payment_method: form.payment_method,
-          subtotal: total,
-          shipping: shippingValue,
-          insurance,
-          discount: couponDiscount,
-          coupon_code: coupon?.code || null,
-          total: grandTotal,
-          notes: form.notes || null,
-          shipping_full_name: form.full_name,
-          shipping_cpf: onlyDigits(form.cpf),
-          shipping_phone: onlyDigits(form.phone),
-          shipping_zip: onlyDigits(form.zip),
-          shipping_street: form.street,
-          shipping_number: form.number,
-          shipping_complement: form.complement,
-          shipping_district: form.district,
-          shipping_city: form.city,
-          shipping_state: form.state.toUpperCase(),
-      };
-      const { data: order, error: oErr } = await supabase
-        .from("orders")
-        .insert(orderInsert)
-        .select()
-        .single();
-      if (oErr) throw oErr;
-
-      const items = lines.map((l) => ({
-        order_id: order.id,
-        product_id: l.product_id,
-        product_name: l.name,
-        product_image_url: l.image_url,
-        unit_price: l.price,
-        quantity: l.qty,
-        subtotal: l.price * l.qty,
-      }));
-      const { error: iErr } = await supabase.from("order_items").insert(items);
-      if (iErr) throw iErr;
-
-      if (coupon) {
-        await (supabase as any).from("coupons").update({ uses: (coupon.uses || 0) + 1 }).eq("id", coupon.id);
-      }
+      // Tudo é validado e calculado server-side via RPC (transação atômica).
+      const { data: orderId, error: rpcErr } = await (supabase as any).rpc("create_order", {
+        p_items: lines.map((l) => ({ product_id: l.product_id, qty: l.qty })),
+        p_shipping_id: shippingId,
+        p_insurance: insuranceOn,
+        p_coupon_code: coupon?.code || null,
+        p_payment_method: form.payment_method,
+        p_full_name: form.full_name,
+        p_cpf: form.cpf,
+        p_phone: form.phone,
+        p_zip: form.zip,
+        p_street: form.street,
+        p_number: form.number,
+        p_complement: form.complement,
+        p_district: form.district,
+        p_city: form.city,
+        p_state: form.state,
+        p_notes: form.notes || null,
+      });
+      if (rpcErr) throw rpcErr;
+      void orderId;
 
       clear();
       toast.success("Pedido criado! Em breve entraremos em contato.");
