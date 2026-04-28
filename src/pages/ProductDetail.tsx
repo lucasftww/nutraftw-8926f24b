@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { ShoppingCart } from "lucide-react";
-import { ShieldCheck, Truck, Lock } from "lucide-react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { ShoppingCart, Zap, ShieldCheck, Truck, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -15,6 +14,7 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [related, setRelated] = useState<any[]>([]);
   const { add, openCart } = useCart();
+  const nav = useNavigate();
 
   useEffect(() => {
     if (!slug) return;
@@ -152,7 +152,7 @@ export default function ProductDetail() {
     : 0;
 
   return (
-    <section className="py-6 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto w-full">
+    <section className="py-6 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto w-full pb-28 sm:pb-10">
       {/* Breadcrumbs — reforçam a navegação até o Catálogo sem duplicar links */}
       <nav aria-label="Breadcrumb" className="mb-6">
         <ol
@@ -278,27 +278,39 @@ export default function ProductDetail() {
             </p>
           </div>
 
-          {/* CTA */}
-          <Button
-            disabled={(p.stock ?? 0) <= 0}
-            className="w-full h-14 rounded-xl text-base font-semibold bg-primary hover:bg-primary-glow text-primary-foreground shadow-md border border-primary/20"
-            onClick={() => {
-              add(
-                {
-                  product_id: p.id,
-                  slug: p.slug,
-                  name: p.name,
-                  price: finalPrice,
-                  image_url: p.image_url,
-                },
-                1
-              );
-              openCart();
-            }}
-          >
-            <ShoppingCart className="w-5 h-5 mr-2" />
-            {(p.stock ?? 0) <= 0 ? "Esgotado" : "Adicionar ao carrinho"}
-          </Button>
+          {/* CTAs — Comprar agora (primário) + Adicionar (secundário) */}
+          <div className="space-y-2.5">
+            <Button
+              disabled={(p.stock ?? 0) <= 0}
+              className="w-full h-14 rounded-2xl text-base font-bold bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-lg shadow-secondary/25"
+              onClick={() => {
+                if ((p.stock ?? 0) <= 0) return;
+                add(
+                  { product_id: p.id, slug: p.slug, name: p.name, price: finalPrice, image_url: p.image_url },
+                  1
+                );
+                nav("/checkout");
+              }}
+            >
+              <Zap className="w-5 h-5 mr-2" fill="currentColor" />
+              {(p.stock ?? 0) <= 0 ? "Esgotado" : "Comprar agora"}
+            </Button>
+            <Button
+              variant="outline"
+              disabled={(p.stock ?? 0) <= 0}
+              className="w-full h-12 rounded-2xl text-sm font-semibold border-primary/20 text-primary hover:bg-primary/5"
+              onClick={() => {
+                add(
+                  { product_id: p.id, slug: p.slug, name: p.name, price: finalPrice, image_url: p.image_url },
+                  1
+                );
+                openCart();
+              }}
+            >
+              <ShoppingCart className="w-4 h-4 mr-2" />
+              Adicionar ao carrinho
+            </Button>
+          </div>
 
           {/* Selos de confiança */}
           <ul className="grid grid-cols-3 gap-2 pt-2">
@@ -393,6 +405,45 @@ export default function ProductDetail() {
             })}
           </div>
         </section>
+      )}
+
+      {/* Sticky CTA mobile — sempre visível, intenção de compra */}
+      {(p.stock ?? 0) > 0 && (
+        <div
+          className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border px-4 py-3 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.15)]"
+          style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.75rem)" }}
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-baseline gap-1.5 flex-wrap">
+                {hasSale && (
+                  <span className="text-xs text-muted-foreground line-through">
+                    {formatBRL(Number(p.price))}
+                  </span>
+                )}
+                <span className="text-lg font-extrabold text-primary leading-none">
+                  {formatBRL(finalPrice)}
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+                ou 3x sem juros
+              </p>
+            </div>
+            <Button
+              className="h-12 px-5 rounded-2xl text-sm font-bold bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-md whitespace-nowrap"
+              onClick={() => {
+                add(
+                  { product_id: p.id, slug: p.slug, name: p.name, price: finalPrice, image_url: p.image_url },
+                  1
+                );
+                nav("/checkout");
+              }}
+            >
+              <Zap className="w-4 h-4 mr-1.5" fill="currentColor" />
+              Comprar
+            </Button>
+          </div>
+        </div>
       )}
     </section>
   );
