@@ -532,7 +532,7 @@ function Section({
             <Link
               key={p.id}
               to={`/produto/${p.slug}`}
-              className={`flex flex-col h-full rounded-2xl bg-card overflow-hidden ${isOut ? "opacity-70" : ""}`}
+              className={`group flex flex-col h-full rounded-2xl bg-card overflow-hidden border border-transparent hover:border-primary/15 ${isOut ? "opacity-70" : ""}`}
             >
               {/* Imagem */}
               <div className="relative aspect-square overflow-hidden bg-white rounded-2xl">
