@@ -200,9 +200,7 @@ export default function Checkout() {
     if (!validate()) return;
     setSubmitting(true);
     try {
-      const { data: order, error: oErr } = await supabase
-        .from("orders")
-        .insert({
+      const orderInsert: any = {
           user_id: user!.id,
           status: "pending",
           payment_method: form.payment_method,
@@ -223,7 +221,10 @@ export default function Checkout() {
           shipping_district: form.district,
           shipping_city: form.city,
           shipping_state: form.state.toUpperCase(),
-        })
+      };
+      const { data: order, error: oErr } = await supabase
+        .from("orders")
+        .insert(orderInsert)
         .select()
         .single();
       if (oErr) throw oErr;
