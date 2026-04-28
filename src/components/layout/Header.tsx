@@ -148,12 +148,16 @@ export function Header() {
             <div className="w-full glass border-b border-border/50 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-background/70">
               <div className="w-full pl-2 pr-3 sm:pl-3 sm:pr-6">
                 <div className="flex items-center justify-between h-12 md:h-14 gap-4">
-                  <Link to="/" className="flex items-center gap-2 group cursor-pointer min-w-0">
-                    <img src={logoGimports} alt="GIMPORTS" className="h-7 w-7 md:h-8 md:w-8 object-contain shrink-0" />
+                  {/*
+                    Marca apenas visual (não-clicável) — evita duplicar o
+                    destino "/" que já é coberto pelo item "Catálogo" abaixo.
+                  */}
+                  <div className="flex items-center gap-2 min-w-0" aria-hidden="true">
+                    <img src={logoGimports} alt="" className="h-7 w-7 md:h-8 md:w-8 object-contain shrink-0" />
                     <span className="font-display font-semibold text-[15px] md:text-base tracking-tight text-primary truncate">
                       GIMPORTS
                     </span>
-                  </Link>
+                  </div>
                   <button
                     onClick={() => setMobileMenuOpen(false)}
                     aria-label="Fechar menu"
