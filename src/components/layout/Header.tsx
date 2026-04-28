@@ -1,5 +1,4 @@
 import { Link, useLocation } from "react-router-dom";
-import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
