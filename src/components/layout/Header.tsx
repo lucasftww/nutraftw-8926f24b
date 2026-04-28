@@ -33,11 +33,11 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full glass border-b border-border/50">
+      <header className="fixed top-0 left-0 right-0 z-40 w-full glass border-b border-border/50 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-background/70">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 md:h-20">
-            {/* Esquerda: menu mobile + logo */}
-            <div className="flex items-center gap-3">
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center h-16 md:h-20 gap-4">
+            {/* Esquerda: menu mobile */}
+            <div className="flex items-center justify-start">
               <button
                 aria-label="Menu"
                 onClick={() => setMobileMenuOpen(true)}
@@ -45,18 +45,20 @@ export function Header() {
               >
                 <Menu className="w-6 h-6" />
               </button>
-              <Link to="/" className="flex items-center gap-2 group cursor-pointer">
-                <div className="overflow-hidden rounded-full h-9 w-9 md:h-10 md:w-10 border-2 border-primary/10 group-hover:border-primary/30 transition-colors bg-primary flex items-center justify-center">
-                  <span className="text-primary-foreground font-extrabold text-sm">G</span>
-                </div>
-                <span className="font-display font-bold text-lg md:text-xl tracking-tight text-primary hidden sm:block">
-                  GIMPORTS
-                </span>
-              </Link>
             </div>
 
+            {/* Centro: logo */}
+            <Link to="/" className="flex items-center gap-2 group cursor-pointer justify-self-center">
+              <div className="overflow-hidden rounded-full h-9 w-9 md:h-10 md:w-10 border-2 border-primary/10 group-hover:border-primary/30 transition-colors bg-primary flex items-center justify-center shadow-sm">
+                <span className="text-primary-foreground font-extrabold text-sm">G</span>
+              </div>
+              <span className="font-display font-bold text-lg md:text-xl tracking-tight text-primary hidden sm:block">
+                GIMPORTS
+              </span>
+            </Link>
+
             {/* Direita: conta + carrinho */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-end gap-2">
               <Link
                 to={accountHref}
                 className="hidden md:inline-flex items-center gap-2 h-11 px-4 rounded-full border border-primary/20 hover:border-primary text-primary font-semibold text-sm transition-colors"
