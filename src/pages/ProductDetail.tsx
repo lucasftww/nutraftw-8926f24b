@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ShoppingCart } from "lucide-react";
+import { ShieldCheck, Truck, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -298,6 +299,25 @@ export default function ProductDetail() {
             <ShoppingCart className="w-5 h-5 mr-2" />
             {(p.stock ?? 0) <= 0 ? "Esgotado" : "Adicionar ao carrinho"}
           </Button>
+
+          {/* Selos de confiança */}
+          <ul className="grid grid-cols-3 gap-2 pt-2">
+            {[
+              { icon: Truck, label: "Envio Brasil" },
+              { icon: ShieldCheck, label: "Original" },
+              { icon: Lock, label: "Pgto seguro" },
+            ].map((b) => (
+              <li
+                key={b.label}
+                className="flex flex-col items-center gap-1 rounded-xl border border-border/60 bg-background py-2.5 px-1 text-center"
+              >
+                <b.icon className="h-4 w-4 text-primary" />
+                <span className="text-[11px] font-medium text-muted-foreground leading-tight">
+                  {b.label}
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
 

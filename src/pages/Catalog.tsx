@@ -268,20 +268,37 @@ export default function Catalog() {
           <div className="space-y-12 pb-16">
             {loading ? (
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="rounded-xl bg-card border shadow overflow-hidden animate-pulse">
-                    <div className="aspect-square bg-muted" />
-                    <div className="p-3 space-y-2">
-                      <div className="h-3 w-4/5 bg-muted rounded" />
-                      <div className="h-3 w-2/5 bg-muted rounded" />
-                      <div className="h-8 w-full bg-muted rounded mt-2" />
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="rounded-2xl bg-card overflow-hidden">
+                    <div className="aspect-square skeleton-shimmer rounded-2xl" />
+                    <div className="pt-3 px-1 space-y-2">
+                      <div className="h-3 w-4/5 skeleton-shimmer rounded" />
+                      <div className="h-3 w-2/5 skeleton-shimmer rounded" />
+                      <div className="h-9 w-full skeleton-shimmer rounded-full mt-3" />
                     </div>
                   </div>
                 ))}
               </div>
             ) : filtered.length === 0 ? (
-              <div className="text-center py-20 rounded-xl border-2 border-dashed border-border bg-background">
-                <p className="text-muted-foreground text-sm">Nenhum produto encontrado.</p>
+              <div className="text-center py-16 rounded-2xl border-2 border-dashed border-border bg-gradient-to-br from-muted/30 to-background">
+                <div className="mx-auto mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <Search className="h-5 w-5" />
+                </div>
+                <p className="text-foreground font-semibold">Nenhum produto encontrado</p>
+                <p className="text-muted-foreground text-sm mt-1">
+                  Tente remover filtros ou ajustar a busca.
+                </p>
+                {(selectedCats.size > 0 || query) && (
+                  <button
+                    onClick={() => {
+                      setSelectedCats(new Set());
+                      setQuery("");
+                    }}
+                    className="mt-4 inline-flex items-center justify-center h-10 px-5 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary-glow transition-colors"
+                  >
+                    Limpar filtros
+                  </button>
+                )}
               </div>
             ) : (
               <>
