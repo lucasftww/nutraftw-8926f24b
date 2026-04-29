@@ -391,20 +391,20 @@ export default function Catalog() {
                 {sort === "categoria" ? (
                   <>
                     {paginated.promos.length > 0 && (
-                      <Section title="Promoções" items={paginated.promos} onAdd={(p, price) => {
-                        add({ product_id: p.id, slug: p.slug, name: p.name, price, image_url: p.image_url });
-                        openCart();
-                      }} />
+                      <Section
+                        title="Promoções"
+                        items={paginated.promos}
+                        onAdd={handleAdd}
+                        onPrefetch={prefetchProduct}
+                      />
                     )}
                     {paginated.sections.map((s) => (
                       <Section
                         key={s.name}
                         title={s.name}
                         items={s.items}
-                        onAdd={(p, price) => {
-                          add({ product_id: p.id, slug: p.slug, name: p.name, price, image_url: p.image_url });
-                          openCart();
-                        }}
+                        onAdd={handleAdd}
+                        onPrefetch={prefetchProduct}
                       />
                     ))}
                   </>
@@ -412,10 +412,8 @@ export default function Catalog() {
                   <Section
                     title={SORT_LABELS[sort]}
                     items={paginated.sections[0]?.items ?? []}
-                    onAdd={(p, price) => {
-                      add({ product_id: p.id, slug: p.slug, name: p.name, price, image_url: p.image_url });
-                      openCart();
-                    }}
+                    onAdd={handleAdd}
+                    onPrefetch={prefetchProduct}
                   />
                 )}
                 {hasMore && (
