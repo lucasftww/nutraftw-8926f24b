@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { queryKeys } from "@/lib/queryKeys";
@@ -29,7 +30,9 @@ export function useWishlist() {
     },
   });
 
-  const ids = new Set(query.data ?? []);
+  // Memoiza o Set para preservar referência entre renders quando os dados não mudam,
+  // evitando re-renders em massa em componentes que dependem de `ids` (Catalog, Cards).
+  const ids = useMemo(() => new Set(query.data ?? []), [query.data]);
 
   const toggleMut = useMutation({
     mutationFn: async (productId: string) => {

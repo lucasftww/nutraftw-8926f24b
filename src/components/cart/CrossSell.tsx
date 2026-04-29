@@ -45,6 +45,12 @@ export function CrossSell() {
     (async () => {
       // 1) Buscar a categoria do primeiro item para basear a sugestão.
       const firstId = lines[0]?.product_id;
+      if (!firstId) {
+        if (cancel) return;
+        setItems([]);
+        setLoading(false);
+        return;
+      }
       const { data: base } = await supabase
         .from("products")
         .select("category_id")
@@ -55,13 +61,17 @@ export function CrossSell() {
       const ids = lines.map((l) => l.product_id);
 
       // 2) Sugestões da mesma categoria (limite 8 pra ter folga após filtro).
+      // Filtra IDs do carrinho via `.not in (...)`. Quando o carrinho está vazio
+      // (não deveria, mas guardamos), pula esse filtro para evitar `()` inválido.
       let q = supabase
         .from("products")
         .select("id, slug, name, price, sale_price, image_url, stock, category_id, is_featured")
         .eq("is_active", true)
         .gt("stock", 0)
-        .not("id", "in", `(${ids.join(",")})`)
         .limit(8);
+      if (ids.length > 0) {
+        q = q.not("id", "in", `(${ids.join(",")})`);
+      }
       if (categoryId) q = q.eq("category_id", categoryId);
 
       const { data: sameCat } = await q;
