@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatBRL, slugify } from "@/lib/utils";
 import { toast } from "sonner";
-import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, Image as ImageIcon, RefreshCcw, Settings, BarChart3, Activity, History } from "lucide-react";
+import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, Image as ImageIcon, RefreshCcw, Settings, BarChart3, Activity, History, TrendingUp, Users, Download } from "lucide-react";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { WeeklyReport } from "@/components/admin/WeeklyReport";
 import { ImageUpload } from "@/components/admin/ImageUpload";
@@ -20,14 +20,17 @@ import { AdminResends } from "@/components/admin/AdminResends";
 import { AdminSettings } from "@/components/admin/AdminSettings";
 import { AdminDiagnostics } from "@/components/admin/AdminDiagnostics";
 import { AdminAuditLog } from "@/components/admin/AdminAuditLog";
+import { AdminFunnel } from "@/components/admin/AdminFunnel";
+import { AdminUsers } from "@/components/admin/AdminUsers";
 import { queryKeys } from "@/lib/queryKeys";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 import { logAdminAction, shallowDiff } from "@/lib/auditLog";
 
-type Tab = "dashboard" | "reports" | "products" | "categories" | "orders" | "coupons" | "shipping" | "banners" | "resends" | "settings" | "diagnostics" | "audit";
+type Tab = "dashboard" | "funnel" | "reports" | "products" | "categories" | "orders" | "coupons" | "shipping" | "banners" | "users" | "resends" | "settings" | "diagnostics" | "audit";
 
 const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "funnel", label: "Funil", icon: TrendingUp },
   { id: "reports", label: "Relatórios", icon: BarChart3 },
   { id: "products", label: "Produtos", icon: Package },
   { id: "categories", label: "Categorias", icon: Tags },
@@ -35,6 +38,7 @@ const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "coupons", label: "Cupons", icon: Ticket },
   { id: "shipping", label: "Fretes", icon: Truck },
   { id: "banners", label: "Banners", icon: ImageIcon },
+  { id: "users", label: "Usuários", icon: Users },
   { id: "resends", label: "Reenvios", icon: RefreshCcw },
   { id: "settings", label: "Configurações", icon: Settings },
   { id: "diagnostics", label: "Diagnóstico", icon: Activity },
@@ -77,6 +81,7 @@ export default function Admin() {
       </div>
 
       {tab === "dashboard" && <AdminDashboard />}
+      {tab === "funnel" && <AdminFunnel />}
       {tab === "reports" && <WeeklyReport />}
       {tab === "products" && <AdminProducts />}
       {tab === "categories" && <AdminCategories />}
@@ -84,6 +89,7 @@ export default function Admin() {
       {tab === "coupons" && <AdminCoupons />}
       {tab === "shipping" && <AdminShipping />}
       {tab === "banners" && <AdminBanners />}
+      {tab === "users" && <AdminUsers />}
       {tab === "resends" && <AdminResends />}
       {tab === "settings" && <AdminSettings />}
       {tab === "diagnostics" && <AdminDiagnostics />}
