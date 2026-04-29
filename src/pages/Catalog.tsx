@@ -126,9 +126,18 @@ export default function Catalog() {
   // Prefetch combinado: dados do produto + imagem hero hi-res (a mesma variante
   // usada na ProductDetail). Disparado quando o card entra na viewport ou o
   // usuário sinaliza intenção (touchstart/hover).
+  //
+  // Dedup por slug durante a sessão da página: ao digitar na busca, a lista
+  // filtrada é recriada e cada `ProductCard` monta um novo IntersectionObserver
+  // — sem este Set, todo card já visível dispararia prefetch de novo a cada
+  // tecla. `prefetchImage` já é idempotente (cache interno), então a economia
+  // aqui é em `prefetchProduct` + chamadas a `imageUrl()`.
+  const fullPrefetchedRef = useRef<Set<string>>(new Set());
   const prefetchProductFull = useCallback(
     (p: Product) => {
       if (!shouldPrefetch()) return;
+      if (fullPrefetchedRef.current.has(p.slug)) return;
+      fullPrefetchedRef.current.add(p.slug);
       prefetchProduct(p.slug);
       // Casa com responsiveImage(..., { fallbackWidth: 800, quality: 80 }) na ProductDetail
       prefetchImage(imageUrl(p.image_url, { width: 800, quality: 80 }));
