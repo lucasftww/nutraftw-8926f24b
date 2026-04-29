@@ -455,19 +455,24 @@ function AdminOrders() {
 
   async function setStatus(id: string, status: string) {
     const before = items.find((o) => o.id === id);
-    const { error: err } = await supabase.from("orders").update({ status: status as any }).eq("id", id);
+    let reason: string | null = null;
+    if (status === "cancelled" || status === "refunded") {
+      const r = window.prompt(
+        `Motivo do ${status === "cancelled" ? "cancelamento" : "reembolso"} (opcional, será registrado na comissão):`
+      );
+      reason = r?.trim() ? r.trim() : null;
+    }
+    const { error: err } = await supabase.rpc("admin_set_order_status", {
+      p_order_id: id,
+      p_status: status,
+      p_reason: reason,
+    });
     if (err) {
       logSupabaseError("Atualizar estado do pedido", err, { order_id: id, new_status: status });
       toast.error(`Falha ao atualizar: ${err.message}`);
     } else {
       toast.success("Estado atualizado");
-      logAdminAction({
-        action: "status_change",
-        entity: "orders",
-        entityId: id,
-        summary: `Pedido #${id.slice(0, 8)}: ${before?.status ?? "?"} → ${status}`,
-        diff: { from: before?.status ?? null, to: status },
-      });
+      // O audit log já é gravado pelo admin_set_order_status no servidor.
       setItems((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
     }
   }
