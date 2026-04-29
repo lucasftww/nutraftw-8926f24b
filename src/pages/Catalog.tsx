@@ -451,37 +451,27 @@ export default function Catalog() {
               </div>
             ) : (
               <>
-                {sort === "categoria" ? (
-                  <>
-                    {paginated.promos.length > 0 && (
-                      <Section
-                        title="Promoções"
-                        items={paginated.promos}
-                        onAdd={handleAdd}
-                        onPrefetch={prefetchProduct}
-                        onPrefetchFull={prefetchProductFull}
-                      />
-                    )}
-                    {paginated.sections.map((s) => (
-                      <Section
-                        key={s.name}
-                        title={s.name}
-                        items={s.items}
-                        onAdd={handleAdd}
-                        onPrefetch={prefetchProduct}
-                        onPrefetchFull={prefetchProductFull}
-                      />
-                    ))}
-                  </>
-                ) : (
+                {/* Layout uniforme: Promoções + Categorias com mesma ordenação
+                    e mesma paginação, independente do sort escolhido. */}
+                {paginated.promos.length > 0 && (
                   <Section
-                    title={SORT_LABELS[sort]}
-                    items={paginated.sections[0]?.items ?? []}
+                    title="Promoções"
+                    items={paginated.promos}
                     onAdd={handleAdd}
                     onPrefetch={prefetchProduct}
                     onPrefetchFull={prefetchProductFull}
                   />
                 )}
+                {paginated.sections.map((s) => (
+                  <Section
+                    key={s.name}
+                    title={s.name}
+                    items={s.items}
+                    onAdd={handleAdd}
+                    onPrefetch={prefetchProduct}
+                    onPrefetchFull={prefetchProductFull}
+                  />
+                ))}
                 {hasMore && (
                   <div ref={sentinelRef} className="flex flex-col items-center gap-3 py-8">
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5 w-full">
