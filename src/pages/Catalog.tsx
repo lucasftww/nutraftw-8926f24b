@@ -80,7 +80,7 @@ export default function Catalog() {
       itemListElement: products.slice(0, 20).map((p, i) => ({
         "@type": "ListItem",
         position: i + 1,
-        url: `/produto/${p.slug}`,
+        url: `${typeof window !== "undefined" ? window.location.origin : ""}/produto/${p.slug}`,
         name: p.name,
       })),
     },
