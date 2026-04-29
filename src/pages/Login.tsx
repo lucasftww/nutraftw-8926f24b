@@ -15,7 +15,10 @@ export default function Login() {
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const nav = useNavigate();
-  const next = params.get("next") || "/minha-conta";
+  // Sanitiza o `next`: aceita SOMENTE caminhos internos (começam com "/" e
+  // não com "//" para evitar protocol-relative URLs / open redirect).
+  const rawNext = params.get("next") || "/minha-conta";
+  const next = /^\/(?!\/)/.test(rawNext) ? rawNext : "/minha-conta";
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -59,7 +62,7 @@ export default function Login() {
   }
 
   async function loginGoogle() {
-    const target = next.startsWith("/") ? next : "/";
+    const target = next; // já sanitizado acima
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}${target}` },

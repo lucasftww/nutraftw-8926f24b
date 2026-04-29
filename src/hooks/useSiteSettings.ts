@@ -36,9 +36,12 @@ async function load() {
 export function useSiteSettings() {
   const [settings, setSettings] = useState<Record<string, string>>(cache || {});
   useEffect(() => {
-    if (!cache) load(); else setSettings(cache);
-    listeners.add(setSettings);
-    return () => { listeners.delete(setSettings); };
+    // Adapter: garante referência nova a cada notificação para forçar
+    // re-render mesmo se o objeto interno não mudou de identidade.
+    const adapter = (s: Record<string, string>) => setSettings({ ...s });
+    if (!cache) load(); else setSettings({ ...cache });
+    listeners.add(adapter);
+    return () => { listeners.delete(adapter); };
   }, []);
   return settings;
 }
