@@ -304,11 +304,9 @@ export default function Catalog() {
                 ))}
               </div>
             ) : filtered.length === 0 ? (
-              <div className="text-center py-16 rounded-2xl border-2 border-dashed border-border bg-gradient-to-br from-muted/30 to-background">
-                <div className="mx-auto mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <Search className="h-5 w-5" />
-                </div>
-                <p className="text-foreground font-semibold">Nenhum produto encontrado</p>
+              <div className="text-center py-20">
+                <Search className="h-5 w-5 mx-auto mb-3 text-muted-foreground" />
+                <p className="text-foreground font-medium">Nenhum produto encontrado</p>
                 <p className="text-muted-foreground text-sm mt-1">
                   Tente remover filtros ou ajustar a busca.
                 </p>
@@ -318,7 +316,7 @@ export default function Catalog() {
                       setSelectedCats(new Set());
                       setQuery("");
                     }}
-                    className="mt-4 inline-flex items-center justify-center h-10 px-5 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary-glow transition-colors"
+                    className="mt-5 inline-flex items-center justify-center h-10 px-5 rounded-full border border-border text-foreground text-sm font-medium hover:bg-foreground hover:text-background transition-colors"
                   >
                     Limpar filtros
                   </button>
