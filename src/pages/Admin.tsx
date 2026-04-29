@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -89,6 +90,7 @@ function AdminProducts() {
   const [editing, setEditing] = useState<any | null>(null);
   const [query, setQuery] = useState("");
   const [error, setError] = useState<AdminErrorInfo | null>(null);
+  const qc = useQueryClient();
 
   async function load() {
     setError(null);
@@ -148,6 +150,8 @@ function AdminProducts() {
     } else {
       toast.success("Produto guardado");
       setEditing(null);
+      qc.invalidateQueries({ queryKey: ["products"] });
+      qc.invalidateQueries({ queryKey: ["product"] });
       load();
     }
   }
@@ -158,7 +162,11 @@ function AdminProducts() {
     if (error) {
       logSupabaseError("Remover produto", error, { id });
       toast.error(error.message);
-    } else { toast.success("Removido"); load(); }
+    } else {
+      toast.success("Removido");
+      qc.invalidateQueries({ queryKey: ["products"] });
+      load();
+    }
   }
 
   if (error) return <AdminErrorBanner error={error} onRetry={load} />;
@@ -254,6 +262,7 @@ function AdminCategories() {
   const [items, setItems] = useState<any[]>([]);
   const [name, setName] = useState("");
   const [error, setError] = useState<AdminErrorInfo | null>(null);
+  const qc = useQueryClient();
 
   async function load() {
     setError(null);
@@ -274,7 +283,11 @@ function AdminCategories() {
     if (error) {
       logSupabaseError("Adicionar categoria", error, { name });
       toast.error(error.message);
-    } else { setName(""); load(); }
+    } else {
+      setName("");
+      qc.invalidateQueries({ queryKey: ["categories"] });
+      load();
+    }
   }
   async function del(id: string) {
     if (!confirm("Remover categoria?")) return;
@@ -284,6 +297,7 @@ function AdminCategories() {
       toast.error(err.message);
       return;
     }
+    qc.invalidateQueries({ queryKey: ["categories"] });
     load();
   }
 

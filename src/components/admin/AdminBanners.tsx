@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ export function AdminBanners() {
   const [items, setItems] = useState<any[]>([]);
   const [editing, setEditing] = useState<any | null>(null);
   const [error, setError] = useState<AdminErrorInfo | null>(null);
+  const qc = useQueryClient();
 
   async function load() {
     setError(null);
@@ -44,7 +46,12 @@ export function AdminBanners() {
     if (error) {
       logSupabaseError("Guardar banner", error, { id: f.id, payload });
       toast.error(error.message);
-    } else { toast.success("Banner guardado"); setEditing(null); load(); }
+    } else {
+      toast.success("Banner guardado");
+      setEditing(null);
+      qc.invalidateQueries({ queryKey: ["site_banners"] });
+      load();
+    }
   }
 
   async function del(id: string) {
@@ -55,6 +62,7 @@ export function AdminBanners() {
       toast.error(err.message);
       return;
     }
+    qc.invalidateQueries({ queryKey: ["site_banners"] });
     load();
   }
 
