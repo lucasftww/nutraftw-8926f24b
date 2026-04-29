@@ -579,7 +579,7 @@ export default function Checkout() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 md:py-10 pb-28 lg:pb-10">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 md:py-10">
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <button
           onClick={() => nav(-1)}
