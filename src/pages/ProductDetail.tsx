@@ -10,6 +10,7 @@ import { useCart } from "@/hooks/useCart";
 import { useSEO } from "@/hooks/useSEO";
 import { useRegisterCurrentProduct } from "@/contexts/CurrentProductContext";
 import { useProductBySlug, useRelatedProducts } from "@/hooks/useProducts";
+import { trackEvent } from "@/lib/analytics";
 
 export default function ProductDetail() {
   const { slug } = useParams();
@@ -88,6 +89,11 @@ export default function ProductDetail() {
         }
       : null
   );
+
+  // Registra view do produto no funil (deduplicado por 30min via analytics).
+  useEffect(() => {
+    if (p?.id) void trackEvent("view", p.id);
+  }, [p?.id]);
 
   if (loading)
     return <div className="container py-20 text-center text-muted-foreground">A carregar…</div>;

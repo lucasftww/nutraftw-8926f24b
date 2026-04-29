@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatBRL, slugify } from "@/lib/utils";
 import { toast } from "sonner";
-import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, Image as ImageIcon, RefreshCcw, Settings, BarChart3, Activity, History } from "lucide-react";
+import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, Image as ImageIcon, RefreshCcw, Settings, BarChart3, Activity, History, TrendingUp, Users, Download } from "lucide-react";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { WeeklyReport } from "@/components/admin/WeeklyReport";
 import { ImageUpload } from "@/components/admin/ImageUpload";
@@ -20,14 +20,17 @@ import { AdminResends } from "@/components/admin/AdminResends";
 import { AdminSettings } from "@/components/admin/AdminSettings";
 import { AdminDiagnostics } from "@/components/admin/AdminDiagnostics";
 import { AdminAuditLog } from "@/components/admin/AdminAuditLog";
+import { AdminFunnel } from "@/components/admin/AdminFunnel";
+import { AdminUsers } from "@/components/admin/AdminUsers";
 import { queryKeys } from "@/lib/queryKeys";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 import { logAdminAction, shallowDiff } from "@/lib/auditLog";
 
-type Tab = "dashboard" | "reports" | "products" | "categories" | "orders" | "coupons" | "shipping" | "banners" | "resends" | "settings" | "diagnostics" | "audit";
+type Tab = "dashboard" | "funnel" | "reports" | "products" | "categories" | "orders" | "coupons" | "shipping" | "banners" | "users" | "resends" | "settings" | "diagnostics" | "audit";
 
 const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "funnel", label: "Funil", icon: TrendingUp },
   { id: "reports", label: "Relatórios", icon: BarChart3 },
   { id: "products", label: "Produtos", icon: Package },
   { id: "categories", label: "Categorias", icon: Tags },
@@ -35,6 +38,7 @@ const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "coupons", label: "Cupons", icon: Ticket },
   { id: "shipping", label: "Fretes", icon: Truck },
   { id: "banners", label: "Banners", icon: ImageIcon },
+  { id: "users", label: "Usuários", icon: Users },
   { id: "resends", label: "Reenvios", icon: RefreshCcw },
   { id: "settings", label: "Configurações", icon: Settings },
   { id: "diagnostics", label: "Diagnóstico", icon: Activity },
@@ -77,6 +81,7 @@ export default function Admin() {
       </div>
 
       {tab === "dashboard" && <AdminDashboard />}
+      {tab === "funnel" && <AdminFunnel />}
       {tab === "reports" && <WeeklyReport />}
       {tab === "products" && <AdminProducts />}
       {tab === "categories" && <AdminCategories />}
@@ -84,6 +89,7 @@ export default function Admin() {
       {tab === "coupons" && <AdminCoupons />}
       {tab === "shipping" && <AdminShipping />}
       {tab === "banners" && <AdminBanners />}
+      {tab === "users" && <AdminUsers />}
       {tab === "resends" && <AdminResends />}
       {tab === "settings" && <AdminSettings />}
       {tab === "diagnostics" && <AdminDiagnostics />}
@@ -463,6 +469,47 @@ function AdminOrders() {
 
   const totalPages = totalCount != null ? Math.max(1, Math.ceil(totalCount / PAGE_SIZE)) : null;
 
+  async function exportCSV() {
+    // Exporta TODOS os pedidos do filtro atual (não só a página). Limita a 5000 por segurança.
+    let q = supabase
+      .from("orders")
+      .select(
+        "id, created_at, status, payment_method, total, subtotal, shipping, insurance, discount, coupon_code, shipping_full_name, shipping_cpf, shipping_phone, shipping_zip, shipping_city, shipping_state",
+      )
+      .order("created_at", { ascending: false })
+      .limit(5000);
+    if (filter !== "all") q = q.eq("status", filter as any);
+    const { data, error: err } = await q;
+    if (err || !data) {
+      toast.error(`Falha ao exportar: ${err?.message ?? "sem dados"}`);
+      return;
+    }
+    const headers = [
+      "id", "created_at", "status", "payment_method", "total", "subtotal",
+      "shipping", "insurance", "discount", "coupon_code", "customer_name",
+      "cpf", "phone", "zip", "city", "state",
+    ];
+    const escape = (v: any) => {
+      if (v == null) return "";
+      const s = String(v).replace(/"/g, '""');
+      return /[",\n;]/.test(s) ? `"${s}"` : s;
+    };
+    const rows = data.map((o: any) => [
+      o.id, o.created_at, o.status, o.payment_method, o.total, o.subtotal,
+      o.shipping, o.insurance, o.discount, o.coupon_code, o.shipping_full_name,
+      o.shipping_cpf, o.shipping_phone, o.shipping_zip, o.shipping_city, o.shipping_state,
+    ].map(escape).join(","));
+    const csv = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `pedidos-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`${data.length} pedidos exportados`);
+  }
+
   return (
     <>
       <div className="flex justify-between items-center mb-4 gap-3 flex-wrap">
@@ -474,6 +521,9 @@ function AdminOrders() {
           <option value="all">Todos</option>
           {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
+        <Button variant="outline" onClick={exportCSV} disabled={loading}>
+          <Download className="h-4 w-4" /> Exportar CSV
+        </Button>
       </div>
 
       <div className="bg-card rounded-2xl border border-border overflow-hidden">
