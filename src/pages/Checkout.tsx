@@ -593,13 +593,10 @@ export default function Checkout() {
       </div>
 
       <form onSubmit={submit} className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-5 lg:gap-8">
-        <div className="space-y-5 sm:space-y-6 min-w-0">
+        <div className="space-y-4 sm:space-y-6 min-w-0">
           {/* Dados do Comprador */}
           <section className="checkout-card">
-            <div className="flex items-center gap-2 mb-5 sm:mb-6">
-              <UserIcon className="w-5 h-5 text-primary" />
-              <h2 className="checkout-section-title !mb-0">Dados do Comprador</h2>
-            </div>
+            <h2 className="checkout-section-title">Seus dados</h2>
             <div className="space-y-4">
               <div className="checkout-field">
                 <label className="checkout-label">Nome Completo *</label>
