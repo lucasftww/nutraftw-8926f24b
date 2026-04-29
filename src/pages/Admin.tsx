@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatBRL, slugify } from "@/lib/utils";
 import { toast } from "sonner";
-import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, Image as ImageIcon, RefreshCcw, Settings, BarChart3, Activity } from "lucide-react";
+import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, Image as ImageIcon, RefreshCcw, Settings, BarChart3, Activity, History } from "lucide-react";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { WeeklyReport } from "@/components/admin/WeeklyReport";
 import { ImageUpload } from "@/components/admin/ImageUpload";
@@ -19,11 +19,12 @@ import { AdminBanners } from "@/components/admin/AdminBanners";
 import { AdminResends } from "@/components/admin/AdminResends";
 import { AdminSettings } from "@/components/admin/AdminSettings";
 import { AdminDiagnostics } from "@/components/admin/AdminDiagnostics";
+import { AdminAuditLog } from "@/components/admin/AdminAuditLog";
 import { queryKeys } from "@/lib/queryKeys";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 import { logAdminAction, shallowDiff } from "@/lib/auditLog";
 
-type Tab = "dashboard" | "reports" | "products" | "categories" | "orders" | "coupons" | "shipping" | "banners" | "resends" | "settings" | "diagnostics";
+type Tab = "dashboard" | "reports" | "products" | "categories" | "orders" | "coupons" | "shipping" | "banners" | "resends" | "settings" | "diagnostics" | "audit";
 
 const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -37,6 +38,7 @@ const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "resends", label: "Reenvios", icon: RefreshCcw },
   { id: "settings", label: "Configurações", icon: Settings },
   { id: "diagnostics", label: "Diagnóstico", icon: Activity },
+  { id: "audit", label: "Histórico", icon: History },
 ];
 
 export default function Admin() {
@@ -85,6 +87,7 @@ export default function Admin() {
       {tab === "resends" && <AdminResends />}
       {tab === "settings" && <AdminSettings />}
       {tab === "diagnostics" && <AdminDiagnostics />}
+      {tab === "audit" && <AdminAuditLog />}
     </div>
   );
 }
