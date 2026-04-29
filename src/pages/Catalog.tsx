@@ -276,13 +276,25 @@ export default function Catalog() {
     if (!hasMore || loading) return;
     const el = sentinelRef.current;
     if (!el) return;
+    // Throttle: evita disparos em rajada quando o sentinel fica
+    // continuamente dentro da margem após cada batch carregado.
+    let pending = false;
     const io = new IntersectionObserver(
       (entries) => {
+        if (pending) return;
         if (entries.some((e) => e.isIntersecting)) {
+          pending = true;
           setVisibleCount((c) => c + PAGE_SIZE);
+          // Libera o próximo disparo só depois do próximo frame, dando
+          // tempo do React commitar e o sentinel reposicionar.
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => { pending = false; });
+          });
         }
       },
-      { rootMargin: "600px 0px" }
+      // 300px é suficiente pra começar a carregar antes do usuário ver o fim,
+      // sem manter o sentinel "permanentemente intersectando" e disparando loop.
+      { rootMargin: "300px 0px" }
     );
     io.observe(el);
     return () => io.disconnect();
