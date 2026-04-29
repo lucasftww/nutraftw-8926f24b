@@ -214,7 +214,7 @@ export default function MyAccount() {
               {(profile?.full_name || user?.email || "?").trim().charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] md:text-[11px] uppercase tracking-[0.14em] text-white/60 font-semibold">Minha conta</p>
+              <p className="text-eyebrow text-white/60">Minha conta</p>
               <h1 className="font-display text-base md:text-3xl font-extrabold leading-tight truncate mt-0.5">
                 {profile?.full_name || "Bem-vindo"}
               </h1>
@@ -311,7 +311,7 @@ export default function MyAccount() {
           return (
             <>
               <span className="h-1 w-4 rounded-full bg-primary" />
-              <h2 className="text-[10px] uppercase tracking-[0.14em] font-bold text-primary/80">{current.label}</h2>
+              <h2 className="text-eyebrow text-primary/80">{current.label}</h2>
             </>
           );
         })()}
@@ -424,14 +424,14 @@ export default function MyAccount() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
-                        <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">#{o.id.slice(0, 8)}</p>
+                        <p className="font-mono text-eyebrow text-muted-foreground tracking-wider">#{o.id.slice(0, 8)}</p>
                         <p className="font-display font-extrabold text-primary text-[14px] md:text-[15px] tabular-nums">{formatBRL(o.total)}</p>
                       </div>
                       <div className="flex items-center justify-between gap-2 mt-1">
-                        <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] md:text-[11px] font-semibold ${status.color}`}>
+                        <span className={`badge-pill ${status.color}`}>
                           {status.label}
                         </span>
-                        <span className="text-[10px] md:text-[11px] text-muted-foreground tabular-nums">
+                        <span className="text-caption text-muted-foreground tabular-nums">
                           {new Date(o.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
                         </span>
                       </div>
@@ -466,7 +466,7 @@ export default function MyAccount() {
             {/* Link + ações */}
             <div className="mt-3.5 space-y-2">
               <div className="flex items-center gap-2 bg-card border border-border rounded-xl px-3 py-2">
-                <span className="text-[9px] md:text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-semibold shrink-0">Link</span>
+                <span className="text-eyebrow text-muted-foreground shrink-0">Link</span>
                 <span className="font-mono text-[11px] md:text-xs text-foreground truncate flex-1">{affiliateUrl || "—"}</span>
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -478,7 +478,7 @@ export default function MyAccount() {
                   {copied ? "Copiado!" : "Copiar"}
                 </Button>
               </div>
-              <p className="text-[10px] md:text-[11px] text-muted-foreground text-center pt-0.5">
+              <p className="text-caption text-muted-foreground text-center pt-0.5">
                 Código: <span className="font-mono font-semibold text-foreground">{profile?.affiliate_code || "—"}</span>
               </p>
             </div>
@@ -555,14 +555,14 @@ export default function MyAccount() {
                     <h2 className="font-display text-[14px] md:text-lg font-bold text-primary">Histórico de comissões</h2>
                     <p className="text-[11px] md:text-sm text-muted-foreground mt-0.5">Geradas pelas suas indicações.</p>
                   </div>
-                  <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] md:text-[11px] font-bold tabular-nums">
+                  <span className="badge-pill bg-primary/10 text-primary tabular-nums shrink-0">
                     {filteredCount} {filteredCount === 1 ? "item" : "itens"}
                   </span>
                 </div>
 
                 {/* Mobile: select nativo — mais claro, sem scroll horizontal */}
                 <div className="md:hidden mt-3">
-                  <label className="block text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-semibold mb-1.5">
+                  <label className="block text-eyebrow text-muted-foreground mb-1.5">
                     Filtrar por status
                   </label>
                   <div className="relative">
@@ -593,7 +593,7 @@ export default function MyAccount() {
                         className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition inline-flex items-center gap-1.5 ${active ? "bg-primary text-primary-foreground border-primary" : "border-border bg-background text-muted-foreground hover:bg-muted/50"}`}
                       >
                         {f.label}
-                        <span className={`tabular-nums text-[10px] px-1.5 py-0.5 rounded-full ${active ? "bg-white/20" : "bg-muted"}`}>{n}</span>
+                        <span className={`badge-pill-sm tabular-nums ${active ? "bg-white/20" : "bg-muted"}`}>{n}</span>
                       </button>
                     );
                   })}
@@ -642,7 +642,7 @@ export default function MyAccount() {
                     <li key={c.id} className="bg-card rounded-2xl border border-border p-3.5">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                          <p className="font-mono text-eyebrow text-muted-foreground tracking-wider">
                             {c.order_id ? `#${String(c.order_id).slice(0, 8)}` : "—"}
                           </p>
                           <p className="text-lg font-extrabold text-primary leading-none mt-1.5 tabular-nums">{formatBRL(Number(c.amount || 0))}</p>
@@ -652,20 +652,20 @@ export default function MyAccount() {
                             </p>
                           )}
                         </div>
-                        <span className={`inline-block px-2.5 py-1 rounded-full text-[11px] font-semibold shrink-0 ${statusBadge[c.status] || "bg-gray-100 text-gray-700"}`}>
+                        <span className={`badge-pill shrink-0 ${statusBadge[c.status] || "bg-gray-100 text-gray-700"}`}>
                           {statusLabel[c.status] || c.status}
                         </span>
                       </div>
                       {c.cancellation_reason && (c.status === "cancelled" || c.status === "clawback") && (
-                        <p className="text-[11px] text-muted-foreground mt-2.5 italic leading-relaxed">{c.cancellation_reason}</p>
+                        <p className="text-caption text-muted-foreground mt-2.5 italic">{c.cancellation_reason}</p>
                       )}
-                      <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-border/70 text-[11px]">
+                      <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-border/70 text-caption">
                         <div>
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Gerada</p>
+                          <p className="text-eyebrow text-muted-foreground tracking-wide">Gerada</p>
                           <p className="font-semibold text-foreground mt-0.5 tabular-nums">{fmtDate(c.created_at)}</p>
                         </div>
                         <div>
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Liberação</p>
+                          <p className="text-eyebrow text-muted-foreground tracking-wide">Liberação</p>
                           <p className="font-semibold text-foreground mt-0.5 tabular-nums">
                             {c.released_at
                               ? fmtDate(c.released_at)
@@ -675,7 +675,7 @@ export default function MyAccount() {
                           </p>
                         </div>
                         <div>
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Pago</p>
+                          <p className="text-eyebrow text-muted-foreground tracking-wide">Pago</p>
                           <p className="font-semibold text-foreground mt-0.5 tabular-nums">{fmtDate(c.paid_at)}</p>
                         </div>
                       </div>

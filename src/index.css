@@ -115,6 +115,36 @@
            border-2 border-primary/20 text-primary font-semibold text-sm
            hover:border-primary hover:bg-primary/5 transition-all;
   }
+
+  /* ===== Tipografia padronizada — escala única do projeto =====
+     Use estas classes em vez de text-[10px]/[11px]/[13px] arbitrários
+     para manter consistência visual em todo o site. */
+
+  /* Eyebrow / label uppercase (chips de seção, "MINHA CONTA", "LINK") */
+  .text-eyebrow {
+    @apply text-[10px] font-semibold uppercase tracking-[0.14em] leading-none;
+  }
+
+  /* Caption — metadados, datas, "de R$ X", legendas auxiliares */
+  .text-caption {
+    @apply text-[11px] leading-[1.4];
+  }
+
+  /* Texto secundário em cards (descrições curtas, ajuda inline) */
+  .text-card-meta {
+    @apply text-[13px] leading-[1.5];
+  }
+
+  /* Badge / pill — status, contadores, tags */
+  .badge-pill {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+           text-[11px] font-semibold leading-[1.2] whitespace-nowrap;
+  }
+  .badge-pill-sm {
+    @apply inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full
+           text-[10px] font-semibold leading-none whitespace-nowrap;
+  }
+
   .product-card {
     @apply flex flex-col w-full h-full bg-card rounded-2xl border border-border/50
            shadow-sm hover:shadow-xl hover:border-primary/20

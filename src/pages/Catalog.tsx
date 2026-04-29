@@ -774,7 +774,7 @@ const ProductCard = memo(function ProductCard({
                   </span>
                 )}
                 {hasRealSale && !isOut && (
-                  <span className="absolute top-2 right-2 inline-flex items-center rounded-full bg-secondary text-secondary-foreground text-[10px] font-bold px-2 py-0.5 shadow-sm">
+                  <span className="badge-pill absolute top-2 right-2 bg-secondary text-secondary-foreground font-bold shadow-sm">
                     -{discountPct}%
                   </span>
                 )}
@@ -792,7 +792,7 @@ const ProductCard = memo(function ProductCard({
                 </h3>
                 <div className="mt-2 flex flex-col gap-0.5">
                   {hasRealSale && (
-                    <span className="text-[11px] text-muted-foreground line-through tabular-nums leading-none">
+                    <span className="text-caption text-muted-foreground line-through tabular-nums">
                       de {formatBRL(priceNum)}
                     </span>
                   )}
