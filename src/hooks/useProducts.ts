@@ -69,6 +69,10 @@ export function useProductBySlug(slug: string | undefined) {
       if (error) throw error;
       return data;
     },
+    // Alinha com o staleTime usado em prefetchProduct() no Catálogo:
+    // se a página de detalhe for aberta logo após o prefetch, reaproveita o
+    // cache em vez de refetch imediato.
+    staleTime: 60_000,
   });
 }
 
