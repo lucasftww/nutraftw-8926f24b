@@ -203,6 +203,18 @@
            focus-visible:outline-none focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/10
            transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50;
   }
+  /* Estados de validação inline (data-status="valid" | "invalid") */
+  .checkout-input[data-status="valid"] {
+    @apply border-success focus-visible:border-success focus-visible:ring-success/15;
+  }
+  .checkout-input[data-status="invalid"] {
+    @apply border-destructive focus-visible:border-destructive focus-visible:ring-destructive/15;
+  }
+  .field-hint {
+    @apply text-[12px] mt-1 ml-0.5 inline-flex items-start gap-1 leading-tight;
+  }
+  .field-hint-error { @apply text-destructive font-medium; }
+  .field-hint-ok { @apply text-success font-medium; }
   .glass {
     @apply bg-background/80 backdrop-blur-md;
   }
