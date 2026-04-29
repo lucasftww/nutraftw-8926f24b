@@ -11,7 +11,9 @@ export function Header() {
   const { count, openCart } = useCart();
   const location = useLocation();
   const settings = useSiteSettings();
-  const wa = settings.whatsapp_number || "5511999999999";
+  // Normaliza: remove qualquer caractere não-numérico para garantir link wa.me válido
+  // mesmo se admin salvar "+55 (11) 99999-9999".
+  const wa = (settings.whatsapp_number || "5511999999999").replace(/\D/g, "");
   const waMsg = encodeURIComponent(settings.whatsapp_message || "");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 

@@ -136,6 +136,10 @@ function AdminProducts() {
       active_principle: f.active_principle || null,
       composition: f.composition || null,
       price: Number(f.price) || 0,
+      sale_price:
+        f.sale_price === "" || f.sale_price == null
+          ? null
+          : Number(f.sale_price),
       stock: Number(f.stock) || 0,
       image_url: f.image_url || null,
       category_id: f.category_id || null,
@@ -237,6 +241,7 @@ function AdminProducts() {
                 </select>
               </div>
               <div className="space-y-2"><Label>Preço (R$)</Label><Input type="number" step="0.01" required value={editing.price || ""} onChange={(e) => setEditing({ ...editing, price: e.target.value })} /></div>
+              <div className="space-y-2"><Label>Preço promocional (R$)</Label><Input type="number" step="0.01" placeholder="opcional" value={editing.sale_price ?? ""} onChange={(e) => setEditing({ ...editing, sale_price: e.target.value })} /></div>
               <div className="space-y-2"><Label>Stock</Label><Input type="number" value={editing.stock || 0} onChange={(e) => setEditing({ ...editing, stock: e.target.value })} /></div>
               <div className="space-y-2 sm:col-span-2">
                 <Label>Imagem</Label>
