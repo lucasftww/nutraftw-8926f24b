@@ -532,26 +532,10 @@ function Section({
   const isPromo = /promo/i.test(title);
   return (
     <div>
-      <div className="mb-4 md:mb-8">
-        <div className="flex items-center justify-between gap-3 border-b-2 border-primary/15 pb-2.5">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span
-              aria-hidden="true"
-              className={`inline-block h-6 md:h-8 w-1 md:w-1.5 rounded-full shrink-0 ${
-                isPromo ? "bg-secondary" : "bg-primary"
-              }`}
-            />
-            <h2 className="text-lg md:text-3xl font-extrabold tracking-tight text-primary leading-none truncate">
-              {title}
-            </h2>
-            {isPromo && (
-              <span aria-hidden="true" className="text-base md:text-lg">🔥</span>
-            )}
-          </div>
-          <span className="shrink-0 text-[11px] md:text-[13px] font-semibold text-muted-foreground tabular-nums">
-            {items.length} {items.length === 1 ? "item" : "itens"}
-          </span>
-        </div>
+      <div className="mb-5 md:mb-7">
+        <h2 className="text-base md:text-xl font-semibold tracking-tight text-foreground">
+          {title}
+        </h2>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
         {items.map((p) => {
@@ -566,14 +550,11 @@ function Section({
           const isOut = (p.stock ?? 0) <= 0;
           const ageDays = (Date.now() - new Date(p.created_at).getTime()) / 86400000;
           const isNew = !isOut && ageDays <= 30;
+          // Apenas um badge prioritário por card (clean): esgotado > novo. Oferta vira só o "-x%".
           const badge = isOut
-            ? { label: "ESGOTADO", cls: "bg-destructive text-destructive-foreground" }
-            : hasRealSale
-            ? { label: "OFERTA", cls: "bg-secondary text-white" }
-            : isNew
-            ? { label: "LANÇAMENTO", cls: "bg-emerald-600 text-white" }
-            : p.is_featured
-            ? { label: "DESTAQUE", cls: "bg-primary text-primary-foreground" }
+            ? { label: "Esgotado", cls: "bg-foreground/80 text-background" }
+            : isNew && !hasRealSale
+            ? { label: "Novo", cls: "bg-foreground/80 text-background" }
             : null;
           return (
             <Link
@@ -592,28 +573,28 @@ function Section({
                   className="w-full h-full object-cover"
                 />
                 {badge && (
-                  <span className={`absolute top-2 left-2 inline-flex items-center rounded-full text-[10px] font-bold tracking-wide px-2 py-0.5 shadow-sm ${badge.cls}`}>
+                  <span className={`absolute top-2 left-2 inline-flex items-center rounded-full text-[10px] font-medium px-2 py-0.5 ${badge.cls}`}>
                     {badge.label}
                   </span>
                 )}
                 {hasRealSale && !isOut && (
-                  <span className="absolute top-2 right-2 inline-flex items-center rounded-full bg-foreground/90 text-background text-[10px] font-semibold px-2 py-0.5 backdrop-blur-sm">
+                  <span className="absolute top-2 right-2 inline-flex items-center rounded-full bg-foreground/85 text-background text-[10px] font-medium px-2 py-0.5">
                     -{discountPct}%
                   </span>
                 )}
               </div>
 
-              {/* Conteúdo */}
-              <div className="pt-3 pb-1 px-1 flex-1 flex flex-col">
-                <h3 className="font-medium text-sm leading-snug line-clamp-2 min-h-[2.5rem] text-foreground">
+              {/* Conteúdo — minimalista, sem botão preenchido em cada card */}
+              <div className="pt-3 pb-2 px-1 flex-1 flex flex-col">
+                <h3 className="font-normal text-[13px] sm:text-sm leading-snug line-clamp-2 min-h-[2.4rem] text-foreground">
                   {p.name}
                 </h3>
-                <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-base md:text-lg font-bold text-foreground">
+                <div className="mt-1.5 flex items-baseline gap-2">
+                  <span className="text-sm md:text-base font-semibold text-foreground tabular-nums">
                     {formatBRL(finalPrice)}
                   </span>
                   {hasRealSale && (
-                    <span className="text-xs text-muted-foreground line-through">
+                    <span className="text-[11px] text-muted-foreground line-through tabular-nums">
                       {formatBRL(priceNum)}
                     </span>
                   )}
@@ -626,7 +607,8 @@ function Section({
                     onAdd(p, finalPrice);
                   }}
                   disabled={isOut}
-                  className="mt-3 inline-flex items-center justify-center gap-1.5 whitespace-nowrap font-semibold bg-primary text-primary-foreground hover:bg-primary-glow rounded-full w-full text-xs h-9 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
+                  aria-label={isOut ? "Esgotado" : `Adicionar ${p.name} ao carrinho`}
+                  className="mt-2.5 inline-flex items-center justify-center gap-1.5 whitespace-nowrap font-medium border border-border text-foreground bg-background hover:bg-foreground hover:text-background transition-colors rounded-full w-full text-xs h-9 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-background disabled:hover:text-foreground"
                 >
                   <ShoppingCart className="h-3.5 w-3.5" />
                   {isOut ? "Esgotado" : "Adicionar"}
