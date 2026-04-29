@@ -589,8 +589,8 @@ export default function Checkout() {
         </button>
       </div>
 
-      <h1 className="text-xl sm:text-3xl font-extrabold tracking-tight mb-4 sm:mb-6 text-center lg:text-left">
-        Finalizar Compra
+      <h1 className="text-lg sm:text-3xl font-extrabold tracking-tight mb-4 sm:mb-6 text-center lg:text-left">
+        Finalizar compra
       </h1>
 
       <form onSubmit={submit} className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-5 lg:gap-8">
@@ -860,41 +860,26 @@ export default function Checkout() {
             </div>
 
             {settings.insurance_optional !== "0" && (
-              <div className="pt-4 border-t border-border">
-                <label className="flex items-start gap-4 cursor-pointer group">
-                  <div className="relative flex items-center justify-center mt-1 shrink-0">
-                    <input
-                      type="checkbox"
-                      checked={insuranceOn}
-                      onChange={(e) => setInsuranceOn(e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div
-                      className={`w-6 h-6 rounded-md border-2 transition-colors flex items-center justify-center ${
-                        insuranceOn ? "bg-primary border-primary" : "border-muted-foreground/40 group-hover:border-primary"
-                      }`}
-                    >
-                      {insuranceOn && <Check className="w-4 h-4 text-primary-foreground" strokeWidth={3} />}
-                    </div>
+              <label className="pt-4 border-t border-border flex items-center gap-3 cursor-pointer group">
+                <div className="relative flex items-center justify-center shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={insuranceOn}
+                    onChange={(e) => setInsuranceOn(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div
+                    className={`w-5 h-5 rounded-md border-2 transition-colors flex items-center justify-center ${
+                      insuranceOn ? "bg-primary border-primary" : "border-muted-foreground/40 group-hover:border-primary"
+                    }`}
+                  >
+                    {insuranceOn && <Check className="w-3.5 h-3.5 text-primary-foreground" strokeWidth={3} />}
                   </div>
-                  <div className="flex-1">
-                    <p className="font-bold text-foreground group-hover:text-primary transition-colors">
-                      Adicionar Seguro de Envio (+10%)
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Seguro de envio que garante cobertura em caso de extravio, dano ou problemas na entrega.
-                    </p>
-                    <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                      <p className="text-xs text-amber-800 flex items-start gap-1.5">
-                        <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                        <span>
-                          Pedidos sem seguro são de responsabilidade do comprador. Não nos responsabilizamos por problemas no transporte.
-                        </span>
-                      </p>
-                    </div>
-                  </div>
-                </label>
-              </div>
+                </div>
+                <span className="text-sm text-foreground/90">
+                  Adicionar proteção de envio <span className="text-muted-foreground">(+10%)</span>
+                </span>
+              </label>
             )}
           </section>
 
@@ -1188,35 +1173,29 @@ export default function Checkout() {
             )}
           </div>
 
-          {/* Total em destaque — card próprio com gradiente sutil */}
-          <div className="mt-4 mb-5 sm:mb-6 rounded-2xl bg-gradient-to-br from-primary/5 via-primary/[0.03] to-transparent border-2 border-primary/15 p-4">
-            <div className="flex items-end justify-between gap-3">
-              <div>
-                <div className="text-[10px] uppercase tracking-[0.14em] font-semibold text-muted-foreground leading-none">
-                  Total a pagar
-                </div>
-                {form.payment_method === "pix" && pixDiscount > 0 && (
-                  <div className="text-[11px] text-success font-semibold mt-1">
-                    Você economiza {formatBRL(couponDiscount + pixDiscount)}
-                  </div>
-                )}
+          {/* Total — compacto e centralizado no mobile */}
+          <div className="mt-4 mb-4 flex items-baseline justify-between gap-3">
+            <span className="text-sm font-semibold text-muted-foreground">Total</span>
+            <div className="text-right">
+              <div className="text-2xl sm:text-3xl font-extrabold text-foreground leading-none tabular-nums">
+                {formatBRL(grandTotal)}
               </div>
-              <div className="text-right">
-                <div className="text-3xl sm:text-4xl font-extrabold text-primary leading-none tabular-nums">
-                  {formatBRL(grandTotal)}
+              {form.payment_method === "credit_card" && (
+                <div className="text-[11px] text-muted-foreground mt-1 tabular-nums">
+                  ou 12x de {formatBRL(grandTotal / 12)}
                 </div>
-                {form.payment_method === "credit_card" && (
-                  <div className="text-[11px] text-muted-foreground mt-1.5 tabular-nums">
-                    ou 12x de {formatBRL(grandTotal / 12)}
-                  </div>
-                )}
-              </div>
+              )}
+              {form.payment_method === "pix" && (couponDiscount + pixDiscount) > 0 && (
+                <div className="text-[11px] text-success font-semibold mt-1">
+                  Você economiza {formatBRL(couponDiscount + pixDiscount)}
+                </div>
+              )}
             </div>
           </div>
           <button
             type="submit"
             disabled={submitting}
-            className="inline-flex w-full h-13 py-3.5 rounded-xl bg-success text-success-foreground font-bold text-base hover:bg-success/90 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed transition-all items-center justify-center gap-2 shadow-lg shadow-success/30"
+            className="inline-flex w-full h-12 sm:h-13 rounded-xl bg-success text-success-foreground font-bold text-base hover:bg-success/90 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed transition-all items-center justify-center gap-2 shadow-md shadow-success/25"
           >
             {submitting ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Processando…</>
@@ -1226,9 +1205,6 @@ export default function Checkout() {
               <><CreditCard className="w-5 h-5" /> Pagar com Cartão</>
             )}
           </button>
-          <p className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground text-center mt-3">
-            <Lock className="w-3 h-3" /> Pagamento seguro e criptografado
-          </p>
         </aside>
 
       </form>
