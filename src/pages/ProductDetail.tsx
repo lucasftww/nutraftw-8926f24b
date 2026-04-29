@@ -20,10 +20,17 @@ export default function ProductDetail() {
   const nav = useNavigate();
   const origin = typeof window !== "undefined" ? window.location.origin : "";
 
-  const hasSaleEarly =
-    p?.sale_price != null &&
-    Number(p.sale_price) > 0 &&
-    Number(p.sale_price) < Number(p.price);
+  // Considera "promoção real" apenas quando o desconto arredondado for >= 1%.
+  // Evita mostrar "-0% OFF" quando o sale_price é praticamente igual ao price
+  // (ex.: ajustes finos de centavos não devem aparecer como oferta).
+  const earlyPct = p
+    ? p.sale_price != null &&
+      Number(p.sale_price) > 0 &&
+      Number(p.sale_price) < Number(p.price)
+      ? Math.round((1 - Number(p.sale_price) / Number(p.price)) * 100)
+      : 0
+    : 0;
+  const hasSaleEarly = earlyPct >= 1;
   const finalPriceEarly = p ? (hasSaleEarly ? Number(p.sale_price) : Number(p.price)) : 0;
 
   useSEO(
@@ -107,14 +114,16 @@ export default function ProductDetail() {
       </div>
     );
 
-  const hasSale =
+  // Mesma trava do `earlyPct`: só mostra promoção quando ≥ 1%.
+  const rawDiscountPct =
     p.sale_price != null &&
     Number(p.sale_price) > 0 &&
-    Number(p.sale_price) < Number(p.price);
+    Number(p.sale_price) < Number(p.price)
+      ? Math.round(((Number(p.price) - Number(p.sale_price)) / Number(p.price)) * 100)
+      : 0;
+  const hasSale = rawDiscountPct >= 1;
   const finalPrice = hasSale ? Number(p.sale_price) : Number(p.price);
-  const discountPct = hasSale
-    ? Math.round(((Number(p.price) - Number(p.sale_price)) / Number(p.price)) * 100)
-    : 0;
+  const discountPct = hasSale ? rawDiscountPct : 0;
 
   return (
     <section className="py-5 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full pb-28 sm:pb-10">
