@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { queryKeys } from "@/lib/queryKeys";
 
 export interface ProductRow {
   id: string;
@@ -26,7 +27,7 @@ const PRODUCT_COLUMNS =
 
 export function useCategories() {
   return useQuery<CategoryRow[]>({
-    queryKey: ["categories"],
+    queryKey: queryKeys.categories.all,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("categories")
@@ -40,7 +41,7 @@ export function useCategories() {
 
 export function useProducts() {
   return useQuery<ProductRow[]>({
-    queryKey: ["products", "active"],
+    queryKey: queryKeys.products.active,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
@@ -57,7 +58,7 @@ export function useProducts() {
 export function useProductBySlug(slug: string | undefined) {
   return useQuery<any | null>({
     enabled: !!slug,
-    queryKey: ["product", slug],
+    queryKey: queryKeys.products.detail(slug ?? ""),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
@@ -74,7 +75,7 @@ export function useProductBySlug(slug: string | undefined) {
 export function useRelatedProducts(categoryId: string | undefined, excludeId: string | undefined) {
   return useQuery<any[]>({
     enabled: !!categoryId && !!excludeId,
-    queryKey: ["related", categoryId, excludeId],
+    queryKey: queryKeys.products.related(categoryId, excludeId),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
@@ -91,7 +92,7 @@ export function useRelatedProducts(categoryId: string | undefined, excludeId: st
 
 export function useActiveBanner() {
   return useQuery<any | null>({
-    queryKey: ["site_banners", "active"],
+    queryKey: queryKeys.banners.active,
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("site_banners")
