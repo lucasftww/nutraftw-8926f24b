@@ -603,11 +603,13 @@ const Section = memo(function Section({
   items,
   onAdd,
   onPrefetch,
+  onPrefetchFull,
 }: {
   title: string;
   items: Product[];
   onAdd: (p: Product, finalPrice: number) => void;
   onPrefetch?: (slug: string) => void;
+  onPrefetchFull?: (p: Product) => void;
 }) {
   if (items.length === 0) return null;
   const isPromo = /promo/i.test(title);
