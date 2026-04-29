@@ -437,6 +437,7 @@ export default function MyAccount() {
                   { id: "released", label: "Liberadas" },
                   { id: "paid", label: "Pagas" },
                   { id: "cancelled", label: "Canceladas" },
+                  { id: "clawback", label: "Estornadas" },
                 ].map((f) => (
                   <button
                     key={f.id}
@@ -469,12 +470,14 @@ export default function MyAccount() {
                 released: "bg-blue-100 text-blue-700",
                 paid: "bg-emerald-100 text-emerald-700",
                 cancelled: "bg-red-100 text-red-700",
+                clawback: "bg-orange-100 text-orange-700",
               };
               const statusLabel: Record<string, string> = {
                 pending: "Pendente",
                 released: "Liberada",
                 paid: "Paga",
                 cancelled: "Cancelada",
+                clawback: "Estornada",
               };
               const fmtDate = (d?: string | null) => d ? new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }) : "—";
               return (
