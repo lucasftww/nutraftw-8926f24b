@@ -159,8 +159,7 @@ export default function ProductDetail() {
             alt={p.name}
             loading="eager"
             decoding="async"
-            // @ts-ignore — fetchpriority é válido no DOM
-            fetchpriority="high"
+            fetchPriority="high"
             width={800}
             height={800}
             sizes="(max-width: 1024px) 100vw, 50vw"
