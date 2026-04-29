@@ -1216,7 +1216,7 @@ export default function Checkout() {
           <button
             type="submit"
             disabled={submitting}
-            className="inline-flex w-full h-13 py-3.5 rounded-xl bg-primary text-primary-foreground font-bold text-base hover:bg-primary/90 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed transition-all items-center justify-center gap-2 shadow-lg shadow-primary/20"
+            className="inline-flex w-full h-13 py-3.5 rounded-xl bg-success text-success-foreground font-bold text-base hover:bg-success/90 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed transition-all items-center justify-center gap-2 shadow-lg shadow-success/30"
           >
             {submitting ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Processando…</>
