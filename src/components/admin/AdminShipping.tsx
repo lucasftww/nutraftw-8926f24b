@@ -8,6 +8,7 @@ import { Plus, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 import { queryKeys } from "@/lib/queryKeys";
+import { logAdminAction, shallowDiff } from "@/lib/auditLog";
 
 const UFS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 
@@ -41,14 +42,23 @@ export function AdminShipping() {
       delivery_days_max: f.delivery_days_max ? Number(f.delivery_days_max) : null,
       active: f.active !== false,
     };
-    const { error } = f.id
-      ? await supabase.from("shipping_rates" as any).update(payload).eq("id", f.id)
-      : await supabase.from("shipping_rates" as any).insert(payload);
+    const before = f.id ? items.find((s) => s.id === f.id) : null;
+    const { data, error } = f.id
+      ? await supabase.from("shipping_rates" as any).update(payload).eq("id", f.id).select().maybeSingle()
+      : await supabase.from("shipping_rates" as any).insert(payload).select().maybeSingle();
     if (error) {
       logSupabaseError("Guardar frete", error, { id: f.id, payload });
       toast.error(error.message);
     } else {
       toast.success("Frete guardado");
+      const saved: any = data || payload;
+      logAdminAction({
+        action: f.id ? "update" : "create",
+        entity: "shipping_rates",
+        entityId: saved?.id ?? f.id ?? null,
+        summary: `Frete ${payload.state} ${payload.label} (R$ ${payload.price.toFixed(2)})`,
+        diff: f.id ? shallowDiff(before, saved) : { after: saved },
+      });
       setEditing(null);
       qc.invalidateQueries({ queryKey: queryKeys.shippingRates.all });
       load();
@@ -57,12 +67,20 @@ export function AdminShipping() {
 
   async function del(id: string) {
     if (!confirm("Remover frete?")) return;
+    const before = items.find((s) => s.id === id);
     const { error: err } = await supabase.from("shipping_rates" as any).delete().eq("id", id);
     if (err) {
       logSupabaseError("Remover frete", err, { id });
       toast.error(err.message);
       return;
     }
+    logAdminAction({
+      action: "delete",
+      entity: "shipping_rates",
+      entityId: id,
+      summary: `Frete removido: ${before?.state ?? "?"} ${before?.label ?? ""}`.trim(),
+      diff: { before },
+    });
     qc.invalidateQueries({ queryKey: queryKeys.shippingRates.all });
     load();
   }

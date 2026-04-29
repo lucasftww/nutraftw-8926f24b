@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { refreshSiteSettings } from "@/hooks/useSiteSettings";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
+import { logAdminAction } from "@/lib/auditLog";
 
 const FIELDS: { key: string; label: string; type: "text" | "textarea" | "toggle" | "number"; help?: string }[] = [
   { key: "checkout_enable_pix", label: "Aceitar PIX no checkout", type: "toggle" },
@@ -45,6 +46,12 @@ export function AdminSettings() {
       if (error) throw error;
       await refreshSiteSettings();
       toast.success("Configurações guardadas");
+      logAdminAction({
+        action: "settings_save",
+        entity: "site_settings",
+        summary: `Configurações atualizadas (${rows.length} chaves)`,
+        diff: { after: Object.fromEntries(rows.map((r) => [r.key, r.value])) },
+      });
     } catch (e: any) {
       logSupabaseError("Guardar configurações", e);
       toast.error(e.message);

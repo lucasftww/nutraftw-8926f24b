@@ -9,6 +9,7 @@ import { Plus, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 import { queryKeys } from "@/lib/queryKeys";
+import { logAdminAction, shallowDiff } from "@/lib/auditLog";
 
 export function AdminBanners() {
   const [items, setItems] = useState<any[]>([]);
@@ -41,14 +42,23 @@ export function AdminBanners() {
       active: f.active !== false,
       display_order: Number(f.display_order) || 0,
     };
-    const { error } = f.id
-      ? await supabase.from("site_banners" as any).update(payload).eq("id", f.id)
-      : await supabase.from("site_banners" as any).insert(payload);
+    const before = f.id ? items.find((b) => b.id === f.id) : null;
+    const { data, error } = f.id
+      ? await supabase.from("site_banners" as any).update(payload).eq("id", f.id).select().maybeSingle()
+      : await supabase.from("site_banners" as any).insert(payload).select().maybeSingle();
     if (error) {
       logSupabaseError("Guardar banner", error, { id: f.id, payload });
       toast.error(error.message);
     } else {
       toast.success("Banner guardado");
+      const saved: any = data || payload;
+      logAdminAction({
+        action: f.id ? "update" : "create",
+        entity: "site_banners",
+        entityId: saved?.id ?? f.id ?? null,
+        summary: `Banner "${payload.title || "(sem título)"}"`,
+        diff: f.id ? shallowDiff(before, saved) : { after: saved },
+      });
       setEditing(null);
       qc.invalidateQueries({ queryKey: queryKeys.banners.all });
       load();
@@ -57,12 +67,20 @@ export function AdminBanners() {
 
   async function del(id: string) {
     if (!confirm("Remover banner?")) return;
+    const before = items.find((b) => b.id === id);
     const { error: err } = await supabase.from("site_banners" as any).delete().eq("id", id);
     if (err) {
       logSupabaseError("Remover banner", err, { id });
       toast.error(err.message);
       return;
     }
+    logAdminAction({
+      action: "delete",
+      entity: "site_banners",
+      entityId: id,
+      summary: `Banner removido: ${before?.title || id.slice(0, 8)}`,
+      diff: { before },
+    });
     qc.invalidateQueries({ queryKey: queryKeys.banners.all });
     load();
   }

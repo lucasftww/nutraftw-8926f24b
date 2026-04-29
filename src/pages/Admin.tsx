@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatBRL, slugify } from "@/lib/utils";
 import { toast } from "sonner";
-import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, Image as ImageIcon, RefreshCcw, Settings, BarChart3, Activity } from "lucide-react";
+import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, Image as ImageIcon, RefreshCcw, Settings, BarChart3, Activity, History } from "lucide-react";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { WeeklyReport } from "@/components/admin/WeeklyReport";
 import { ImageUpload } from "@/components/admin/ImageUpload";
@@ -19,10 +19,12 @@ import { AdminBanners } from "@/components/admin/AdminBanners";
 import { AdminResends } from "@/components/admin/AdminResends";
 import { AdminSettings } from "@/components/admin/AdminSettings";
 import { AdminDiagnostics } from "@/components/admin/AdminDiagnostics";
+import { AdminAuditLog } from "@/components/admin/AdminAuditLog";
 import { queryKeys } from "@/lib/queryKeys";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
+import { logAdminAction, shallowDiff } from "@/lib/auditLog";
 
-type Tab = "dashboard" | "reports" | "products" | "categories" | "orders" | "coupons" | "shipping" | "banners" | "resends" | "settings" | "diagnostics";
+type Tab = "dashboard" | "reports" | "products" | "categories" | "orders" | "coupons" | "shipping" | "banners" | "resends" | "settings" | "diagnostics" | "audit";
 
 const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -36,6 +38,7 @@ const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "resends", label: "Reenvios", icon: RefreshCcw },
   { id: "settings", label: "Configurações", icon: Settings },
   { id: "diagnostics", label: "Diagnóstico", icon: Activity },
+  { id: "audit", label: "Histórico", icon: History },
 ];
 
 export default function Admin() {
@@ -84,6 +87,7 @@ export default function Admin() {
       {tab === "resends" && <AdminResends />}
       {tab === "settings" && <AdminSettings />}
       {tab === "diagnostics" && <AdminDiagnostics />}
+      {tab === "audit" && <AdminAuditLog />}
     </div>
   );
 }
@@ -149,14 +153,23 @@ function AdminProducts() {
       is_featured: !!f.is_featured,
       is_active: f.is_active !== false,
     };
-    const { error } = f.id
-      ? await supabase.from("products").update(payload).eq("id", f.id)
-      : await supabase.from("products").insert(payload);
+    const before = f.id ? items.find((p) => p.id === f.id) : null;
+    const { data, error } = f.id
+      ? await supabase.from("products").update(payload).eq("id", f.id).select().maybeSingle()
+      : await supabase.from("products").insert(payload).select().maybeSingle();
     if (error) {
       logSupabaseError("Guardar produto", error, { id: f.id, name: payload.name });
       toast.error(error.message);
     } else {
       toast.success("Produto guardado");
+      const saved: any = data || payload;
+      logAdminAction({
+        action: f.id ? "update" : "create",
+        entity: "products",
+        entityId: saved?.id ?? f.id ?? null,
+        summary: `Produto "${payload.name}"`,
+        diff: f.id ? shallowDiff(before, saved) : { after: saved },
+      });
       setEditing(null);
       qc.invalidateQueries({ queryKey: queryKeys.products.all });
       qc.invalidateQueries({ queryKey: queryKeys.products.detailRoot });
@@ -166,12 +179,20 @@ function AdminProducts() {
 
   async function del(id: string) {
     if (!confirm("Remover produto?")) return;
+    const before = items.find((p) => p.id === id);
     const { error } = await supabase.from("products").delete().eq("id", id);
     if (error) {
       logSupabaseError("Remover produto", error, { id });
       toast.error(error.message);
     } else {
       toast.success("Removido");
+      logAdminAction({
+        action: "delete",
+        entity: "products",
+        entityId: id,
+        summary: `Produto removido: ${before?.name ?? id.slice(0, 8)}`,
+        diff: { before },
+      });
       qc.invalidateQueries({ queryKey: queryKeys.products.all });
       load();
     }
@@ -288,24 +309,40 @@ function AdminCategories() {
 
   async function add() {
     if (!name.trim()) return;
-    const { error } = await supabase.from("categories").insert({ name, slug: slugify(name) });
+    const payload = { name, slug: slugify(name) };
+    const { data, error } = await supabase.from("categories").insert(payload).select().maybeSingle();
     if (error) {
       logSupabaseError("Adicionar categoria", error, { name });
       toast.error(error.message);
     } else {
       setName("");
+      logAdminAction({
+        action: "create",
+        entity: "categories",
+        entityId: (data as any)?.id ?? null,
+        summary: `Categoria criada: ${payload.name}`,
+        diff: { after: data || payload },
+      });
       qc.invalidateQueries({ queryKey: queryKeys.categories.all });
       load();
     }
   }
   async function del(id: string) {
     if (!confirm("Remover categoria?")) return;
+    const before = items.find((c) => c.id === id);
     const { error: err } = await supabase.from("categories").delete().eq("id", id);
     if (err) {
       logSupabaseError("Remover categoria", err, { id });
       toast.error(err.message);
       return;
     }
+    logAdminAction({
+      action: "delete",
+      entity: "categories",
+      entityId: id,
+      summary: `Categoria removida: ${before?.name ?? id.slice(0, 8)}`,
+      diff: { before },
+    });
     qc.invalidateQueries({ queryKey: queryKeys.categories.all });
     load();
   }
@@ -402,12 +439,20 @@ function AdminOrders() {
   }, [items, query]);
 
   async function setStatus(id: string, status: string) {
+    const before = items.find((o) => o.id === id);
     const { error: err } = await supabase.from("orders").update({ status: status as any }).eq("id", id);
     if (err) {
       logSupabaseError("Atualizar estado do pedido", err, { order_id: id, new_status: status });
       toast.error(`Falha ao atualizar: ${err.message}`);
     } else {
       toast.success("Estado atualizado");
+      logAdminAction({
+        action: "status_change",
+        entity: "orders",
+        entityId: id,
+        summary: `Pedido #${id.slice(0, 8)}: ${before?.status ?? "?"} → ${status}`,
+        diff: { from: before?.status ?? null, to: status },
+      });
       setItems((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
     }
   }
