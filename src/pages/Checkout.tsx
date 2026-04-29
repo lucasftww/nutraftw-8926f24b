@@ -886,49 +886,151 @@ export default function Checkout() {
               <CreditCard className="w-5 h-5 text-primary" />
               <h2 className="checkout-section-title !mb-0">Forma de Pagamento</h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {settings.checkout_enable_pix !== "0" && (
-                <button
-                  type="button"
-                  onClick={() => setForm({ ...form, payment_method: "pix" })}
-                  className={`relative p-4 rounded-xl border-2 text-left transition-all ${
-                    form.payment_method === "pix"
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/40"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <QrCode className="w-6 h-6 text-primary" />
+            {(() => {
+              const pixOn = settings.checkout_enable_pix !== "0";
+              const cardOn = settings.checkout_enable_card !== "0";
+              const noneOn = !pixOn && !cardOn;
+              // Total ESTIMADO por método (calculado fora do baseTotal pra mostrar dentro do card)
+              const pixTotal = baseTotal * (1 - PIX_DISCOUNT);
+              const cardTotal = baseTotal;
+              const pixSaves = baseTotal - pixTotal;
+
+              if (noneOn) {
+                return (
+                  <div role="alert" className="p-4 rounded-xl border-2 border-destructive/30 bg-destructive/5 flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
                     <div>
-                      <div className="font-bold text-sm">PIX</div>
-                      <div className="text-xs text-muted-foreground">Aprovação imediata</div>
+                      <p className="font-bold text-destructive text-sm">Pagamentos indisponíveis</p>
+                      <p className="text-xs text-destructive/80 mt-0.5">
+                        Nenhum método está habilitado no momento. Fale com o suporte para finalizar.
+                      </p>
                     </div>
                   </div>
-                  <span className="badge-pill absolute top-2 right-2 bg-secondary text-secondary-foreground font-bold">
-                    −5%
-                  </span>
-                </button>
-              )}
-              {settings.checkout_enable_card !== "0" && (
-                <button
-                  type="button"
-                  onClick={() => setForm({ ...form, payment_method: "credit_card" })}
-                  className={`p-4 rounded-xl border-2 text-left transition-all ${
-                    form.payment_method === "credit_card"
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/40"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <CreditCard className="w-6 h-6 text-primary" />
-                    <div>
-                      <div className="font-bold text-sm">Cartão de crédito</div>
-                      <div className="text-xs text-muted-foreground">Em até 12x</div>
+                );
+              }
+
+              const Option = ({
+                value,
+                title,
+                subtitle,
+                icon: Icon,
+                badge,
+                totalLabel,
+                totalValue,
+                installment,
+              }: {
+                value: "pix" | "credit_card";
+                title: string;
+                subtitle: string;
+                icon: typeof QrCode;
+                badge?: { text: string; tone: "secondary" | "muted" };
+                totalLabel: string;
+                totalValue: number;
+                installment?: string;
+              }) => {
+                const active = form.payment_method === value;
+                return (
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => setForm({ ...form, payment_method: value })}
+                    className={[
+                      "relative w-full text-left p-4 rounded-2xl border-2 transition-all",
+                      "active:scale-[0.99] focus-visible:outline-none focus-visible:ring-4",
+                      active
+                        ? "border-primary bg-primary/5 shadow-md shadow-primary/10 focus-visible:ring-primary/15"
+                        : "border-border bg-white hover:border-primary/40 focus-visible:ring-primary/10",
+                    ].join(" ")}
+                  >
+                    {badge && (
+                      <span
+                        className={[
+                          "badge-pill absolute -top-2 right-3 font-extrabold shadow-sm ring-2 ring-card",
+                          badge.tone === "secondary"
+                            ? "bg-secondary text-secondary-foreground"
+                            : "bg-muted text-muted-foreground",
+                        ].join(" ")}
+                      >
+                        {badge.text}
+                      </span>
+                    )}
+                    <div className="flex items-start gap-3">
+                      {/* Radio visual */}
+                      <div
+                        className={[
+                          "mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
+                          active ? "border-primary" : "border-muted-foreground/40",
+                        ].join(" ")}
+                        aria-hidden
+                      >
+                        {active && <div className="w-2.5 h-2.5 bg-primary rounded-full" />}
+                      </div>
+                      <div
+                        className={[
+                          "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors",
+                          active ? "bg-primary text-primary-foreground" : "bg-muted text-primary",
+                        ].join(" ")}
+                      >
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-sm leading-tight">{title}</div>
+                        <div className="text-[12px] text-muted-foreground mt-0.5 leading-tight">{subtitle}</div>
+                      </div>
                     </div>
-                  </div>
-                </button>
-              )}
-            </div>
+                    {/* Resumo do total POR MÉTODO */}
+                    <div className={`mt-3 pt-3 border-t border-dashed ${active ? "border-primary/30" : "border-border"} flex items-end justify-between gap-2`}>
+                      <div className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground leading-none">
+                        {totalLabel}
+                      </div>
+                      <div className="text-right">
+                        <div className={`text-lg font-extrabold tabular-nums leading-none ${active ? "text-primary" : "text-foreground"}`}>
+                          {formatBRL(totalValue)}
+                        </div>
+                        {installment && (
+                          <div className="text-[10px] text-muted-foreground mt-1 tabular-nums">{installment}</div>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                );
+              };
+
+              return (
+                <div role="radiogroup" aria-label="Forma de pagamento" className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  {pixOn && (
+                    <Option
+                      value="pix"
+                      title="PIX"
+                      subtitle="Aprovação imediata"
+                      icon={QrCode}
+                      badge={pixSaves > 0 ? { text: `−${formatBRL(pixSaves)}`, tone: "secondary" } : { text: "−5%", tone: "secondary" }}
+                      totalLabel="Total no PIX"
+                      totalValue={pixTotal}
+                    />
+                  )}
+                  {cardOn && (
+                    <Option
+                      value="credit_card"
+                      title="Cartão de crédito"
+                      subtitle="Em até 12x sem juros*"
+                      icon={CreditCard}
+                      totalLabel="Total no cartão"
+                      totalValue={cardTotal}
+                      installment={`12x de ${formatBRL(cardTotal / 12)}`}
+                    />
+                  )}
+                </div>
+              );
+            })()}
+            {/* Dica de economia — só aparece se PIX disponível e não for o selecionado */}
+            {settings.checkout_enable_pix !== "0" && form.payment_method !== "pix" && baseTotal > 0 && (
+              <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-success font-semibold">
+                <Check className="w-3.5 h-3.5" />
+                Pague no PIX e economize {formatBRL(baseTotal * PIX_DISCOUNT)}
+              </p>
+            )}
           </section>
         </div>
 
