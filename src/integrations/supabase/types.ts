@@ -76,6 +76,51 @@ export type Database = {
         }
         Relationships: []
       }
+      coupons: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          description: string | null
+          discount_type: string
+          discount_value: number
+          expires_at: string | null
+          id: string
+          max_uses: number | null
+          min_subtotal: number
+          updated_at: string
+          uses: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          expires_at?: string | null
+          id?: string
+          max_uses?: number | null
+          min_subtotal?: number
+          updated_at?: string
+          uses?: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          expires_at?: string | null
+          id?: string
+          max_uses?: number | null
+          min_subtotal?: number
+          updated_at?: string
+          uses?: number
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
@@ -129,11 +174,17 @@ export type Database = {
       }
       orders: {
         Row: {
+          coupon_code: string | null
           created_at: string
+          discount: number
           id: string
           insurance: number
           notes: string | null
           payment_method: Database["public"]["Enums"]["payment_method"] | null
+          resend_notes: string | null
+          resend_requested_at: string | null
+          resend_sent_at: string | null
+          resend_status: string | null
           shipping: number
           shipping_city: string | null
           shipping_complement: string | null
@@ -152,11 +203,17 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          coupon_code?: string | null
           created_at?: string
+          discount?: number
           id?: string
           insurance?: number
           notes?: string | null
           payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          resend_notes?: string | null
+          resend_requested_at?: string | null
+          resend_sent_at?: string | null
+          resend_status?: string | null
           shipping?: number
           shipping_city?: string | null
           shipping_complement?: string | null
@@ -175,11 +232,17 @@ export type Database = {
           user_id: string
         }
         Update: {
+          coupon_code?: string | null
           created_at?: string
+          discount?: number
           id?: string
           insurance?: number
           notes?: string | null
           payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          resend_notes?: string | null
+          resend_requested_at?: string | null
+          resend_sent_at?: string | null
+          resend_status?: string | null
           shipping?: number
           shipping_city?: string | null
           shipping_complement?: string | null
@@ -315,6 +378,126 @@ export type Database = {
         }
         Relationships: []
       }
+      resend_logs: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          order_id: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          order_id: string
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          order_id?: string
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      shipping_rates: {
+        Row: {
+          active: boolean
+          created_at: string
+          delivery_days_max: number | null
+          delivery_days_min: number | null
+          id: string
+          label: string
+          price: number
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          delivery_days_max?: number | null
+          delivery_days_min?: number | null
+          id?: string
+          label?: string
+          price?: number
+          state: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          delivery_days_max?: number | null
+          delivery_days_min?: number | null
+          id?: string
+          label?: string
+          price?: number
+          state?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      site_banners: {
+        Row: {
+          active: boolean
+          created_at: string
+          cta_label: string | null
+          cta_url: string | null
+          display_order: number
+          id: string
+          image_url: string | null
+          subtitle: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          cta_label?: string | null
+          cta_url?: string | null
+          display_order?: number
+          id?: string
+          image_url?: string | null
+          subtitle?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          cta_label?: string | null
+          cta_url?: string | null
+          display_order?: number
+          id?: string
+          image_url?: string | null
+          subtitle?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: string | null
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value?: string | null
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -341,6 +524,27 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_order: {
+        Args: {
+          p_city: string
+          p_complement: string
+          p_coupon_code: string
+          p_cpf: string
+          p_district: string
+          p_full_name: string
+          p_insurance: boolean
+          p_items: Json
+          p_notes: string
+          p_number: string
+          p_payment_method: string
+          p_phone: string
+          p_shipping_id: string
+          p_state: string
+          p_street: string
+          p_zip: string
+        }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
