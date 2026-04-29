@@ -16,6 +16,9 @@ import About from "@/pages/About";
 // Code-split das rotas pesadas/raras: reduz drasticamente o JS inicial.
 const MyAccount = lazy(() => import("@/pages/MyAccount"));
 const Checkout = lazy(() => import("@/pages/Checkout"));
+// Exposto para que componentes (Header) possam pré-carregar o chunk em hover/touch.
+export const prefetchMyAccount = () => import("@/pages/MyAccount");
+export const prefetchCheckout = () => import("@/pages/Checkout");
 const Admin = lazy(() => import("@/pages/Admin"));
 const AdminLogin = lazy(() => import("@/pages/AdminLogin"));
 const AdminHealth = lazy(() => import("@/pages/AdminHealth"));
