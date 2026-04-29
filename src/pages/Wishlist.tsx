@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Heart, ShoppingCart } from "lucide-react";
+import { Heart, ShoppingCart, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useWishlist } from "@/hooks/useWishlist";
 import { useAuth } from "@/hooks/useAuth";
@@ -49,17 +49,17 @@ export default function Wishlist() {
 
   if (!isAuthed) {
     return (
-      <section className="container mx-auto px-4 py-16 text-center max-w-md">
-        <div className="h-16 w-16 mx-auto mb-4 rounded-full bg-destructive/10 text-destructive flex items-center justify-center">
+      <section className="container mx-auto px-4 py-16 text-center max-w-md animate-fade-in">
+        <div className="h-16 w-16 mx-auto mb-4 rounded-full bg-destructive/10 text-destructive flex items-center justify-center animate-scale-in">
           <Heart className="h-7 w-7" />
         </div>
-        <h1 className="text-2xl font-bold mb-2">Seus favoritos esperam</h1>
-        <p className="text-muted-foreground mb-6">Entre para salvar produtos e voltar quando quiser.</p>
+        <h1 className="text-2xl font-bold mb-2">Seus favoritos te esperam</h1>
+        <p className="text-muted-foreground mb-6">Faça login para salvar produtos e encontrá-los em qualquer dispositivo.</p>
         <Link
           to="/login?redirect=/favoritos"
-          className="inline-flex items-center justify-center h-12 px-6 rounded-2xl bg-primary text-primary-foreground font-semibold"
+          className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-2xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all"
         >
-          Entrar
+          Entrar agora <ArrowRight className="h-4 w-4" />
         </Link>
       </section>
     );
@@ -67,39 +67,52 @@ export default function Wishlist() {
 
   return (
     <section className="container mx-auto px-4 py-8 md:py-10">
-      <header className="flex items-end justify-between mb-6">
+      <header className="flex items-end justify-between mb-6 animate-fade-in">
         <div>
           <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-primary flex items-center gap-2">
             <Heart className="h-6 w-6 fill-current text-destructive" />
             Meus favoritos
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {items.length} {items.length === 1 ? "produto salvo" : "produtos salvos"}
-          </p>
+          {!loading && (
+            <p className="text-sm text-muted-foreground mt-1">
+              {items.length === 0
+                ? "Sua lista está vazia por enquanto"
+                : `${items.length} ${items.length === 1 ? "produto salvo" : "produtos salvos"}`}
+            </p>
+          )}
         </div>
       </header>
 
       {loading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="rounded-2xl bg-card overflow-hidden">
-              <div className="aspect-square skeleton-shimmer rounded-2xl" />
-              <div className="pt-3 space-y-2"><div className="h-3 w-4/5 skeleton-shimmer rounded" /><div className="h-3 w-2/5 skeleton-shimmer rounded" /></div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5" aria-busy="true" aria-label="Carregando favoritos">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="rounded-2xl bg-card overflow-hidden border border-border/40">
+              <div className="aspect-square skeleton-shimmer" />
+              <div className="pt-3 pb-3 px-2.5 space-y-2">
+                <div className="h-3 w-4/5 skeleton-shimmer rounded" />
+                <div className="h-3 w-3/5 skeleton-shimmer rounded" />
+                <div className="h-4 w-2/5 skeleton-shimmer rounded mt-2" />
+                <div className="h-9 w-full skeleton-shimmer rounded-full mt-2" />
+              </div>
             </div>
           ))}
         </div>
       ) : items.length === 0 ? (
-        <div className="text-center py-16">
-          <Heart className="h-8 w-8 mx-auto text-muted-foreground mb-3" />
-          <p className="font-medium">Nenhum produto favoritado ainda</p>
-          <p className="text-sm text-muted-foreground mt-1">Toque no coração nos produtos para salvar aqui.</p>
-          <Link to="/" className="mt-5 inline-flex items-center h-10 px-5 rounded-full border border-border text-sm font-semibold hover:bg-foreground hover:text-background transition-colors">
-            Explorar catálogo
+        <div className="text-center py-16 animate-fade-in">
+          <div className="h-16 w-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
+            <Heart className="h-7 w-7 text-muted-foreground" />
+          </div>
+          <p className="font-semibold text-base">Sua lista de favoritos está vazia</p>
+          <p className="text-sm text-muted-foreground mt-1.5 max-w-xs mx-auto">
+            Toque no coração de qualquer produto para guardá-lo aqui e finalizar a compra depois.
+          </p>
+          <Link to="/" className="mt-6 inline-flex items-center gap-2 h-11 px-6 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all">
+            Explorar catálogo <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
-          {items.map((p) => {
+          {items.map((p, idx) => {
             const sale = p.sale_price != null ? Number(p.sale_price) : 0;
             const price = Number(p.price);
             const hasSale = sale > 0 && sale < price;
@@ -107,10 +120,24 @@ export default function Wishlist() {
             const isOut = (p.stock ?? 0) <= 0;
             const r = responsiveImage(p.image_url, "(max-width: 640px) 50vw, 25vw", { fallbackWidth: 400 });
             return (
-              <div key={p.id} className={`group flex flex-col h-full rounded-2xl bg-card overflow-hidden border border-border/50 hover:border-primary/30 hover:shadow-[var(--shadow-card)] transition-all ${isOut ? "opacity-70" : ""}`}>
+              <div
+                key={p.id}
+                style={{ animationDelay: `${Math.min(idx, 7) * 40}ms`, animationFillMode: "both" }}
+                className={`group flex flex-col h-full rounded-2xl bg-card overflow-hidden border border-border/50 hover:border-primary/30 hover:shadow-[var(--shadow-card)] transition-all animate-fade-in ${isOut ? "opacity-70" : ""}`}
+              >
                 <Link to={`/produto/${p.slug}`} className="relative aspect-square overflow-hidden bg-white block">
                   <img src={r.src} srcSet={r.srcSet || undefined} sizes={r.sizes} alt={p.name} loading="lazy" decoding="async" width={400} height={400} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300" />
                   <WishlistButton productId={p.id} className="absolute top-2 right-2" size="sm" />
+                  {isOut && (
+                    <span className="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full bg-foreground/85 text-background">
+                      Esgotado
+                    </span>
+                  )}
+                  {hasSale && !isOut && (
+                    <span className="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full bg-destructive text-destructive-foreground">
+                      −{Math.round((1 - sale / price) * 100)}%
+                    </span>
+                  )}
                 </Link>
                 <div className="pt-3 pb-3 px-2.5 flex-1 flex flex-col">
                   <Link to={`/produto/${p.slug}`} className="font-medium text-[13px] sm:text-sm leading-snug line-clamp-2 min-h-[2.4rem] text-foreground hover:text-primary">{p.name}</Link>
@@ -121,9 +148,10 @@ export default function Wishlist() {
                   <button
                     onClick={() => { if (isOut) return; add({ product_id: p.id, slug: p.slug, name: p.name, price: final, image_url: p.image_url }); openCart(); }}
                     disabled={isOut}
+                    aria-label={isOut ? `${p.name} esgotado` : `Adicionar ${p.name} ao carrinho`}
                     className="mt-2.5 inline-flex items-center justify-center gap-1.5 font-bold bg-secondary text-secondary-foreground hover:bg-secondary/90 active:scale-[0.98] transition-all rounded-full w-full text-xs h-10 disabled:opacity-40 disabled:bg-muted disabled:text-muted-foreground"
                   >
-                    {isOut ? "Esgotado" : (<><ShoppingCart className="h-3.5 w-3.5" />Comprar</>)}
+                    {isOut ? "Indisponível" : (<><ShoppingCart className="h-3.5 w-3.5" />Adicionar</>)}
                   </button>
                 </div>
               </div>
