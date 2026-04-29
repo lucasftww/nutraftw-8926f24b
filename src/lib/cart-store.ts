@@ -193,13 +193,22 @@ export const cart = {
       if (!u) return l;
       const nextQty = u.available != null ? Math.min(l.qty, Math.max(0, u.available)) : l.qty;
       const nextPrice = u.price;
-      if (nextPrice !== l.price || nextQty !== l.qty) changed = true;
+      const nextName = u.name ?? l.name;
+      const nextImg = u.image_url ?? l.image_url;
+      if (
+        nextPrice !== l.price ||
+        nextQty !== l.qty ||
+        nextName !== l.name ||
+        nextImg !== l.image_url
+      ) {
+        changed = true;
+      }
       return {
         ...l,
         price: nextPrice,
         qty: nextQty,
-        name: u.name ?? l.name,
-        image_url: u.image_url ?? l.image_url,
+        name: nextName,
+        image_url: nextImg,
       };
     }).filter((l) => l.qty > 0);
     if (changed) persist();
