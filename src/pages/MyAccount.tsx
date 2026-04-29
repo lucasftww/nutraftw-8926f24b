@@ -89,6 +89,22 @@ export default function MyAccount() {
     })();
   }, [user, tab]);
 
+  // Carrega lista detalhada de comissões.
+  useEffect(() => {
+    if (!user || tab !== "commissions") return;
+    setLoadingComm(true);
+    (async () => {
+      const { data, error } = await supabase
+        .from("affiliate_commissions")
+        .select("id, amount, status, created_at, released_at, paid_at, eligible_release_at, order_id, orders(id, total, status, created_at, shipping_full_name)")
+        .eq("affiliate_user_id", user.id)
+        .order("created_at", { ascending: false });
+      if (error) toast.error(error.message);
+      setCommissions(data || []);
+      setLoadingComm(false);
+    })();
+  }, [user, tab]);
+
   const affiliateUrl = useMemo(() => {
     if (!profile?.affiliate_code) return "";
     return `${window.location.origin}/r/${profile.affiliate_code}`;
