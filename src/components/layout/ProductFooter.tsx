@@ -5,16 +5,11 @@ import { useCurrentProduct } from "@/contexts/CurrentProductContext";
 import { formatBRL } from "@/lib/utils";
 
 /**
- * Footer rico (estilo KA Imports) usado na página de detalhes do produto.
- * 3 blocos: marca + bio, Links Úteis, Atendimento (CTA WhatsApp).
+ * Footer minimalista — CTA WhatsApp + links + copyright.
  */
 export function ProductFooter() {
   const settings = useSiteSettings();
   const whatsapp = (settings.whatsapp_number || "5511999999999").replace(/\D/g, "");
-  const bio =
-    settings.footer_bio ||
-    settings.hero_bio ||
-    "A sua loja de importados com os melhores preços e garantia de qualidade.";
   const year = new Date().getFullYear();
   const { current } = useCurrentProduct();
 
@@ -29,9 +24,6 @@ export function ProductFooter() {
         current.price ? ` (${formatBRL(current.price)})` : ""
       }.${productUrl ? `\nLink: ${productUrl}` : ""}\nPode me ajudar?`
     : "Olá! Preciso de suporte.";
-  const helperText = current
-    ? `Pergunte sobre estoque, prazo de entrega ou desconto para ${current.name}.`
-    : "Precisa de ajuda? Fale com nosso suporte diretamente pelo WhatsApp.";
 
   return (
     <footer className="mt-16 border-t border-border/60 bg-background">
