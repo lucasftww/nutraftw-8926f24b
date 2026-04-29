@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
@@ -286,6 +286,38 @@ export default function Checkout() {
   const baseTotal = total + shippingValue + insurance - couponDiscount;
   const pixDiscount = form.payment_method === "pix" ? Math.round(baseTotal * PIX_DISCOUNT * 100) / 100 : 0;
   const grandTotal = baseTotal - pixDiscount;
+
+  // Lista de itens no resumo — memoizada porque depende só de `lines`,
+  // que raramente muda durante o checkout. Sem isso, cada keystroke do
+  // form re-renderiza todas as <img>/linhas (custo proporcional ao
+  // tamanho do carrinho).
+  const summaryItems = useMemo(
+    () =>
+      lines.map((l) => (
+        <div key={l.product_id} className="flex gap-3">
+          <div className="w-12 h-12 rounded-lg border border-border bg-muted/30 overflow-hidden flex-shrink-0 flex items-center justify-center">
+            <img
+              src={imageUrl(l.image_url, { width: 96, quality: 75 })}
+              srcSet={`${imageUrl(l.image_url, { width: 96, quality: 75 })} 1x, ${imageUrl(l.image_url, { width: 192, quality: 75 })} 2x`}
+              alt={l.name}
+              loading="lazy"
+              decoding="async"
+              width={48}
+              height={48}
+              className="w-full h-full object-contain"
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold text-foreground line-clamp-2">{l.name}</p>
+            <p className="text-xs text-muted-foreground">
+              {l.qty}× {formatBRL(l.price)}
+            </p>
+          </div>
+          <span className="text-xs font-bold shrink-0">{formatBRL(l.price * l.qty)}</span>
+        </div>
+      )),
+    [lines],
+  );
 
   if (lines.length === 0)
     return (
@@ -670,29 +702,7 @@ export default function Checkout() {
         <aside className="bg-card rounded-2xl border border-border p-5 md:p-6 h-fit lg:sticky lg:top-24">
           <h2 className="font-bold text-lg mb-4">Resumo</h2>
           <div className="space-y-3 mb-4 max-h-64 overflow-y-auto pr-1">
-            {lines.map((l) => (
-              <div key={l.product_id} className="flex gap-3">
-                <div className="w-12 h-12 rounded-lg border border-border bg-muted/30 overflow-hidden flex-shrink-0 flex items-center justify-center">
-                  <img
-                    src={imageUrl(l.image_url, { width: 96, quality: 75 })}
-                    srcSet={`${imageUrl(l.image_url, { width: 96, quality: 75 })} 1x, ${imageUrl(l.image_url, { width: 192, quality: 75 })} 2x`}
-                    alt={l.name}
-                    loading="lazy"
-                    decoding="async"
-                    width={48}
-                    height={48}
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-foreground line-clamp-2">{l.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {l.qty}× {formatBRL(l.price)}
-                  </p>
-                </div>
-                <span className="text-xs font-bold shrink-0">{formatBRL(l.price * l.qty)}</span>
-              </div>
-            ))}
+            {summaryItems}
           </div>
           <div className="space-y-2 py-4 border-t border-border text-sm">
             <div className="flex justify-between">

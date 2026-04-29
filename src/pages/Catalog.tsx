@@ -22,6 +22,25 @@ const SORT_LABELS: Record<SortKey, string> = {
   az: "A–Z",
 };
 
+// Helpers puros — declarados fora do componente para não serem recriados
+// a cada render do Catalog (entram nas deps de useMemo abaixo).
+
+/** Score de "atratividade" de venda — tie-breaker dentro das categorias. */
+const productScore = (p: ProductRow) => {
+  const inStock = (p.stock ?? 0) > 0 ? 1 : 0;
+  const featured = p.is_featured ? 1 : 0;
+  const recency = new Date(p.created_at).getTime();
+  return inStock * 1e15 + featured * 1e13 + recency;
+};
+
+/** % de desconto (0 quando não há promoção real). */
+const discountPctOf = (p: ProductRow) => {
+  const pr = Number(p.price);
+  const sp = p.sale_price != null ? Number(p.sale_price) : 0;
+  if (!(sp > 0 && sp < pr)) return 0;
+  return (pr - sp) / pr;
+};
+
 export default function Catalog() {
   const { data: products = [], isLoading: loadingProducts } = useProducts();
   const { data: categories = [] } = useCategories();
@@ -175,23 +194,6 @@ export default function Catalog() {
     },
     [products, selectedCats, query]
   );
-
-  // Score de "atratividade" de venda — usado como tie-breaker dentro das categorias.
-  // Prioriza: em estoque > destaque (is_featured) > mais recente.
-  const productScore = (p: Product) => {
-    const inStock = (p.stock ?? 0) > 0 ? 1 : 0;
-    const featured = p.is_featured ? 1 : 0;
-    const recency = new Date(p.created_at).getTime();
-    return inStock * 1e15 + featured * 1e13 + recency;
-  };
-
-  // % de desconto (0 quando não há promoção real).
-  const discountPctOf = (p: Product) => {
-    const pr = Number(p.price);
-    const sp = p.sale_price != null ? Number(p.sale_price) : 0;
-    if (!(sp > 0 && sp < pr)) return 0;
-    return (pr - sp) / pr;
-  };
 
   // Lista ordenada (usada quando o sort não é "categoria")
   const sorted = useMemo(() => {

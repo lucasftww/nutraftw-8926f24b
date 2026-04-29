@@ -104,4 +104,19 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: { "@": path.resolve(__dirname, "./src") },
   },
+  build: {
+    // Vendor splitting estável → cache de longo prazo entre deploys.
+    // Mudanças de código de aplicação não invalidam o chunk de bibliotecas,
+    // que costuma ser o maior bundle e o mais caro de baixar.
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "react-vendor": ["react", "react-dom", "react-router-dom"],
+          "query-vendor": ["@tanstack/react-query"],
+          "supabase-vendor": ["@supabase/supabase-js"],
+          "ui-vendor": ["lucide-react", "sonner"],
+        },
+      },
+    },
+  },
 }));
