@@ -20,6 +20,7 @@ const Admin = lazy(() => import("@/pages/Admin"));
 const AdminLogin = lazy(() => import("@/pages/AdminLogin"));
 const AdminHealth = lazy(() => import("@/pages/AdminHealth"));
 const Wishlist = lazy(() => import("@/pages/Wishlist"));
+const Install = lazy(() => import("@/pages/Install"));
 
 function RouteFallback() {
   return (
@@ -58,6 +59,7 @@ export default function App() {
                   <Route path="/checkout" element={<Checkout />} />
                   <Route path="/minha-conta" element={<RequireAuth><MyAccount /></RequireAuth>} />
                   <Route path="/favoritos" element={<Wishlist />} />
+                  <Route path="/instalar" element={<Install />} />
                   <Route path="/admin" element={<RequireAuth adminOnly><Admin /></RequireAuth>} />
                   <Route path="/admin/health" element={<RequireAuth adminOnly><AdminHealth /></RequireAuth>} />
                   <Route path="/sobre" element={<About />} />
