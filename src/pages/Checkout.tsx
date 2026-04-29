@@ -57,6 +57,7 @@ export default function Checkout() {
   const [couponInput, setCouponInput] = useState("");
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponOpen, setCouponOpen] = useState<boolean>(false);
 
   // Funil: registra `checkout_started` ao chegar na página com itens.
   // Usa um ref-like guard via state pra disparar uma vez por carga.
@@ -580,12 +581,13 @@ export default function Checkout() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 md:py-10">
-      <div className="flex items-center justify-between mb-4 sm:mb-6">
+      <div className="flex items-center mb-3 sm:mb-6">
         <button
           onClick={() => nav(-1)}
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary"
+          aria-label="Voltar"
+          className="inline-flex items-center justify-center w-9 h-9 rounded-full text-muted-foreground hover:text-primary hover:bg-muted transition-colors -ml-1"
         >
-          <ArrowLeft className="h-4 w-4" /> Voltar
+          <ArrowLeft className="h-5 w-5" />
         </button>
       </div>
 
