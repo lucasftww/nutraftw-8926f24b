@@ -6,6 +6,8 @@ export default function NotFound() {
   useSEO({
     title: "Página não encontrada — GIMPORTS",
     description: "A página que você procura não existe ou foi movida.",
+    // Aponta o canonical para a home — evita indexar a URL inexistente
+    canonical: typeof window !== "undefined" ? window.location.origin + "/" : undefined,
   });
   useEffect(() => {
     // Sinaliza para indexadores que essa rota não deve ser indexada.

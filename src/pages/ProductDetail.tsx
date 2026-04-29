@@ -13,6 +13,7 @@ export default function ProductDetail() {
   const { data: related = [] } = useRelatedProducts(p?.category_id, p?.id);
   const { add, openCart } = useCart();
   const nav = useNavigate();
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
 
   const hasSaleEarly =
     p?.sale_price != null &&
@@ -49,14 +50,14 @@ export default function ProductDetail() {
               "@context": "https://schema.org",
               "@type": "BreadcrumbList",
               itemListElement: [
-                { "@type": "ListItem", position: 1, name: "Início", item: "/" },
+                { "@type": "ListItem", position: 1, name: "Início", item: `${origin}/` },
                 ...(p.category
                   ? [
                       {
                         "@type": "ListItem",
                         position: 2,
                         name: p.category.name,
-                        item: `/?categoria=${p.category.slug}`,
+                        item: `${origin}/?categoria=${p.category.slug}`,
                       },
                       { "@type": "ListItem", position: 3, name: p.name },
                     ]
