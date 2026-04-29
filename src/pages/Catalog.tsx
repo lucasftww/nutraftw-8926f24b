@@ -132,9 +132,12 @@ export default function Catalog() {
       const sp = p.sale_price != null ? Number(p.sale_price) : 0;
       return sp > 0 && sp < pr && Math.round((1 - sp / pr) * 100) >= 1;
     }).slice(0, 8);
+    // Evita duplicar: produtos já listados em "Promoções" não reaparecem nas seções de categoria.
+    const promoIds = new Set(promos.map((p) => p.id));
     const byCat = new Map<string, { name: string; items: Product[] }>();
     for (const p of filtered) {
       if (!p.category?.slug) continue;
+      if (promoIds.has(p.id)) continue;
       const key = p.category.slug;
       const name = p.category.name;
       if (!byCat.has(key)) byCat.set(key, { name, items: [] });
