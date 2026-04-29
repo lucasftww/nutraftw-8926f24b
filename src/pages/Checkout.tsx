@@ -959,7 +959,7 @@ export default function Checkout() {
                         className={[
                           "badge-pill absolute -top-2 right-3 font-extrabold shadow-sm ring-2 ring-card",
                           badge.tone === "secondary"
-                            ? "bg-success text-success-foreground"
+                            ? "bg-success text-success-foreground badge-pulse"
                             : "bg-muted text-muted-foreground",
                         ].join(" ")}
                       >
@@ -1014,9 +1014,9 @@ export default function Checkout() {
                     <Option
                       value="pix"
                       title="PIX"
-                      subtitle="Aprovação imediata"
+                      subtitle="Liberação na hora · 5% off"
                       icon={QrCode}
-                      badge={pixSaves > 0 ? { text: `−${formatBRL(pixSaves)}`, tone: "secondary" } : { text: "−5%", tone: "secondary" }}
+                      badge={pixSaves > 0 ? { text: `Economize ${formatBRL(pixSaves)}`, tone: "secondary" } : { text: "Economize 5%", tone: "secondary" }}
                       totalLabel="Total no PIX"
                       totalValue={pixTotal}
                     />
