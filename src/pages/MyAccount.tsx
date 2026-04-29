@@ -6,17 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { LogOut, User as UserIcon, MapPin, ShoppingBag, Eye, Loader2, Users, Copy, Check } from "lucide-react";
+import { LogOut, User as UserIcon, MapPin, ShoppingBag, Eye, Loader2, Users, Copy, Check, Wallet } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { CustomerOrderDetail } from "@/components/account/CustomerOrderDetail";
 
-type Tab = "profile" | "address" | "orders" | "affiliate";
+type Tab = "profile" | "address" | "orders" | "affiliate" | "commissions";
 
 const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "profile", label: "Dados pessoais", icon: UserIcon },
   { id: "address", label: "Endereço", icon: MapPin },
   { id: "orders", label: "Meus pedidos", icon: ShoppingBag },
   { id: "affiliate", label: "Afiliação", icon: Users },
+  { id: "commissions", label: "Comissões", icon: Wallet },
 ];
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
@@ -56,6 +57,9 @@ export default function MyAccount() {
   });
   const [copied, setCopied] = useState(false);
   const [savingPixel, setSavingPixel] = useState(false);
+  const [commissions, setCommissions] = useState<any[]>([]);
+  const [loadingComm, setLoadingComm] = useState(false);
+  const [commFilter, setCommFilter] = useState<string>("all");
 
   useEffect(() => {
     if (!user) return;
@@ -82,6 +86,22 @@ export default function MyAccount() {
       const activeRefs = (refs || []).filter((r: any) => r.status === "active").length;
       const inactiveRefs = (refs || []).filter((r: any) => r.status === "inactive").length;
       setAffStats({ released, pending, paid, activeRefs, inactiveRefs });
+    })();
+  }, [user, tab]);
+
+  // Carrega lista detalhada de comissões.
+  useEffect(() => {
+    if (!user || tab !== "commissions") return;
+    setLoadingComm(true);
+    (async () => {
+      const { data, error } = await supabase
+        .from("affiliate_commissions")
+        .select("id, amount, status, created_at, released_at, paid_at, eligible_release_at, order_id, orders(id, total, status, created_at, shipping_full_name)")
+        .eq("affiliate_user_id", user.id)
+        .order("created_at", { ascending: false });
+      if (error) toast.error(error.message);
+      setCommissions(data || []);
+      setLoadingComm(false);
     })();
   }, [user, tab]);
 
@@ -398,6 +418,109 @@ export default function MyAccount() {
                 {savingPixel ? "Salvando…" : "Salvar alterações"}
               </Button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {tab === "commissions" && (
+        <div className="space-y-4">
+          <div className="bg-card rounded-2xl border border-border p-5">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <h2 className="font-display text-lg font-bold text-primary">Minhas comissões</h2>
+                <p className="text-sm text-muted-foreground mt-1">Histórico completo das comissões geradas pelas suas indicações.</p>
+              </div>
+              <div className="flex gap-1 text-xs">
+                {[
+                  { id: "all", label: "Todas" },
+                  { id: "pending", label: "Pendentes" },
+                  { id: "released", label: "Liberadas" },
+                  { id: "paid", label: "Pagas" },
+                  { id: "cancelled", label: "Canceladas" },
+                ].map((f) => (
+                  <button
+                    key={f.id}
+                    onClick={() => setCommFilter(f.id)}
+                    className={`px-3 py-1.5 rounded-full border transition ${commFilter === f.id ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted/50"}`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-card rounded-2xl border border-border overflow-hidden">
+            {loadingComm ? (
+              <div className="p-10 flex items-center justify-center text-muted-foreground">
+                <Loader2 className="h-5 w-5 animate-spin" /> <span className="ml-2 text-sm">Carregando…</span>
+              </div>
+            ) : (() => {
+              const filtered = commissions.filter((c) => commFilter === "all" || c.status === commFilter);
+              if (filtered.length === 0) {
+                return (
+                  <div className="p-10 text-center text-sm text-muted-foreground">
+                    Nenhuma comissão {commFilter === "all" ? "registrada" : `com status "${commFilter}"`} no momento.
+                  </div>
+                );
+              }
+              const statusBadge: Record<string, string> = {
+                pending: "bg-amber-100 text-amber-700",
+                released: "bg-blue-100 text-blue-700",
+                paid: "bg-emerald-100 text-emerald-700",
+                cancelled: "bg-red-100 text-red-700",
+              };
+              const statusLabel: Record<string, string> = {
+                pending: "Pendente",
+                released: "Liberada",
+                paid: "Paga",
+                cancelled: "Cancelada",
+              };
+              const fmtDate = (d?: string | null) => d ? new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }) : "—";
+              return (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/40 text-xs text-muted-foreground uppercase">
+                      <tr>
+                        <th className="text-left px-4 py-3">Pedido</th>
+                        <th className="text-left px-4 py-3">Valor</th>
+                        <th className="text-left px-4 py-3">Status</th>
+                        <th className="text-left px-4 py-3">Gerada em</th>
+                        <th className="text-left px-4 py-3">Liberação</th>
+                        <th className="text-left px-4 py-3">Pagamento</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filtered.map((c) => (
+                        <tr key={c.id} className="border-t border-border hover:bg-muted/20">
+                          <td className="px-4 py-3">
+                            <div className="font-mono text-xs text-foreground">#{c.order_id?.slice(0, 8) || "—"}</div>
+                            {c.orders?.total != null && (
+                              <div className="text-xs text-muted-foreground">Pedido: {formatBRL(Number(c.orders.total))}</div>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 font-semibold text-primary">{formatBRL(Number(c.amount || 0))}</td>
+                          <td className="px-4 py-3">
+                            <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${statusBadge[c.status] || "bg-gray-100 text-gray-700"}`}>
+                              {statusLabel[c.status] || c.status}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground">{fmtDate(c.created_at)}</td>
+                          <td className="px-4 py-3 text-muted-foreground">
+                            {c.released_at
+                              ? fmtDate(c.released_at)
+                              : c.status === "pending" && c.eligible_release_at
+                                ? <span className="text-xs">Prevista: {fmtDate(c.eligible_release_at)}</span>
+                                : "—"}
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground">{fmtDate(c.paid_at)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}
