@@ -633,7 +633,7 @@ export default function Checkout() {
                     <div className="text-xs text-muted-foreground">Aprovação imediata</div>
                   </div>
                 </div>
-                <span className="absolute top-2 right-2 bg-secondary text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                <span className="absolute top-2 right-2 bg-secondary text-secondary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
                   −5%
                 </span>
               </button>
