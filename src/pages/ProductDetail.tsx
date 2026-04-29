@@ -1,6 +1,7 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { ShoppingCart, Zap, ShieldCheck, Truck, Lock, Package, CreditCard } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
+import { imageUrl } from "@/lib/image";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/useCart";
 import { useSEO } from "@/hooks/useSEO";
@@ -155,7 +156,7 @@ export default function ProductDetail() {
         {/* Image */}
         <div className="relative rounded-3xl border border-border/60 overflow-hidden bg-white shadow-[var(--shadow-card)] w-full max-w-md mx-auto lg:max-w-none lg:sticky lg:top-20">
           <img
-            src={p.image_url || "/assets/no-image.svg"}
+            src={imageUrl(p.image_url, { width: 800, quality: 80 })}
             alt={p.name}
             loading="eager"
             decoding="async"
@@ -343,7 +344,7 @@ export default function ProductDetail() {
                 >
                   <div className="relative aspect-square overflow-hidden bg-white">
                     <img
-                      src={r.image_url || "/assets/no-image.svg"}
+                      src={imageUrl(r.image_url, { width: 480, quality: 75 })}
                       alt={r.name}
                       loading="lazy"
                       decoding="async"

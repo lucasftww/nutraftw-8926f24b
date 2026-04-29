@@ -1,5 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { queryKeys } from "@/lib/queryKeys";
+import { imageUrl } from "@/lib/image";
 import { Search, SlidersHorizontal, ShoppingCart, X, ArrowUpDown, Zap } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { useCart } from "@/hooks/useCart";
@@ -68,6 +72,31 @@ export default function Catalog() {
 
   const loading = loadingProducts;
   const { add, openCart } = useCart();
+  const qc = useQueryClient();
+
+  // Pré-carrega o produto quando o usuário sinaliza intenção (hover/touchstart no card).
+  const prefetchProduct = useCallback((slug: string) => {
+    qc.prefetchQuery({
+      queryKey: queryKeys.products.detail(slug),
+      queryFn: async () => {
+        const { data, error } = await supabase
+          .from("products")
+          .select("*, category:categories(name, slug)")
+          .eq("slug", slug)
+          .eq("is_active", true)
+          .maybeSingle();
+        if (error) throw error;
+        return data;
+      },
+      staleTime: 60_000,
+    });
+  }, [qc]);
+
+  // Handler estável para "Adicionar ao carrinho" no card → evita re-render dos cards.
+  const handleAdd = useCallback((p: Product, price: number) => {
+    add({ product_id: p.id, slug: p.slug, name: p.name, price, image_url: p.image_url });
+    openCart();
+  }, [add, openCart]);
 
   useSEO({
     title: "GIMPORTS — Catálogo de farmacêuticos importados",
@@ -362,20 +391,20 @@ export default function Catalog() {
                 {sort === "categoria" ? (
                   <>
                     {paginated.promos.length > 0 && (
-                      <Section title="Promoções" items={paginated.promos} onAdd={(p, price) => {
-                        add({ product_id: p.id, slug: p.slug, name: p.name, price, image_url: p.image_url });
-                        openCart();
-                      }} />
+                      <Section
+                        title="Promoções"
+                        items={paginated.promos}
+                        onAdd={handleAdd}
+                        onPrefetch={prefetchProduct}
+                      />
                     )}
                     {paginated.sections.map((s) => (
                       <Section
                         key={s.name}
                         title={s.name}
                         items={s.items}
-                        onAdd={(p, price) => {
-                          add({ product_id: p.id, slug: p.slug, name: p.name, price, image_url: p.image_url });
-                          openCart();
-                        }}
+                        onAdd={handleAdd}
+                        onPrefetch={prefetchProduct}
                       />
                     ))}
                   </>
@@ -383,10 +412,8 @@ export default function Catalog() {
                   <Section
                     title={SORT_LABELS[sort]}
                     items={paginated.sections[0]?.items ?? []}
-                    onAdd={(p, price) => {
-                      add({ product_id: p.id, slug: p.slug, name: p.name, price, image_url: p.image_url });
-                      openCart();
-                    }}
+                    onAdd={handleAdd}
+                    onPrefetch={prefetchProduct}
                   />
                 )}
                 {hasMore && (
@@ -552,14 +579,16 @@ export default function Catalog() {
   );
 }
 
-function Section({
+const Section = memo(function Section({
   title,
   items,
   onAdd,
+  onPrefetch,
 }: {
   title: string;
   items: Product[];
   onAdd: (p: Product, finalPrice: number) => void;
+  onPrefetch?: (slug: string) => void;
 }) {
   if (items.length === 0) return null;
   const isPromo = /promo/i.test(title);
@@ -597,12 +626,14 @@ function Section({
             <Link
               key={p.id}
               to={`/produto/${p.slug}`}
+              onMouseEnter={() => onPrefetch?.(p.slug)}
+              onTouchStart={() => onPrefetch?.(p.slug)}
               className={`group flex flex-col h-full rounded-2xl bg-card overflow-hidden border border-border/50 hover:border-primary/30 hover:shadow-[var(--shadow-card)] transition-all ${isOut ? "opacity-70" : ""}`}
             >
               {/* Imagem */}
               <div className="relative aspect-square overflow-hidden bg-white">
                 <img
-                  src={p.image_url || "/assets/no-image.svg"}
+                  src={imageUrl(p.image_url, { width: 480, quality: 75 })}
                   alt={p.name}
                   loading="lazy"
                   decoding="async"
@@ -669,4 +700,4 @@ function Section({
       </div>
     </div>
   );
-}
+});
