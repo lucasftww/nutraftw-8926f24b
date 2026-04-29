@@ -97,6 +97,7 @@ export default function Checkout() {
         setForm((f) => ({
           ...f,
           full_name: f.full_name || data.full_name || "",
+          email: f.email || data.email || user?.email || "",
           cpf: f.cpf || (data.cpf ? maskCPF(data.cpf) : ""),
           phone: f.phone || (data.phone ? maskPhone(data.phone) : ""),
           zip: f.zip || (data.address_zip ? maskCEP(data.address_zip) : ""),
