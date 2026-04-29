@@ -27,6 +27,9 @@ export default function Checkout() {
   const [cepLoading, setCepLoading] = useState(false);
   const [shippingOptions, setShippingOptions] = useState<any[]>([]);
   const [shippingId, setShippingId] = useState<string | null>(null);
+  const [shippingLoading, setShippingLoading] = useState(false);
+  // Cache em memória por UF — evita refetch ao trocar UF e voltar.
+  const shippingCacheRef = useRef<Map<string, any[]>>(new Map());
   const [insuranceOn, setInsuranceOn] = useState<boolean>(true);
   const [coupon, setCoupon] = useState<any | null>(null);
   const [couponInput, setCouponInput] = useState("");
@@ -147,25 +150,45 @@ export default function Checkout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.zip]);
 
-  // Frete dinâmico por UF — agora carrega TODAS as modalidades
+  // Frete dinâmico por UF — recalcula SOMENTE quando a UF muda de verdade.
+  // - Normaliza UF (uppercase) e usa em deps para evitar refetch a cada keystroke.
+  // - Cacheia por UF em memória: trocar UF e voltar não dispara nova chamada.
+  // - Mostra loading discreto enquanto busca.
+  const ufNormalized = form.state.trim().toUpperCase();
   useEffect(() => {
-    const uf = form.state.toUpperCase();
-    if (uf.length !== 2) { setShippingOptions([]); setShippingId(null); return; }
+    if (ufNormalized.length !== 2) {
+      setShippingOptions([]);
+      setShippingId(null);
+      setShippingLoading(false);
+      return;
+    }
+    // Cache hit: aplica imediatamente, sem loading.
+    const cached = shippingCacheRef.current.get(ufNormalized);
+    if (cached) {
+      setShippingOptions(cached);
+      setShippingId((cur) => cached.find((o) => o.id === cur)?.id || cached[0]?.id || null);
+      setShippingLoading(false);
+      return;
+    }
     let cancelled = false;
+    setShippingLoading(true);
     (supabase as any)
       .from("shipping_rates")
       .select("*")
-      .eq("state", uf)
+      .eq("state", ufNormalized)
       .eq("active", true)
       .order("price")
       .then(({ data }: any) => {
         if (cancelled) return; // evita race quando o usuário troca UF rápido
         const arr = (data as any[]) || [];
+        shippingCacheRef.current.set(ufNormalized, arr);
         setShippingOptions(arr);
         setShippingId((cur) => arr.find((o) => o.id === cur)?.id || arr[0]?.id || null);
-      });
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setShippingLoading(false); });
     return () => { cancelled = true; };
-  }, [form.state]);
+  }, [ufNormalized]);
 
   // Aplica preferência admin para seguro
   useEffect(() => {
@@ -668,11 +691,30 @@ export default function Checkout() {
             <div className="flex items-center gap-2">
               <Truck className="w-5 h-5 text-primary" />
               <h2 className="checkout-section-title !mb-0">Entrega e Opções</h2>
+              {shippingLoading && (
+                <span className="ml-auto inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground" aria-live="polite">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                  atualizando…
+                </span>
+              )}
             </div>
 
             <div>
               <label className="text-sm font-medium text-foreground mb-3 block">Tipo de Frete</label>
-              {shippingOptions.length === 0 ? (
+              {shippingLoading && shippingOptions.length === 0 ? (
+                <ul className="grid grid-cols-1 gap-4" aria-busy="true" aria-label="Calculando opções de frete">
+                  {[0, 1].map((i) => (
+                    <li key={i} className="p-4 rounded-xl border-2 border-border flex items-center gap-4">
+                      <div className="w-5 h-5 rounded-full skeleton-shimmer" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-3 w-1/3 rounded skeleton-shimmer" />
+                        <div className="h-2.5 w-1/4 rounded skeleton-shimmer" />
+                      </div>
+                      <div className="h-3 w-16 rounded skeleton-shimmer" />
+                    </li>
+                  ))}
+                </ul>
+              ) : shippingOptions.length === 0 ? (
                 <div className="p-4 rounded-xl bg-muted/30 border border-border text-sm text-muted-foreground">
                   {form.state.length === 2
                     ? "Sem opções de frete para este estado. Fale com o suporte."
@@ -822,13 +864,18 @@ export default function Checkout() {
               <span className="font-semibold">{formatBRL(total)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">
+              <span className="text-muted-foreground inline-flex items-center gap-1.5 flex-wrap">
                 Frete{selectedShipping?.label ? ` (${selectedShipping.label})` : ""}
+                {shippingLoading && (
+                  <Loader2 className="h-3 w-3 animate-spin text-primary" aria-label="Atualizando frete" />
+                )}
                 {selectedShipping?.delivery_days_min && selectedShipping?.delivery_days_max && (
                   <span className="block text-[10px] mt-0.5">{selectedShipping.delivery_days_min}–{selectedShipping.delivery_days_max} dias úteis</span>
                 )}
               </span>
-              <span className="font-semibold">{formatBRL(shippingValue)}</span>
+              <span className={`font-semibold tabular-nums transition-opacity ${shippingLoading ? "opacity-50" : ""}`}>
+                {formatBRL(shippingValue)}
+              </span>
             </div>
             {insurance > 0 && (
               <div className="flex justify-between">
