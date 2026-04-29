@@ -864,13 +864,18 @@ export default function Checkout() {
               <span className="font-semibold">{formatBRL(total)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">
+              <span className="text-muted-foreground inline-flex items-center gap-1.5 flex-wrap">
                 Frete{selectedShipping?.label ? ` (${selectedShipping.label})` : ""}
+                {shippingLoading && (
+                  <Loader2 className="h-3 w-3 animate-spin text-primary" aria-label="Atualizando frete" />
+                )}
                 {selectedShipping?.delivery_days_min && selectedShipping?.delivery_days_max && (
                   <span className="block text-[10px] mt-0.5">{selectedShipping.delivery_days_min}–{selectedShipping.delivery_days_max} dias úteis</span>
                 )}
               </span>
-              <span className="font-semibold">{formatBRL(shippingValue)}</span>
+              <span className={`font-semibold tabular-nums transition-opacity ${shippingLoading ? "opacity-50" : ""}`}>
+                {formatBRL(shippingValue)}
+              </span>
             </div>
             {insurance > 0 && (
               <div className="flex justify-between">
