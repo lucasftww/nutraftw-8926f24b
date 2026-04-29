@@ -152,7 +152,7 @@ function AdminProducts() {
       toast.success("Produto guardado");
       setEditing(null);
       qc.invalidateQueries({ queryKey: queryKeys.products.all });
-      qc.invalidateQueries({ queryKey: ["product"] });
+      qc.invalidateQueries({ queryKey: queryKeys.products.detailRoot });
       load();
     }
   }
