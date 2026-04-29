@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Truck, Loader2, MapPin } from "lucide-react";
+import { Truck, Loader2, MapPin, AlertCircle, PackageCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 
@@ -65,7 +65,7 @@ export function ShippingCalculator() {
         </div>
         <div className="min-w-0">
           <h3 className="text-sm font-bold text-foreground leading-tight">Calcule o frete</h3>
-          <p className="text-[11px] text-muted-foreground leading-tight">Receba em casa em todo o Brasil</p>
+          <p className="text-[11px] text-muted-foreground leading-tight">Entregamos para todo o Brasil — informe seu CEP</p>
         </div>
       </div>
       <div className="flex gap-2">
@@ -80,16 +80,17 @@ export function ShippingCalculator() {
               setZip(v);
               if (v.replace(/\D/g, "").length === 8) calculate(v);
             }}
-            placeholder="Digite seu CEP"
+            placeholder="00000-000"
             aria-label="CEP"
-            className="w-full h-11 rounded-xl border border-input bg-background pl-9 pr-3 text-sm tabular-nums focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary/40"
+            aria-invalid={!!error}
+            className={`w-full h-11 rounded-xl border bg-background pl-9 pr-3 text-sm tabular-nums focus-visible:outline-none focus-visible:ring-2 transition-colors ${error ? "border-destructive/60 focus-visible:ring-destructive/30" : "border-input focus-visible:ring-primary/30 focus-visible:border-primary/40"}`}
           />
         </div>
         <button
           type="button"
           onClick={() => calculate(zip)}
           disabled={loading || zip.replace(/\D/g, "").length !== 8}
-          className="h-11 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-40 inline-flex items-center justify-center min-w-[80px]"
+          className="h-11 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-40 inline-flex items-center justify-center min-w-[80px] active:scale-95 transition-transform"
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Calcular"}
         </button>
@@ -98,23 +99,43 @@ export function ShippingCalculator() {
         href="https://buscacepinter.correios.com.br/app/endereco/index.php"
         target="_blank"
         rel="noreferrer"
-        className="block mt-1.5 text-[11px] text-muted-foreground hover:text-primary"
+        className="inline-block mt-1.5 text-[11px] text-muted-foreground hover:text-primary hover:underline underline-offset-2"
       >
         Não sei meu CEP
       </a>
 
-      {error && <p className="mt-3 text-xs font-semibold text-destructive">{error}</p>}
+      {error && (
+        <p role="alert" className="mt-3 flex items-start gap-1.5 text-xs font-semibold text-destructive animate-fade-in">
+          <AlertCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+          <span>{error}</span>
+        </p>
+      )}
+
+      {loading && opts.length === 0 && !error && (
+        <ul className="mt-3 space-y-1.5" aria-busy="true" aria-label="Calculando frete">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <li key={i} className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl bg-background border border-border">
+              <div className="flex-1 space-y-1.5">
+                <div className="h-3 w-2/3 rounded skeleton-shimmer" />
+                <div className="h-2.5 w-1/3 rounded skeleton-shimmer" />
+              </div>
+              <div className="h-3.5 w-14 rounded skeleton-shimmer" />
+            </li>
+          ))}
+        </ul>
+      )}
 
       {opts.length > 0 && (
-        <div className="mt-3">
+        <div className="mt-3 animate-fade-in">
           {city && state && (
-            <p className="text-[11px] text-muted-foreground mb-1.5">
+            <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground mb-1.5">
+              <PackageCheck className="h-3 w-3 text-success" />
               Entrega para <span className="font-semibold text-foreground">{city}/{state}</span>
             </p>
           )}
           <ul className="space-y-1.5">
             {opts.map((o) => (
-              <li key={o.id} className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl bg-background border border-border">
+              <li key={o.id} className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl bg-background border border-border hover:border-primary/30 transition-colors">
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-foreground leading-tight truncate">{o.label}</p>
                   {(o.delivery_days_min || o.delivery_days_max) && (
@@ -125,12 +146,13 @@ export function ShippingCalculator() {
                     </p>
                   )}
                 </div>
-                <span className="text-sm font-extrabold text-primary tabular-nums shrink-0">
+                <span className={`text-sm font-extrabold tabular-nums shrink-0 ${Number(o.price) === 0 ? "text-success" : "text-primary"}`}>
                   {Number(o.price) === 0 ? "Grátis" : formatBRL(Number(o.price))}
                 </span>
               </li>
             ))}
           </ul>
+          <p className="mt-2 text-[10px] text-muted-foreground">Prazo a partir da confirmação do pagamento.</p>
         </div>
       )}
     </div>

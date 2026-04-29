@@ -25,12 +25,20 @@ export function WishlistButton({ productId, className, variant = "card", size = 
     e.preventDefault();
     e.stopPropagation();
     if (!isAuthed) {
-      toast.info("Entre para salvar favoritos", {
+      toast.info("Faça login para salvar favoritos", {
+        description: "Você poderá voltar a qualquer momento e finalizar a compra.",
         action: { label: "Entrar", onClick: () => nav("/login?redirect=/favoritos") },
       });
       return;
     }
+    const wasFav = isFav;
     toggle(productId);
+    if (!wasFav) {
+      toast.success("Adicionado aos favoritos", {
+        description: "Veja em Meus favoritos quando quiser.",
+        action: { label: "Ver lista", onClick: () => nav("/favoritos") },
+      });
+    }
   };
 
   const dim = size === "sm" ? "h-8 w-8" : "h-10 w-10";
