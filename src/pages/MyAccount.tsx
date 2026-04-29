@@ -448,68 +448,76 @@ export default function MyAccount() {
 
       {tab === "affiliate" && (
         <div className="space-y-4">
-          {/* Banner */}
-          <div className="bg-card rounded-2xl border border-border p-5">
-            <h2 className="font-display text-lg font-bold text-primary">Programa de indicações</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Compartilhe seu link e ganhe <strong>1% de comissão</strong> nas compras aprovadas.
-            </p>
+          {/* Hero do programa: foco mobile, CTA grande de compartilhar */}
+          <div className="rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/15 p-5 md:p-6">
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shrink-0">
+                <Users className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <h2 className="font-display text-lg md:text-xl font-extrabold text-primary leading-tight">Programa de indicações</h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Compartilhe seu link e ganhe <strong className="text-foreground">1% de comissão</strong> em cada compra aprovada.
+                </p>
+              </div>
+            </div>
+
+            {/* Link + ações */}
+            <div className="mt-4 space-y-2">
+              <div className="flex items-center gap-2 bg-card border border-border rounded-xl px-3 py-2.5">
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold shrink-0">Link</span>
+                <span className="font-mono text-xs text-foreground truncate flex-1">{affiliateUrl || "—"}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Button type="button" onClick={shareLink} size="lg" className="w-full">
+                  <Share2 className="h-4 w-4" /> Compartilhar
+                </Button>
+                <Button type="button" variant="outline" onClick={copyLink} size="lg" className="w-full">
+                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  {copied ? "Copiado!" : "Copiar"}
+                </Button>
+              </div>
+              <p className="text-[11px] text-muted-foreground text-center">
+                Código: <span className="font-mono font-semibold text-foreground">{profile?.affiliate_code || "—"}</span>
+              </p>
+            </div>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-            <div className="bg-card rounded-2xl border border-border p-4">
-              <p className="text-xs text-muted-foreground">Comissões pendentes</p>
-              <p className="text-2xl font-extrabold mt-1 text-amber-600">{formatBRL(affStats.pending)}</p>
+          {/* Stats — 2 colunas no mobile, 5 em desktop */}
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-2.5 md:gap-3">
+            <div className="bg-card rounded-2xl border border-border p-3.5 md:p-4">
+              <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Pendentes</p>
+              <p className="text-lg md:text-2xl font-extrabold mt-1 text-amber-600 truncate">{formatBRL(affStats.pending)}</p>
             </div>
-            <div className="bg-card rounded-2xl border border-border p-4">
-              <p className="text-xs text-muted-foreground">Comissões liberadas</p>
-              <p className="text-2xl font-extrabold mt-1 text-primary">{formatBRL(affStats.released)}</p>
+            <div className="bg-card rounded-2xl border border-border p-3.5 md:p-4">
+              <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Liberadas</p>
+              <p className="text-lg md:text-2xl font-extrabold mt-1 text-primary truncate">{formatBRL(affStats.released)}</p>
             </div>
-            <div className="bg-card rounded-2xl border border-border p-4">
-              <p className="text-xs text-muted-foreground">Comissões pagas</p>
-              <p className="text-2xl font-extrabold mt-1 text-emerald-600">{formatBRL(affStats.paid)}</p>
+            <div className="bg-card rounded-2xl border border-border p-3.5 md:p-4">
+              <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Pagas</p>
+              <p className="text-lg md:text-2xl font-extrabold mt-1 text-emerald-600 truncate">{formatBRL(affStats.paid)}</p>
             </div>
-            <div className="bg-card rounded-2xl border border-border p-4">
-              <p className="text-xs text-muted-foreground">Indicações ativas</p>
-              <p className="text-2xl font-extrabold mt-1">{affStats.activeRefs}</p>
+            <div className="bg-card rounded-2xl border border-border p-3.5 md:p-4">
+              <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Indic. ativas</p>
+              <p className="text-lg md:text-2xl font-extrabold mt-1">{affStats.activeRefs}</p>
             </div>
-            <div className="bg-card rounded-2xl border border-border p-4">
-              <p className="text-xs text-muted-foreground">Indicações inativas</p>
-              <p className="text-2xl font-extrabold mt-1">{affStats.inactiveRefs}</p>
+            <div className="bg-card rounded-2xl border border-border p-3.5 md:p-4 col-span-2 lg:col-span-1">
+              <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Indic. inativas</p>
+              <p className="text-lg md:text-2xl font-extrabold mt-1">{affStats.inactiveRefs}</p>
             </div>
           </div>
 
-          <div className="bg-muted/30 rounded-xl border border-border p-4 text-xs text-muted-foreground">
-            <strong className="text-foreground">Como funciona o pagamento:</strong> ao aprovar o pedido, sua comissão fica
-            <span className="text-amber-600 font-semibold"> pendente</span> por 7 dias. Após esse período ela é
-            <span className="text-primary font-semibold"> liberada</span> automaticamente para saque, e quando o administrador
-            efetua o repasse passa a <span className="text-emerald-600 font-semibold">paga</span>.
-          </div>
-
-          {/* Link de divulgação */}
-          <div className="bg-card rounded-2xl border border-border p-5 space-y-3">
-            <div>
-              <h3 className="font-display font-bold text-primary">Link de divulgação</h3>
-              <p className="text-sm text-muted-foreground">Ganhe 1% de comissão nas compras aprovadas de produtos da loja.</p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Input value={affiliateUrl} readOnly className="bg-muted/40 font-mono text-sm" />
-              <Button type="button" variant="outline" onClick={copyLink} className="shrink-0">
-                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                {copied ? "Copiado" : "Copiar"}
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Código de afiliado: <span className="font-mono font-semibold text-foreground">{profile?.affiliate_code || "—"}</span>
-            </p>
+          <div className="bg-muted/40 rounded-2xl border border-border p-4 text-xs text-muted-foreground leading-relaxed">
+            <strong className="text-foreground block mb-1">Como funciona</strong>
+            Ao pedido aprovar, a comissão fica <span className="text-amber-600 font-semibold">pendente</span> por 7 dias.
+            Depois é <span className="text-primary font-semibold">liberada</span> automaticamente e, quando o administrador efetua o repasse, passa a <span className="text-emerald-600 font-semibold">paga</span>.
           </div>
 
           {/* Pixel do Facebook */}
-          <div className="bg-card rounded-2xl border border-border p-5 space-y-3">
+          <div className="bg-card rounded-2xl border border-border p-4 md:p-5 space-y-3">
             <div>
               <h3 className="font-display font-bold text-primary">Pixel do Facebook</h3>
-              <p className="text-sm text-muted-foreground">Adicione seu Pixel para rastrear as conversões geradas pelas suas indicações.</p>
+              <p className="text-xs md:text-sm text-muted-foreground">Adicione seu Pixel para rastrear as conversões das suas indicações.</p>
             </div>
             <Input
               value={profile.facebook_pixel || ""}
@@ -517,24 +525,20 @@ export default function MyAccount() {
               placeholder="Ex.: 123456789012345"
               inputMode="numeric"
             />
-            <div className="flex justify-end">
-              <Button type="button" onClick={savePixel} disabled={savingPixel}>
-                {savingPixel ? "Salvando…" : "Salvar alterações"}
-              </Button>
-            </div>
+            <Button type="button" onClick={savePixel} disabled={savingPixel} className="w-full sm:w-auto sm:ml-auto sm:flex">
+              {savingPixel ? "Salvando…" : "Salvar Pixel"}
+            </Button>
           </div>
         </div>
       )}
 
       {tab === "commissions" && (
         <div className="space-y-4">
-          <div className="bg-card rounded-2xl border border-border p-5">
-            <div className="flex items-center justify-between flex-wrap gap-3">
-              <div>
-                <h2 className="font-display text-lg font-bold text-primary">Minhas comissões</h2>
-                <p className="text-sm text-muted-foreground mt-1">Histórico completo das comissões geradas pelas suas indicações.</p>
-              </div>
-              <div className="flex gap-1 text-xs">
+          <div className="bg-card rounded-2xl border border-border p-4 md:p-5">
+            <h2 className="font-display text-base md:text-lg font-bold text-primary">Histórico de comissões</h2>
+            <p className="text-xs md:text-sm text-muted-foreground mt-0.5">Geradas pelas suas indicações.</p>
+            <div className="-mx-4 md:mx-0 mt-3 px-4 md:px-0 overflow-x-auto scrollbar-thin">
+              <div className="flex gap-1.5 text-xs whitespace-nowrap pb-1">
                 {[
                   { id: "all", label: "Todas" },
                   { id: "pending", label: "Pendentes" },
@@ -546,7 +550,7 @@ export default function MyAccount() {
                   <button
                     key={f.id}
                     onClick={() => setCommFilter(f.id)}
-                    className={`px-3 py-1.5 rounded-full border transition ${commFilter === f.id ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted/50"}`}
+                    className={`px-3 py-1.5 rounded-full border font-semibold transition shrink-0 ${commFilter === f.id ? "bg-primary text-primary-foreground border-primary" : "border-border bg-background text-muted-foreground hover:bg-muted/50"}`}
                   >
                     {f.label}
                   </button>
@@ -555,36 +559,89 @@ export default function MyAccount() {
             </div>
           </div>
 
-          <div className="bg-card rounded-2xl border border-border overflow-hidden">
-            {loadingComm ? (
-              <div className="p-10 flex items-center justify-center text-muted-foreground">
-                <Loader2 className="h-5 w-5 animate-spin" /> <span className="ml-2 text-sm">Carregando…</span>
-              </div>
-            ) : (() => {
-              const filtered = commissions.filter((c) => commFilter === "all" || c.status === commFilter);
-              if (filtered.length === 0) {
-                return (
-                  <div className="p-10 text-center text-sm text-muted-foreground">
-                    Nenhuma comissão {commFilter === "all" ? "registrada" : `com status "${commFilter}"`} no momento.
-                  </div>
-                );
-              }
-              const statusBadge: Record<string, string> = {
+          {(() => {
+            if (loadingComm) {
+              return (
+                <div className="bg-card rounded-2xl border border-border p-10 flex items-center justify-center text-muted-foreground">
+                  <Loader2 className="h-5 w-5 animate-spin" /> <span className="ml-2 text-sm">Carregando…</span>
+                </div>
+              );
+            }
+            const filtered = commissions.filter((c) => commFilter === "all" || c.status === commFilter);
+            if (filtered.length === 0) {
+              return (
+                <div className="bg-card rounded-2xl border border-border p-10 text-center text-sm text-muted-foreground">
+                  <Wallet className="h-10 w-10 mx-auto text-muted-foreground/40 mb-2" />
+                  Nenhuma comissão {commFilter === "all" ? "registrada" : "com este status"} no momento.
+                </div>
+              );
+            }
+            const statusBadge: Record<string, string> = {
                 pending: "bg-amber-100 text-amber-700",
                 released: "bg-blue-100 text-blue-700",
                 paid: "bg-emerald-100 text-emerald-700",
                 cancelled: "bg-red-100 text-red-700",
                 clawback: "bg-orange-100 text-orange-700",
-              };
-              const statusLabel: Record<string, string> = {
+            };
+            const statusLabel: Record<string, string> = {
                 pending: "Pendente",
                 released: "Liberada",
                 paid: "Paga",
                 cancelled: "Cancelada",
                 clawback: "Estornada",
-              };
-              const fmtDate = (d?: string | null) => d ? new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }) : "—";
-              return (
+            };
+            const fmtDate = (d?: string | null) => d ? new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }) : "—";
+            return (
+              <>
+                {/* Mobile: lista de cards */}
+                <ul className="md:hidden space-y-2.5">
+                  {filtered.map((c) => (
+                    <li key={c.id} className="bg-card rounded-2xl border border-border p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="font-mono text-[11px] text-muted-foreground">
+                            {c.order_id ? `#${String(c.order_id).slice(0, 8).toUpperCase()}` : "—"}
+                          </p>
+                          <p className="text-xl font-extrabold text-primary leading-none mt-1">{formatBRL(Number(c.amount || 0))}</p>
+                          {c.orders?.total != null && (
+                            <p className="text-[11px] text-muted-foreground mt-0.5">
+                              do pedido {formatBRL(Number(c.orders.total))}
+                            </p>
+                          )}
+                        </div>
+                        <span className={`inline-block px-2.5 py-1 rounded-full text-[11px] font-semibold shrink-0 ${statusBadge[c.status] || "bg-gray-100 text-gray-700"}`}>
+                          {statusLabel[c.status] || c.status}
+                        </span>
+                      </div>
+                      {c.cancellation_reason && (c.status === "cancelled" || c.status === "clawback") && (
+                        <p className="text-[11px] text-muted-foreground mt-2 italic">{c.cancellation_reason}</p>
+                      )}
+                      <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-border text-[11px]">
+                        <div>
+                          <p className="text-muted-foreground uppercase tracking-wide">Gerada</p>
+                          <p className="font-semibold text-foreground mt-0.5">{fmtDate(c.created_at)}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground uppercase tracking-wide">Liberação</p>
+                          <p className="font-semibold text-foreground mt-0.5">
+                            {c.released_at
+                              ? fmtDate(c.released_at)
+                              : c.status === "pending" && c.eligible_release_at
+                                ? fmtDate(c.eligible_release_at)
+                                : "—"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground uppercase tracking-wide">Pago</p>
+                          <p className="font-semibold text-foreground mt-0.5">{fmtDate(c.paid_at)}</p>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+
+                {/* Desktop: tabela */}
+                <div className="hidden md:block bg-card rounded-2xl border border-border overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="bg-muted/40 text-xs text-muted-foreground uppercase">
@@ -631,9 +688,10 @@ export default function MyAccount() {
                     </tbody>
                   </table>
                 </div>
-              );
-            })()}
-          </div>
+                </div>
+              </>
+            );
+          })()}
         </div>
       )}
     </div>
