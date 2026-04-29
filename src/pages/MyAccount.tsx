@@ -122,6 +122,21 @@ export default function MyAccount() {
     }
   }
 
+  async function shareLink() {
+    if (!affiliateUrl) return;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "GIMPORTS — Loja farmacêutica",
+          text: "Use meu link e confira os produtos:",
+          url: affiliateUrl,
+        });
+      } catch { /* usuário cancelou */ }
+    } else {
+      copyLink();
+    }
+  }
+
   async function savePixel() {
     if (!user) return;
     setSavingPixel(true);
