@@ -25,8 +25,8 @@ export function Header() {
   // Lock body scroll while drawer is open (compartilhado com CartDrawer via contador)
   useBodyScrollLock(mobileMenuOpen);
 
-  const accountHref = isAdmin ? "/admin" : user ? "/minha-conta" : "/login";
-  const accountLabel = user ? (isAdmin ? "Painel" : "Minha conta") : "Entrar";
+  const accountHref = user ? "/minha-conta" : "/login";
+  const accountLabel = user ? "Minha conta" : "Entrar";
 
   return (
     <>
