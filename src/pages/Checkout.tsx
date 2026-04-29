@@ -589,10 +589,6 @@ export default function Checkout() {
         </button>
       </div>
 
-      <h1 className="text-lg sm:text-3xl font-extrabold tracking-tight mb-4 sm:mb-6 text-center lg:text-left">
-        Finalizar compra
-      </h1>
-
       <form onSubmit={submit} className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-5 lg:gap-8">
         <div className="space-y-5 sm:space-y-6 min-w-0">
           {/* Dados do Comprador */}
