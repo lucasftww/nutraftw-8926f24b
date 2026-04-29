@@ -38,7 +38,7 @@ const maskCEP = (s: string) =>
   onlyDigits(s).slice(0, 8).replace(/(\d{5})(\d)/, "$1-$2");
 
 export default function Checkout() {
-  const { lines, total, clear } = useCart();
+  const { lines, total, clear, coupon: cartCouponCode, setCoupon: setCartCoupon } = useCart();
   const { user } = useAuth();
   const nav = useNavigate();
   const settings = useSiteSettings();
@@ -50,6 +50,27 @@ export default function Checkout() {
   const [coupon, setCoupon] = useState<any | null>(null);
   const [couponInput, setCouponInput] = useState("");
   const [couponLoading, setCouponLoading] = useState(false);
+
+  // Pré-carrega cupom já aplicado no carrinho (quando o usuário aplicou via drawer).
+  useEffect(() => {
+    if (!cartCouponCode) return;
+    setCouponInput(cartCouponCode);
+    (supabase as any)
+      .from("coupons")
+      .select("*")
+      .eq("code", cartCouponCode)
+      .eq("active", true)
+      .maybeSingle()
+      .then(({ data }: any) => { if (data) setCoupon(data); });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Sincroniza alterações de cupom de volta no carrinho (estado compartilhado).
+  useEffect(() => {
+    setCartCoupon(coupon?.code ?? null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coupon?.code]);
+
   const [form, setForm] = useState({
     full_name: "",
     cpf: "",
