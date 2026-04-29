@@ -1136,6 +1136,7 @@ export default function Checkout() {
                       setCoupon(null);
                       setCouponInput("");
                       setCouponError(null);
+                      setCouponOpen(false);
                     }}
                     className="text-xs text-muted-foreground hover:text-destructive"
                   >
@@ -1148,6 +1149,14 @@ export default function Checkout() {
                   </p>
                 )}
               </>
+            ) : !couponOpen ? (
+              <button
+                type="button"
+                onClick={() => setCouponOpen(true)}
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+              >
+                <Ticket className="w-4 h-4" /> Tem cupom?
+              </button>
             ) : (
               <>
                 <div className="flex gap-2">
@@ -1157,6 +1166,7 @@ export default function Checkout() {
                       className="checkout-input pl-9 uppercase"
                       placeholder="Cupom de desconto"
                       value={couponInput}
+                      autoFocus
                       onChange={(e) => {
                         setCouponInput(e.target.value.toUpperCase());
                         if (couponError) setCouponError(null);
@@ -1213,6 +1223,23 @@ export default function Checkout() {
               <><CreditCard className="w-5 h-5" /> Pagar com Cartão</>
             )}
           </button>
+          {/* Reforços de confiança discretos abaixo do CTA */}
+          <div className="mt-3 space-y-2">
+            {form.payment_method === "pix" && (
+              <p className="text-center text-[11px] text-success font-semibold">
+                ✓ Aprovação imediata no PIX
+              </p>
+            )}
+            <div className="flex items-center justify-center gap-3 text-muted-foreground/70">
+              <Lock className="w-3 h-3" aria-hidden />
+              <span className="text-[10px] font-semibold tracking-wider uppercase">SSL</span>
+              <span className="w-px h-3 bg-border" />
+              <span className="text-[10px] font-bold tracking-wider">PIX</span>
+              <span className="text-[10px] font-bold tracking-wider">VISA</span>
+              <span className="text-[10px] font-bold tracking-wider">MASTER</span>
+              <span className="text-[10px] font-bold tracking-wider">ELO</span>
+            </div>
+          </div>
         </aside>
 
       </form>
