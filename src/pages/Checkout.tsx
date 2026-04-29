@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { formatBRL, onlyDigits, maskCPF, maskPhone, maskCEP } from "@/lib/utils";
 import { imageUrl } from "@/lib/image";
 import { toast } from "sonner";
-import { ShieldCheck, Truck, Lock, CreditCard, QrCode, ArrowLeft, Ticket, Check, MapPin, User as UserIcon, Package, AlertTriangle, Loader2 } from "lucide-react";
+import { ShieldCheck, Truck, Lock, CreditCard, QrCode, ArrowLeft, Ticket, Check, MapPin, User as UserIcon, Package, AlertTriangle, Loader2, ChevronDown, ShoppingBag } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { trackEvent } from "@/lib/analytics";
 import { CheckoutSteps } from "@/components/checkout/CheckoutSteps";
@@ -334,33 +334,53 @@ export default function Checkout() {
   // que raramente muda durante o checkout. Sem isso, cada keystroke do
   // form re-renderiza todas as <img>/linhas (custo proporcional ao
   // tamanho do carrinho).
+  // Agrupa por product_id (defesa contra linhas duplicadas no carrinho)
+  // e ordena por subtotal desc — itens mais "pesados" aparecem primeiro.
+  const groupedLines = useMemo(() => {
+    const map = new Map<string, { product_id: string; name: string; image_url: string | null; price: number; qty: number }>();
+    for (const l of lines) {
+      const cur = map.get(l.product_id);
+      if (cur) cur.qty += l.qty;
+      else map.set(l.product_id, { product_id: l.product_id, name: l.name, image_url: l.image_url ?? null, price: l.price, qty: l.qty });
+    }
+    return Array.from(map.values()).sort((a, b) => b.price * b.qty - a.price * a.qty);
+  }, [lines]);
+
+  const totalQty = useMemo(() => groupedLines.reduce((s, l) => s + l.qty, 0), [groupedLines]);
+
   const summaryItems = useMemo(
     () =>
-      lines.map((l) => (
-        <div key={l.product_id} className="flex gap-3">
-          <div className="w-12 h-12 rounded-lg border border-border bg-muted/30 overflow-hidden flex-shrink-0 flex items-center justify-center">
+      groupedLines.map((l) => (
+        <li key={l.product_id} className="flex items-center gap-3 py-2">
+          <div className="relative w-11 h-11 rounded-lg border border-border bg-muted/30 overflow-hidden shrink-0 flex items-center justify-center">
             <img
-              src={imageUrl(l.image_url, { width: 96, quality: 75 })}
-              srcSet={`${imageUrl(l.image_url, { width: 96, quality: 75 })} 1x, ${imageUrl(l.image_url, { width: 192, quality: 75 })} 2x`}
+              src={imageUrl(l.image_url, { width: 88, quality: 75 })}
+              srcSet={`${imageUrl(l.image_url, { width: 88, quality: 75 })} 1x, ${imageUrl(l.image_url, { width: 176, quality: 75 })} 2x`}
               alt={l.name}
               loading="lazy"
               decoding="async"
-              width={48}
-              height={48}
+              width={44}
+              height={44}
               className="w-full h-full object-contain"
             />
+            <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold inline-flex items-center justify-center leading-none ring-2 ring-card">
+              {l.qty}
+            </span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-foreground line-clamp-2">{l.name}</p>
-            <p className="text-xs text-muted-foreground">
-              {l.qty}× {formatBRL(l.price)}
+            <p className="text-[13px] font-semibold text-foreground truncate leading-tight">{l.name}</p>
+            <p className="text-[11px] text-muted-foreground tabular-nums leading-tight mt-0.5">
+              {formatBRL(l.price)} {l.qty > 1 ? `· un` : ""}
             </p>
           </div>
-          <span className="text-xs font-bold shrink-0">{formatBRL(l.price * l.qty)}</span>
-        </div>
+          <span className="text-sm font-bold shrink-0 tabular-nums text-foreground">{formatBRL(l.price * l.qty)}</span>
+        </li>
       )),
-    [lines],
+    [groupedLines],
   );
+
+  // Resumo colapsável no mobile (aberto por padrão no desktop via CSS).
+  const [itemsOpen, setItemsOpen] = useState(false);
 
   if (lines.length === 0)
     return (
