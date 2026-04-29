@@ -17,6 +17,7 @@ import About from "@/pages/About";
 const MyAccount = lazy(() => import("@/pages/MyAccount"));
 const Checkout = lazy(() => import("@/pages/Checkout"));
 const Admin = lazy(() => import("@/pages/Admin"));
+const AdminLogin = lazy(() => import("@/pages/AdminLogin"));
 
 function RouteFallback() {
   return (
@@ -51,6 +52,7 @@ export default function App() {
                   <Route path="/" element={<Catalog />} />
                   <Route path="/produto/:slug" element={<ProductDetail />} />
                   <Route path="/login" element={<Login />} />
+                  <Route path="/admin/login" element={<AdminLogin />} />
                   <Route path="/checkout" element={<Checkout />} />
                   <Route path="/minha-conta" element={<RequireAuth><MyAccount /></RequireAuth>} />
                   <Route path="/admin" element={<RequireAuth adminOnly><Admin /></RequireAuth>} />
