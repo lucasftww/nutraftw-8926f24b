@@ -206,7 +206,8 @@ export default function MyAccount() {
   return (
     <div className="container py-4 md:py-12 max-w-5xl">
       {/* ===== Hero header — perfil, identidade, sair ===== */}
-      <div className="bg-gradient-to-br from-primary to-primary/85 rounded-2xl md:rounded-3xl text-primary-foreground p-5 md:p-7 mb-4 md:mb-6 shadow-card">
+      <div className="bg-gradient-to-br from-primary via-primary to-primary/80 rounded-2xl md:rounded-3xl text-primary-foreground p-5 md:p-7 mb-4 md:mb-6 shadow-card relative overflow-hidden">
+        <div aria-hidden className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <div className="h-12 w-12 md:h-14 md:w-14 rounded-full bg-white/15 backdrop-blur flex items-center justify-center text-lg md:text-xl font-extrabold shrink-0 ring-2 ring-white/20">
@@ -215,7 +216,7 @@ export default function MyAccount() {
             <div className="min-w-0">
               <p className="text-[11px] uppercase tracking-wider text-white/70 font-semibold">Minha conta</p>
               <h1 className="font-display text-xl md:text-3xl font-extrabold leading-tight truncate">
-                {profile?.full_name || "Olá!"}
+                {profile?.full_name || "Bem-vindo"}
               </h1>
               <p className="text-xs md:text-sm text-white/80 flex items-center gap-1.5 mt-0.5 truncate">
                 <Mail className="h-3 w-3 shrink-0" />
@@ -237,15 +238,15 @@ export default function MyAccount() {
         <div className="grid grid-cols-3 gap-2 md:gap-3 mt-5">
           <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl p-3 md:p-4">
             <p className="text-[10px] md:text-xs uppercase tracking-wide text-white/70 font-semibold">Pedidos</p>
-            <p className="text-xl md:text-2xl font-extrabold mt-0.5">{stats.count}</p>
+            <p className="text-lg md:text-2xl font-extrabold mt-0.5 tabular-nums">{stats.count}</p>
           </div>
           <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl p-3 md:p-4">
             <p className="text-[10px] md:text-xs uppercase tracking-wide text-white/70 font-semibold">Gasto</p>
-            <p className="text-base md:text-2xl font-extrabold mt-0.5 truncate">{formatBRL(stats.total)}</p>
+            <p className="text-lg md:text-2xl font-extrabold mt-0.5 truncate tabular-nums">{formatBRL(stats.total)}</p>
           </div>
           <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl p-3 md:p-4">
             <p className="text-[10px] md:text-xs uppercase tracking-wide text-white/70 font-semibold">Desde</p>
-            <p className="text-base md:text-2xl font-extrabold mt-0.5 capitalize">
+            <p className="text-lg md:text-2xl font-extrabold mt-0.5 capitalize">
               {profile?.created_at
                 ? new Date(profile.created_at).toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }).replace(".", "")
                 : "—"}
@@ -392,7 +393,7 @@ export default function MyAccount() {
 
           <div className="pt-3 border-t border-border">
             <Button type="submit" disabled={saving} size="lg" className="w-full sm:w-auto sm:ml-auto sm:flex">
-              {saving ? "A guardar…" : "Guardar alterações"}
+              {saving ? "Salvando…" : "Salvar alterações"}
             </Button>
           </div>
         </form>
@@ -483,27 +484,27 @@ export default function MyAccount() {
             </div>
           </div>
 
-          {/* Stats — 2 colunas no mobile, 5 em desktop */}
+          {/* Stats — 2 colunas no mobile (3 linhas simétricas), 5 em desktop */}
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-2.5 md:gap-3">
             <div className="bg-card rounded-2xl border border-border p-3.5 md:p-4">
               <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Pendentes</p>
-              <p className="text-lg md:text-2xl font-extrabold mt-1 text-amber-600 truncate">{formatBRL(affStats.pending)}</p>
+              <p className="text-lg md:text-2xl font-extrabold mt-1 text-amber-600 truncate tabular-nums">{formatBRL(affStats.pending)}</p>
             </div>
             <div className="bg-card rounded-2xl border border-border p-3.5 md:p-4">
               <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Liberadas</p>
-              <p className="text-lg md:text-2xl font-extrabold mt-1 text-primary truncate">{formatBRL(affStats.released)}</p>
+              <p className="text-lg md:text-2xl font-extrabold mt-1 text-primary truncate tabular-nums">{formatBRL(affStats.released)}</p>
             </div>
-            <div className="bg-card rounded-2xl border border-border p-3.5 md:p-4">
+            <div className="bg-card rounded-2xl border border-border p-3.5 md:p-4 col-span-2 lg:col-span-1">
               <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Pagas</p>
-              <p className="text-lg md:text-2xl font-extrabold mt-1 text-emerald-600 truncate">{formatBRL(affStats.paid)}</p>
+              <p className="text-lg md:text-2xl font-extrabold mt-1 text-emerald-600 truncate tabular-nums">{formatBRL(affStats.paid)}</p>
             </div>
             <div className="bg-card rounded-2xl border border-border p-3.5 md:p-4">
               <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Indic. ativas</p>
-              <p className="text-lg md:text-2xl font-extrabold mt-1">{affStats.activeRefs}</p>
+              <p className="text-lg md:text-2xl font-extrabold mt-1 tabular-nums">{affStats.activeRefs}</p>
             </div>
-            <div className="bg-card rounded-2xl border border-border p-3.5 md:p-4 col-span-2 lg:col-span-1">
+            <div className="bg-card rounded-2xl border border-border p-3.5 md:p-4">
               <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Indic. inativas</p>
-              <p className="text-lg md:text-2xl font-extrabold mt-1">{affStats.inactiveRefs}</p>
+              <p className="text-lg md:text-2xl font-extrabold mt-1 tabular-nums">{affStats.inactiveRefs}</p>
             </div>
           </div>
 
@@ -537,7 +538,7 @@ export default function MyAccount() {
           <div className="bg-card rounded-2xl border border-border p-4 md:p-5">
             <h2 className="font-display text-base md:text-lg font-bold text-primary">Histórico de comissões</h2>
             <p className="text-xs md:text-sm text-muted-foreground mt-0.5">Geradas pelas suas indicações.</p>
-            <div className="-mx-4 md:mx-0 mt-3 px-4 md:px-0 overflow-x-auto scrollbar-thin">
+            <div className="-mx-4 md:mx-0 mt-3 px-4 md:px-0 overflow-x-auto scrollbar-thin [mask-image:linear-gradient(to_right,black_85%,transparent)] md:[mask-image:none]">
               <div className="flex gap-1.5 text-xs whitespace-nowrap pb-1">
                 {[
                   { id: "all", label: "Todas" },
