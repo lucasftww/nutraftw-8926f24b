@@ -1,7 +1,7 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { ShoppingCart, Zap, ShieldCheck, Truck, Lock, Package, CreditCard } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
-import { imageUrl } from "@/lib/image";
+import { responsiveImage } from "@/lib/image";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/useCart";
 import { useSEO } from "@/hooks/useSEO";
@@ -155,18 +155,28 @@ export default function ProductDetail() {
       <div className="grid lg:grid-cols-2 gap-6 lg:gap-12 items-start">
         {/* Image */}
         <div className="relative rounded-3xl border border-border/60 overflow-hidden bg-white shadow-[var(--shadow-card)] w-full max-w-md mx-auto lg:max-w-none lg:sticky lg:top-20">
-          <img
-            src={imageUrl(p.image_url, { width: 800, quality: 80 })}
-            alt={p.name}
-            loading="eager"
-            decoding="async"
-            fetchPriority="high"
-            width={800}
-            height={800}
-            sizes="(max-width: 1024px) 100vw, 50vw"
-            onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
-            className="w-full h-full object-cover aspect-square"
-          />
+          {(() => {
+            const hero = responsiveImage(
+              p.image_url,
+              "(max-width: 1024px) 100vw, 50vw",
+              { fallbackWidth: 800, quality: 80 }
+            );
+            return (
+              <img
+                src={hero.src}
+                srcSet={hero.srcSet || undefined}
+                sizes={hero.sizes}
+                alt={p.name}
+                loading="eager"
+                decoding="async"
+                fetchPriority="high"
+                width={800}
+                height={800}
+                onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
+                className="w-full h-full object-cover aspect-square"
+              />
+            );
+          })()}
           {hasSale && (
             <span className="absolute top-3 right-3 inline-flex items-center rounded-full bg-secondary text-white text-sm font-extrabold px-3 py-1 shadow-lg">
               -{discountPct}% OFF

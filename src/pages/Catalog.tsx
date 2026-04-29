@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { queryKeys } from "@/lib/queryKeys";
-import { imageUrl } from "@/lib/image";
+import { responsiveImage } from "@/lib/image";
 import { Search, SlidersHorizontal, ShoppingCart, X, ArrowUpDown, Zap } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { useCart } from "@/hooks/useCart";
@@ -632,17 +632,27 @@ const Section = memo(function Section({
             >
               {/* Imagem */}
               <div className="relative aspect-square overflow-hidden bg-white">
-                <img
-                  src={imageUrl(p.image_url, { width: 480, quality: 75 })}
-                  alt={p.name}
-                  loading="lazy"
-                  decoding="async"
-                  width={400}
-                  height={400}
-                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
-                />
+                {(() => {
+                  const r = responsiveImage(
+                    p.image_url,
+                    "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw",
+                    { fallbackWidth: 400 }
+                  );
+                  return (
+                    <img
+                      src={r.src}
+                      srcSet={r.srcSet || undefined}
+                      sizes={r.sizes}
+                      alt={p.name}
+                      loading="lazy"
+                      decoding="async"
+                      width={400}
+                      height={400}
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
+                      className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
+                    />
+                  );
+                })()}
                 {badge && (
                   <span className={`absolute top-2 left-2 inline-flex items-center rounded-full text-[10px] font-semibold px-2 py-0.5 ${badge.cls}`}>
                     {badge.label}
