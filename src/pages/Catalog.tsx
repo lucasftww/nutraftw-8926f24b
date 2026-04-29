@@ -579,14 +579,16 @@ export default function Catalog() {
   );
 }
 
-function Section({
+const Section = memo(function Section({
   title,
   items,
   onAdd,
+  onPrefetch,
 }: {
   title: string;
   items: Product[];
   onAdd: (p: Product, finalPrice: number) => void;
+  onPrefetch?: (slug: string) => void;
 }) {
   if (items.length === 0) return null;
   const isPromo = /promo/i.test(title);
@@ -624,12 +626,14 @@ function Section({
             <Link
               key={p.id}
               to={`/produto/${p.slug}`}
+              onMouseEnter={() => onPrefetch?.(p.slug)}
+              onTouchStart={() => onPrefetch?.(p.slug)}
               className={`group flex flex-col h-full rounded-2xl bg-card overflow-hidden border border-border/50 hover:border-primary/30 hover:shadow-[var(--shadow-card)] transition-all ${isOut ? "opacity-70" : ""}`}
             >
               {/* Imagem */}
               <div className="relative aspect-square overflow-hidden bg-white">
                 <img
-                  src={p.image_url || "/assets/no-image.svg"}
+                  src={imageUrl(p.image_url, { width: 480, quality: 75 })}
                   alt={p.name}
                   loading="lazy"
                   decoding="async"
