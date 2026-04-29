@@ -316,6 +316,7 @@ export default function Checkout() {
   const selectedShipping = shippingOptions.find((o) => o.id === shippingId);
   const shippingValue = selectedShipping ? Number(selectedShipping.price) : SHIPPING_FALLBACK;
   const insurance = insuranceOn ? Math.round(total * INSURANCE_RATE * 100) / 100 : 0;
+  const cepReady = onlyDigits(form.zip).length === 8 && form.state.trim().length === 2;
 
   // === Progresso das etapas (derivado, sem novo state) ===
   // Cada etapa "concluída" exige seus campos mínimos válidos.
