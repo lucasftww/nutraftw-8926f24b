@@ -781,15 +781,6 @@ export default function Checkout() {
                   </select>
                 </div>
               </div>
-              <div className="checkout-field">
-                <label className="checkout-label">Observações</label>
-                <textarea
-                  value={form.notes}
-                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                  placeholder="Algo que devemos saber sobre a entrega?"
-                  className="checkout-input min-h-[80px] py-3 resize-y"
-                />
-              </div>
             </div>
           </section>
 
