@@ -9,10 +9,12 @@ import { Label } from "@/components/ui/label";
 import { formatBRL, onlyDigits, maskCPF, maskPhone, maskCEP } from "@/lib/utils";
 import { imageUrl } from "@/lib/image";
 import { toast } from "sonner";
-import { ShieldCheck, Truck, Lock, CreditCard, QrCode, ArrowLeft, Ticket, Check, MapPin, User as UserIcon, Package, AlertTriangle, Loader2, ChevronDown, ShoppingBag } from "lucide-react";
+import { ShieldCheck, Truck, Lock, CreditCard, QrCode, ArrowLeft, Ticket, Check, MapPin, User as UserIcon, Package, AlertTriangle, Loader2, ChevronDown, ShoppingBag, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { trackEvent } from "@/lib/analytics";
 import { CheckoutSteps } from "@/components/checkout/CheckoutSteps";
+import { useFieldValidation } from "@/hooks/useFieldValidation";
+import { validateFullName, validateEmail, validatePhoneBR, validateCPF, validateCEP } from "@/lib/validators";
 
 const SHIPPING_FALLBACK = 80;
 const INSURANCE_RATE = 0.1;
