@@ -74,11 +74,13 @@ export default function MyAccount() {
         supabase.from("affiliate_commissions").select("amount, status").eq("affiliate_user_id", user.id),
         supabase.from("affiliate_referrals").select("status").eq("affiliate_user_id", user.id),
       ]);
-      const released = (comm || []).filter((c: any) => c.status === "released" || c.status === "paid").reduce((s: number, c: any) => s + Number(c.amount || 0), 0);
-      const pending = (comm || []).filter((c: any) => c.status === "pending").reduce((s: number, c: any) => s + Number(c.amount || 0), 0);
+      const sumBy = (st: string) => (comm || []).filter((c: any) => c.status === st).reduce((s: number, c: any) => s + Number(c.amount || 0), 0);
+      const pending = sumBy("pending");
+      const released = sumBy("released");
+      const paid = sumBy("paid");
       const activeRefs = (refs || []).filter((r: any) => r.status === "active").length;
       const inactiveRefs = (refs || []).filter((r: any) => r.status === "inactive").length;
-      setAffStats({ released, pending, activeRefs, inactiveRefs });
+      setAffStats({ released, pending, paid, activeRefs, inactiveRefs });
     })();
   }, [user, tab]);
 
