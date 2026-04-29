@@ -419,10 +419,11 @@ export default function MyAccount() {
                 <li key={o.id}>
                   <button
                     onClick={() => setOrderId(o.id)}
-                    className="w-full text-left bg-card rounded-2xl border border-border p-3 md:p-4 hover:border-primary/40 active:scale-[0.99] transition-all flex items-center gap-3"
+                    aria-label={`Ver pedido ${o.id.slice(0, 8)}, ${status.label}, ${formatBRL(o.total)}`}
+                    className="w-full min-h-[44px] text-left bg-card rounded-2xl border border-border p-3 md:p-4 hover:border-primary/40 active:scale-[0.99] transition-all flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
                     <div className="h-9 w-9 md:h-10 md:w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                      <ShoppingBag className="h-4 w-4" />
+                      <ShoppingBag className="h-4 w-4" aria-hidden="true" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
@@ -438,7 +439,7 @@ export default function MyAccount() {
                         </span>
                       </div>
                     </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground/50 shrink-0" />
+                    <ChevronRight aria-hidden="true" className="h-4 w-4 text-muted-foreground/70 shrink-0" />
                   </button>
                 </li>
               );
