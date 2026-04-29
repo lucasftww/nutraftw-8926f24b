@@ -36,6 +36,10 @@ import {
   Receipt,
   Calendar,
   Download,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  X,
 } from "lucide-react";
 
 type Range = "7d" | "14d" | "30d";
@@ -74,6 +78,18 @@ export function WeeklyReport() {
   const [prevOrders, setPrevOrders] = useState<OrderRow[]>([]);
   const [error, setError] = useState<AdminErrorInfo | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+
+  // ───────── Filtros e paginação ─────────
+  const [dailySearch, setDailySearch] = useState("");
+  const [dailyWeekday, setDailyWeekday] = useState<string>("all");
+  const [dailyMinRevenue, setDailyMinRevenue] = useState<string>("");
+  const [dailyPage, setDailyPage] = useState(1);
+  const DAILY_PAGE_SIZE = 10;
+
+  const [productSearch, setProductSearch] = useState("");
+  const [productMinQty, setProductMinQty] = useState<string>("");
+  const [productPage, setProductPage] = useState(1);
+  const PRODUCT_PAGE_SIZE = 10;
 
   const days = range === "7d" ? 7 : range === "14d" ? 14 : 30;
 
