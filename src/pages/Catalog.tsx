@@ -682,8 +682,7 @@ const ProductCard = memo(function ProductCard({
     return () => io.disconnect();
   }, [p, onPrefetchFull]);
 
-  {
-          const priceNum = Number(p.price);
+  const priceNum = Number(p.price);
           const saleNum = p.sale_price != null ? Number(p.sale_price) : 0;
           const discountPct =
             saleNum > 0 && saleNum < priceNum
@@ -790,5 +789,4 @@ const ProductCard = memo(function ProductCard({
               </div>
             </Link>
           );
-  }
 });
