@@ -3,6 +3,7 @@ import { ProductFooter } from "@/components/layout/ProductFooter";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { Outlet } from "react-router-dom";
 import { CurrentProductProvider } from "@/contexts/CurrentProductContext";
+import { PerfOverlay } from "@/components/debug/PerfOverlay";
 
 export function MainLayout() {
   return (
@@ -15,6 +16,7 @@ export function MainLayout() {
         {/* Footer padronizado em todas as páginas (Home, Catálogo, Produto, etc.) */}
         <ProductFooter />
         <CartDrawer />
+        <PerfOverlay />
       </div>
     </CurrentProductProvider>
   );
