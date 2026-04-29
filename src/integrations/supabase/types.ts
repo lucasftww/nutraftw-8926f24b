@@ -50,6 +50,74 @@ export type Database = {
         }
         Relationships: []
       }
+      affiliate_commissions: {
+        Row: {
+          affiliate_user_id: string
+          amount: number
+          created_at: string
+          id: string
+          order_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          affiliate_user_id: string
+          amount?: number
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          affiliate_user_id?: string
+          amount?: number
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_commissions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliate_referrals: {
+        Row: {
+          affiliate_user_id: string
+          created_at: string
+          id: string
+          referred_email: string | null
+          referred_user_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          affiliate_user_id: string
+          created_at?: string
+          id?: string
+          referred_email?: string | null
+          referred_user_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          affiliate_user_id?: string
+          created_at?: string
+          id?: string
+          referred_email?: string | null
+          referred_user_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cart_items: {
         Row: {
           created_at: string
@@ -404,12 +472,15 @@ export type Database = {
           address_state: string | null
           address_street: string | null
           address_zip: string | null
+          affiliate_code: string | null
           cpf: string | null
           created_at: string
           email: string
+          facebook_pixel: string | null
           full_name: string | null
           id: string
           phone: string | null
+          referred_by_code: string | null
           updated_at: string
           user_id: string
         }
@@ -421,12 +492,15 @@ export type Database = {
           address_state?: string | null
           address_street?: string | null
           address_zip?: string | null
+          affiliate_code?: string | null
           cpf?: string | null
           created_at?: string
           email: string
+          facebook_pixel?: string | null
           full_name?: string | null
           id?: string
           phone?: string | null
+          referred_by_code?: string | null
           updated_at?: string
           user_id: string
         }
@@ -438,12 +512,15 @@ export type Database = {
           address_state?: string | null
           address_street?: string | null
           address_zip?: string | null
+          affiliate_code?: string | null
           cpf?: string | null
           created_at?: string
           email?: string
+          facebook_pixel?: string | null
           full_name?: string | null
           id?: string
           phone?: string | null
+          referred_by_code?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -664,6 +741,7 @@ export type Database = {
           wishlist_adds: number
         }[]
       }
+      generate_affiliate_code: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
