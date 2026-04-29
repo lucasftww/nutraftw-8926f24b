@@ -204,21 +204,21 @@ export default function MyAccount() {
   }, [orders]);
 
   return (
-    <div className="container px-4 md:px-6 py-5 md:py-12 max-w-5xl space-y-5 md:space-y-6">
+    <div className="container px-4 md:px-6 py-4 md:py-12 max-w-5xl space-y-4 md:space-y-6">
       {/* ===== Hero header — perfil, identidade, sair ===== */}
-      <div className="bg-gradient-to-br from-primary via-primary to-primary/80 rounded-2xl md:rounded-3xl text-primary-foreground p-5 md:p-7 shadow-card relative overflow-hidden">
+      <div className="bg-gradient-to-br from-primary via-primary to-primary/80 rounded-2xl md:rounded-3xl text-primary-foreground p-4 md:p-7 shadow-card relative overflow-hidden">
         <div aria-hidden className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
         <div className="relative flex items-start justify-between gap-3">
           <div className="flex items-center gap-3 md:gap-4 min-w-0">
-            <div className="h-11 w-11 md:h-14 md:w-14 rounded-full bg-white/15 backdrop-blur flex items-center justify-center text-base md:text-xl font-extrabold shrink-0 ring-2 ring-white/20">
+            <div className="h-10 w-10 md:h-14 md:w-14 rounded-full bg-white/15 backdrop-blur flex items-center justify-center text-base md:text-xl font-extrabold shrink-0 ring-2 ring-white/20">
               {(profile?.full_name || user?.email || "?").trim().charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] md:text-[11px] uppercase tracking-[0.14em] text-white/70 font-semibold">Minha conta</p>
-              <h1 className="font-display text-lg md:text-3xl font-extrabold leading-tight truncate mt-0.5">
+              <p className="text-[10px] md:text-[11px] uppercase tracking-[0.14em] text-white/60 font-semibold">Minha conta</p>
+              <h1 className="font-display text-base md:text-3xl font-extrabold leading-tight truncate mt-0.5">
                 {profile?.full_name || "Bem-vindo"}
               </h1>
-              <p className="text-[11px] md:text-sm text-white/75 flex items-center gap-1.5 mt-1 truncate">
+              <p className="text-[11px] md:text-sm text-white/70 flex items-center gap-1.5 mt-0.5 truncate">
                 <Mail className="h-3 w-3 shrink-0 opacity-80" />
                 <span className="truncate">{user?.email}</span>
               </p>
@@ -235,18 +235,18 @@ export default function MyAccount() {
         </div>
 
         {/* Stats embutidos no hero — mobile-first */}
-        <div className="relative grid grid-cols-3 gap-2 md:gap-3 mt-5 md:mt-6">
-          <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl px-3 py-2.5 md:p-4">
-            <p className="text-[10px] md:text-xs uppercase tracking-wide text-white/65 font-semibold">Pedidos</p>
-            <p className="text-lg md:text-2xl font-extrabold mt-1 tabular-nums leading-none">{stats.count}</p>
+        <div className="relative grid grid-cols-3 gap-1.5 md:gap-3 mt-4 md:mt-6">
+          <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl px-2.5 py-2 md:p-4">
+            <p className="text-[9px] md:text-xs uppercase tracking-wide text-white/60 font-semibold">Pedidos</p>
+            <p className="text-base md:text-2xl font-extrabold mt-1 tabular-nums leading-none">{stats.count}</p>
           </div>
-          <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl px-3 py-2.5 md:p-4">
-            <p className="text-[10px] md:text-xs uppercase tracking-wide text-white/65 font-semibold">Gasto</p>
-            <p className="text-sm md:text-2xl font-extrabold mt-1 truncate tabular-nums leading-none">{formatBRL(stats.total)}</p>
+          <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl px-2.5 py-2 md:p-4">
+            <p className="text-[9px] md:text-xs uppercase tracking-wide text-white/60 font-semibold">Gasto</p>
+            <p className="text-[13px] md:text-2xl font-extrabold mt-1 truncate tabular-nums leading-none">{formatBRL(stats.total)}</p>
           </div>
-          <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl px-3 py-2.5 md:p-4">
-            <p className="text-[10px] md:text-xs uppercase tracking-wide text-white/65 font-semibold">Desde</p>
-            <p className="text-sm md:text-2xl font-extrabold mt-1 capitalize leading-none">
+          <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl px-2.5 py-2 md:p-4">
+            <p className="text-[9px] md:text-xs uppercase tracking-wide text-white/60 font-semibold">Desde</p>
+            <p className="text-[13px] md:text-2xl font-extrabold mt-1 capitalize leading-none">
               {profile?.created_at
                 ? new Date(profile.created_at).toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }).replace(".", "")
                 : "—"}
@@ -275,25 +275,25 @@ export default function MyAccount() {
 
       {/* Mobile: lista de seções (estilo app) */}
       <div className="md:hidden">
-        <div className="bg-card rounded-2xl border border-border overflow-hidden divide-y divide-border/70">
+        <div className="bg-card rounded-2xl border border-border overflow-hidden divide-y divide-border/60">
           {TABS.map((t) => {
             const active = tab === t.id;
             return (
               <button
                 key={t.id}
                 onClick={() => setTab(t.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
+                className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
                   active ? "bg-primary/5" : "active:bg-muted/40"
                 }`}
               >
-                <span className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                <span className={`h-7 w-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
                   active ? "bg-primary text-primary-foreground" : "bg-muted/70 text-muted-foreground"
                 }`}>
                   <t.icon className="h-3.5 w-3.5" />
                 </span>
                 <span className="flex-1 min-w-0">
                   <span className={`block text-[13px] font-semibold leading-tight ${active ? "text-primary" : "text-foreground"}`}>{t.label}</span>
-                  <span className="block text-[11px] text-muted-foreground truncate mt-0.5">{t.description}</span>
+                  <span className="block text-[11px] text-muted-foreground/80 truncate mt-0.5">{t.description}</span>
                 </span>
                 <ChevronRight className={`h-4 w-4 shrink-0 transition-transform ${active ? "rotate-90 text-primary" : "text-muted-foreground/60"}`} />
               </button>
@@ -303,7 +303,7 @@ export default function MyAccount() {
       </div>
 
       {/* Cabeçalho da seção ativa — só mobile, dá contexto + clean */}
-      <div className="md:hidden flex items-center gap-2 px-1 -mb-2">
+      <div className="md:hidden flex items-center gap-2 px-1 -mb-1">
         {(() => {
           const current = TABS.find((t) => t.id === tab);
           if (!current) return null;
@@ -311,16 +311,16 @@ export default function MyAccount() {
           return (
             <>
               <span className="h-1 w-4 rounded-full bg-primary" />
-              <h2 className="text-[11px] uppercase tracking-[0.14em] font-bold text-primary">{current.label}</h2>
+              <h2 className="text-[10px] uppercase tracking-[0.14em] font-bold text-primary/80">{current.label}</h2>
             </>
           );
         })()}
       </div>
 
       {(tab === "profile" || tab === "address") && (
-        <form onSubmit={save} className="bg-card rounded-2xl border border-border p-5 md:p-6 space-y-5">
+        <form onSubmit={save} className="bg-card rounded-2xl border border-border p-4 md:p-6 space-y-4 md:space-y-5">
           {tab === "profile" && (
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid sm:grid-cols-2 gap-3.5 md:gap-4">
               <div className="space-y-2">
                 <Label>Nome completo</Label>
                 <Input value={profile.full_name || ""} onChange={(e) => setProfile({ ...profile, full_name: e.target.value })} />
@@ -341,7 +341,7 @@ export default function MyAccount() {
           )}
 
           {tab === "address" && (
-            <div className="grid sm:grid-cols-3 gap-4">
+            <div className="grid sm:grid-cols-3 gap-3.5 md:gap-4">
               <div className="space-y-2">
                 <Label>CEP</Label>
                 <div className="relative">
@@ -391,7 +391,7 @@ export default function MyAccount() {
             </div>
           )}
 
-          <div className="pt-3 border-t border-border">
+          <div className="pt-3 border-t border-border/70">
             <Button type="submit" disabled={saving} size="lg" className="w-full sm:w-auto sm:ml-auto sm:flex">
               {saving ? "Salvando…" : "Salvar alterações"}
             </Button>
@@ -401,37 +401,37 @@ export default function MyAccount() {
 
       {tab === "orders" && (
         orders.length === 0 ? (
-          <div className="bg-card rounded-2xl border border-border text-center py-14 md:py-16 px-6">
-            <div className="h-14 w-14 rounded-2xl bg-muted/60 mx-auto flex items-center justify-center mb-4">
-              <ShoppingBag className="h-6 w-6 text-muted-foreground/70" />
+          <div className="bg-card rounded-2xl border border-border text-center py-12 md:py-16 px-6">
+            <div className="h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-muted/60 mx-auto flex items-center justify-center mb-3.5">
+              <ShoppingBag className="h-5 w-5 md:h-6 md:w-6 text-muted-foreground/70" />
             </div>
-            <p className="text-foreground font-semibold text-[15px]">Nenhum pedido ainda</p>
-            <p className="text-[13px] text-muted-foreground mt-1">Quando você comprar, ele aparece aqui.</p>
-            <Button className="mt-5" onClick={() => nav("/")}>Explorar produtos</Button>
+            <p className="text-foreground font-semibold text-[14px] md:text-[15px]">Nenhum pedido ainda</p>
+            <p className="text-[12px] md:text-[13px] text-muted-foreground mt-1">Quando você comprar, ele aparece aqui.</p>
+            <Button className="mt-4 md:mt-5" onClick={() => nav("/")}>Explorar produtos</Button>
           </div>
         ) : (
-          <ul className="space-y-2">
+          <ul className="space-y-1.5 md:space-y-2">
             {orders.map((o) => {
               const status = STATUS_LABELS[o.status] || { label: o.status, color: "bg-muted text-foreground" };
               return (
                 <li key={o.id}>
                   <button
                     onClick={() => setOrderId(o.id)}
-                    className="w-full text-left bg-card rounded-2xl border border-border p-3.5 md:p-4 hover:border-primary/40 active:scale-[0.99] transition-all flex items-center gap-3"
+                    className="w-full text-left bg-card rounded-2xl border border-border p-3 md:p-4 hover:border-primary/40 active:scale-[0.99] transition-all flex items-center gap-3"
                   >
-                    <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <div className="h-9 w-9 md:h-10 md:w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
                       <ShoppingBag className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
                         <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">#{o.id.slice(0, 8)}</p>
-                        <p className="font-display font-extrabold text-primary text-[15px] tabular-nums">{formatBRL(o.total)}</p>
+                        <p className="font-display font-extrabold text-primary text-[14px] md:text-[15px] tabular-nums">{formatBRL(o.total)}</p>
                       </div>
-                      <div className="flex items-center justify-between gap-2 mt-1.5">
-                        <span className={`inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold ${status.color}`}>
+                      <div className="flex items-center justify-between gap-2 mt-1">
+                        <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] md:text-[11px] font-semibold ${status.color}`}>
                           {status.label}
                         </span>
-                        <span className="text-[11px] text-muted-foreground tabular-nums">
+                        <span className="text-[10px] md:text-[11px] text-muted-foreground tabular-nums">
                           {new Date(o.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
                         </span>
                       </div>
@@ -448,24 +448,24 @@ export default function MyAccount() {
       {orderId && <CustomerOrderDetail orderId={orderId} onClose={() => setOrderId(null)} />}
 
       {tab === "affiliate" && (
-        <div className="space-y-3 md:space-y-4">
+        <div className="space-y-2.5 md:space-y-4">
           {/* Hero do programa: foco mobile, CTA grande de compartilhar */}
-          <div className="rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/15 p-4 md:p-6">
+          <div className="rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/15 p-3.5 md:p-6">
             <div className="flex items-start gap-3">
-              <div className="h-9 w-9 md:h-10 md:w-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shrink-0">
+              <div className="h-8 w-8 md:h-10 md:w-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shrink-0">
                 <Users className="h-4 w-4 md:h-5 md:w-5" />
               </div>
               <div className="min-w-0">
-                <h2 className="font-display text-base md:text-xl font-extrabold text-primary leading-tight">Programa de indicações</h2>
-                <p className="text-[13px] md:text-sm text-muted-foreground mt-1 leading-relaxed">
+                <h2 className="font-display text-[15px] md:text-xl font-extrabold text-primary leading-tight">Programa de indicações</h2>
+                <p className="text-[12px] md:text-sm text-muted-foreground mt-0.5 leading-relaxed">
                   Compartilhe seu link e ganhe <strong className="text-foreground">1% de comissão</strong> em cada compra aprovada.
                 </p>
               </div>
             </div>
 
             {/* Link + ações */}
-            <div className="mt-4 space-y-2.5">
-              <div className="flex items-center gap-2 bg-card border border-border rounded-xl px-3 py-2.5">
+            <div className="mt-3.5 space-y-2">
+              <div className="flex items-center gap-2 bg-card border border-border rounded-xl px-3 py-2">
                 <span className="text-[9px] md:text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-semibold shrink-0">Link</span>
                 <span className="font-mono text-[11px] md:text-xs text-foreground truncate flex-1">{affiliateUrl || "—"}</span>
               </div>
@@ -478,47 +478,47 @@ export default function MyAccount() {
                   {copied ? "Copiado!" : "Copiar"}
                 </Button>
               </div>
-              <p className="text-[11px] text-muted-foreground text-center pt-0.5">
+              <p className="text-[10px] md:text-[11px] text-muted-foreground text-center pt-0.5">
                 Código: <span className="font-mono font-semibold text-foreground">{profile?.affiliate_code || "—"}</span>
               </p>
             </div>
           </div>
 
           {/* Stats — 2 colunas no mobile (3 linhas simétricas), 5 em desktop */}
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-2 md:gap-3">
-            <div className="bg-card rounded-2xl border border-border p-3 md:p-4">
-              <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Pendentes</p>
-              <p className="text-base md:text-2xl font-extrabold mt-1.5 text-amber-600 truncate tabular-nums leading-none">{formatBRL(affStats.pending)}</p>
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-1.5 md:gap-3">
+            <div className="bg-card rounded-2xl border border-border p-2.5 md:p-4">
+              <p className="text-[9px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Pendentes</p>
+              <p className="text-[15px] md:text-2xl font-extrabold mt-1 text-amber-600 truncate tabular-nums leading-none">{formatBRL(affStats.pending)}</p>
             </div>
-            <div className="bg-card rounded-2xl border border-border p-3 md:p-4">
-              <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Liberadas</p>
-              <p className="text-base md:text-2xl font-extrabold mt-1.5 text-primary truncate tabular-nums leading-none">{formatBRL(affStats.released)}</p>
+            <div className="bg-card rounded-2xl border border-border p-2.5 md:p-4">
+              <p className="text-[9px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Liberadas</p>
+              <p className="text-[15px] md:text-2xl font-extrabold mt-1 text-primary truncate tabular-nums leading-none">{formatBRL(affStats.released)}</p>
             </div>
-            <div className="bg-card rounded-2xl border border-border p-3 md:p-4 col-span-2 lg:col-span-1">
-              <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Pagas</p>
-              <p className="text-base md:text-2xl font-extrabold mt-1.5 text-emerald-600 truncate tabular-nums leading-none">{formatBRL(affStats.paid)}</p>
+            <div className="bg-card rounded-2xl border border-border p-2.5 md:p-4 col-span-2 lg:col-span-1">
+              <p className="text-[9px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Pagas</p>
+              <p className="text-[15px] md:text-2xl font-extrabold mt-1 text-emerald-600 truncate tabular-nums leading-none">{formatBRL(affStats.paid)}</p>
             </div>
-            <div className="bg-card rounded-2xl border border-border p-3 md:p-4">
-              <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Indic. ativas</p>
-              <p className="text-base md:text-2xl font-extrabold mt-1.5 tabular-nums leading-none">{affStats.activeRefs}</p>
+            <div className="bg-card rounded-2xl border border-border p-2.5 md:p-4">
+              <p className="text-[9px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Indic. ativas</p>
+              <p className="text-[15px] md:text-2xl font-extrabold mt-1 tabular-nums leading-none">{affStats.activeRefs}</p>
             </div>
-            <div className="bg-card rounded-2xl border border-border p-3 md:p-4">
-              <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Indic. inativas</p>
-              <p className="text-base md:text-2xl font-extrabold mt-1.5 tabular-nums leading-none">{affStats.inactiveRefs}</p>
+            <div className="bg-card rounded-2xl border border-border p-2.5 md:p-4">
+              <p className="text-[9px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Indic. inativas</p>
+              <p className="text-[15px] md:text-2xl font-extrabold mt-1 tabular-nums leading-none">{affStats.inactiveRefs}</p>
             </div>
           </div>
 
-          <div className="bg-muted/40 rounded-2xl border border-border p-4 text-[12px] md:text-xs text-muted-foreground leading-relaxed">
-            <strong className="text-foreground block mb-1.5 text-[13px]">Como funciona</strong>
+          <div className="bg-muted/40 rounded-2xl border border-border/70 p-3.5 md:p-4 text-[11px] md:text-xs text-muted-foreground leading-relaxed">
+            <strong className="text-foreground block mb-1 text-[12px] md:text-[13px]">Como funciona</strong>
             Ao pedido aprovar, a comissão fica <span className="text-amber-600 font-semibold">pendente</span> por 7 dias.
             Depois é <span className="text-primary font-semibold">liberada</span> automaticamente e, quando o administrador efetua o repasse, passa a <span className="text-emerald-600 font-semibold">paga</span>.
           </div>
 
           {/* Pixel do Facebook */}
-          <div className="bg-card rounded-2xl border border-border p-4 md:p-5 space-y-3.5">
+          <div className="bg-card rounded-2xl border border-border p-3.5 md:p-5 space-y-3">
             <div>
-              <h3 className="font-display font-bold text-primary text-[15px] md:text-base">Pixel do Facebook</h3>
-              <p className="text-[12px] md:text-sm text-muted-foreground mt-0.5 leading-relaxed">Adicione seu Pixel para rastrear as conversões das suas indicações.</p>
+              <h3 className="font-display font-bold text-primary text-[14px] md:text-base">Pixel do Facebook</h3>
+              <p className="text-[11px] md:text-sm text-muted-foreground mt-0.5 leading-relaxed">Adicione seu Pixel para rastrear as conversões das suas indicações.</p>
             </div>
             <Input
               value={profile.facebook_pixel || ""}
@@ -534,11 +534,11 @@ export default function MyAccount() {
       )}
 
       {tab === "commissions" && (
-        <div className="space-y-3 md:space-y-4">
-          <div className="bg-card rounded-2xl border border-border p-4 md:p-5">
-            <h2 className="font-display text-[15px] md:text-lg font-bold text-primary">Histórico de comissões</h2>
-            <p className="text-[12px] md:text-sm text-muted-foreground mt-0.5">Geradas pelas suas indicações.</p>
-            <div className="-mx-4 md:mx-0 mt-3 px-4 md:px-0 overflow-x-auto scrollbar-thin [mask-image:linear-gradient(to_right,black_85%,transparent)] md:[mask-image:none]">
+        <div className="space-y-2.5 md:space-y-4">
+          <div className="bg-card rounded-2xl border border-border p-3.5 md:p-5">
+            <h2 className="font-display text-[14px] md:text-lg font-bold text-primary">Histórico de comissões</h2>
+            <p className="text-[11px] md:text-sm text-muted-foreground mt-0.5">Geradas pelas suas indicações.</p>
+            <div className="-mx-3.5 md:mx-0 mt-2.5 px-3.5 md:px-0 overflow-x-auto scrollbar-thin [mask-image:linear-gradient(to_right,black_85%,transparent)] md:[mask-image:none]">
               <div className="flex gap-1.5 text-xs whitespace-nowrap pb-1">
                 {[
                   { id: "all", label: "Todas" },
