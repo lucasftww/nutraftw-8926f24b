@@ -8,6 +8,7 @@ import { Plus, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 import { queryKeys } from "@/lib/queryKeys";
+import { logAdminAction, shallowDiff } from "@/lib/auditLog";
 
 export function AdminCoupons() {
   const [items, setItems] = useState<any[]>([]);
@@ -57,23 +58,47 @@ export function AdminCoupons() {
       // ISO garante que o Postgres interprete como timestamptz local do cliente.
       expires_at: f.expires_at ? new Date(f.expires_at).toISOString() : null,
     };
-    const { error } = f.id
-      ? await supabase.from("coupons" as any).update(payload).eq("id", f.id)
-      : await supabase.from("coupons" as any).insert(payload);
+    const before = f.id ? items.find((c) => c.id === f.id) : null;
+    const { data, error } = f.id
+      ? await supabase.from("coupons" as any).update(payload).eq("id", f.id).select().maybeSingle()
+      : await supabase.from("coupons" as any).insert(payload).select().maybeSingle();
     if (error) {
       logSupabaseError("Guardar cupom", error, { id: f.id, code: payload.code });
       toast.error(error.message);
-    } else { toast.success("Cupom guardado"); setEditing(null); load(); }
+    } else {
+      toast.success("Cupom guardado");
+      const saved: any = data || payload;
+      logAdminAction({
+        action: f.id ? "update" : "create",
+        entity: "coupons",
+        entityId: saved?.id ?? f.id ?? null,
+        summary: `Cupom ${payload.code} (${dt === "percent" ? `${dv}%` : `R$ ${dv}`})`,
+        diff: f.id ? shallowDiff(before, saved) : { after: saved },
+      });
+      setEditing(null);
+      load();
+    }
     qc.invalidateQueries({ queryKey: queryKeys.coupons.all });
   }
 
   async function del(id: string) {
     if (!confirm("Remover cupom?")) return;
+    const before = items.find((c) => c.id === id);
     const { error } = await supabase.from("coupons" as any).delete().eq("id", id);
     if (error) {
       logSupabaseError("Remover cupom", error, { id });
       toast.error(error.message);
-    } else { toast.success("Removido"); load(); }
+    } else {
+      toast.success("Removido");
+      logAdminAction({
+        action: "delete",
+        entity: "coupons",
+        entityId: id,
+        summary: `Cupom removido: ${before?.code ?? id.slice(0, 8)}`,
+        diff: { before },
+      });
+      load();
+    }
     qc.invalidateQueries({ queryKey: queryKeys.coupons.all });
   }
 
