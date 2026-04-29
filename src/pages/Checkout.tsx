@@ -550,6 +550,7 @@ export default function Checkout() {
         p_city: form.city,
         p_state: form.state,
         p_notes: form.notes || null,
+        p_email: form.email.trim() || null,
       });
       if (rpcErr) throw rpcErr;
       void orderId;
