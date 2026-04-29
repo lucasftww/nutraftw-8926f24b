@@ -31,6 +31,10 @@ export function VitrineHero() {
               className="w-full aspect-[16/6] sm:aspect-[16/5] object-cover"
               loading="eager"
               decoding="async"
+              // @ts-ignore
+              fetchpriority="high"
+              width={1600}
+              height={500}
             />
             {(banner.title || banner.subtitle) && (
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-5 sm:p-8 text-white">

@@ -606,6 +606,9 @@ function Section({
                   alt={p.name}
                   loading="lazy"
                   decoding="async"
+                  width={400}
+                  height={400}
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
                 />

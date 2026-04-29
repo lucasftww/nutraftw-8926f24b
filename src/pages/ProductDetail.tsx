@@ -159,6 +159,10 @@ export default function ProductDetail() {
             alt={p.name}
             loading="eager"
             decoding="async"
+            fetchPriority="high"
+            width={800}
+            height={800}
+            sizes="(max-width: 1024px) 100vw, 50vw"
             onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
             className="w-full h-full object-cover aspect-square"
           />
@@ -343,6 +347,9 @@ export default function ProductDetail() {
                       alt={r.name}
                       loading="lazy"
                       decoding="async"
+                      width={400}
+                      height={400}
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
                       sizes="(max-width: 640px) 50vw, 25vw"
                       className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
                     />
