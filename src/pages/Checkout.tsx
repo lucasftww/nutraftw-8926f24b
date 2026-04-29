@@ -1101,13 +1101,13 @@ export default function Checkout() {
               </div>
             )}
             {couponDiscount > 0 && (
-              <div className="flex justify-between text-secondary font-semibold">
+              <div className="flex justify-between text-success font-semibold">
                 <span className="truncate">Cupom {coupon?.code}</span>
                 <span className="tabular-nums">−{formatBRL(couponDiscount)}</span>
               </div>
             )}
             {pixDiscount > 0 && (
-              <div className="flex justify-between text-secondary font-semibold">
+              <div className="flex justify-between text-success font-semibold">
                 <span>Desconto PIX</span>
                 <span className="tabular-nums">−{formatBRL(pixDiscount)}</span>
               </div>
