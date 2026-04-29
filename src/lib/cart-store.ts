@@ -1,17 +1,14 @@
-// Lightweight reactive store + sync offline-first com Supabase.
+// Lightweight reactive store — fonte da verdade do carrinho no cliente.
 //
 // Modelo:
 //  - Tudo vive em localStorage (funciona 100% offline e para anônimos).
-//  - Cada linha tem `updated_at` em ms — usado pra resolver conflitos
-//    com "última escrita ganha" no merge com o servidor.
-//  - Operações feitas offline (ou com falha de rede) entram numa fila
-//    `pendingOps`. Quando o app detecta `online + logado`, a fila é
-//    drenada via `flushPending()`.
+//  - Cada linha tem `updated_at` em ms — útil para futuras estratégias de
+//    sincronização "última escrita ganha" caso o carrinho passe a ser
+//    persistido no servidor.
 //
-// O hook `useCartSync` (em src/hooks/useCartSync.ts) orquestra:
-//   - merge inicial ao logar
-//   - flush ao reconectar
-//   - revalidação de preços/estoque
+// Sem dependência de rede: o store é puramente local. A persistência
+// server-side dos itens é feita apenas no momento do checkout (RPC
+// `create_order`), o que evita filas pendentes inflando o localStorage.
 
 type Listener = () => void;
 
@@ -26,20 +23,16 @@ export interface CartLine {
   updated_at: number;
 }
 
-/** Operação pendente — replicada no servidor quando voltar a conexão. */
-export type PendingOp =
-  | { kind: "upsert"; product_id: string; qty: number; at: number }
-  | { kind: "remove"; product_id: string; at: number }
-  | { kind: "clear"; at: number };
-
 const STORAGE_KEY = "gimports-cart-v1";
 const COUPON_KEY = "gimports-coupon-v1";
-const PENDING_KEY = "gimports-cart-pending-v1";
+// Chave legada de uma fila de operações pendentes que nunca chegou a ser
+// drenada — limpamos no load para não inflar o localStorage de quem já usou
+// versões anteriores do app.
+const LEGACY_PENDING_KEY = "gimports-cart-pending-v1";
 
 let lines: CartLine[] = [];
 let drawerOpen = false;
 let couponCode: string | null = null;
-let pendingOps: PendingOp[] = [];
 const listeners = new Set<Listener>();
 
 function load() {
@@ -50,7 +43,10 @@ function load() {
       if (Array.isArray(parsed)) {
         lines = parsed
           .filter((l) => l && typeof l.product_id === "string")
-          .map((l) => ({ ...l, updated_at: typeof l.updated_at === "number" ? l.updated_at : Date.now() }));
+          .map((l) => ({
+            ...l,
+            updated_at: typeof l.updated_at === "number" ? l.updated_at : Date.now(),
+          }));
       }
     } else {
       lines = [];
@@ -60,12 +56,9 @@ function load() {
     const c = localStorage.getItem(COUPON_KEY);
     couponCode = c && c.length > 0 ? c : null;
   } catch {}
+  // Limpa fila legada que não é mais usada (evita crescimento indefinido).
   try {
-    const raw = localStorage.getItem(PENDING_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) pendingOps = parsed;
-    }
+    localStorage.removeItem(LEGACY_PENDING_KEY);
   } catch {}
 }
 
@@ -74,29 +67,8 @@ function persist() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(lines));
     if (couponCode) localStorage.setItem(COUPON_KEY, couponCode);
     else localStorage.removeItem(COUPON_KEY);
-    if (pendingOps.length > 0) localStorage.setItem(PENDING_KEY, JSON.stringify(pendingOps));
-    else localStorage.removeItem(PENDING_KEY);
   } catch {}
   listeners.forEach((l) => l());
-}
-
-function enqueue(op: PendingOp) {
-  // Compacta operações redundantes para a mesma linha — evita fila inflar.
-  if (op.kind === "upsert") {
-    pendingOps = pendingOps.filter(
-      (p) => !(p.kind === "upsert" && p.product_id === op.product_id) &&
-             !(p.kind === "remove" && p.product_id === op.product_id),
-    );
-  } else if (op.kind === "remove") {
-    pendingOps = pendingOps.filter(
-      (p) => !(p.kind === "upsert" && p.product_id === op.product_id) &&
-             !(p.kind === "remove" && p.product_id === op.product_id),
-    );
-  } else if (op.kind === "clear") {
-    // Clear invalida tudo que veio antes — só ele importa.
-    pendingOps = [];
-  }
-  pendingOps.push(op);
 }
 
 if (typeof window !== "undefined") {
@@ -104,7 +76,7 @@ if (typeof window !== "undefined") {
   // Sincroniza o carrinho entre abas/janelas. Sem isto, abrir o site em
   // duas abas leva a contagens divergentes e o cliente fica confuso.
   window.addEventListener("storage", (e) => {
-    if (e.key !== STORAGE_KEY && e.key !== COUPON_KEY && e.key !== PENDING_KEY) return;
+    if (e.key !== STORAGE_KEY && e.key !== COUPON_KEY) return;
     load();
     listeners.forEach((l) => l());
   });
@@ -121,13 +93,6 @@ export const cart = {
   getTotal: () => lines.reduce((s, l) => s + l.price * l.qty, 0),
   isOpen: () => drawerOpen,
   getCoupon: () => couponCode,
-  getPending: () => pendingOps.slice(),
-  hasPending: () => pendingOps.length > 0,
-  clearPending() {
-    if (pendingOps.length === 0) return;
-    pendingOps = [];
-    persist();
-  },
   setCoupon(code: string | null) {
     const next = code && code.trim().length > 0 ? code.trim().toUpperCase() : null;
     if (next === couponCode) return;
@@ -137,15 +102,14 @@ export const cart = {
   add(line: Omit<CartLine, "qty" | "updated_at">, qty = 1) {
     const now = Date.now();
     const i = lines.findIndex((l) => l.product_id === line.product_id);
-    let finalQty = qty;
     if (i >= 0) {
-      finalQty = lines[i].qty + qty;
-      // Substitui o item por uma nova referência (imutável) em vez de mutar.
-      lines = lines.map((l, idx) => (idx === i ? { ...l, qty: finalQty, updated_at: now } : l));
+      const finalQty = lines[i].qty + qty;
+      lines = lines.map((l, idx) =>
+        idx === i ? { ...l, qty: finalQty, updated_at: now } : l
+      );
     } else {
       lines = [...lines, { ...line, qty, updated_at: now }];
     }
-    enqueue({ kind: "upsert", product_id: line.product_id, qty: finalQty, at: now });
     persist();
   },
   setQty(product_id: string, qty: number) {
@@ -154,65 +118,21 @@ export const cart = {
     if (i < 0) return;
     if (qty <= 0) {
       lines = lines.filter((_, idx) => idx !== i);
-      enqueue({ kind: "remove", product_id, at: now });
     } else {
-      lines = lines.map((l, idx) => (idx === i ? { ...l, qty, updated_at: now } : l));
-      enqueue({ kind: "upsert", product_id, qty, at: now });
+      lines = lines.map((l, idx) =>
+        idx === i ? { ...l, qty, updated_at: now } : l
+      );
     }
     persist();
   },
   remove(product_id: string) {
-    const now = Date.now();
     lines = lines.filter((l) => l.product_id !== product_id);
-    enqueue({ kind: "remove", product_id, at: now });
     persist();
   },
   clear() {
-    const now = Date.now();
     lines = [];
     couponCode = null;
-    enqueue({ kind: "clear", at: now });
     persist();
-  },
-  /**
-   * Aplica resultado de merge vindo do servidor (após login/sync).
-   * Não enfileira novas operações — esta é a fonte de verdade pós-merge.
-   */
-  replaceFromServer(serverLines: CartLine[]) {
-    lines = serverLines.map((l) => ({ ...l }));
-    persist();
-  },
-  /**
-   * Atualiza preços/estoque sem alterar quantidades nem tocar na fila.
-   * Usado pela revalidação ao reconectar.
-   */
-  refreshPrices(updates: Record<string, { price: number; available: number | null; name?: string; image_url?: string | null }>) {
-    let changed = false;
-    lines = lines.map((l) => {
-      const u = updates[l.product_id];
-      if (!u) return l;
-      const nextQty = u.available != null ? Math.min(l.qty, Math.max(0, u.available)) : l.qty;
-      const nextPrice = u.price;
-      const nextName = u.name ?? l.name;
-      const nextImg = u.image_url ?? l.image_url;
-      if (
-        nextPrice !== l.price ||
-        nextQty !== l.qty ||
-        nextName !== l.name ||
-        nextImg !== l.image_url
-      ) {
-        changed = true;
-      }
-      return {
-        ...l,
-        price: nextPrice,
-        qty: nextQty,
-        name: nextName,
-        image_url: nextImg,
-      };
-    }).filter((l) => l.qty > 0);
-    if (changed) persist();
-    return changed;
   },
   openDrawer() {
     if (drawerOpen) return;
