@@ -707,9 +707,6 @@ export default function Checkout() {
                       </p>
                     </div>
                   </div>
-                  <span className="font-bold text-sm shrink-0 text-primary">
-                    +{formatBRL(Math.round(total * INSURANCE_RATE * 100) / 100)}
-                  </span>
                 </label>
               </div>
             )}
@@ -762,22 +759,6 @@ export default function Checkout() {
               )}
             </div>
           </section>
-
-          {/* Trust badges */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="flex flex-col items-center text-center gap-1 p-3 rounded-xl border border-border/60 bg-background">
-              <ShieldCheck className="w-5 h-5 text-primary" />
-              <span className="text-[11px] font-bold">Compra segura</span>
-            </div>
-            <div className="flex flex-col items-center text-center gap-1 p-3 rounded-xl border border-border/60 bg-background">
-              <Truck className="w-5 h-5 text-primary" />
-              <span className="text-[11px] font-bold">Envio para todo BR</span>
-            </div>
-            <div className="flex flex-col items-center text-center gap-1 p-3 rounded-xl border border-border/60 bg-background">
-              <Lock className="w-5 h-5 text-primary" />
-              <span className="text-[11px] font-bold">Dados criptografados</span>
-            </div>
-          </div>
         </div>
 
         {/* Resumo do Pedido */}
