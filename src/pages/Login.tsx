@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { getAffiliateRef, clearAffiliateRef } from "@/lib/affiliateRef";
 
 export default function Login() {
   const [params] = useSearchParams();
@@ -42,7 +43,8 @@ export default function Login() {
           nav(next, { replace: true });
         }
       } else {
-        const { error } = await supabase.auth.signUp({
+        const refCode = getAffiliateRef();
+        const { data: signUp, error } = await supabase.auth.signUp({
           email: cleanEmail,
           password,
           options: {
@@ -51,6 +53,29 @@ export default function Login() {
           },
         });
         if (error) throw error;
+        // Atribuição: grava o código no perfil do novo usuário e cria a indicação.
+        const newUid = signUp.user?.id;
+        if (newUid && refCode) {
+          await supabase.from("profiles")
+            .update({ referred_by_code: refCode })
+            .eq("user_id", newUid);
+
+          // Resolve o afiliado dono do código e cria registro de referral.
+          const { data: aff } = await supabase
+            .from("profiles")
+            .select("user_id")
+            .eq("affiliate_code", refCode)
+            .maybeSingle();
+          if (aff?.user_id && aff.user_id !== newUid) {
+            await supabase.from("affiliate_referrals").insert({
+              affiliate_user_id: aff.user_id,
+              referred_user_id: newUid,
+              referred_email: cleanEmail,
+              status: "inactive",
+            });
+          }
+          clearAffiliateRef();
+        }
         toast.success("Conta criada! Verifique seu e-mail se a confirmação estiver ativa.");
         nav(next, { replace: true });
       }
