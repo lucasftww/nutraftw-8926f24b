@@ -3,6 +3,8 @@ import { ShoppingCart, Zap, ShieldCheck, Truck, Lock, Package, CreditCard } from
 import { formatBRL } from "@/lib/utils";
 import { responsiveImage } from "@/lib/image";
 import { Button } from "@/components/ui/button";
+import { WishlistButton } from "@/components/wishlist/WishlistButton";
+import { ShippingCalculator } from "@/components/product/ShippingCalculator";
 import { useCart } from "@/hooks/useCart";
 import { useSEO } from "@/hooks/useSEO";
 import { useRegisterCurrentProduct } from "@/contexts/CurrentProductContext";
@@ -259,6 +261,7 @@ export default function ProductDetail() {
               <ShoppingCart className="w-4 h-4 mr-2" />
               Adicionar ao carrinho
             </Button>
+            <WishlistButton productId={p.id} variant="inline" className="w-full justify-center" />
             {(p.stock ?? 0) > 0 && (p.stock ?? 0) <= 5 && (
               <p className="text-center text-xs font-semibold text-secondary flex items-center justify-center gap-1.5">
                 <Package className="h-3.5 w-3.5" />
