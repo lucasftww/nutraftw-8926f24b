@@ -6,10 +6,17 @@ export function RequireAuth({ children, adminOnly = false }: { children: ReactNo
   const { user, loading, isAdmin } = useAuth();
   const location = useLocation();
   if (loading) return <div className="container py-20 text-center text-muted-foreground">Carregando…</div>;
+  // Rotas admin sempre redirecionam para o login dedicado do painel.
+  const loginPath = adminOnly ? "/admin/login" : "/login";
   if (!user) {
     const next = encodeURIComponent(location.pathname + location.search);
-    return <Navigate to={`/login?next=${next}`} replace />;
+    return <Navigate to={`${loginPath}?next=${next}`} replace />;
   }
-  if (adminOnly && !isAdmin) return <Navigate to="/" replace />;
+  if (adminOnly && !isAdmin) {
+    // Logado mas sem permissão → vai para o login admin que mostra o erro claro
+    // e oferece logout, evitando o redirect silencioso para a home.
+    const next = encodeURIComponent(location.pathname + location.search);
+    return <Navigate to={`/admin/login?next=${next}`} replace />;
+  }
   return <>{children}</>;
 }
