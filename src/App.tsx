@@ -12,6 +12,7 @@ import ProductDetail from "@/pages/ProductDetail";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/NotFound";
 import About from "@/pages/About";
+import ReferralCapture from "@/pages/ReferralCapture";
 import {
   MyAccountSkeleton,
   CheckoutSkeleton,
@@ -72,6 +73,7 @@ export default function App() {
                   <Route path="/admin" element={<RequireAuth adminOnly fallback={<AdminSkeleton />}><Lazy fallback={<AdminSkeleton />}><Admin /></Lazy></RequireAuth>} />
                   <Route path="/admin/health" element={<RequireAuth adminOnly fallback={<AdminSkeleton />}><Lazy fallback={<AdminSkeleton />}><AdminHealth /></Lazy></RequireAuth>} />
                   <Route path="/sobre" element={<About />} />
+                  <Route path="/r/:code" element={<ReferralCapture />} />
                   <Route path="*" element={<NotFound />} />
                 </Route>
               </Routes>
