@@ -85,7 +85,7 @@ if (typeof window !== "undefined") {
 export const cart = {
   subscribe(l: Listener) {
     listeners.add(l);
-    return () => listeners.delete(l);
+    return () => { listeners.delete(l); };
   },
   // Retorna cópia para evitar mutação externa do estado do store.
   getLines: () => lines.map((l) => ({ ...l })),
