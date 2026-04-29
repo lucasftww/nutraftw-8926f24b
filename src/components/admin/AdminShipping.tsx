@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Plus, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
+import { queryKeys } from "@/lib/queryKeys";
 
 const UFS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 
@@ -49,7 +50,7 @@ export function AdminShipping() {
     } else {
       toast.success("Frete guardado");
       setEditing(null);
-      qc.invalidateQueries({ queryKey: ["shipping_rates"] });
+      qc.invalidateQueries({ queryKey: queryKeys.shippingRates.all });
       load();
     }
   }
@@ -62,7 +63,7 @@ export function AdminShipping() {
       toast.error(err.message);
       return;
     }
-    qc.invalidateQueries({ queryKey: ["shipping_rates"] });
+    qc.invalidateQueries({ queryKey: queryKeys.shippingRates.all });
     load();
   }
 
