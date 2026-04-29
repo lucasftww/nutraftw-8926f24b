@@ -52,7 +52,7 @@ export default function Checkout() {
   const [shippingLoading, setShippingLoading] = useState(false);
   // Cache em memória por UF — evita refetch ao trocar UF e voltar.
   const shippingCacheRef = useRef<Map<string, any[]>>(new Map());
-  const [insuranceOn, setInsuranceOn] = useState<boolean>(true);
+  const [insuranceOn, setInsuranceOn] = useState<boolean>(false);
   const [coupon, setCoupon] = useState<any | null>(null);
   const [couponInput, setCouponInput] = useState("");
   const [couponLoading, setCouponLoading] = useState(false);
@@ -860,26 +860,33 @@ export default function Checkout() {
             </div>
 
             {settings.insurance_optional !== "0" && (
-              <label className="pt-4 border-t border-border flex items-center gap-3 cursor-pointer group">
-                <div className="relative flex items-center justify-center shrink-0">
-                  <input
-                    type="checkbox"
-                    checked={insuranceOn}
-                    onChange={(e) => setInsuranceOn(e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div
-                    className={`w-5 h-5 rounded-md border-2 transition-colors flex items-center justify-center ${
-                      insuranceOn ? "bg-primary border-primary" : "border-muted-foreground/40 group-hover:border-primary"
-                    }`}
-                  >
-                    {insuranceOn && <Check className="w-3.5 h-3.5 text-primary-foreground" strokeWidth={3} />}
+              <div className="pt-4 border-t border-border">
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <div className="relative flex items-center justify-center shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={insuranceOn}
+                      onChange={(e) => setInsuranceOn(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div
+                      className={`w-5 h-5 rounded-md border-2 transition-colors flex items-center justify-center ${
+                        insuranceOn ? "bg-primary border-primary" : "border-muted-foreground/40 group-hover:border-primary"
+                      }`}
+                    >
+                      {insuranceOn && <Check className="w-3.5 h-3.5 text-primary-foreground" strokeWidth={3} />}
+                    </div>
                   </div>
-                </div>
-                <span className="text-sm text-foreground/90">
-                  Adicionar proteção de envio <span className="text-muted-foreground">(+10%)</span>
-                </span>
-              </label>
+                  <span className="text-sm text-foreground/90">
+                    Adicionar proteção de envio <span className="text-muted-foreground">(+10%)</span>
+                  </span>
+                </label>
+                {!insuranceOn && (
+                  <p className="mt-2 ml-8 text-[11px] leading-snug text-muted-foreground">
+                    Pedidos sem seguro são de responsabilidade do comprador. Não nos responsabilizamos por problemas no transporte.
+                  </p>
+                )}
+              </div>
             )}
           </section>
 
