@@ -700,4 +700,4 @@ const Section = memo(function Section({
       </div>
     </div>
   );
-}
+});
