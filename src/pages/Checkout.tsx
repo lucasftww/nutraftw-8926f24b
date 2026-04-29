@@ -384,6 +384,13 @@ export default function Checkout() {
   // Resumo colapsável no mobile (aberto por padrão no desktop via CSS).
   const [itemsOpen, setItemsOpen] = useState(false);
 
+  // === Validação em tempo real (debounced) — feedback inline ===
+  const vName = useFieldValidation(form.full_name, validateFullName);
+  const vEmail = useFieldValidation(form.email, validateEmail);
+  const vPhone = useFieldValidation(form.phone, validatePhoneBR);
+  const vCPF = useFieldValidation(form.cpf, validateCPF);
+  const vCEP = useFieldValidation(form.zip, validateCEP, { debounceMs: 200 });
+
   if (lines.length === 0)
     return (
       <div className="max-w-7xl mx-auto px-4 py-20 text-center">
