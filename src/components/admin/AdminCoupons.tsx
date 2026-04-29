@@ -39,11 +39,16 @@ export function AdminCoupons() {
   async function save(e: React.FormEvent) {
     e.preventDefault();
     const f = editing;
+    const dt = (f.discount_type || "percent");
+    const dv = Number(f.discount_value) || 0;
+    if (dv <= 0) { toast.error("Valor de desconto deve ser > 0"); return; }
+    if (dt === "percent" && dv > 100) { toast.error("Percentual máximo é 100%"); return; }
+    if (!String(f.code || "").trim()) { toast.error("Código obrigatório"); return; }
     const payload: any = {
       code: (f.code || "").trim().toUpperCase(),
       description: f.description || null,
-      discount_type: f.discount_type || "percent",
-      discount_value: Number(f.discount_value) || 0,
+      discount_type: dt,
+      discount_value: dv,
       min_subtotal: Number(f.min_subtotal) || 0,
       max_uses: f.max_uses ? Number(f.max_uses) : null,
       active: f.active !== false,
