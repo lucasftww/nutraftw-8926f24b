@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { LogOut, User as UserIcon, MapPin, ShoppingBag, Eye, Loader2, Users, Copy, Check, Wallet } from "lucide-react";
-import { formatBRL } from "@/lib/utils";
+import { formatBRL, maskCPF, maskPhone, maskCEP } from "@/lib/utils";
 import { CustomerOrderDetail } from "@/components/account/CustomerOrderDetail";
 
 type Tab = "profile" | "address" | "orders" | "affiliate" | "commissions";
@@ -29,14 +29,6 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   cancelled: { label: "Cancelado", color: "bg-red-100 text-red-700" },
   refunded: { label: "Reembolsado", color: "bg-gray-100 text-gray-700" },
 };
-
-const maskCPF = (v: string) => v.replace(/\D/g, "").slice(0, 11).replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-const maskPhone = (v: string) => {
-  const d = v.replace(/\D/g, "").slice(0, 11);
-  if (d.length <= 10) return d.replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{4})(\d)/, "$1-$2");
-  return d.replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2");
-};
-const maskCEP = (v: string) => v.replace(/\D/g, "").slice(0, 8).replace(/(\d{5})(\d)/, "$1-$2");
 
 export default function MyAccount() {
   const { user } = useAuth();
@@ -63,22 +55,26 @@ export default function MyAccount() {
 
   useEffect(() => {
     if (!user) return;
+    let cancelled = false;
     supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle()
-      .then(({ data }) => setProfile(data || {}));
+      .then(({ data }) => { if (!cancelled) setProfile(data || {}); });
     supabase.from("orders").select("id, status, total, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
-      .then(({ data }) => setOrders(data || []));
+      .then(({ data }) => { if (!cancelled) setOrders(data || []); });
+    return () => { cancelled = true; };
   }, [user]);
 
   // Carrega estatísticas de afiliação ao abrir a aba.
   useEffect(() => {
     if (!user || tab !== "affiliate") return;
+    let cancelled = false;
     (async () => {
       const [{ data: comm }, { data: refs }] = await Promise.all([
         supabase.from("affiliate_commissions").select("amount, status").eq("affiliate_user_id", user.id),
         supabase.from("affiliate_referrals").select("status").eq("affiliate_user_id", user.id),
       ]);
+      if (cancelled) return;
       const sumBy = (st: string) => (comm || []).filter((c: any) => c.status === st).reduce((s: number, c: any) => s + Number(c.amount || 0), 0);
       const pending = sumBy("pending");
       const released = sumBy("released");
@@ -87,11 +83,13 @@ export default function MyAccount() {
       const inactiveRefs = (refs || []).filter((r: any) => r.status === "inactive").length;
       setAffStats({ released, pending, paid, activeRefs, inactiveRefs });
     })();
+    return () => { cancelled = true; };
   }, [user, tab]);
 
   // Carrega lista detalhada de comissões.
   useEffect(() => {
     if (!user || tab !== "commissions") return;
+    let cancelled = false;
     setLoadingComm(true);
     (async () => {
       const { data, error } = await supabase
@@ -99,10 +97,12 @@ export default function MyAccount() {
         .select("id, amount, status, created_at, released_at, paid_at, eligible_release_at, cancellation_reason, cancelled_at, order_id, orders(id, total, status, created_at, shipping_full_name)")
         .eq("affiliate_user_id", user.id)
         .order("created_at", { ascending: false });
+      if (cancelled) return;
       if (error) toast.error(error.message);
       setCommissions(data || []);
       setLoadingComm(false);
     })();
+    return () => { cancelled = true; };
   }, [user, tab]);
 
   const affiliateUrl = useMemo(() => {

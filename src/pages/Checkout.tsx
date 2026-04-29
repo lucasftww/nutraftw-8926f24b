@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { formatBRL } from "@/lib/utils";
+import { formatBRL, onlyDigits, maskCPF, maskPhone, maskCEP } from "@/lib/utils";
 import { imageUrl } from "@/lib/image";
 import { toast } from "sonner";
 import { ShieldCheck, Truck, Lock, CreditCard, QrCode, ArrowLeft, Ticket, Check } from "lucide-react";
@@ -16,27 +16,6 @@ import { trackEvent } from "@/lib/analytics";
 const SHIPPING_FALLBACK = 80;
 const INSURANCE_RATE = 0.1;
 const PIX_DISCOUNT = 0.05;
-
-const onlyDigits = (s: string) => s.replace(/\D/g, "");
-
-const maskCPF = (s: string) =>
-  onlyDigits(s)
-    .slice(0, 11)
-    .replace(/(\d{3})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-
-const maskPhone = (s: string) => {
-  const d = onlyDigits(s).slice(0, 11);
-  if (d.length <= 10)
-    return d.replace(/(\d{2})(\d{0,4})(\d{0,4}).*/, (_, a, b, c) =>
-      [a && `(${a}`, a && a.length === 2 ? ") " : "", b, c && `-${c}`].filter(Boolean).join("")
-    );
-  return d.replace(/(\d{2})(\d{5})(\d{0,4}).*/, "($1) $2-$3");
-};
-
-const maskCEP = (s: string) =>
-  onlyDigits(s).slice(0, 8).replace(/(\d{5})(\d)/, "$1-$2");
 
 export default function Checkout() {
   const { lines, total, clear, coupon: cartCouponCode, setCoupon: setCartCoupon } = useCart();
