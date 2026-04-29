@@ -19,7 +19,9 @@ export function ImageUpload({ value, onChange }: { value: string; onChange: (url
       return;
     }
     setUploading(true);
-    const ext = file.name.split(".").pop() || "jpg";
+    const rawExt = (file.name.split(".").pop() || "jpg").toLowerCase();
+    // só permite extensões seguras de imagem; evita nomes maliciosos no path do bucket
+    const ext = /^(jpg|jpeg|png|webp|gif|avif|svg)$/.test(rawExt) ? rawExt : "jpg";
     const path = `products/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
     const { error } = await supabase.storage.from("product-images").upload(path, file, {
       cacheControl: "3600",
