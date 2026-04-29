@@ -30,7 +30,8 @@ export type AdminEntity =
   | "site_banners"
   | "site_settings"
   | "orders"
-  | "resends";
+  | "resends"
+  | "user_roles";
 
 export interface AdminLogInput {
   action: AdminAction;

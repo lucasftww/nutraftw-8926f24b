@@ -77,8 +77,8 @@ export function AdminCoupons() {
       });
       setEditing(null);
       load();
+      qc.invalidateQueries({ queryKey: queryKeys.coupons.all });
     }
-    qc.invalidateQueries({ queryKey: queryKeys.coupons.all });
   }
 
   async function del(id: string) {
@@ -98,8 +98,8 @@ export function AdminCoupons() {
         diff: { before },
       });
       load();
+      qc.invalidateQueries({ queryKey: queryKeys.coupons.all });
     }
-    qc.invalidateQueries({ queryKey: queryKeys.coupons.all });
   }
 
   if (error) return <AdminErrorBanner error={error} onRetry={load} />;
