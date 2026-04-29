@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { AuthProvider } from "@/hooks/useAuth";
 import { Suspense, lazy } from "react";
 import Catalog from "@/pages/Catalog";
 import ProductDetail from "@/pages/ProductDetail";
@@ -43,7 +44,8 @@ export default function App() {
         <TooltipProvider>
           <Toaster />
           <BrowserRouter>
-            <Suspense fallback={<RouteFallback />}>
+            <AuthProvider>
+              <Suspense fallback={<RouteFallback />}>
               <Routes>
                 <Route element={<MainLayout />}>
                   <Route path="/" element={<Catalog />} />
@@ -56,7 +58,8 @@ export default function App() {
                   <Route path="*" element={<NotFound />} />
                 </Route>
               </Routes>
-            </Suspense>
+              </Suspense>
+            </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
