@@ -699,7 +699,7 @@ const ProductCard = memo(function ProductCard({
     if (!onPrefetchFull) return;
     const el = linkRef.current;
     if (!el || typeof IntersectionObserver === "undefined") return;
-    let timer: number | null = null;
+    let timer: ReturnType<typeof setTimeout> | null = null;
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
@@ -710,7 +710,7 @@ const ProductCard = memo(function ProductCard({
               (window as unknown as { requestIdleCallback: (cb: () => void) => void })
                 .requestIdleCallback(run);
             } else {
-              timer = window.setTimeout(run, 200);
+              timer = setTimeout(run, 200);
             }
             io.disconnect();
             break;
@@ -722,7 +722,7 @@ const ProductCard = memo(function ProductCard({
     io.observe(el);
     return () => {
       io.disconnect();
-      if (timer != null) window.clearTimeout(timer);
+      if (timer != null) clearTimeout(timer);
     };
   }, [p, onPrefetchFull]);
 
