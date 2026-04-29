@@ -780,30 +780,30 @@ export default function Checkout() {
           </div>
         </div>
 
-        {/* Summary */}
-        <aside className="bg-card rounded-2xl border border-border p-5 md:p-6 h-fit lg:sticky lg:top-24">
-          <h2 className="font-bold text-lg mb-4">Resumo</h2>
-          <div className="space-y-3 mb-4 max-h-64 overflow-y-auto pr-1">
+        {/* Resumo do Pedido */}
+        <aside className="bg-card p-6 rounded-2xl shadow-xl shadow-primary/5 border border-primary/10 h-fit lg:sticky lg:top-28">
+          <h2 className="text-xl font-bold mb-6">Resumo do Pedido</h2>
+          <div className="space-y-4 mb-6 max-h-72 overflow-y-auto pr-2">
             {summaryItems}
           </div>
-          <div className="space-y-2 py-4 border-t border-border text-sm">
+          <div className="space-y-3 py-4 border-t border-border text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Subtotal</span>
-              <span>{formatBRL(total)}</span>
+              <span className="font-semibold">{formatBRL(total)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">
-                Frete{selectedShipping?.label ? ` · ${selectedShipping.label}` : ""}
+                Frete{selectedShipping?.label ? ` (${selectedShipping.label})` : ""}
                 {selectedShipping?.delivery_days_min && selectedShipping?.delivery_days_max && (
-                  <span className="block text-[10px]">{selectedShipping.delivery_days_min}–{selectedShipping.delivery_days_max} dias úteis</span>
+                  <span className="block text-[10px] mt-0.5">{selectedShipping.delivery_days_min}–{selectedShipping.delivery_days_max} dias úteis</span>
                 )}
               </span>
-              <span>{formatBRL(shippingValue)}</span>
+              <span className="font-semibold">{formatBRL(shippingValue)}</span>
             </div>
             {insurance > 0 && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Seguro (10%)</span>
-                <span>{formatBRL(insurance)}</span>
+                <span className="font-semibold">{formatBRL(insurance)}</span>
               </div>
             )}
             {couponDiscount > 0 && (
@@ -859,8 +859,8 @@ export default function Checkout() {
                 <div className="flex gap-2">
                   <div className="relative flex-1">
                     <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      className="pl-9 uppercase"
+                    <input
+                      className="checkout-input pl-9 uppercase"
                       placeholder="Cupom de desconto"
                       value={couponInput}
                       onChange={(e) => {
@@ -869,14 +869,14 @@ export default function Checkout() {
                       }}
                     />
                   </div>
-                  <Button
+                  <button
                     type="button"
-                    variant="outline"
                     disabled={couponLoading || !couponInput.trim()}
                     onClick={applyCoupon}
+                    className="h-12 px-5 rounded-xl border-2 border-border bg-white font-semibold text-sm hover:border-primary hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     {couponLoading ? "…" : "Aplicar"}
-                  </Button>
+                  </button>
                 </div>
                 {couponError && (
                   <p role="alert" className="mt-2 text-xs text-destructive">
@@ -887,22 +887,32 @@ export default function Checkout() {
             )}
           </div>
 
-          <div className="flex justify-between items-center pt-4 border-t border-border mb-5">
-            <span className="font-bold">Total</span>
+          <div className="flex justify-between items-center pt-5 border-t border-border mb-6">
+            <span className="text-lg font-bold">Total</span>
             <div className="text-right">
-              <div className="font-display text-2xl font-extrabold text-primary">
+              <div className="text-2xl font-extrabold text-primary">
                 {formatBRL(grandTotal)}
               </div>
               {form.payment_method === "credit_card" && (
-                <div className="text-[11px] text-muted-foreground">
+                <div className="text-[11px] text-muted-foreground mt-0.5">
                   ou 12x de {formatBRL(grandTotal / 12)}
                 </div>
               )}
             </div>
           </div>
-          <Button type="submit" disabled={submitting} className="w-full h-12 rounded-full" size="lg">
-            {submitting ? "A processar…" : "Confirmar pedido"}
-          </Button>
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-bold text-base hover:bg-primary/90 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed transition-all inline-flex items-center justify-center gap-2"
+          >
+            {submitting ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /> Processando…</>
+            ) : form.payment_method === "pix" ? (
+              <><QrCode className="w-5 h-5" /> Pagar com PIX</>
+            ) : (
+              <><CreditCard className="w-5 h-5" /> Pagar com Cartão</>
+            )}
+          </button>
           <p className="text-[11px] text-muted-foreground text-center mt-3">
             Ao confirmar, você concorda com nossos termos de compra.
           </p>
