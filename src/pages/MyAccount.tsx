@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { LogOut, User as UserIcon, MapPin, ShoppingBag, Eye, Loader2, Users, Copy, Check, Wallet, ChevronRight, ChevronLeft, Mail, Share2 } from "lucide-react";
+import { LogOut, User as UserIcon, MapPin, ShoppingBag, Loader2, Users, Copy, Check, Wallet, ChevronRight, Mail, Share2 } from "lucide-react";
 import { formatBRL, maskCPF, maskPhone, maskCEP } from "@/lib/utils";
 import { CustomerOrderDetail } from "@/components/account/CustomerOrderDetail";
 
