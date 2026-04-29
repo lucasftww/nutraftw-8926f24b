@@ -11,6 +11,45 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type Role = "admin" | "customer" | null;
 
+// ───────── Cache de role em sessionStorage ─────────
+// Evita refazer o SELECT em user_roles a cada reload de página.
+// TTL curto (5 min) garante que mudanças de role propaguem rápido.
+// Indexado por user_id para nunca confundir sessões.
+const ROLE_CACHE_KEY = "auth.role.cache.v1";
+const ROLE_CACHE_TTL_MS = 5 * 60 * 1000;
+
+type RoleCacheEntry = { uid: string; role: Role; at: number };
+
+function readRoleCache(uid: string): Role | null {
+  try {
+    const raw = sessionStorage.getItem(ROLE_CACHE_KEY);
+    if (!raw) return null;
+    const entry = JSON.parse(raw) as RoleCacheEntry;
+    if (entry.uid !== uid) return null;
+    if (Date.now() - entry.at > ROLE_CACHE_TTL_MS) return null;
+    return entry.role;
+  } catch {
+    return null;
+  }
+}
+
+function writeRoleCache(uid: string, role: Role) {
+  try {
+    const entry: RoleCacheEntry = { uid, role, at: Date.now() };
+    sessionStorage.setItem(ROLE_CACHE_KEY, JSON.stringify(entry));
+  } catch {
+    // sessionStorage indisponível (modo privado, etc.) — apenas ignora.
+  }
+}
+
+function clearRoleCache() {
+  try {
+    sessionStorage.removeItem(ROLE_CACHE_KEY);
+  } catch {
+    // noop
+  }
+}
+
 type AuthValue = {
   session: Session | null;
   user: User | null;
@@ -36,9 +75,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     mountedRef.current = true;
 
-    async function fetchRole(uid: string, myGen: number) {
+    async function fetchRole(uid: string, myGen: number, hadCache: boolean) {
       if (!mountedRef.current) return;
-      setRoleLoading(true);
+      // Se já hidratamos do cache, revalida em background sem mostrar loading
+      // — evita flash de "Carregando…" entre páginas.
+      if (!hadCache) setRoleLoading(true);
       const { data, error } = await supabase
         .from("user_roles")
         .select("role")
@@ -47,29 +88,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (myGen !== genRef.current || currentUidRef.current !== uid) return;
       if (error) {
         console.error("[useAuth] fetchRole failed", error);
-        setRoleLoading(false);
+        if (!hadCache) setRoleLoading(false);
         return;
       }
-      if (data?.some((r: any) => r.role === "admin")) setRole("admin");
-      else if (data?.length) setRole("customer");
-      else setRole(null);
-      setRoleLoading(false);
+      const next: Role = data?.some((r: any) => r.role === "admin")
+        ? "admin"
+        : data?.length
+          ? "customer"
+          : null;
+      setRole(next);
+      writeRoleCache(uid, next);
+      if (!hadCache) setRoleLoading(false);
+    }
+
+    function applyCachedRole(uid: string): boolean {
+      const cached = readRoleCache(uid);
+      if (cached !== null) {
+        setRole(cached);
+        return true;
+      }
+      return false;
     }
 
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
       if (!mountedRef.current) return;
       genRef.current++;
       const myGen = genRef.current;
-      currentUidRef.current = s?.user?.id ?? null;
+      const newUid = s?.user?.id ?? null;
+      const uidChanged = newUid !== currentUidRef.current;
+      currentUidRef.current = newUid;
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
-        setRoleLoading(true);
-        // Defer para evitar chamada síncrona dentro do callback.
-        setTimeout(() => fetchRole(s.user.id, myGen), 0);
+        const hadCache = applyCachedRole(s.user.id);
+        if (!hadCache) setRoleLoading(true);
+        // Só revalida no banco se: sem cache, ou troca de usuário, ou evento de
+        // sign-in/refresh explícito. TOKEN_REFRESHED a cada hora não precisa rebuscar.
+        const needsFetch = !hadCache || uidChanged || _e === "SIGNED_IN";
+        if (needsFetch) {
+          // Defer para evitar chamada síncrona dentro do callback.
+          setTimeout(() => fetchRole(s.user.id, myGen, hadCache), 0);
+        }
       } else {
         setRole(null);
         setRoleLoading(false);
+        clearRoleCache();
       }
     });
 
@@ -84,8 +147,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(s);
         setUser(s?.user ?? null);
         if (s?.user) {
-          setRoleLoading(true);
-          fetchRole(s.user.id, myGen);
+          const hadCache = applyCachedRole(s.user.id);
+          if (!hadCache) setRoleLoading(true);
+          fetchRole(s.user.id, myGen, hadCache);
         }
       })
       .catch((e) => {
