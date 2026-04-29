@@ -494,7 +494,7 @@ export default function MyAccount() {
                       {filtered.map((c) => (
                         <tr key={c.id} className="border-t border-border hover:bg-muted/20">
                           <td className="px-4 py-3">
-                            <div className="font-mono text-xs text-foreground">#{c.order_id?.slice(0, 8) || "—"}</div>
+                            <div className="font-mono text-xs text-foreground">{c.order_id ? `#${String(c.order_id).slice(0, 8)}` : "—"}</div>
                             {c.orders?.total != null && (
                               <div className="text-xs text-muted-foreground">Pedido: {formatBRL(Number(c.orders.total))}</div>
                             )}

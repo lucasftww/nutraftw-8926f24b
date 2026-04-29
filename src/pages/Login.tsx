@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -24,12 +24,18 @@ export default function Login() {
 
   // ?ref=CODIGO direto na URL do /login tem prioridade. Se vier, persiste já
   // (cobre o caso do usuário compartilhar /login?ref=XXX direto).
-  const refFromUrl = useMemo(() => {
+  // Persistir é EFEITO COLATERAL — não pode rodar durante render (StrictMode
+  // duplica e quebra a janela de last-click).
+  const [activeRef, setActiveRef] = useState<string | null>(() => getAffiliateRef());
+  useEffect(() => {
     const r = params.get("ref");
-    return r ? setAffiliateRef(r) : null;
+    if (r) {
+      const saved = setAffiliateRef(r);
+      if (saved) setActiveRef(saved);
+    } else {
+      setActiveRef(getAffiliateRef());
+    }
   }, [params]);
-  // Código efetivo: o da URL atual (se válido) ou o já persistido.
-  const activeRef = refFromUrl || getAffiliateRef();
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
