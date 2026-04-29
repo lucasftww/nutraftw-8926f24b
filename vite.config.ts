@@ -47,6 +47,14 @@ export default defineConfig(({ mode }) => ({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,webp,woff2}"],
+        // Não pré-cachear bundles do painel administrativo — eles só
+        // interessam ao admin e somam ~155 kB de download desnecessário
+        // para clientes finais.
+        globIgnores: [
+          "**/Admin-*.js",
+          "**/AdminLogin-*.js",
+          "**/AdminHealth-*.js",
+        ],
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [
           /^\/~oauth/,
