@@ -322,6 +322,10 @@ export function WeeklyReport() {
     { label: "Itens vendidos", value: itemsSold, delta: null as number | null, icon: Package, color: "text-purple-600", bg: "bg-purple-50" },
   ];
 
+  if (error) {
+    return <AdminErrorBanner error={error} onRetry={() => setReloadKey((k) => k + 1)} />;
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
