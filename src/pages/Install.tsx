@@ -1,8 +1,14 @@
 import { useEffect, useState } from "react";
-import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { CheckCircle2, Download, Smartphone, WifiOff, Zap } from "lucide-react";
+
+function Card({ className = "", children }: { className?: string; children: React.ReactNode }) {
+  return (
+    <div className={`rounded-lg border border-border bg-card text-card-foreground shadow-sm ${className}`}>
+      {children}
+    </div>
+  );
+}
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -22,6 +28,7 @@ export default function Install() {
       window.navigator.standalone === true);
 
   useEffect(() => {
+    document.title = "Instalar G Imports no celular";
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferred(e as BeforeInstallPromptEvent);
@@ -41,14 +48,6 @@ export default function Install() {
 
   return (
     <div className="container max-w-3xl py-10 px-4">
-      <Helmet>
-        <title>Instalar G Imports no celular</title>
-        <meta
-          name="description"
-          content="Instale o app da G Imports no seu celular para comprar mais rápido, com cache offline e atalho na tela inicial."
-        />
-      </Helmet>
-
       <header className="mb-8 text-center">
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
           <Smartphone className="h-8 w-8" />
