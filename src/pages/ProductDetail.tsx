@@ -365,9 +365,11 @@ export default function ProductDetail() {
             {related.map((r) => {
               const rPrice = Number(r.price);
               const rSale = r.sale_price != null ? Number(r.sale_price) : 0;
-              const rHasSale = rSale > 0 && rSale < rPrice;
+              // Trava `>= 1%` para evitar exibição de "-0%" em promoções marginais.
+              const rRawPct = rSale > 0 && rSale < rPrice ? Math.round((1 - rSale / rPrice) * 100) : 0;
+              const rHasSale = rRawPct >= 1;
               const rFinal = rHasSale ? rSale : rPrice;
-              const rPct = rHasSale ? Math.round((1 - rSale / rPrice) * 100) : 0;
+              const rPct = rHasSale ? rRawPct : 0;
               return (
                 <Link
                   key={r.id}
