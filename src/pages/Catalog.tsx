@@ -276,13 +276,25 @@ export default function Catalog() {
     if (!hasMore || loading) return;
     const el = sentinelRef.current;
     if (!el) return;
+    // Throttle: evita disparos em rajada quando o sentinel fica
+    // continuamente dentro da margem após cada batch carregado.
+    let pending = false;
     const io = new IntersectionObserver(
       (entries) => {
+        if (pending) return;
         if (entries.some((e) => e.isIntersecting)) {
+          pending = true;
           setVisibleCount((c) => c + PAGE_SIZE);
+          // Libera o próximo disparo só depois do próximo frame, dando
+          // tempo do React commitar e o sentinel reposicionar.
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => { pending = false; });
+          });
         }
       },
-      { rootMargin: "600px 0px" }
+      // 300px é suficiente pra começar a carregar antes do usuário ver o fim,
+      // sem manter o sentinel "permanentemente intersectando" e disparando loop.
+      { rootMargin: "300px 0px" }
     );
     io.observe(el);
     return () => io.disconnect();
@@ -390,7 +402,10 @@ export default function Catalog() {
       {/* Sections */}
       <section className="py-2">
         <div className="container mx-auto px-4">
-          <div className="space-y-12 pb-16">
+          {/* overflow-anchor:none impede o navegador de "puxar" o scroll
+              quando novos cards são inseridos pelo infinite scroll —
+              evita a sensação de a página subir sozinha no mobile. */}
+          <div className="space-y-12 pb-16 [overflow-anchor:none]">
             {loading ? (
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
                 {Array.from({ length: 8 }).map((_, i) => (
