@@ -57,6 +57,10 @@ export function CartDrawer() {
                   <img
                     src={l.image_url || "/assets/no-image.svg"}
                     alt={l.name}
+                    loading="lazy"
+                    decoding="async"
+                    width={80}
+                    height={80}
                     className="w-20 h-20 rounded-xl object-cover bg-white"
                   />
                   <div className="flex-1 min-w-0 flex flex-col">

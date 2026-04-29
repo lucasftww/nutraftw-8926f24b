@@ -534,6 +534,10 @@ export default function Checkout() {
                   <img
                     src={l.image_url || "/assets/no-image.svg"}
                     alt={l.name}
+                    loading="lazy"
+                    decoding="async"
+                    width={48}
+                    height={48}
                     className="w-full h-full object-contain"
                   />
                 </div>
