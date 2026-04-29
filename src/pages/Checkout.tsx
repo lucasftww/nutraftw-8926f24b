@@ -80,12 +80,14 @@ export default function Checkout() {
   // Pre-fill from profile
   useEffect(() => {
     if (!user) return;
+    let cancelled = false;
     supabase
       .from("profiles")
       .select("*")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data, error }) => {
+        if (cancelled) return;
         if (error) {
           console.error("[Checkout] profile prefill failed", error);
           return;
@@ -105,6 +107,7 @@ export default function Checkout() {
           state: f.state || data.address_state || "",
         }));
       });
+    return () => { cancelled = true; };
   }, [user]);
 
   // ViaCEP autocomplete — debounced + abortável (evita rate-limit e race conditions)
@@ -112,11 +115,13 @@ export default function Checkout() {
     const cep = onlyDigits(form.zip);
     if (cep.length !== 8) return;
     const ctrl = new AbortController();
+    let cancelled = false;
     const t = setTimeout(() => {
       setCepLoading(true);
       fetch(`https://viacep.com.br/ws/${cep}/json/`, { signal: ctrl.signal })
         .then((r) => r.json())
         .then((d) => {
+          if (cancelled) return;
           if (d.erro) return;
           setForm((f) => ({
             ...f,
@@ -127,9 +132,10 @@ export default function Checkout() {
           }));
         })
         .catch(() => {})
-        .finally(() => setCepLoading(false));
+        .finally(() => { if (!cancelled) setCepLoading(false); });
     }, 350);
     return () => {
+      cancelled = true;
       clearTimeout(t);
       ctrl.abort();
     };
@@ -140,6 +146,7 @@ export default function Checkout() {
   useEffect(() => {
     const uf = form.state.toUpperCase();
     if (uf.length !== 2) { setShippingOptions([]); setShippingId(null); return; }
+    let cancelled = false;
     (supabase as any)
       .from("shipping_rates")
       .select("*")
@@ -147,10 +154,12 @@ export default function Checkout() {
       .eq("active", true)
       .order("price")
       .then(({ data }: any) => {
+        if (cancelled) return; // evita race quando o usuário troca UF rápido
         const arr = (data as any[]) || [];
         setShippingOptions(arr);
         setShippingId((cur) => arr.find((o) => o.id === cur)?.id || arr[0]?.id || null);
       });
+    return () => { cancelled = true; };
   }, [form.state]);
 
   // Aplica preferência admin para seguro

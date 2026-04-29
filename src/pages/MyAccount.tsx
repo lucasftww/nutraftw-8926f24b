@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -134,13 +134,20 @@ export default function MyAccount() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [commissions, commFilter]);
 
+  // Mantém o timer de "copiado" cancelável para evitar setState após unmount
+  // (ex.: usuário copia o link e logo navega para outra aba).
+  const copyTimerRef = useRef<number | null>(null);
+  useEffect(() => () => {
+    if (copyTimerRef.current != null) window.clearTimeout(copyTimerRef.current);
+  }, []);
   async function copyLink() {
     if (!affiliateUrl) return;
     try {
       await navigator.clipboard.writeText(affiliateUrl);
       setCopied(true);
       toast.success("Link copiado!");
-      setTimeout(() => setCopied(false), 2000);
+      if (copyTimerRef.current != null) window.clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = window.setTimeout(() => setCopied(false), 2000);
     } catch {
       toast.error("Não foi possível copiar");
     }
