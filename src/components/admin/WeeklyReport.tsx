@@ -165,10 +165,7 @@ export function WeeklyReport() {
     };
   }, [startDate, endDate, prevStart, prevEnd, reloadKey, range]);
 
-  if (error) {
-    return <AdminErrorBanner error={error} onRetry={() => setReloadKey((k) => k + 1)} />;
-  }
-
+  // IMPORTANTE: nenhum return condicional antes dos hooks abaixo — viola Rules of Hooks.
   const paid = useMemo(() => orders.filter((o) => PAID_STATUSES.includes(o.status)), [orders]);
   const prevPaid = useMemo(() => prevOrders.filter((o) => PAID_STATUSES.includes(o.status)), [prevOrders]);
 
