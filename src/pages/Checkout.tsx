@@ -532,7 +532,7 @@ export default function Checkout() {
               <div key={l.product_id} className="flex gap-3">
                 <div className="w-12 h-12 rounded-lg border border-border bg-muted/30 overflow-hidden flex-shrink-0 flex items-center justify-center">
                   <img
-                    src={l.image_url || "/assets/no-image.svg"}
+                    src={(undefined as any) /* replaced below */}
                     alt={l.name}
                     loading="lazy"
                     decoding="async"
