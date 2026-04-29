@@ -289,6 +289,9 @@ export default function ProductDetail() {
             ))}
           </ul>
 
+          {/* Calculadora de frete — reduz abandono no checkout */}
+          <ShippingCalculator />
+
           {/* Descrição */}
           {p.description && (
             <div className="pt-2">
