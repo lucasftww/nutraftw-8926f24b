@@ -399,7 +399,7 @@ export default function ProductDetail() {
                       );
                     })()}
                     {rHasSale && (
-                      <span className="absolute top-2 right-2 inline-flex items-center rounded-full bg-secondary text-secondary-foreground text-[10px] font-bold px-2 py-0.5 shadow-sm">
+                      <span className="badge-pill absolute top-2 right-2 bg-secondary text-secondary-foreground font-bold shadow-sm">
                         -{rPct}%
                       </span>
                     )}
@@ -410,7 +410,7 @@ export default function ProductDetail() {
                     </h3>
                     <div className="mt-1.5 flex flex-col gap-0.5">
                       {rHasSale && (
-                        <span className="text-[11px] text-muted-foreground line-through tabular-nums leading-none">
+                        <span className="text-caption text-muted-foreground line-through tabular-nums">
                           de {formatBRL(rPrice)}
                         </span>
                       )}
