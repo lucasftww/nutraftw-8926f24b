@@ -1,7 +1,7 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { ShoppingCart, Zap, ShieldCheck, Truck, Lock, Package, CreditCard } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
-import { imageUrl } from "@/lib/image";
+import { responsiveImage } from "@/lib/image";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/useCart";
 import { useSEO } from "@/hooks/useSEO";
@@ -155,18 +155,28 @@ export default function ProductDetail() {
       <div className="grid lg:grid-cols-2 gap-6 lg:gap-12 items-start">
         {/* Image */}
         <div className="relative rounded-3xl border border-border/60 overflow-hidden bg-white shadow-[var(--shadow-card)] w-full max-w-md mx-auto lg:max-w-none lg:sticky lg:top-20">
-          <img
-            src={imageUrl(p.image_url, { width: 800, quality: 80 })}
-            alt={p.name}
-            loading="eager"
-            decoding="async"
-            fetchPriority="high"
-            width={800}
-            height={800}
-            sizes="(max-width: 1024px) 100vw, 50vw"
-            onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
-            className="w-full h-full object-cover aspect-square"
-          />
+          {(() => {
+            const hero = responsiveImage(
+              p.image_url,
+              "(max-width: 1024px) 100vw, 50vw",
+              { fallbackWidth: 800, quality: 80 }
+            );
+            return (
+              <img
+                src={hero.src}
+                srcSet={hero.srcSet || undefined}
+                sizes={hero.sizes}
+                alt={p.name}
+                loading="eager"
+                decoding="async"
+                fetchPriority="high"
+                width={800}
+                height={800}
+                onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
+                className="w-full h-full object-cover aspect-square"
+              />
+            );
+          })()}
           {hasSale && (
             <span className="absolute top-3 right-3 inline-flex items-center rounded-full bg-secondary text-white text-sm font-extrabold px-3 py-1 shadow-lg">
               -{discountPct}% OFF
@@ -343,17 +353,27 @@ export default function ProductDetail() {
                   className="group flex flex-col h-full rounded-2xl bg-card overflow-hidden border border-border/50 hover:border-primary/30 hover:shadow-[var(--shadow-card)] transition-all"
                 >
                   <div className="relative aspect-square overflow-hidden bg-white">
-                    <img
-                      src={imageUrl(r.image_url, { width: 480, quality: 75 })}
-                      alt={r.name}
-                      loading="lazy"
-                      decoding="async"
-                      width={400}
-                      height={400}
-                      onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
-                      sizes="(max-width: 640px) 50vw, 25vw"
-                      className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
-                    />
+                    {(() => {
+                      const ri = responsiveImage(
+                        r.image_url,
+                        "(max-width: 640px) 50vw, 25vw",
+                        { fallbackWidth: 400 }
+                      );
+                      return (
+                        <img
+                          src={ri.src}
+                          srcSet={ri.srcSet || undefined}
+                          sizes={ri.sizes}
+                          alt={r.name}
+                          loading="lazy"
+                          decoding="async"
+                          width={400}
+                          height={400}
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
+                          className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
+                        />
+                      );
+                    })()}
                     {rHasSale && (
                       <span className="absolute top-2 right-2 inline-flex items-center rounded-full bg-secondary text-secondary-foreground text-[10px] font-bold px-2 py-0.5 shadow-sm">
                         -{rPct}%

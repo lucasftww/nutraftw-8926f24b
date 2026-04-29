@@ -534,6 +534,7 @@ export default function Checkout() {
                 <div className="w-12 h-12 rounded-lg border border-border bg-muted/30 overflow-hidden flex-shrink-0 flex items-center justify-center">
                   <img
                     src={imageUrl(l.image_url, { width: 96, quality: 75 })}
+                    srcSet={`${imageUrl(l.image_url, { width: 96, quality: 75 })} 1x, ${imageUrl(l.image_url, { width: 192, quality: 75 })} 2x`}
                     alt={l.name}
                     loading="lazy"
                     decoding="async"
