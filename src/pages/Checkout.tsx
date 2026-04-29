@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
@@ -70,7 +70,15 @@ export default function Checkout() {
   }, []);
 
   // Sincroniza alterações de cupom de volta no carrinho (estado compartilhado).
+  // ⚠️ NÃO disparar no mount: isso apagaria o cupom já persistido em
+  // localStorage antes mesmo da revalidação assíncrona terminar. Só
+  // sincroniza após o usuário aplicar/remover algo nesta sessão.
+  const couponMounted = useRef(false);
   useEffect(() => {
+    if (!couponMounted.current) {
+      couponMounted.current = true;
+      return;
+    }
     setCartCoupon(coupon?.code ?? null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [coupon?.code]);
@@ -315,6 +323,20 @@ export default function Checkout() {
           ? "Não há frete disponível para este estado. Entre em contato pelo WhatsApp."
           : "Selecione uma opção de frete."
       );
+      return false;
+    }
+    const pixOn = settings.checkout_enable_pix !== "0";
+    const cardOn = settings.checkout_enable_card !== "0";
+    if (!pixOn && !cardOn) {
+      toast.error("Pagamentos temporariamente indisponíveis. Contate o suporte.");
+      return false;
+    }
+    if (form.payment_method === "pix" && !pixOn) {
+      toast.error("PIX indisponível. Selecione cartão.");
+      return false;
+    }
+    if (form.payment_method === "credit_card" && !cardOn) {
+      toast.error("Cartão indisponível. Selecione PIX.");
       return false;
     }
     return true;
