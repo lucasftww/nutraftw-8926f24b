@@ -573,7 +573,8 @@ export default function MyAccount() {
                     <select
                       value={commFilter}
                       onChange={(e) => setCommFilter(e.target.value)}
-                      className="appearance-none w-full h-11 rounded-xl border border-input bg-background pl-4 pr-10 text-[13px] font-semibold text-foreground"
+                      aria-label="Filtrar comissões por status"
+                      className="appearance-none w-full h-11 rounded-xl border border-input bg-background pl-4 pr-10 text-[13px] font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring"
                     >
                       {FILTERS.map((f) => (
                         <option key={f.id} value={f.id}>
@@ -581,7 +582,7 @@ export default function MyAccount() {
                         </option>
                       ))}
                     </select>
-                    <ChevronRight className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 rotate-90 text-muted-foreground" />
+                    <ChevronRight aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 rotate-90 text-muted-foreground" />
                   </div>
                 </div>
 
@@ -594,7 +595,8 @@ export default function MyAccount() {
                       <button
                         key={f.id}
                         onClick={() => setCommFilter(f.id)}
-                        className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition inline-flex items-center gap-1.5 ${active ? "bg-primary text-primary-foreground border-primary" : "border-border bg-background text-muted-foreground hover:bg-muted/50"}`}
+                        aria-pressed={active}
+                        className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition inline-flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${active ? "bg-primary text-primary-foreground border-primary" : "border-border bg-background text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:border-primary/30"}`}
                       >
                         {f.label}
                         <span className={`badge-pill-sm tabular-nums ${active ? "bg-white/20" : "bg-muted"}`}>{n}</span>
