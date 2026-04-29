@@ -624,7 +624,65 @@ const Section = memo(function Section({
         </span>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
-        {items.map((p) => {
+        {items.map((p) => (
+          <ProductCard
+            key={p.id}
+            p={p}
+            onAdd={onAdd}
+            onPrefetch={onPrefetch}
+            onPrefetchFull={onPrefetchFull}
+          />
+        ))}
+      </div>
+    </div>
+  );
+});
+
+// Card individual — extraído para podermos plugar IntersectionObserver por item
+// e disparar prefetch (dados + imagem hi-res) quando o card aparece na tela.
+const ProductCard = memo(function ProductCard({
+  p,
+  onAdd,
+  onPrefetch,
+  onPrefetchFull,
+}: {
+  p: Product;
+  onAdd: (p: Product, finalPrice: number) => void;
+  onPrefetch?: (slug: string) => void;
+  onPrefetchFull?: (p: Product) => void;
+}) {
+  const linkRef = useRef<HTMLAnchorElement | null>(null);
+
+  // Observa visibilidade UMA vez: ao primeiro intersect, dispara prefetch full
+  // e desconecta. `rootMargin` antecipa enquanto o card ainda está fora da tela.
+  useEffect(() => {
+    if (!onPrefetchFull) return;
+    const el = linkRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            // `requestIdleCallback` quando disponível — não compete com a renderização
+            const run = () => onPrefetchFull(p);
+            if ("requestIdleCallback" in window) {
+              (window as unknown as { requestIdleCallback: (cb: () => void) => void })
+                .requestIdleCallback(run);
+            } else {
+              setTimeout(run, 200);
+            }
+            io.disconnect();
+            break;
+          }
+        }
+      },
+      { rootMargin: "300px 0px" }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [p, onPrefetchFull]);
+
+  {
           const priceNum = Number(p.price);
           const saleNum = p.sale_price != null ? Number(p.sale_price) : 0;
           const discountPct =
@@ -645,7 +703,7 @@ const Section = memo(function Section({
           const installment = finalPrice / 3;
           return (
             <Link
-              key={p.id}
+              ref={linkRef}
               to={`/produto/${p.slug}`}
               onMouseEnter={() => onPrefetch?.(p.slug)}
               onTouchStart={() => onPrefetch?.(p.slug)}
@@ -732,8 +790,5 @@ const Section = memo(function Section({
               </div>
             </Link>
           );
-        })}
-      </div>
-    </div>
-  );
+  }
 });
