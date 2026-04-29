@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { formatBRL } from "@/lib/utils";
@@ -6,6 +7,7 @@ import { toast } from "sonner";
 import { PackageCheck, Truck } from "lucide-react";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 import { logAdminAction } from "@/lib/auditLog";
+import { queryKeys } from "@/lib/queryKeys";
 
 const STATUS_OPTIONS = [
   { value: "", label: "—" },
@@ -19,6 +21,7 @@ export function AdminResends() {
   const [items, setItems] = useState<any[]>([]);
   const [filter, setFilter] = useState<"pending" | "all">("pending");
   const [error, setError] = useState<AdminErrorInfo | null>(null);
+  const qc = useQueryClient();
 
   async function load() {
     setError(null);
@@ -51,6 +54,8 @@ export function AdminResends() {
         summary: `Reenvio #${id.slice(0, 8)} → ${patch.resend_status ?? "atualizado"}`,
         diff: { after: patch },
       });
+      // Pedidos do cliente / outras telas refletem o novo resend_status
+      qc.invalidateQueries({ queryKey: queryKeys.orders.all });
       load();
     }
   }
