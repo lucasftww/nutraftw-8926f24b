@@ -4,6 +4,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { queryKeys } from "@/lib/queryKeys";
 import { responsiveImage } from "@/lib/image";
+import { imageUrl } from "@/lib/image";
+import { prefetchImage, shouldPrefetch } from "@/lib/prefetch";
 import { WishlistButton } from "@/components/wishlist/WishlistButton";
 import { Search, SlidersHorizontal, ShoppingCart, X, ArrowUpDown, Zap } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
@@ -92,6 +94,19 @@ export default function Catalog() {
       staleTime: 60_000,
     });
   }, [qc]);
+
+  // Prefetch combinado: dados do produto + imagem hero hi-res (a mesma variante
+  // usada na ProductDetail). Disparado quando o card entra na viewport ou o
+  // usuário sinaliza intenção (touchstart/hover).
+  const prefetchProductFull = useCallback(
+    (p: Product) => {
+      if (!shouldPrefetch()) return;
+      prefetchProduct(p.slug);
+      // Casa com responsiveImage(..., { fallbackWidth: 800, quality: 80 }) na ProductDetail
+      prefetchImage(imageUrl(p.image_url, { width: 800, quality: 80 }));
+    },
+    [prefetchProduct]
+  );
 
   // Handler estável para "Adicionar ao carrinho" no card → evita re-render dos cards.
   const handleAdd = useCallback((p: Product, price: number) => {
@@ -397,6 +412,7 @@ export default function Catalog() {
                         items={paginated.promos}
                         onAdd={handleAdd}
                         onPrefetch={prefetchProduct}
+                        onPrefetchFull={prefetchProductFull}
                       />
                     )}
                     {paginated.sections.map((s) => (
@@ -406,6 +422,7 @@ export default function Catalog() {
                         items={s.items}
                         onAdd={handleAdd}
                         onPrefetch={prefetchProduct}
+                        onPrefetchFull={prefetchProductFull}
                       />
                     ))}
                   </>
@@ -415,6 +432,7 @@ export default function Catalog() {
                     items={paginated.sections[0]?.items ?? []}
                     onAdd={handleAdd}
                     onPrefetch={prefetchProduct}
+                    onPrefetchFull={prefetchProductFull}
                   />
                 )}
                 {hasMore && (
