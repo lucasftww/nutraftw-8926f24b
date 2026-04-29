@@ -959,7 +959,7 @@ export default function Checkout() {
                         className={[
                           "badge-pill absolute -top-2 right-3 font-extrabold shadow-sm ring-2 ring-card",
                           badge.tone === "secondary"
-                            ? "bg-secondary text-secondary-foreground"
+                            ? "bg-success text-success-foreground"
                             : "bg-muted text-muted-foreground",
                         ].join(" ")}
                       >
