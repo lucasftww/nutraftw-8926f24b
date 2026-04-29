@@ -102,6 +102,11 @@ export default function ProductDetail() {
     if (p?.id) void trackEvent("view", p.id);
   }, [p?.id]);
 
+  // Sempre abrir a página do produto no topo (mobile e desktop).
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [slug]);
+
   if (loading)
     return <div className="container py-20 text-center text-muted-foreground">A carregar…</div>;
   if (!p)
