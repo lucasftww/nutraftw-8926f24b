@@ -129,12 +129,12 @@ export default function Wishlist() {
                   <img src={r.src} srcSet={r.srcSet || undefined} sizes={r.sizes} alt={p.name} loading="lazy" decoding="async" width={400} height={400} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300" />
                   <WishlistButton productId={p.id} className="absolute top-2 right-2" size="sm" />
                   {isOut && (
-                    <span className="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full bg-foreground/85 text-background">
+                    <span className="badge-pill absolute top-2 left-2 uppercase tracking-wide font-bold bg-foreground/85 text-background">
                       Esgotado
                     </span>
                   )}
                   {hasSale && !isOut && (
-                    <span className="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full bg-destructive text-destructive-foreground">
+                    <span className="badge-pill absolute top-2 left-2 uppercase tracking-wide font-bold bg-destructive text-destructive-foreground">
                       −{Math.round((1 - sale / price) * 100)}%
                     </span>
                   )}
@@ -142,7 +142,7 @@ export default function Wishlist() {
                 <div className="pt-3 pb-3 px-2.5 flex-1 flex flex-col">
                   <Link to={`/produto/${p.slug}`} className="font-medium text-[13px] sm:text-sm leading-snug line-clamp-2 min-h-[2.4rem] text-foreground hover:text-primary">{p.name}</Link>
                   <div className="mt-2 flex flex-col gap-0.5">
-                    {hasSale && <span className="text-[11px] text-muted-foreground line-through tabular-nums">de {formatBRL(price)}</span>}
+                    {hasSale && <span className="text-caption text-muted-foreground line-through tabular-nums">de {formatBRL(price)}</span>}
                     <span className="text-base md:text-lg font-extrabold text-primary tabular-nums">{formatBRL(final)}</span>
                   </div>
                   <button
