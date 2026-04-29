@@ -693,6 +693,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      affiliate_commission_rate: { Args: never; Returns: number }
       create_order: {
         Args: {
           p_city: string
