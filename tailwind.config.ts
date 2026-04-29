@@ -28,6 +28,7 @@ export default {
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
+          glow: "hsl(var(--secondary-glow))",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
@@ -62,10 +63,16 @@ export default {
       backgroundImage: {
         "gradient-primary": "var(--gradient-primary)",
         "gradient-hero": "var(--gradient-hero)",
+        "gradient-cta": "var(--gradient-cta)",
+        "gradient-price": "var(--gradient-price)",
+        "gradient-soft": "var(--gradient-soft)",
       },
       boxShadow: {
         elegant: "var(--shadow-elegant)",
         card: "var(--shadow-card)",
+        soft: "var(--shadow-soft)",
+        pop: "var(--shadow-pop)",
+        cta: "var(--shadow-cta)",
       },
       keyframes: {
         "fade-in": {

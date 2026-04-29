@@ -11,49 +11,55 @@
 /* GIMPORTS Design System — Azul marinho profissional */
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 217 33% 17%;
+    --background: 40 20% 99%;
+    --foreground: 222 39% 14%;
 
     --card: 0 0% 100%;
-    --card-foreground: 217 33% 17%;
+    --card-foreground: 222 39% 14%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 217 33% 17%;
+    --popover-foreground: 222 39% 14%;
 
-    /* Azul marinho da KA Imports */
-    --primary: 217 71% 23%;
+    /* Azul marinho profundo — confiança farmacêutica */
+    --primary: 222 65% 20%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 217 71% 35%;
+    --primary-glow: 222 65% 32%;
 
-    --secondary: 199 89% 48%;
+    /* Laranja de conversão — CTA "Comprar" (Amazon/ML) */
+    --secondary: 18 95% 54%;
     --secondary-foreground: 0 0% 100%;
+    --secondary-glow: 18 95% 62%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 220 25% 96%;
+    --muted-foreground: 220 12% 44%;
 
+    /* Accent — azul ciano para links e destaques secundários */
     --accent: 199 89% 48%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 78% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 142 71% 45%;
+    /* Verde mais vibrante — economia, garantia, "em estoque" */
+    --success: 145 75% 38%;
     --success-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 217 71% 23%;
+    --border: 220 20% 90%;
+    --input: 220 20% 90%;
+    --ring: 222 65% 20%;
 
     --radius: 0.75rem;
 
-    --gradient-primary: linear-gradient(135deg, hsl(217 71% 23%), hsl(217 71% 35%));
-    --gradient-hero: linear-gradient(135deg, hsl(217 71% 18%) 0%, hsl(217 71% 28%) 100%);
-    --gradient-price: linear-gradient(135deg, hsl(217 71% 23%), hsl(199 89% 40%));
-    --gradient-soft: linear-gradient(180deg, hsl(210 40% 98%), hsl(0 0% 100%));
-    --shadow-elegant: 0 10px 30px -10px hsl(217 71% 23% / 0.3);
-    --shadow-card: 0 2px 12px -4px hsl(217 33% 17% / 0.08);
-    --shadow-soft: 0 1px 2px hsl(217 33% 17% / 0.04), 0 4px 12px -4px hsl(217 33% 17% / 0.06);
-    --shadow-pop: 0 12px 32px -12px hsl(217 71% 23% / 0.25);
+    --gradient-primary: linear-gradient(135deg, hsl(222 65% 20%), hsl(222 65% 32%));
+    --gradient-hero: linear-gradient(135deg, hsl(222 65% 16%) 0%, hsl(222 65% 26%) 100%);
+    --gradient-cta: linear-gradient(135deg, hsl(18 95% 54%), hsl(14 92% 48%));
+    --gradient-price: linear-gradient(135deg, hsl(222 65% 20%), hsl(199 89% 40%));
+    --gradient-soft: linear-gradient(180deg, hsl(40 20% 99%), hsl(0 0% 100%));
+    --shadow-elegant: 0 10px 30px -10px hsl(222 65% 20% / 0.28);
+    --shadow-card: 0 2px 12px -4px hsl(222 39% 14% / 0.08);
+    --shadow-soft: 0 1px 2px hsl(222 39% 14% / 0.04), 0 4px 12px -4px hsl(222 39% 14% / 0.06);
+    --shadow-pop: 0 12px 32px -12px hsl(222 65% 20% / 0.25);
+    --shadow-cta: 0 8px 24px -8px hsl(18 95% 54% / 0.45);
   }
 
   * { @apply border-border; }
@@ -69,6 +75,12 @@
     @apply inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full
            bg-primary text-primary-foreground font-semibold text-sm
            hover:bg-primary-glow transition-all shadow-elegant;
+  }
+  .btn-cta {
+    @apply inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full
+           bg-secondary text-secondary-foreground font-bold text-sm
+           hover:brightness-110 active:scale-[0.98] transition-all;
+    box-shadow: var(--shadow-cta);
   }
   .btn-outline {
     @apply inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full
