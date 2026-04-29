@@ -1,4 +1,4 @@
-import { X, Minus, Plus, ShoppingBag, ArrowRight } from "lucide-react";
+import { X, Minus, Plus, ShoppingBag, ArrowRight, Trash2, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "@/hooks/useCart";
 import { formatBRL } from "@/lib/utils";
@@ -12,29 +12,62 @@ export function CartDrawer() {
 
   useBodyScrollLock(open);
 
+  const itemCount = lines.reduce((acc, l) => acc + l.qty, 0);
+  const installment = total / 3;
+
   return (
     <>
       <div
         onClick={closeCart}
-        className={`fixed inset-0 bg-black/50 z-50 transition-opacity ${
+        className={`fixed inset-0 bg-foreground/50 backdrop-blur-[2px] z-50 transition-opacity ${
           open ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
+        aria-hidden="true"
       />
       <aside
-        className={`fixed top-0 right-0 h-full w-full sm:w-[420px] bg-background z-50 shadow-2xl transition-transform duration-300 flex flex-col ${
+        role="dialog"
+        aria-modal="true"
+        aria-label="Carrinho de compras"
+        className={`fixed top-0 right-0 h-[100dvh] w-full sm:w-[420px] bg-background z-50 shadow-2xl transition-transform duration-300 flex flex-col ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="flex items-center justify-between p-5 border-b border-border">
-          <h3 className="font-display text-xl font-bold flex items-center gap-2">
-            <ShoppingBag className="h-5 w-5 text-primary" /> Seu carrinho
-          </h3>
-          <button onClick={closeCart} className="p-2 hover:bg-muted rounded-full">
+        {/* Header sticky — sempre visível durante a rolagem */}
+        <header
+          className="sticky top-0 z-10 flex items-center justify-between gap-3 px-4 sm:px-5 py-3.5 border-b border-border bg-background/95 backdrop-blur-md shadow-[0_2px_12px_-8px_rgba(0,0,0,0.15)]"
+          style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 0.875rem)" }}
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="relative h-9 w-9 rounded-full bg-primary/10 text-primary inline-flex items-center justify-center shrink-0">
+              <ShoppingBag className="h-4.5 w-4.5" />
+              {itemCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 inline-flex items-center justify-center rounded-full bg-secondary text-secondary-foreground text-[10px] font-bold leading-none">
+                  {itemCount}
+                </span>
+              )}
+            </div>
+            <div className="min-w-0">
+              <h3 className="font-display text-base sm:text-lg font-bold leading-tight truncate">
+                Seu carrinho
+              </h3>
+              <p className="text-[11px] text-muted-foreground leading-tight">
+                {itemCount === 0
+                  ? "Vazio"
+                  : `${itemCount} ${itemCount === 1 ? "item" : "itens"}`}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={closeCart}
+            aria-label="Fechar carrinho"
+            className="h-10 w-10 inline-flex items-center justify-center rounded-full hover:bg-muted active:bg-muted/80 transition-colors shrink-0"
+          >
             <X className="h-5 w-5" />
           </button>
-        </div>
+        </header>
 
-        <div className="flex-1 overflow-y-auto p-5">
+        {/* Lista rolável — único elemento que scrolla */}
+        <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-5 py-4">
           {lines.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <div className="h-16 w-16 rounded-full bg-primary/10 text-primary inline-flex items-center justify-center mb-4">
@@ -52,9 +85,12 @@ export function CartDrawer() {
               </button>
             </div>
           ) : (
-            <div className="space-y-4">
+            <ul className="space-y-3">
               {lines.map((l) => (
-                <div key={l.product_id} className="flex gap-4 p-3 rounded-2xl border border-border bg-muted/30">
+                <li
+                  key={l.product_id}
+                  className="flex gap-3 p-2.5 rounded-2xl border border-border bg-muted/30"
+                >
                   <img
                     src={imageUrl(l.image_url, { width: 160, quality: 75 })}
                     alt={l.name}
@@ -62,51 +98,88 @@ export function CartDrawer() {
                     decoding="async"
                     width={80}
                     height={80}
-                    className="w-20 h-20 rounded-xl object-cover bg-white"
+                    className="w-20 h-20 rounded-xl object-cover bg-white shrink-0"
                   />
                   <div className="flex-1 min-w-0 flex flex-col">
                     <div className="flex justify-between items-start gap-2">
-                      <h4 className="font-semibold text-sm leading-tight line-clamp-2">{l.name}</h4>
-                      <button onClick={() => remove(l.product_id)} className="text-muted-foreground hover:text-destructive">
-                        <X className="h-4 w-4" />
+                      <h4 className="font-semibold text-sm leading-snug line-clamp-2">{l.name}</h4>
+                      <button
+                        onClick={() => remove(l.product_id)}
+                        aria-label={`Remover ${l.name}`}
+                        className="-mt-1 -mr-1 h-8 w-8 inline-flex items-center justify-center rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0"
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
                     <div className="mt-auto flex items-center justify-between">
-                      <span className="font-bold text-primary">{formatBRL(l.price * l.qty)}</span>
-                      <div className="flex items-center gap-2 bg-background border border-border rounded-lg p-1">
-                        <button onClick={() => setQty(l.product_id, l.qty - 1)} className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-muted">
-                          <Minus className="h-3 w-3" />
+                      <span className="font-extrabold text-primary tabular-nums">
+                        {formatBRL(l.price * l.qty)}
+                      </span>
+                      <div className="flex items-center gap-1 bg-background border border-border rounded-full p-0.5">
+                        <button
+                          onClick={() => setQty(l.product_id, l.qty - 1)}
+                          aria-label="Diminuir quantidade"
+                          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted active:bg-muted/80"
+                        >
+                          <Minus className="h-3.5 w-3.5" />
                         </button>
-                        <span className="text-sm font-medium w-5 text-center">{l.qty}</span>
-                        <button onClick={() => setQty(l.product_id, l.qty + 1)} className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-muted">
-                          <Plus className="h-3 w-3" />
+                        <span className="text-sm font-bold w-6 text-center tabular-nums">
+                          {l.qty}
+                        </span>
+                        <button
+                          onClick={() => setQty(l.product_id, l.qty + 1)}
+                          aria-label="Aumentar quantidade"
+                          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted active:bg-muted/80"
+                        >
+                          <Plus className="h-3.5 w-3.5" />
                         </button>
                       </div>
                     </div>
                   </div>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
         </div>
 
-        <div className="border-t border-border p-5 space-y-4">
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-muted-foreground">Subtotal</span>
-            <span className="font-display text-2xl font-extrabold text-primary">{formatBRL(total)}</span>
-          </div>
-          <Button
-            disabled={lines.length === 0}
-            onClick={() => {
-              closeCart();
-              nav("/checkout");
-            }}
-            className="w-full"
-            size="lg"
+        {/* Footer sticky com resumo — sempre visível durante a rolagem */}
+        {lines.length > 0 && (
+          <footer
+            className="sticky bottom-0 z-10 border-t border-border bg-background/95 backdrop-blur-md shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.18)] px-4 sm:px-5 pt-3"
+            style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.875rem)" }}
           >
-            Finalizar pedido
-          </Button>
-        </div>
+            <div className="flex items-end justify-between gap-3 mb-3">
+              <div className="min-w-0">
+                <span className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">
+                  Subtotal
+                </span>
+                <span className="block font-display text-2xl sm:text-[1.6rem] font-extrabold text-primary tabular-nums leading-tight mt-1">
+                  {formatBRL(total)}
+                </span>
+                <span className="block text-[11px] text-muted-foreground tabular-nums leading-tight">
+                  ou 3x de {formatBRL(installment)} sem juros
+                </span>
+              </div>
+              <span className="text-[11px] text-muted-foreground tabular-nums shrink-0 pb-1">
+                {itemCount} {itemCount === 1 ? "item" : "itens"}
+              </span>
+            </div>
+            <Button
+              onClick={() => {
+                closeCart();
+                nav("/checkout");
+              }}
+              className="w-full h-12 rounded-2xl text-sm font-extrabold bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-lg shadow-secondary/30 active:scale-[0.99] transition-all"
+            >
+              Finalizar pedido
+              <ArrowRight className="h-4 w-4 ml-1.5" />
+            </Button>
+            <p className="mt-2 flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
+              <Lock className="h-3 w-3" />
+              Pagamento 100% seguro
+            </p>
+          </footer>
+        )}
       </aside>
     </>
   );
