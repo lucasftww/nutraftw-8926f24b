@@ -891,13 +891,11 @@ export default function Checkout() {
               </div>
             )}
           </section>
+          )}
 
           {/* Forma de Pagamento */}
           <section className="checkout-card">
-            <div className="flex items-center gap-2 mb-5 sm:mb-6">
-              <CreditCard className="w-5 h-5 text-primary" />
-              <h2 className="checkout-section-title !mb-0">Forma de Pagamento</h2>
-            </div>
+            <h2 className="checkout-section-title">Pagamento</h2>
             {(() => {
               const pixOn = settings.checkout_enable_pix !== "0";
               const cardOn = settings.checkout_enable_card !== "0";
