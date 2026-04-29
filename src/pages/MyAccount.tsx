@@ -6,18 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { LogOut, User as UserIcon, MapPin, ShoppingBag, Eye, Loader2, Users, Copy, Check, Wallet } from "lucide-react";
+import { LogOut, User as UserIcon, MapPin, ShoppingBag, Loader2, Users, Copy, Check, Wallet, ChevronRight, Mail, Share2 } from "lucide-react";
 import { formatBRL, maskCPF, maskPhone, maskCEP } from "@/lib/utils";
 import { CustomerOrderDetail } from "@/components/account/CustomerOrderDetail";
 
 type Tab = "profile" | "address" | "orders" | "affiliate" | "commissions";
 
-const TABS: { id: Tab; label: string; icon: any }[] = [
-  { id: "profile", label: "Dados pessoais", icon: UserIcon },
-  { id: "address", label: "Endereço", icon: MapPin },
-  { id: "orders", label: "Meus pedidos", icon: ShoppingBag },
-  { id: "affiliate", label: "Afiliação", icon: Users },
-  { id: "commissions", label: "Comissões", icon: Wallet },
+const TABS: { id: Tab; label: string; description: string; icon: any }[] = [
+  { id: "profile",     label: "Dados pessoais", description: "Nome, telefone e CPF",     icon: UserIcon },
+  { id: "address",     label: "Endereço",       description: "Para entrega dos pedidos", icon: MapPin },
+  { id: "orders",      label: "Meus pedidos",   description: "Histórico de compras",     icon: ShoppingBag },
+  { id: "affiliate",   label: "Afiliação",      description: "Indique e ganhe 1%",       icon: Users },
+  { id: "commissions", label: "Comissões",      description: "Pagamentos e status",       icon: Wallet },
 ];
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
@@ -122,6 +122,21 @@ export default function MyAccount() {
     }
   }
 
+  async function shareLink() {
+    if (!affiliateUrl) return;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "GIMPORTS — Loja farmacêutica",
+          text: "Use meu link e confira os produtos:",
+          url: affiliateUrl,
+        });
+      } catch { /* usuário cancelou */ }
+    } else {
+      copyLink();
+    }
+  }
+
   async function savePixel() {
     if (!user) return;
     setSavingPixel(true);
@@ -189,33 +204,60 @@ export default function MyAccount() {
   }, [orders]);
 
   return (
-    <div className="container py-8 md:py-12 max-w-5xl">
-      <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-        <div>
-          <h1 className="font-display text-3xl md:text-4xl font-extrabold text-primary">Minha conta</h1>
-          <p className="text-sm text-muted-foreground mt-1">{user?.email}</p>
+    <div className="container py-4 md:py-12 max-w-5xl">
+      {/* ===== Hero header — perfil, identidade, sair ===== */}
+      <div className="bg-gradient-to-br from-primary to-primary/85 rounded-2xl md:rounded-3xl text-primary-foreground p-5 md:p-7 mb-4 md:mb-6 shadow-card">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="h-12 w-12 md:h-14 md:w-14 rounded-full bg-white/15 backdrop-blur flex items-center justify-center text-lg md:text-xl font-extrabold shrink-0 ring-2 ring-white/20">
+              {(profile?.full_name || user?.email || "?").trim().charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] uppercase tracking-wider text-white/70 font-semibold">Minha conta</p>
+              <h1 className="font-display text-xl md:text-3xl font-extrabold leading-tight truncate">
+                {profile?.full_name || "Olá!"}
+              </h1>
+              <p className="text-xs md:text-sm text-white/80 flex items-center gap-1.5 mt-0.5 truncate">
+                <Mail className="h-3 w-3 shrink-0" />
+                <span className="truncate">{user?.email}</span>
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={logout}
+            aria-label="Sair"
+            className="shrink-0 h-10 w-10 md:h-auto md:w-auto md:px-4 md:py-2 rounded-full md:rounded-full bg-white/15 hover:bg-white/25 active:bg-white/30 backdrop-blur flex items-center justify-center md:gap-2 transition-colors text-sm font-semibold"
+          >
+            <LogOut className="h-4 w-4" />
+            <span className="hidden md:inline">Sair</span>
+          </button>
         </div>
-        <Button variant="outline" onClick={logout}><LogOut className="h-4 w-4" /> Sair</Button>
+
+        {/* Stats embutidos no hero — mobile-first */}
+        <div className="grid grid-cols-3 gap-2 md:gap-3 mt-5">
+          <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl p-3 md:p-4">
+            <p className="text-[10px] md:text-xs uppercase tracking-wide text-white/70 font-semibold">Pedidos</p>
+            <p className="text-xl md:text-2xl font-extrabold mt-0.5">{stats.count}</p>
+          </div>
+          <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl p-3 md:p-4">
+            <p className="text-[10px] md:text-xs uppercase tracking-wide text-white/70 font-semibold">Gasto</p>
+            <p className="text-base md:text-2xl font-extrabold mt-0.5 truncate">{formatBRL(stats.total)}</p>
+          </div>
+          <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl p-3 md:p-4">
+            <p className="text-[10px] md:text-xs uppercase tracking-wide text-white/70 font-semibold">Desde</p>
+            <p className="text-base md:text-2xl font-extrabold mt-0.5 capitalize">
+              {profile?.created_at
+                ? new Date(profile.created_at).toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }).replace(".", "")
+                : "—"}
+            </p>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
-        <div className="bg-card rounded-2xl border border-border p-4">
-          <p className="text-xs text-muted-foreground">Total de pedidos</p>
-          <p className="text-2xl font-bold mt-1">{stats.count}</p>
-        </div>
-        <div className="bg-card rounded-2xl border border-border p-4">
-          <p className="text-xs text-muted-foreground">Total gasto</p>
-          <p className="text-2xl font-bold mt-1 text-primary">{formatBRL(stats.total)}</p>
-        </div>
-        <div className="bg-card rounded-2xl border border-border p-4 hidden md:block">
-          <p className="text-xs text-muted-foreground">Cliente desde</p>
-          <p className="text-2xl font-bold mt-1">
-            {profile?.created_at ? new Date(profile.created_at).toLocaleDateString("pt-BR", { month: "short", year: "numeric" }) : "—"}
-          </p>
-        </div>
-      </div>
-
-      <div className="flex gap-1 mb-6 border-b border-border overflow-x-auto">
+      {/* ===== Navegação mobile: lista estilo iOS quando nenhuma aba ativa específica ===== */}
+      {/* No mobile mostramos sempre a lista + a seção em sequência (com âncora de volta).
+          No desktop, tabs horizontais clássicas. */}
+      <div className="hidden md:flex gap-1 mb-6 border-b border-border overflow-x-auto">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -230,8 +272,52 @@ export default function MyAccount() {
         ))}
       </div>
 
+      {/* Mobile: lista de seções (estilo app) */}
+      <div className="md:hidden mb-4">
+        <div className="bg-card rounded-2xl border border-border overflow-hidden divide-y divide-border">
+          {TABS.map((t) => {
+            const active = tab === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition-colors ${
+                  active ? "bg-primary/5" : "active:bg-muted/40"
+                }`}
+              >
+                <span className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 ${
+                  active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                }`}>
+                  <t.icon className="h-4 w-4" />
+                </span>
+                <span className="flex-1 min-w-0">
+                  <span className={`block text-sm font-semibold ${active ? "text-primary" : "text-foreground"}`}>{t.label}</span>
+                  <span className="block text-xs text-muted-foreground truncate">{t.description}</span>
+                </span>
+                <ChevronRight className={`h-4 w-4 shrink-0 transition-transform ${active ? "rotate-90 text-primary" : "text-muted-foreground"}`} />
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Cabeçalho da seção ativa — só mobile, dá contexto + clean */}
+      <div className="md:hidden flex items-center gap-2 mb-3 px-1">
+        {(() => {
+          const current = TABS.find((t) => t.id === tab);
+          if (!current) return null;
+          const Icon = current.icon;
+          return (
+            <>
+              <Icon className="h-4 w-4 text-primary" />
+              <h2 className="font-display text-base font-bold text-primary">{current.label}</h2>
+            </>
+          );
+        })()}
+      </div>
+
       {(tab === "profile" || tab === "address") && (
-        <form onSubmit={save} className="bg-card rounded-2xl border border-border p-6 space-y-4">
+        <form onSubmit={save} className="bg-card rounded-2xl border border-border p-4 md:p-6 space-y-4">
           {tab === "profile" && (
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -244,11 +330,11 @@ export default function MyAccount() {
               </div>
               <div className="space-y-2">
                 <Label>Telefone</Label>
-                <Input value={maskPhone(profile.phone || "")} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} placeholder="(00) 00000-0000" />
+                <Input inputMode="tel" value={maskPhone(profile.phone || "")} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} placeholder="(00) 00000-0000" />
               </div>
               <div className="space-y-2">
                 <Label>CPF</Label>
-                <Input value={maskCPF(profile.cpf || "")} onChange={(e) => setProfile({ ...profile, cpf: e.target.value })} placeholder="000.000.000-00" />
+                <Input inputMode="numeric" value={maskCPF(profile.cpf || "")} onChange={(e) => setProfile({ ...profile, cpf: e.target.value })} placeholder="000.000.000-00" />
               </div>
             </div>
           )}
@@ -259,6 +345,7 @@ export default function MyAccount() {
                 <Label>CEP</Label>
                 <div className="relative">
                   <Input
+                    inputMode="numeric"
                     value={maskCEP(profile.address_zip || "")}
                     onChange={(e) => {
                       const v = e.target.value;
@@ -274,11 +361,17 @@ export default function MyAccount() {
                 <Label>Rua</Label>
                 <Input value={profile.address_street || ""} onChange={(e) => setProfile({ ...profile, address_street: e.target.value })} />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 grid-cols-2 grid sm:block gap-3 sm:gap-0">
+                <div className="space-y-2">
                 <Label>Número</Label>
-                <Input value={profile.address_number || ""} onChange={(e) => setProfile({ ...profile, address_number: e.target.value })} />
+                <Input inputMode="numeric" value={profile.address_number || ""} onChange={(e) => setProfile({ ...profile, address_number: e.target.value })} />
+                </div>
+                <div className="space-y-2 sm:hidden">
+                  <Label>UF</Label>
+                  <Input value={profile.address_state || ""} onChange={(e) => setProfile({ ...profile, address_state: e.target.value.toUpperCase() })} maxLength={2} />
+                </div>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 sm:col-span-1">
                 <Label>Complemento</Label>
                 <Input value={profile.address_complement || ""} onChange={(e) => setProfile({ ...profile, address_complement: e.target.value })} />
               </div>
@@ -290,122 +383,141 @@ export default function MyAccount() {
                 <Label>Cidade</Label>
                 <Input value={profile.address_city || ""} onChange={(e) => setProfile({ ...profile, address_city: e.target.value })} />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 hidden sm:block">
                 <Label>UF</Label>
                 <Input value={profile.address_state || ""} onChange={(e) => setProfile({ ...profile, address_state: e.target.value.toUpperCase() })} maxLength={2} />
               </div>
             </div>
           )}
 
-          <div className="pt-2 border-t border-border flex justify-end">
-            <Button type="submit" disabled={saving}>{saving ? "A guardar…" : "Guardar alterações"}</Button>
+          <div className="pt-3 border-t border-border">
+            <Button type="submit" disabled={saving} size="lg" className="w-full sm:w-auto sm:ml-auto sm:flex">
+              {saving ? "A guardar…" : "Guardar alterações"}
+            </Button>
           </div>
         </form>
       )}
 
       {tab === "orders" && (
-        <div className="bg-card rounded-2xl border border-border overflow-hidden">
-          {orders.length === 0 ? (
-            <div className="text-center py-16 px-6">
-              <ShoppingBag className="h-12 w-12 mx-auto text-muted-foreground/40 mb-3" />
-              <p className="text-muted-foreground">Você ainda não fez nenhum pedido.</p>
-              <Button className="mt-4" onClick={() => nav("/")}>Explorar produtos</Button>
+        orders.length === 0 ? (
+          <div className="bg-card rounded-2xl border border-border text-center py-12 md:py-16 px-6">
+            <div className="h-14 w-14 rounded-2xl bg-muted/60 mx-auto flex items-center justify-center mb-3">
+              <ShoppingBag className="h-7 w-7 text-muted-foreground/70" />
             </div>
-          ) : (
-            <ul className="divide-y divide-border">
-              {orders.map((o) => {
-                const status = STATUS_LABELS[o.status] || { label: o.status, color: "bg-muted" };
-                return (
-                  <li key={o.id} className="flex items-center justify-between gap-3 p-4 hover:bg-muted/30 transition-colors">
-                    <div className="min-w-0">
-                      <p className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(o.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
-                      </p>
-                      <span className={`inline-flex mt-1 px-2 py-0.5 rounded-full text-xs font-semibold ${status.color}`}>
-                        {status.label}
-                      </span>
+            <p className="text-foreground font-semibold">Nenhum pedido ainda</p>
+            <p className="text-sm text-muted-foreground mt-1">Quando você comprar, ele aparece aqui.</p>
+            <Button className="mt-4" onClick={() => nav("/")}>Explorar produtos</Button>
+          </div>
+        ) : (
+          <ul className="space-y-2.5">
+            {orders.map((o) => {
+              const status = STATUS_LABELS[o.status] || { label: o.status, color: "bg-muted text-foreground" };
+              return (
+                <li key={o.id}>
+                  <button
+                    onClick={() => setOrderId(o.id)}
+                    className="w-full text-left bg-card rounded-2xl border border-border p-4 hover:border-primary/40 active:scale-[0.99] transition-all flex items-center gap-3"
+                  >
+                    <div className="h-11 w-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                      <ShoppingBag className="h-5 w-5" />
                     </div>
-                    <div className="text-right flex items-center gap-3">
-                      <p className="font-display font-bold text-primary">{formatBRL(o.total)}</p>
-                      <button onClick={() => setOrderId(o.id)} className="p-2 hover:bg-muted rounded-lg" aria-label="Ver detalhes">
-                        <Eye className="h-4 w-4" />
-                      </button>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="font-mono text-[11px] text-muted-foreground">#{o.id.slice(0, 8).toUpperCase()}</p>
+                        <p className="font-display font-extrabold text-primary text-base">{formatBRL(o.total)}</p>
+                      </div>
+                      <div className="flex items-center justify-between gap-2 mt-1">
+                        <span className={`inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold ${status.color}`}>
+                          {status.label}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground">
+                          {new Date(o.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
+                        </span>
+                      </div>
                     </div>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )
       )}
 
       {orderId && <CustomerOrderDetail orderId={orderId} onClose={() => setOrderId(null)} />}
 
       {tab === "affiliate" && (
         <div className="space-y-4">
-          {/* Banner */}
-          <div className="bg-card rounded-2xl border border-border p-5">
-            <h2 className="font-display text-lg font-bold text-primary">Programa de indicações</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Compartilhe seu link e ganhe <strong>1% de comissão</strong> nas compras aprovadas.
-            </p>
+          {/* Hero do programa: foco mobile, CTA grande de compartilhar */}
+          <div className="rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/15 p-5 md:p-6">
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shrink-0">
+                <Users className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <h2 className="font-display text-lg md:text-xl font-extrabold text-primary leading-tight">Programa de indicações</h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Compartilhe seu link e ganhe <strong className="text-foreground">1% de comissão</strong> em cada compra aprovada.
+                </p>
+              </div>
+            </div>
+
+            {/* Link + ações */}
+            <div className="mt-4 space-y-2">
+              <div className="flex items-center gap-2 bg-card border border-border rounded-xl px-3 py-2.5">
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold shrink-0">Link</span>
+                <span className="font-mono text-xs text-foreground truncate flex-1">{affiliateUrl || "—"}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Button type="button" onClick={shareLink} size="lg" className="w-full">
+                  <Share2 className="h-4 w-4" /> Compartilhar
+                </Button>
+                <Button type="button" variant="outline" onClick={copyLink} size="lg" className="w-full">
+                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  {copied ? "Copiado!" : "Copiar"}
+                </Button>
+              </div>
+              <p className="text-[11px] text-muted-foreground text-center">
+                Código: <span className="font-mono font-semibold text-foreground">{profile?.affiliate_code || "—"}</span>
+              </p>
+            </div>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-            <div className="bg-card rounded-2xl border border-border p-4">
-              <p className="text-xs text-muted-foreground">Comissões pendentes</p>
-              <p className="text-2xl font-extrabold mt-1 text-amber-600">{formatBRL(affStats.pending)}</p>
+          {/* Stats — 2 colunas no mobile, 5 em desktop */}
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-2.5 md:gap-3">
+            <div className="bg-card rounded-2xl border border-border p-3.5 md:p-4">
+              <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Pendentes</p>
+              <p className="text-lg md:text-2xl font-extrabold mt-1 text-amber-600 truncate">{formatBRL(affStats.pending)}</p>
             </div>
-            <div className="bg-card rounded-2xl border border-border p-4">
-              <p className="text-xs text-muted-foreground">Comissões liberadas</p>
-              <p className="text-2xl font-extrabold mt-1 text-primary">{formatBRL(affStats.released)}</p>
+            <div className="bg-card rounded-2xl border border-border p-3.5 md:p-4">
+              <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Liberadas</p>
+              <p className="text-lg md:text-2xl font-extrabold mt-1 text-primary truncate">{formatBRL(affStats.released)}</p>
             </div>
-            <div className="bg-card rounded-2xl border border-border p-4">
-              <p className="text-xs text-muted-foreground">Comissões pagas</p>
-              <p className="text-2xl font-extrabold mt-1 text-emerald-600">{formatBRL(affStats.paid)}</p>
+            <div className="bg-card rounded-2xl border border-border p-3.5 md:p-4">
+              <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Pagas</p>
+              <p className="text-lg md:text-2xl font-extrabold mt-1 text-emerald-600 truncate">{formatBRL(affStats.paid)}</p>
             </div>
-            <div className="bg-card rounded-2xl border border-border p-4">
-              <p className="text-xs text-muted-foreground">Indicações ativas</p>
-              <p className="text-2xl font-extrabold mt-1">{affStats.activeRefs}</p>
+            <div className="bg-card rounded-2xl border border-border p-3.5 md:p-4">
+              <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Indic. ativas</p>
+              <p className="text-lg md:text-2xl font-extrabold mt-1">{affStats.activeRefs}</p>
             </div>
-            <div className="bg-card rounded-2xl border border-border p-4">
-              <p className="text-xs text-muted-foreground">Indicações inativas</p>
-              <p className="text-2xl font-extrabold mt-1">{affStats.inactiveRefs}</p>
+            <div className="bg-card rounded-2xl border border-border p-3.5 md:p-4 col-span-2 lg:col-span-1">
+              <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Indic. inativas</p>
+              <p className="text-lg md:text-2xl font-extrabold mt-1">{affStats.inactiveRefs}</p>
             </div>
           </div>
 
-          <div className="bg-muted/30 rounded-xl border border-border p-4 text-xs text-muted-foreground">
-            <strong className="text-foreground">Como funciona o pagamento:</strong> ao aprovar o pedido, sua comissão fica
-            <span className="text-amber-600 font-semibold"> pendente</span> por 7 dias. Após esse período ela é
-            <span className="text-primary font-semibold"> liberada</span> automaticamente para saque, e quando o administrador
-            efetua o repasse passa a <span className="text-emerald-600 font-semibold">paga</span>.
-          </div>
-
-          {/* Link de divulgação */}
-          <div className="bg-card rounded-2xl border border-border p-5 space-y-3">
-            <div>
-              <h3 className="font-display font-bold text-primary">Link de divulgação</h3>
-              <p className="text-sm text-muted-foreground">Ganhe 1% de comissão nas compras aprovadas de produtos da loja.</p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Input value={affiliateUrl} readOnly className="bg-muted/40 font-mono text-sm" />
-              <Button type="button" variant="outline" onClick={copyLink} className="shrink-0">
-                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                {copied ? "Copiado" : "Copiar"}
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Código de afiliado: <span className="font-mono font-semibold text-foreground">{profile?.affiliate_code || "—"}</span>
-            </p>
+          <div className="bg-muted/40 rounded-2xl border border-border p-4 text-xs text-muted-foreground leading-relaxed">
+            <strong className="text-foreground block mb-1">Como funciona</strong>
+            Ao pedido aprovar, a comissão fica <span className="text-amber-600 font-semibold">pendente</span> por 7 dias.
+            Depois é <span className="text-primary font-semibold">liberada</span> automaticamente e, quando o administrador efetua o repasse, passa a <span className="text-emerald-600 font-semibold">paga</span>.
           </div>
 
           {/* Pixel do Facebook */}
-          <div className="bg-card rounded-2xl border border-border p-5 space-y-3">
+          <div className="bg-card rounded-2xl border border-border p-4 md:p-5 space-y-3">
             <div>
               <h3 className="font-display font-bold text-primary">Pixel do Facebook</h3>
-              <p className="text-sm text-muted-foreground">Adicione seu Pixel para rastrear as conversões geradas pelas suas indicações.</p>
+              <p className="text-xs md:text-sm text-muted-foreground">Adicione seu Pixel para rastrear as conversões das suas indicações.</p>
             </div>
             <Input
               value={profile.facebook_pixel || ""}
@@ -413,24 +525,20 @@ export default function MyAccount() {
               placeholder="Ex.: 123456789012345"
               inputMode="numeric"
             />
-            <div className="flex justify-end">
-              <Button type="button" onClick={savePixel} disabled={savingPixel}>
-                {savingPixel ? "Salvando…" : "Salvar alterações"}
-              </Button>
-            </div>
+            <Button type="button" onClick={savePixel} disabled={savingPixel} className="w-full sm:w-auto sm:ml-auto sm:flex">
+              {savingPixel ? "Salvando…" : "Salvar Pixel"}
+            </Button>
           </div>
         </div>
       )}
 
       {tab === "commissions" && (
         <div className="space-y-4">
-          <div className="bg-card rounded-2xl border border-border p-5">
-            <div className="flex items-center justify-between flex-wrap gap-3">
-              <div>
-                <h2 className="font-display text-lg font-bold text-primary">Minhas comissões</h2>
-                <p className="text-sm text-muted-foreground mt-1">Histórico completo das comissões geradas pelas suas indicações.</p>
-              </div>
-              <div className="flex gap-1 text-xs">
+          <div className="bg-card rounded-2xl border border-border p-4 md:p-5">
+            <h2 className="font-display text-base md:text-lg font-bold text-primary">Histórico de comissões</h2>
+            <p className="text-xs md:text-sm text-muted-foreground mt-0.5">Geradas pelas suas indicações.</p>
+            <div className="-mx-4 md:mx-0 mt-3 px-4 md:px-0 overflow-x-auto scrollbar-thin">
+              <div className="flex gap-1.5 text-xs whitespace-nowrap pb-1">
                 {[
                   { id: "all", label: "Todas" },
                   { id: "pending", label: "Pendentes" },
@@ -442,7 +550,7 @@ export default function MyAccount() {
                   <button
                     key={f.id}
                     onClick={() => setCommFilter(f.id)}
-                    className={`px-3 py-1.5 rounded-full border transition ${commFilter === f.id ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted/50"}`}
+                    className={`px-3 py-1.5 rounded-full border font-semibold transition shrink-0 ${commFilter === f.id ? "bg-primary text-primary-foreground border-primary" : "border-border bg-background text-muted-foreground hover:bg-muted/50"}`}
                   >
                     {f.label}
                   </button>
@@ -451,36 +559,89 @@ export default function MyAccount() {
             </div>
           </div>
 
-          <div className="bg-card rounded-2xl border border-border overflow-hidden">
-            {loadingComm ? (
-              <div className="p-10 flex items-center justify-center text-muted-foreground">
-                <Loader2 className="h-5 w-5 animate-spin" /> <span className="ml-2 text-sm">Carregando…</span>
-              </div>
-            ) : (() => {
-              const filtered = commissions.filter((c) => commFilter === "all" || c.status === commFilter);
-              if (filtered.length === 0) {
-                return (
-                  <div className="p-10 text-center text-sm text-muted-foreground">
-                    Nenhuma comissão {commFilter === "all" ? "registrada" : `com status "${commFilter}"`} no momento.
-                  </div>
-                );
-              }
-              const statusBadge: Record<string, string> = {
+          {(() => {
+            if (loadingComm) {
+              return (
+                <div className="bg-card rounded-2xl border border-border p-10 flex items-center justify-center text-muted-foreground">
+                  <Loader2 className="h-5 w-5 animate-spin" /> <span className="ml-2 text-sm">Carregando…</span>
+                </div>
+              );
+            }
+            const filtered = commissions.filter((c) => commFilter === "all" || c.status === commFilter);
+            if (filtered.length === 0) {
+              return (
+                <div className="bg-card rounded-2xl border border-border p-10 text-center text-sm text-muted-foreground">
+                  <Wallet className="h-10 w-10 mx-auto text-muted-foreground/40 mb-2" />
+                  Nenhuma comissão {commFilter === "all" ? "registrada" : "com este status"} no momento.
+                </div>
+              );
+            }
+            const statusBadge: Record<string, string> = {
                 pending: "bg-amber-100 text-amber-700",
                 released: "bg-blue-100 text-blue-700",
                 paid: "bg-emerald-100 text-emerald-700",
                 cancelled: "bg-red-100 text-red-700",
                 clawback: "bg-orange-100 text-orange-700",
-              };
-              const statusLabel: Record<string, string> = {
+            };
+            const statusLabel: Record<string, string> = {
                 pending: "Pendente",
                 released: "Liberada",
                 paid: "Paga",
                 cancelled: "Cancelada",
                 clawback: "Estornada",
-              };
-              const fmtDate = (d?: string | null) => d ? new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }) : "—";
-              return (
+            };
+            const fmtDate = (d?: string | null) => d ? new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }) : "—";
+            return (
+              <>
+                {/* Mobile: lista de cards */}
+                <ul className="md:hidden space-y-2.5">
+                  {filtered.map((c) => (
+                    <li key={c.id} className="bg-card rounded-2xl border border-border p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="font-mono text-[11px] text-muted-foreground">
+                            {c.order_id ? `#${String(c.order_id).slice(0, 8).toUpperCase()}` : "—"}
+                          </p>
+                          <p className="text-xl font-extrabold text-primary leading-none mt-1">{formatBRL(Number(c.amount || 0))}</p>
+                          {c.orders?.total != null && (
+                            <p className="text-[11px] text-muted-foreground mt-0.5">
+                              do pedido {formatBRL(Number(c.orders.total))}
+                            </p>
+                          )}
+                        </div>
+                        <span className={`inline-block px-2.5 py-1 rounded-full text-[11px] font-semibold shrink-0 ${statusBadge[c.status] || "bg-gray-100 text-gray-700"}`}>
+                          {statusLabel[c.status] || c.status}
+                        </span>
+                      </div>
+                      {c.cancellation_reason && (c.status === "cancelled" || c.status === "clawback") && (
+                        <p className="text-[11px] text-muted-foreground mt-2 italic">{c.cancellation_reason}</p>
+                      )}
+                      <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-border text-[11px]">
+                        <div>
+                          <p className="text-muted-foreground uppercase tracking-wide">Gerada</p>
+                          <p className="font-semibold text-foreground mt-0.5">{fmtDate(c.created_at)}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground uppercase tracking-wide">Liberação</p>
+                          <p className="font-semibold text-foreground mt-0.5">
+                            {c.released_at
+                              ? fmtDate(c.released_at)
+                              : c.status === "pending" && c.eligible_release_at
+                                ? fmtDate(c.eligible_release_at)
+                                : "—"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground uppercase tracking-wide">Pago</p>
+                          <p className="font-semibold text-foreground mt-0.5">{fmtDate(c.paid_at)}</p>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+
+                {/* Desktop: tabela */}
+                <div className="hidden md:block bg-card rounded-2xl border border-border overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="bg-muted/40 text-xs text-muted-foreground uppercase">
@@ -527,9 +688,10 @@ export default function MyAccount() {
                     </tbody>
                   </table>
                 </div>
-              );
-            })()}
-          </div>
+                </div>
+              </>
+            );
+          })()}
         </div>
       )}
     </div>
