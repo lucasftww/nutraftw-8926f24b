@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ShoppingCart, Zap, ShieldCheck, Truck, Lock, CheckCircle2, Package, CreditCard } from "lucide-react";
+import { ShoppingCart, Zap, ShieldCheck, Truck, Lock, Package, CreditCard } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/useCart";
@@ -183,22 +183,14 @@ export default function ProductDetail() {
             <h1 className="text-2xl md:text-4xl font-extrabold text-foreground mt-2 leading-tight tracking-tight">
               {p.name}
             </h1>
-            {/* Microprova social — leve, sem inventar números */}
-            <div className="mt-2 flex items-center justify-center lg:justify-start gap-2 text-xs text-muted-foreground">
-              <CheckCircle2 className="h-3.5 w-3.5 text-success" />
-              <span>Produto original importado</span>
-            </div>
           </div>
 
           {/* Price card — bloco principal de conversão */}
           <div className="rounded-3xl border border-primary/15 bg-gradient-to-br from-primary/[0.05] to-secondary/[0.05] p-5 sm:p-6 shadow-[var(--shadow-soft)]">
             {hasSale && (
-              <div className="flex items-center justify-center lg:justify-start gap-2 mb-1">
+              <div className="flex items-center justify-center lg:justify-start mb-1">
                 <span className="text-sm text-muted-foreground line-through tabular-nums">
-                  {formatBRL(Number(p.price))}
-                </span>
-                <span className="inline-flex items-center rounded-full bg-secondary text-secondary-foreground text-[10px] font-extrabold uppercase tracking-wide px-2 py-0.5">
-                  -{discountPct}%
+                  De {formatBRL(Number(p.price))}
                 </span>
               </div>
             )}
@@ -393,18 +385,11 @@ export default function ProductDetail() {
         >
           <div className="flex items-center gap-3">
             <div className="flex-1 min-w-0">
-              <div className="flex items-baseline gap-1.5 flex-wrap">
-                {hasSale && (
-                  <span className="text-xs text-muted-foreground line-through">
-                    {formatBRL(Number(p.price))}
-                  </span>
-                )}
-                <span className="text-xl font-extrabold text-primary leading-none tabular-nums">
-                  {formatBRL(finalPrice)}
-                </span>
-              </div>
-              <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
-                3x de {formatBRL(finalPrice / 3)} sem juros
+              <span className="block text-xl font-extrabold text-primary leading-none tabular-nums">
+                {formatBRL(finalPrice)}
+              </span>
+              <p className="text-[11px] text-muted-foreground mt-1 truncate">
+                em 3x sem juros
               </p>
             </div>
             <Button
