@@ -186,10 +186,10 @@
 
   /* ===== Checkout — visual KA Imports (cards grandes, inputs h-12 border-2) ===== */
   .checkout-card {
-    @apply bg-card p-5 sm:p-6 rounded-2xl shadow-sm border border-border/60;
+    @apply bg-card p-4 sm:p-6 rounded-2xl shadow-sm border border-border/60;
   }
   .checkout-section-title {
-    @apply text-lg sm:text-2xl font-bold mb-5 sm:mb-6 tracking-tight;
+    @apply text-base sm:text-2xl font-bold mb-4 sm:mb-6 tracking-tight;
   }
   .checkout-field {
     @apply w-full space-y-1.5;
