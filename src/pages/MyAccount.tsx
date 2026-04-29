@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { LogOut, User as UserIcon, MapPin, ShoppingBag, Eye, Loader2, Users, Copy, Check, Wallet } from "lucide-react";
-import { formatBRL } from "@/lib/utils";
+import { formatBRL, maskCPF, maskPhone, maskCEP } from "@/lib/utils";
 import { CustomerOrderDetail } from "@/components/account/CustomerOrderDetail";
 
 type Tab = "profile" | "address" | "orders" | "affiliate" | "commissions";
@@ -29,14 +29,6 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   cancelled: { label: "Cancelado", color: "bg-red-100 text-red-700" },
   refunded: { label: "Reembolsado", color: "bg-gray-100 text-gray-700" },
 };
-
-const maskCPF = (v: string) => v.replace(/\D/g, "").slice(0, 11).replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-const maskPhone = (v: string) => {
-  const d = v.replace(/\D/g, "").slice(0, 11);
-  if (d.length <= 10) return d.replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{4})(\d)/, "$1-$2");
-  return d.replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2");
-};
-const maskCEP = (v: string) => v.replace(/\D/g, "").slice(0, 8).replace(/(\d{5})(\d)/, "$1-$2");
 
 export default function MyAccount() {
   const { user } = useAuth();
