@@ -18,6 +18,7 @@ import { AdminShipping } from "@/components/admin/AdminShipping";
 import { AdminBanners } from "@/components/admin/AdminBanners";
 import { AdminResends } from "@/components/admin/AdminResends";
 import { AdminSettings } from "@/components/admin/AdminSettings";
+import { queryKeys } from "@/lib/queryKeys";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 
 type Tab = "dashboard" | "reports" | "products" | "categories" | "orders" | "coupons" | "shipping" | "banners" | "resends" | "settings";
@@ -150,7 +151,7 @@ function AdminProducts() {
     } else {
       toast.success("Produto guardado");
       setEditing(null);
-      qc.invalidateQueries({ queryKey: ["products"] });
+      qc.invalidateQueries({ queryKey: queryKeys.products.all });
       qc.invalidateQueries({ queryKey: ["product"] });
       load();
     }
@@ -164,7 +165,7 @@ function AdminProducts() {
       toast.error(error.message);
     } else {
       toast.success("Removido");
-      qc.invalidateQueries({ queryKey: ["products"] });
+      qc.invalidateQueries({ queryKey: queryKeys.products.all });
       load();
     }
   }
@@ -285,7 +286,7 @@ function AdminCategories() {
       toast.error(error.message);
     } else {
       setName("");
-      qc.invalidateQueries({ queryKey: ["categories"] });
+      qc.invalidateQueries({ queryKey: queryKeys.categories.all });
       load();
     }
   }
@@ -297,7 +298,7 @@ function AdminCategories() {
       toast.error(err.message);
       return;
     }
-    qc.invalidateQueries({ queryKey: ["categories"] });
+    qc.invalidateQueries({ queryKey: queryKeys.categories.all });
     load();
   }
 
