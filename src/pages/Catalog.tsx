@@ -564,7 +564,7 @@ function Section({
   if (items.length === 0) return null;
   const isPromo = /promo/i.test(title);
   return (
-    <div>
+    <div style={{ contentVisibility: "auto", containIntrinsicSize: "1px 600px" }}>
       <div className="mb-4 md:mb-6 flex items-baseline justify-between gap-3">
         <h2 className="text-lg md:text-2xl font-bold tracking-tight text-foreground">
           {title}
