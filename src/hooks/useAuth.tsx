@@ -190,6 +190,7 @@ export function useAuth(): AuthValue {
       user: null,
       role: null,
       loading: true,
+      authLoading: true,
       isAdmin: false,
     };
   }
