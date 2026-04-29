@@ -12,7 +12,6 @@ import { toast } from "sonner";
 import { ShieldCheck, Truck, Lock, CreditCard, QrCode, ArrowLeft, Ticket, Check, MapPin, User as UserIcon, Package, AlertTriangle, Loader2, ChevronDown, ShoppingBag, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { trackEvent } from "@/lib/analytics";
-import { CheckoutSteps } from "@/components/checkout/CheckoutSteps";
 import { useFieldValidation } from "@/hooks/useFieldValidation";
 import { validateFullName, validateEmail, validatePhoneBR, validateCPF, validateCEP } from "@/lib/validators";
 import { isValidCPF } from "@/lib/validators";
@@ -334,15 +333,6 @@ export default function Checkout() {
   const shippingDone = !!shippingId;
   const paymentDone = !!form.payment_method && (settings.checkout_enable_pix !== "0" || settings.checkout_enable_card !== "0");
 
-  const completedFlags = [buyerDone, addressDone, shippingDone, paymentDone];
-  // última etapa concluída de forma contígua a partir do início
-  let completedIdx = -1;
-  for (let i = 0; i < completedFlags.length; i++) {
-    if (completedFlags[i]) completedIdx = i;
-    else break;
-  }
-  const currentIdx = Math.min(completedIdx + 1, completedFlags.length - 1);
-
   // Mesmas fórmulas usadas no RPC `create_order` para garantir que o resumo
   // exibido aqui bate com o total que o servidor vai gravar.
   const couponDiscount = !coupon ? 0 :
@@ -597,17 +587,11 @@ export default function Checkout() {
         >
           <ArrowLeft className="h-4 w-4" /> Voltar
         </button>
-        <div className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
-          <Lock className="w-3.5 h-3.5 text-success" />
-          Compra 100% segura
-        </div>
       </div>
 
       <h1 className="text-xl sm:text-3xl font-extrabold tracking-tight mb-4 sm:mb-6 text-center lg:text-left">
         Finalizar Compra
       </h1>
-
-      <CheckoutSteps current={currentIdx} completed={completedIdx} />
 
       <form onSubmit={submit} className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-5 lg:gap-8">
         <div className="space-y-5 sm:space-y-6 min-w-0">
