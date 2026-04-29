@@ -42,6 +42,22 @@ export function AdminShipping() {
       delivery_days_max: f.delivery_days_max ? Number(f.delivery_days_max) : null,
       active: f.active !== false,
     };
+    // Evita criar dois fretes com mesmo (UF, modalidade) — não há UNIQUE no banco.
+    const dup = items.find(
+      (s) => s.state === payload.state && (s.label || "").toLowerCase() === payload.label.toLowerCase() && s.id !== f.id,
+    );
+    if (dup) {
+      toast.error(`Já existe um frete "${payload.label}" para ${payload.state}.`);
+      return;
+    }
+    if (
+      payload.delivery_days_min != null &&
+      payload.delivery_days_max != null &&
+      payload.delivery_days_min > payload.delivery_days_max
+    ) {
+      toast.error("Prazo mínimo não pode ser maior que o máximo.");
+      return;
+    }
     const before = f.id ? items.find((s) => s.id === f.id) : null;
     const { data, error } = f.id
       ? await supabase.from("shipping_rates" as any).update(payload).eq("id", f.id).select().maybeSingle()

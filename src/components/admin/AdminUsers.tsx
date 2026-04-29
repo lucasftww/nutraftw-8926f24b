@@ -6,6 +6,7 @@ import { Search, Shield, ShieldOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { logAdminAction } from "@/lib/auditLog";
+import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 
 interface UserRow {
   user_id: string;
@@ -26,9 +27,11 @@ export function AdminUsers() {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<AdminErrorInfo | null>(null);
 
   async function load() {
     setLoading(true);
+    setError(null);
     const [profilesRes, rolesRes] = await Promise.all([
       supabase
         .from("profiles")
@@ -37,7 +40,16 @@ export function AdminUsers() {
       supabase.from("user_roles").select("user_id, role").eq("role", "admin"),
     ]);
     if (profilesRes.error) {
-      toast.error(`Falha ao carregar usuários: ${profilesRes.error.message}`);
+      const info = logSupabaseError("Carregar usuários", profilesRes.error, { table: "profiles" });
+      setError(info);
+      toast.error(`Usuários: ${info.message}`);
+      setLoading(false);
+      return;
+    }
+    if (rolesRes.error) {
+      const info = logSupabaseError("Carregar papéis", rolesRes.error, { table: "user_roles" });
+      setError(info);
+      toast.error(`Papéis: ${info.message}`);
       setLoading(false);
       return;
     }
@@ -75,7 +87,7 @@ export function AdminUsers() {
         toast.success("Admin removido");
         logAdminAction({
           action: "update",
-          entity: "categories", // entity enum não inclui 'user_roles', usa categorias como fallback
+          entity: "user_roles",
           entityId: u.user_id,
           summary: `Removido admin de ${u.email}`,
         });
@@ -91,7 +103,7 @@ export function AdminUsers() {
         toast.success("Promovido a admin");
         logAdminAction({
           action: "update",
-          entity: "categories",
+          entity: "user_roles",
           entityId: u.user_id,
           summary: `${u.email} promovido a admin`,
         });
@@ -109,6 +121,8 @@ export function AdminUsers() {
       (u.full_name || "").toLowerCase().includes(q)
     );
   });
+
+  if (error) return <AdminErrorBanner error={error} onRetry={load} />;
 
   return (
     <div>
