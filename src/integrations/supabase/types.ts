@@ -330,6 +330,7 @@ export type Database = {
           shipping_complement: string | null
           shipping_cpf: string | null
           shipping_district: string | null
+          shipping_email: string | null
           shipping_full_name: string | null
           shipping_number: string | null
           shipping_phone: string | null
@@ -359,6 +360,7 @@ export type Database = {
           shipping_complement?: string | null
           shipping_cpf?: string | null
           shipping_district?: string | null
+          shipping_email?: string | null
           shipping_full_name?: string | null
           shipping_number?: string | null
           shipping_phone?: string | null
@@ -388,6 +390,7 @@ export type Database = {
           shipping_complement?: string | null
           shipping_cpf?: string | null
           shipping_district?: string | null
+          shipping_email?: string | null
           shipping_full_name?: string | null
           shipping_number?: string | null
           shipping_phone?: string | null
@@ -735,27 +738,50 @@ export type Database = {
       }
       affiliate_commission_rate: { Args: never; Returns: number }
       affiliate_release_days: { Args: never; Returns: number }
-      create_order: {
-        Args: {
-          p_city: string
-          p_complement: string
-          p_coupon_code: string
-          p_cpf: string
-          p_district: string
-          p_full_name: string
-          p_insurance: boolean
-          p_items: Json
-          p_notes: string
-          p_number: string
-          p_payment_method: string
-          p_phone: string
-          p_shipping_id: string
-          p_state: string
-          p_street: string
-          p_zip: string
-        }
-        Returns: string
-      }
+      create_order:
+        | {
+            Args: {
+              p_city: string
+              p_complement: string
+              p_coupon_code: string
+              p_cpf: string
+              p_district: string
+              p_full_name: string
+              p_insurance: boolean
+              p_items: Json
+              p_notes: string
+              p_number: string
+              p_payment_method: string
+              p_phone: string
+              p_shipping_id: string
+              p_state: string
+              p_street: string
+              p_zip: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_city: string
+              p_complement: string
+              p_coupon_code: string
+              p_cpf: string
+              p_district: string
+              p_email?: string
+              p_full_name: string
+              p_insurance: boolean
+              p_items: Json
+              p_notes: string
+              p_number: string
+              p_payment_method: string
+              p_phone: string
+              p_shipping_id: string
+              p_state: string
+              p_street: string
+              p_zip: string
+            }
+            Returns: string
+          }
       funnel_by_product: {
         Args: { p_end: string; p_limit?: number; p_start: string }
         Returns: {
