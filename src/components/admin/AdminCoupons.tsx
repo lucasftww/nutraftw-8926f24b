@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,16 @@ export function AdminCoupons() {
   const [items, setItems] = useState<any[]>([]);
   const [editing, setEditing] = useState<any | null>(null);
   const [error, setError] = useState<AdminErrorInfo | null>(null);
+  const qc = useQueryClient();
+
+  // Converte ISO UTC -> string "YYYY-MM-DDTHH:mm" no fuso local p/ datetime-local.
+  function toLocalInput(iso: string | null | undefined) {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    const off = d.getTimezoneOffset();
+    return new Date(d.getTime() - off * 60_000).toISOString().slice(0, 16);
+  }
 
   async function load() {
     setError(null);
@@ -28,11 +39,16 @@ export function AdminCoupons() {
   async function save(e: React.FormEvent) {
     e.preventDefault();
     const f = editing;
+    const dt = (f.discount_type || "percent");
+    const dv = Number(f.discount_value) || 0;
+    if (dv <= 0) { toast.error("Valor de desconto deve ser > 0"); return; }
+    if (dt === "percent" && dv > 100) { toast.error("Percentual máximo é 100%"); return; }
+    if (!String(f.code || "").trim()) { toast.error("Código obrigatório"); return; }
     const payload: any = {
       code: (f.code || "").trim().toUpperCase(),
       description: f.description || null,
-      discount_type: f.discount_type || "percent",
-      discount_value: Number(f.discount_value) || 0,
+      discount_type: dt,
+      discount_value: dv,
       min_subtotal: Number(f.min_subtotal) || 0,
       max_uses: f.max_uses ? Number(f.max_uses) : null,
       active: f.active !== false,
@@ -47,6 +63,7 @@ export function AdminCoupons() {
       logSupabaseError("Guardar cupom", error, { id: f.id, code: payload.code });
       toast.error(error.message);
     } else { toast.success("Cupom guardado"); setEditing(null); load(); }
+    qc.invalidateQueries({ queryKey: ["coupons"] });
   }
 
   async function del(id: string) {
@@ -56,6 +73,7 @@ export function AdminCoupons() {
       logSupabaseError("Remover cupom", error, { id });
       toast.error(error.message);
     } else { toast.success("Removido"); load(); }
+    qc.invalidateQueries({ queryKey: ["coupons"] });
   }
 
   if (error) return <AdminErrorBanner error={error} onRetry={load} />;
@@ -130,7 +148,7 @@ export function AdminCoupons() {
                 <Input value={editing.description || ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} />
               </div>
               <div className="space-y-2"><Label>Expira em</Label>
-                <Input type="datetime-local" value={editing.expires_at ? String(editing.expires_at).slice(0,16) : ""} onChange={(e) => setEditing({ ...editing, expires_at: e.target.value || null })} />
+                <Input type="datetime-local" value={toLocalInput(editing.expires_at)} onChange={(e) => setEditing({ ...editing, expires_at: e.target.value || null })} />
               </div>
               <label className="flex items-center gap-2 text-sm pt-7"><input type="checkbox" checked={editing.active !== false} onChange={(e) => setEditing({ ...editing, active: e.target.checked })} /> Ativo</label>
             </div>

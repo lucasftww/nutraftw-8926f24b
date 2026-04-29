@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,7 @@ export function AdminShipping() {
   const [items, setItems] = useState<any[]>([]);
   const [editing, setEditing] = useState<any | null>(null);
   const [error, setError] = useState<AdminErrorInfo | null>(null);
+  const qc = useQueryClient();
 
   async function load() {
     setError(null);
@@ -44,7 +46,12 @@ export function AdminShipping() {
     if (error) {
       logSupabaseError("Guardar frete", error, { id: f.id, payload });
       toast.error(error.message);
-    } else { toast.success("Frete guardado"); setEditing(null); load(); }
+    } else {
+      toast.success("Frete guardado");
+      setEditing(null);
+      qc.invalidateQueries({ queryKey: ["shipping_rates"] });
+      load();
+    }
   }
 
   async function del(id: string) {
@@ -55,6 +62,7 @@ export function AdminShipping() {
       toast.error(err.message);
       return;
     }
+    qc.invalidateQueries({ queryKey: ["shipping_rates"] });
     load();
   }
 

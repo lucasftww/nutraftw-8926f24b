@@ -165,10 +165,7 @@ export function WeeklyReport() {
     };
   }, [startDate, endDate, prevStart, prevEnd, reloadKey, range]);
 
-  if (error) {
-    return <AdminErrorBanner error={error} onRetry={() => setReloadKey((k) => k + 1)} />;
-  }
-
+  // IMPORTANTE: nenhum return condicional antes dos hooks abaixo — viola Rules of Hooks.
   const paid = useMemo(() => orders.filter((o) => PAID_STATUSES.includes(o.status)), [orders]);
   const prevPaid = useMemo(() => prevOrders.filter((o) => PAID_STATUSES.includes(o.status)), [prevOrders]);
 
@@ -324,6 +321,10 @@ export function WeeklyReport() {
     { label: "Ticket médio", value: formatBRL(aov), delta: pctDelta(aov, prevAov), icon: Receipt, color: "text-blue-600", bg: "bg-blue-50" },
     { label: "Itens vendidos", value: itemsSold, delta: null as number | null, icon: Package, color: "text-purple-600", bg: "bg-purple-50" },
   ];
+
+  if (error) {
+    return <AdminErrorBanner error={error} onRetry={() => setReloadKey((k) => k + 1)} />;
+  }
 
   return (
     <div className="space-y-6">

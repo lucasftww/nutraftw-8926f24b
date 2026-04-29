@@ -82,7 +82,11 @@ export function AdminResends() {
                 </Button>
               )}
               {o.resend_status === "sent" && (
-                <Button size="sm" variant="outline" onClick={() => update(o.id, { resend_status: "delivered" })}>
+                <Button size="sm" variant="outline" onClick={() => update(o.id, {
+                  resend_status: "delivered",
+                  // garante carimbo de envio caso tenha pulado o passo
+                  ...(o.resend_sent_at ? {} : { resend_sent_at: new Date().toISOString() }),
+                })}>
                   <PackageCheck className="h-4 w-4" /> Marcar entregue
                 </Button>
               )}
