@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Truck, Loader2, MapPin, AlertCircle, PackageCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
@@ -23,6 +23,19 @@ export function ShippingCalculator() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Guards contra race conditions (auto-cálculo no onChange pode disparar
+  // várias buscas concorrentes) e setState após desmontagem.
+  const reqIdRef = useRef(0);
+  const mountedRef = useRef(true);
+  const abortRef = useRef<AbortController | null>(null);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      abortRef.current?.abort();
+    };
+  }, []);
+
   const formatZip = (v: string) => {
     const d = v.replace(/\D/g, "").slice(0, 8);
     return d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d;
@@ -31,10 +44,18 @@ export function ShippingCalculator() {
   async function calculate(zipRaw: string) {
     const cleanZip = zipRaw.replace(/\D/g, "");
     if (cleanZip.length !== 8) return;
+    // Cancela request anterior em voo e marca esta como a corrente.
+    abortRef.current?.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    const myId = ++reqIdRef.current;
+    const isStale = () => myId !== reqIdRef.current || !mountedRef.current;
+
     setLoading(true); setError(null); setOpts([]); setCity(""); setState("");
     try {
-      const r = await fetch(`https://viacep.com.br/ws/${cleanZip}/json/`);
+      const r = await fetch(`https://viacep.com.br/ws/${cleanZip}/json/`, { signal: ctrl.signal });
       const data = await r.json();
+      if (isStale()) return;
       if (data?.erro || !data?.uf) {
         setError("CEP não encontrado");
         return;
@@ -47,13 +68,15 @@ export function ShippingCalculator() {
         .eq("state", data.uf)
         .eq("active", true)
         .order("price");
+      if (isStale()) return;
       const arr = (rates as ShippingOption[]) || [];
       setOpts(arr);
       if (arr.length === 0) setError("Sem opções de frete para este estado");
-    } catch {
+    } catch (e: any) {
+      if (e?.name === "AbortError" || isStale()) return;
       setError("Não foi possível calcular agora");
     } finally {
-      setLoading(false);
+      if (!isStale()) setLoading(false);
     }
   }
 
