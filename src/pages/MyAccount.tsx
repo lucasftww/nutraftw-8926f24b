@@ -96,7 +96,7 @@ export default function MyAccount() {
     (async () => {
       const { data, error } = await supabase
         .from("affiliate_commissions")
-        .select("id, amount, status, created_at, released_at, paid_at, eligible_release_at, order_id, orders(id, total, status, created_at, shipping_full_name)")
+        .select("id, amount, status, created_at, released_at, paid_at, eligible_release_at, cancellation_reason, cancelled_at, order_id, orders(id, total, status, created_at, shipping_full_name)")
         .eq("affiliate_user_id", user.id)
         .order("created_at", { ascending: false });
       if (error) toast.error(error.message);
