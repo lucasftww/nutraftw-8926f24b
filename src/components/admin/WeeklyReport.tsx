@@ -36,6 +36,10 @@ import {
   Receipt,
   Calendar,
   Download,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  X,
 } from "lucide-react";
 
 type Range = "7d" | "14d" | "30d";
@@ -74,6 +78,18 @@ export function WeeklyReport() {
   const [prevOrders, setPrevOrders] = useState<OrderRow[]>([]);
   const [error, setError] = useState<AdminErrorInfo | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+
+  // ───────── Filtros e paginação ─────────
+  const [dailySearch, setDailySearch] = useState("");
+  const [dailyWeekday, setDailyWeekday] = useState<string>("all");
+  const [dailyMinRevenue, setDailyMinRevenue] = useState<string>("");
+  const [dailyPage, setDailyPage] = useState(1);
+  const DAILY_PAGE_SIZE = 10;
+
+  const [productSearch, setProductSearch] = useState("");
+  const [productMinQty, setProductMinQty] = useState<string>("");
+  const [productPage, setProductPage] = useState(1);
+  const PRODUCT_PAGE_SIZE = 10;
 
   const days = range === "7d" ? 7 : range === "14d" ? 14 : 30;
 
@@ -322,6 +338,64 @@ export function WeeklyReport() {
     { label: "Itens vendidos", value: itemsSold, delta: null as number | null, icon: Package, color: "text-purple-600", bg: "bg-purple-50" },
   ];
 
+  // ───────── Daily series filtrada/paginada ─────────
+  const filteredDaily = useMemo(() => {
+    const min = Number(dailyMinRevenue) || 0;
+    const q = dailySearch.trim().toLowerCase();
+    return dailySeries.filter((d) => {
+      if (q && !d.date.includes(q) && !d.label.toLowerCase().includes(q)) return false;
+      if (dailyWeekday !== "all" && d.weekday.toLowerCase().replace(".", "") !== dailyWeekday) return false;
+      if (min > 0 && d.revenue < min) return false;
+      return true;
+    });
+  }, [dailySeries, dailySearch, dailyWeekday, dailyMinRevenue]);
+
+  const dailyTotalPages = Math.max(1, Math.ceil(filteredDaily.length / DAILY_PAGE_SIZE));
+  const dailyPageSafe = Math.min(dailyPage, dailyTotalPages);
+  const dailyPageRows = filteredDaily.slice(
+    (dailyPageSafe - 1) * DAILY_PAGE_SIZE,
+    dailyPageSafe * DAILY_PAGE_SIZE,
+  );
+
+  useEffect(() => {
+    setDailyPage(1);
+  }, [dailySearch, dailyWeekday, dailyMinRevenue, range]);
+
+  // ───────── Produtos filtrada/paginada ─────────
+  const filteredProducts = useMemo(() => {
+    const minQty = Number(productMinQty) || 0;
+    const q = productSearch.trim().toLowerCase();
+    return topProducts.filter((p) => {
+      if (q && !p.name.toLowerCase().includes(q)) return false;
+      if (minQty > 0 && p.qty < minQty) return false;
+      return true;
+    });
+  }, [topProducts, productSearch, productMinQty]);
+
+  const productTotalPages = Math.max(1, Math.ceil(filteredProducts.length / PRODUCT_PAGE_SIZE));
+  const productPageSafe = Math.min(productPage, productTotalPages);
+  const productPageRows = filteredProducts.slice(
+    (productPageSafe - 1) * PRODUCT_PAGE_SIZE,
+    productPageSafe * PRODUCT_PAGE_SIZE,
+  );
+
+  useEffect(() => {
+    setProductPage(1);
+  }, [productSearch, productMinQty, range]);
+
+  const dailyHasFilters = dailySearch || dailyWeekday !== "all" || dailyMinRevenue;
+  const productHasFilters = productSearch || productMinQty;
+
+  function clearDailyFilters() {
+    setDailySearch("");
+    setDailyWeekday("all");
+    setDailyMinRevenue("");
+  }
+  function clearProductFilters() {
+    setProductSearch("");
+    setProductMinQty("");
+  }
+
   if (error) {
     return <AdminErrorBanner error={error} onRetry={() => setReloadKey((k) => k + 1)} />;
   }
@@ -461,10 +535,47 @@ export function WeeklyReport() {
 
       {/* Top products table */}
       <div className="bg-card rounded-2xl border border-border p-4 md:p-6">
-        <h3 className="font-bold mb-4">Produtos mais vendidos</h3>
+        <div className="flex items-center justify-between gap-2 flex-wrap mb-4">
+          <h3 className="font-bold">Produtos mais vendidos</h3>
+          <span className="text-xs text-muted-foreground">
+            {filteredProducts.length} de {topProducts.length}
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          <div className="relative flex-1 min-w-[180px]">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <input
+              value={productSearch}
+              onChange={(e) => setProductSearch(e.target.value)}
+              placeholder="Buscar produto…"
+              className="w-full h-9 pl-8 pr-3 rounded-full border border-border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
+          <input
+            value={productMinQty}
+            onChange={(e) => setProductMinQty(e.target.value.replace(/[^\d]/g, ""))}
+            placeholder="Qtd mín."
+            inputMode="numeric"
+            className="h-9 w-24 px-3 rounded-full border border-border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+          />
+          {productHasFilters && (
+            <button
+              type="button"
+              onClick={clearProductFilters}
+              className="inline-flex items-center gap-1 h-9 px-3 rounded-full border border-border bg-background text-xs font-semibold hover:bg-accent"
+            >
+              <X className="h-3 w-3" /> Limpar
+            </button>
+          )}
+        </div>
+
         {topProducts.length === 0 ? (
           <p className="text-sm text-muted-foreground py-8 text-center">Nenhum produto vendido no período.</p>
+        ) : filteredProducts.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-8 text-center">Nenhum produto corresponde aos filtros.</p>
         ) : (
+          <>
           <div className="overflow-x-auto -mx-4 md:mx-0">
             <table className="w-full text-sm min-w-[480px]">
               <thead>
@@ -476,9 +587,11 @@ export function WeeklyReport() {
                 </tr>
               </thead>
               <tbody>
-                {topProducts.slice(0, 10).map((p, i) => (
+                {productPageRows.map((p, i) => (
                   <tr key={p.name + i} className="border-b border-border/60 last:border-0">
-                    <td className="py-3 px-4 md:px-2 text-muted-foreground font-mono text-xs">{i + 1}</td>
+                    <td className="py-3 px-4 md:px-2 text-muted-foreground font-mono text-xs">
+                      {(productPageSafe - 1) * PRODUCT_PAGE_SIZE + i + 1}
+                    </td>
                     <td className="py-3 px-2">
                       <div className="flex items-center gap-3">
                         <img src={p.image || "/assets/no-image.svg"} alt="" className="h-9 w-9 rounded-lg object-cover bg-muted shrink-0" />
@@ -492,6 +605,94 @@ export function WeeklyReport() {
               </tbody>
             </table>
           </div>
+          <Pager
+            page={productPageSafe}
+            totalPages={productTotalPages}
+            onChange={setProductPage}
+          />
+          </>
+        )}
+      </div>
+
+      {/* Detalhamento diário com filtros e paginação */}
+      <div className="bg-card rounded-2xl border border-border p-4 md:p-6">
+        <div className="flex items-center justify-between gap-2 flex-wrap mb-4">
+          <h3 className="font-bold">Detalhamento diário</h3>
+          <span className="text-xs text-muted-foreground">
+            {filteredDaily.length} de {dailySeries.length} dias
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          <div className="relative flex-1 min-w-[180px]">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <input
+              value={dailySearch}
+              onChange={(e) => setDailySearch(e.target.value)}
+              placeholder="Buscar data (ex: 2026-04 ou 28/04)…"
+              className="w-full h-9 pl-8 pr-3 rounded-full border border-border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
+          <select
+            value={dailyWeekday}
+            onChange={(e) => setDailyWeekday(e.target.value)}
+            className="h-9 px-3 rounded-full border border-border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+          >
+            <option value="all">Todos os dias</option>
+            <option value="seg">Segunda</option>
+            <option value="ter">Terça</option>
+            <option value="qua">Quarta</option>
+            <option value="qui">Quinta</option>
+            <option value="sex">Sexta</option>
+            <option value="sáb">Sábado</option>
+            <option value="dom">Domingo</option>
+          </select>
+          <input
+            value={dailyMinRevenue}
+            onChange={(e) => setDailyMinRevenue(e.target.value.replace(/[^\d.]/g, ""))}
+            placeholder="Receita mín."
+            inputMode="decimal"
+            className="h-9 w-32 px-3 rounded-full border border-border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+          />
+          {dailyHasFilters && (
+            <button
+              type="button"
+              onClick={clearDailyFilters}
+              className="inline-flex items-center gap-1 h-9 px-3 rounded-full border border-border bg-background text-xs font-semibold hover:bg-accent"
+            >
+              <X className="h-3 w-3" /> Limpar
+            </button>
+          )}
+        </div>
+
+        {filteredDaily.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-8 text-center">Nenhum dia corresponde aos filtros.</p>
+        ) : (
+          <>
+            <div className="overflow-x-auto -mx-4 md:mx-0">
+              <table className="w-full text-sm min-w-[420px]">
+                <thead>
+                  <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground border-b border-border">
+                    <th className="py-2 px-4 md:px-2">Data</th>
+                    <th className="py-2 px-2">Dia</th>
+                    <th className="py-2 px-2 text-right">Pedidos</th>
+                    <th className="py-2 px-4 md:px-2 text-right">Receita</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dailyPageRows.map((d) => (
+                    <tr key={d.date} className="border-b border-border/60 last:border-0">
+                      <td className="py-2.5 px-4 md:px-2 font-mono text-xs">{d.label}</td>
+                      <td className="py-2.5 px-2 capitalize text-xs text-muted-foreground">{d.weekday}</td>
+                      <td className="py-2.5 px-2 text-right tabular-nums font-semibold">{d.orders}</td>
+                      <td className="py-2.5 px-4 md:px-2 text-right tabular-nums font-bold text-primary">{formatBRL(d.revenue)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <Pager page={dailyPageSafe} totalPages={dailyTotalPages} onChange={setDailyPage} />
+          </>
         )}
       </div>
 
@@ -646,6 +847,45 @@ function Stat({
     <div className="rounded-xl border border-border bg-background px-3 py-2">
       <p className="text-[11px] text-muted-foreground">{label}</p>
       <p className={`text-sm font-bold tabular-nums mt-0.5 ${toneClass}`}>{value}</p>
+    </div>
+  );
+}
+
+function Pager({
+  page,
+  totalPages,
+  onChange,
+}: {
+  page: number;
+  totalPages: number;
+  onChange: (p: number) => void;
+}) {
+  if (totalPages <= 1) return null;
+  return (
+    <div className="flex items-center justify-between gap-2 mt-3">
+      <span className="text-[11px] text-muted-foreground">
+        Página {page} de {totalPages}
+      </span>
+      <div className="inline-flex items-center gap-1">
+        <button
+          type="button"
+          onClick={() => onChange(Math.max(1, page - 1))}
+          disabled={page <= 1}
+          className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-border bg-background text-xs hover:bg-accent disabled:opacity-40 disabled:cursor-not-allowed"
+          aria-label="Página anterior"
+        >
+          <ChevronLeft className="h-3.5 w-3.5" />
+        </button>
+        <button
+          type="button"
+          onClick={() => onChange(Math.min(totalPages, page + 1))}
+          disabled={page >= totalPages}
+          className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-border bg-background text-xs hover:bg-accent disabled:opacity-40 disabled:cursor-not-allowed"
+          aria-label="Próxima página"
+        >
+          <ChevronRight className="h-3.5 w-3.5" />
+        </button>
+      </div>
     </div>
   );
 }
