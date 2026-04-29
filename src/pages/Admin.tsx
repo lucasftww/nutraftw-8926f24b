@@ -424,12 +424,21 @@ function AdminOrders() {
     setTotalCount(count ?? null);
     setLoading(false);
   }
+  // Reseta para a primeira página quando o filtro muda — fazer ANTES do
+  // efeito de load() para não disparar duas requisições (page atual + page=0)
+  // que poderiam causar race condition (resposta antiga sobrescreve nova).
+  const filterRef = useRef(filter);
   useEffect(() => {
+    if (filterRef.current !== filter) {
+      filterRef.current = filter;
+      if (page !== 0) {
+        setPage(0);
+        return; // load() dispara no próximo render via dep [page]
+      }
+    }
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, filter]);
-  // Reseta para a primeira página quando o filtro muda.
-  useEffect(() => { setPage(0); }, [filter]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
