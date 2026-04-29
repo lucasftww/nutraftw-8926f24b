@@ -214,33 +214,35 @@ export default function Catalog() {
     [products, selectedCats, query]
   );
 
-  // Lista ordenada (usada quando o sort não é "categoria")
-  const sorted = useMemo(() => {
-    const arr = [...filtered];
+  // Comparator único — usado tanto em Promoções quanto em cada Categoria,
+  // garantindo que "A→Z" e "Recentes" se apliquem em TODAS as seções da
+  // mesma forma. "Por categoria" mantém a curadoria comercial
+  // (% desconto desc → score desc) como tie-breaker de conversão.
+  const sortComparator = useMemo(() => {
     if (sort === "az") {
-      arr.sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }));
-    } else if (sort === "recentes") {
-      arr.sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
+      return (a: Product, b: Product) =>
+        a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" });
     }
-    return arr;
-  }, [filtered, sort]);
+    if (sort === "recentes") {
+      return (a: Product, b: Product) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    }
+    // "categoria" (curadoria): mais desconto primeiro, desempate por score
+    return (a: Product, b: Product) => {
+      const dDiff = discountPctOf(b) - discountPctOf(a);
+      if (Math.abs(dDiff) > 0.0001) return dDiff;
+      return productScore(b) - productScore(a);
+    };
+  }, [sort]);
 
-  // Lista achatada para paginação no modo "categoria" (promos primeiro, depois cada categoria em ordem)
-  const groupedFlat = useMemo(() => {
-    // Promoções: maior % de desconto primeiro (gatilho de conversão).
-    // Em empate de %, prioriza em estoque > destaque > mais recente.
+  // Agrupamento estável: Promoções no topo (todas as promos, sem teto fixo)
+  // e cada Categoria abaixo. Mesmo comparator em todas as seções.
+  const grouped = useMemo(() => {
     const promos = filtered
       .filter((p) => discountPctOf(p) > 0)
-      .sort((a, b) => {
-        const dDiff = discountPctOf(b) - discountPctOf(a);
-        if (Math.abs(dDiff) > 0.0001) return dDiff;
-        return productScore(b) - productScore(a);
-      })
-      .slice(0, 8);
-    // Evita duplicar: produtos já listados em "Promoções" não reaparecem nas seções de categoria.
+      .sort(sortComparator);
     const promoIds = new Set(promos.map((p) => p.id));
+
     const byCat = new Map<string, { name: string; items: Product[] }>();
     for (const p of filtered) {
       if (!p.category?.slug) continue;
@@ -250,43 +252,33 @@ export default function Catalog() {
       if (!byCat.has(key)) byCat.set(key, { name, items: [] });
       byCat.get(key)!.items.push(p);
     }
-    // Dentro de cada categoria: produtos com desconto residual (não couberam nas top 8 promos)
-    // primeiro, depois por score (estoque → destaque → recência).
-    for (const s of byCat.values()) {
-      s.items.sort((a, b) => {
-        const dDiff = discountPctOf(b) - discountPctOf(a);
-        if (Math.abs(dDiff) > 0.0001) return dDiff;
-        return productScore(b) - productScore(a);
-      });
-    }
+    for (const s of byCat.values()) s.items.sort(sortComparator);
+
     return { promos, sections: Array.from(byCat.values()) };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtered]);
+  }, [filtered, sortComparator]);
 
-  // Aplica o limite de visibilidade respeitando a ordem (promos → seções)
+  // Paginação uniforme: PAGE_SIZE itens por batch, fluindo na ordem
+  // Promoções → Categoria 1 → Categoria 2 → … Mesma regra em mobile e desktop.
   const paginated = useMemo(() => {
-    if (sort === "categoria") {
-      let remaining = visibleCount;
-      const promos = groupedFlat.promos.slice(0, remaining);
-      remaining -= promos.length;
-      const sections: { name: string; items: Product[] }[] = [];
-      for (const s of groupedFlat.sections) {
-        if (remaining <= 0) break;
-        const items = s.items.slice(0, remaining);
-        if (items.length > 0) sections.push({ name: s.name, items });
-        remaining -= items.length;
-      }
-      return { promos, sections };
+    let remaining = visibleCount;
+    const promos = grouped.promos.slice(0, remaining);
+    remaining -= promos.length;
+    const sections: { name: string; items: Product[] }[] = [];
+    for (const s of grouped.sections) {
+      if (remaining <= 0) break;
+      const items = s.items.slice(0, remaining);
+      if (items.length > 0) sections.push({ name: s.name, items });
+      remaining -= items.length;
     }
-    return { promos: [], sections: [{ name: SORT_LABELS[sort], items: sorted.slice(0, visibleCount) }] };
-  }, [sort, sorted, groupedFlat, visibleCount]);
+    return { promos, sections };
+  }, [grouped, visibleCount]);
 
-  const totalAvailable = useMemo(() => {
-    if (sort === "categoria") {
-      return groupedFlat.promos.length + groupedFlat.sections.reduce((acc, s) => acc + s.items.length, 0);
-    }
-    return sorted.length;
-  }, [sort, sorted, groupedFlat]);
+  const totalAvailable = useMemo(
+    () =>
+      grouped.promos.length +
+      grouped.sections.reduce((acc, s) => acc + s.items.length, 0),
+    [grouped]
+  );
 
   const hasMore = visibleCount < totalAvailable;
 
