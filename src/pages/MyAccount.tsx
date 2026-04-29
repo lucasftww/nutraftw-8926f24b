@@ -50,6 +50,7 @@ export default function MyAccount() {
   const [affStats, setAffStats] = useState({
     released: 0,
     pending: 0,
+    paid: 0,
     activeRefs: 0,
     inactiveRefs: 0,
   });
