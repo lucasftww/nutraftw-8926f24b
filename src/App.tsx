@@ -5,14 +5,25 @@ import { Toaster } from "@/components/ui/sonner";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { Suspense, lazy } from "react";
 import Catalog from "@/pages/Catalog";
 import ProductDetail from "@/pages/ProductDetail";
 import Login from "@/pages/Login";
-import MyAccount from "@/pages/MyAccount";
-import Checkout from "@/pages/Checkout";
-import Admin from "@/pages/Admin";
 import NotFound from "@/pages/NotFound";
 import About from "@/pages/About";
+
+// Code-split das rotas pesadas/raras: reduz drasticamente o JS inicial.
+const MyAccount = lazy(() => import("@/pages/MyAccount"));
+const Checkout = lazy(() => import("@/pages/Checkout"));
+const Admin = lazy(() => import("@/pages/Admin"));
+
+function RouteFallback() {
+  return (
+    <div className="container py-20 text-center text-sm text-muted-foreground">
+      Carregando…
+    </div>
+  );
+}
 
 const qc = new QueryClient({
   defaultOptions: {
@@ -32,18 +43,20 @@ export default function App() {
         <TooltipProvider>
           <Toaster />
           <BrowserRouter>
-            <Routes>
-              <Route element={<MainLayout />}>
-                <Route path="/" element={<Catalog />} />
-                <Route path="/produto/:slug" element={<ProductDetail />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/minha-conta" element={<RequireAuth><MyAccount /></RequireAuth>} />
-                <Route path="/admin" element={<RequireAuth adminOnly><Admin /></RequireAuth>} />
-                <Route path="/sobre" element={<About />} />
-                <Route path="*" element={<NotFound />} />
-              </Route>
-            </Routes>
+            <Suspense fallback={<RouteFallback />}>
+              <Routes>
+                <Route element={<MainLayout />}>
+                  <Route path="/" element={<Catalog />} />
+                  <Route path="/produto/:slug" element={<ProductDetail />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/minha-conta" element={<RequireAuth><MyAccount /></RequireAuth>} />
+                  <Route path="/admin" element={<RequireAuth adminOnly><Admin /></RequireAuth>} />
+                  <Route path="/sobre" element={<About />} />
+                  <Route path="*" element={<NotFound />} />
+                </Route>
+              </Routes>
+            </Suspense>
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
