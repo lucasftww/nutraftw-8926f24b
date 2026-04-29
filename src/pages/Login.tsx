@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { getAffiliateRef, setAffiliateRef, clearAffiliateRef } from "@/lib/affiliateRef";
+import { getAffiliateRef, getAffiliateRefData, setAffiliateRef, clearAffiliateRef, readAttributionFromUrl } from "@/lib/affiliateRef";
 import { Users } from "lucide-react";
 
 export default function Login() {
@@ -30,7 +30,7 @@ export default function Login() {
   useEffect(() => {
     const r = params.get("ref");
     if (r) {
-      const saved = setAffiliateRef(r);
+      const saved = setAffiliateRef(r, readAttributionFromUrl(params.toString()));
       if (saved) setActiveRef(saved);
     } else {
       setActiveRef(getAffiliateRef());
@@ -60,7 +60,8 @@ export default function Login() {
         }
       } else {
         // Re-lê no momento do submit (pode ter sido atualizado por outra aba).
-        const refCode = getAffiliateRef();
+        const refData = getAffiliateRefData();
+        const refCode = refData?.code ?? null;
         const { data: signUp, error } = await supabase.auth.signUp({
           email: cleanEmail,
           password,
@@ -90,6 +91,13 @@ export default function Login() {
               referred_user_id: newUid,
               referred_email: cleanEmail,
               status: "inactive",
+              utm_source: refData?.utm_source ?? null,
+              utm_medium: refData?.utm_medium ?? null,
+              utm_campaign: refData?.utm_campaign ?? null,
+              utm_term: refData?.utm_term ?? null,
+              utm_content: refData?.utm_content ?? null,
+              landing_path: refData?.landing_path ?? null,
+              referrer: refData?.referrer ?? null,
             });
           }
           clearAffiliateRef();

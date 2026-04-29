@@ -102,28 +102,49 @@ export type Database = {
           affiliate_user_id: string
           created_at: string
           id: string
+          landing_path: string | null
           referred_email: string | null
           referred_user_id: string | null
+          referrer: string | null
           status: string
           updated_at: string
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
         }
         Insert: {
           affiliate_user_id: string
           created_at?: string
           id?: string
+          landing_path?: string | null
           referred_email?: string | null
           referred_user_id?: string | null
+          referrer?: string | null
           status?: string
           updated_at?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
         }
         Update: {
           affiliate_user_id?: string
           created_at?: string
           id?: string
+          landing_path?: string | null
           referred_email?: string | null
           referred_user_id?: string | null
+          referrer?: string | null
           status?: string
           updated_at?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
         }
         Relationships: []
       }
