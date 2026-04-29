@@ -30,4 +30,8 @@ export const queryKeys = {
   siteSettings: {
     all: ["site_settings"] as const,
   },
+  wishlist: {
+    root: ["wishlist"] as const,
+    list: (uid: string | null) => ["wishlist", uid] as const,
+  },
 } as const;
