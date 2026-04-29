@@ -507,6 +507,11 @@ export default function MyAccount() {
                             <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${statusBadge[c.status] || "bg-gray-100 text-gray-700"}`}>
                               {statusLabel[c.status] || c.status}
                             </span>
+                            {c.cancellation_reason && (c.status === "cancelled" || c.status === "clawback") && (
+                              <div className="text-[11px] text-muted-foreground mt-1 max-w-[200px]">
+                                {c.cancellation_reason}
+                              </div>
+                            )}
                           </td>
                           <td className="px-4 py-3 text-muted-foreground">{fmtDate(c.created_at)}</td>
                           <td className="px-4 py-3 text-muted-foreground">
