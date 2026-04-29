@@ -96,9 +96,19 @@ export default function Catalog() {
   const qc = useQueryClient();
 
   // Pré-carrega o produto quando o usuário sinaliza intenção (hover/touchstart no card).
+  // Curto-circuito quando já há dado fresco em cache: evita disparar a mesma
+  // query várias vezes a cada re-render (ex.: digitando na busca, hover/touch
+  // repetidos). React Query também dedupe in-flight, mas checar `getQueryState`
+  // antes nos poupa o trabalho de criar a Promise/observers.
   const prefetchProduct = useCallback((slug: string) => {
+    if (!slug) return;
+    const key = queryKeys.products.detail(slug);
+    const state = qc.getQueryState(key);
+    if (state?.data && state.dataUpdatedAt && Date.now() - state.dataUpdatedAt < 60_000) {
+      return; // já temos dado fresco — não há motivo para refazer a chamada
+    }
     qc.prefetchQuery({
-      queryKey: queryKeys.products.detail(slug),
+      queryKey: key,
       queryFn: async () => {
         const { data, error } = await supabase
           .from("products")
