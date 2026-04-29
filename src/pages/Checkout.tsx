@@ -70,7 +70,15 @@ export default function Checkout() {
   }, []);
 
   // Sincroniza alterações de cupom de volta no carrinho (estado compartilhado).
+  // ⚠️ NÃO disparar no mount: isso apagaria o cupom já persistido em
+  // localStorage antes mesmo da revalidação assíncrona terminar. Só
+  // sincroniza após o usuário aplicar/remover algo nesta sessão.
+  const couponMounted = useRef(false);
   useEffect(() => {
+    if (!couponMounted.current) {
+      couponMounted.current = true;
+      return;
+    }
     setCartCoupon(coupon?.code ?? null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [coupon?.code]);
