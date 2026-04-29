@@ -72,6 +72,11 @@
     --success: 145 75% 38%;
     --success-foreground: 0 0% 100%;
 
+    /* WhatsApp brand color — #25D366 em HSL */
+    --whatsapp: 142 70% 49%;
+    --whatsapp-foreground: 0 0% 100%;
+    --whatsapp-hover: 142 70% 42%;
+
     --border: 220 20% 90%;
     --input: 220 20% 90%;
     --ring: 222 65% 20%;
@@ -102,18 +107,33 @@
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full
            bg-primary text-primary-foreground font-semibold text-sm
-           hover:bg-primary-glow transition-all shadow-elegant;
+           hover:bg-primary-glow active:scale-[0.98] transition-all shadow-elegant
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
+           disabled:opacity-50 disabled:pointer-events-none;
   }
   .btn-cta {
     @apply inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full
            bg-secondary text-secondary-foreground font-bold text-sm
-           hover:brightness-110 active:scale-[0.98] transition-all;
+           hover:brightness-110 active:scale-[0.98] transition-all
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2
+           disabled:opacity-50 disabled:pointer-events-none disabled:saturate-50;
     box-shadow: var(--shadow-cta);
   }
   .btn-outline {
     @apply inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full
            border-2 border-primary/20 text-primary font-semibold text-sm
-           hover:border-primary hover:bg-primary/5 transition-all;
+           hover:border-primary hover:bg-primary/5 active:scale-[0.98] transition-all
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
+           disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  /* CTA WhatsApp padronizado — usa o token de marca, não cor hardcoded */
+  .btn-whatsapp {
+    @apply inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full
+           bg-whatsapp text-whatsapp-foreground font-semibold text-sm
+           hover:bg-whatsapp-hover active:scale-[0.98] transition-all
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-whatsapp focus-visible:ring-offset-2
+           disabled:opacity-50 disabled:pointer-events-none;
   }
 
   /* ===== Tipografia padronizada — escala única do projeto =====
@@ -143,6 +163,20 @@
   .badge-pill-sm {
     @apply inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full
            text-[10px] font-semibold leading-none whitespace-nowrap;
+  }
+
+  /* ===== Mobile tap targets — garante 44x44 mínimo por WCAG 2.5.5 (AAA: 44px) ===== */
+  @media (hover: none) and (pointer: coarse) {
+    .tap-target {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
+
+  /* ===== Foco visível padronizado — para qualquer botão/link interativo ===== */
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
   }
 
   .product-card {
