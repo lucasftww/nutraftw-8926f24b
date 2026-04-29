@@ -446,19 +446,32 @@ export default function Checkout() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
-      <button
-        onClick={() => nav(-1)}
-        className="checkout-back inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6"
-      >
-        <ArrowLeft className="h-4 w-4" /> Voltar
-      </button>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 md:py-10 pb-28 lg:pb-10">
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <button
+          onClick={() => nav(-1)}
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary"
+        >
+          <ArrowLeft className="h-4 w-4" /> Voltar
+        </button>
+        <div className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
+          <Lock className="w-3.5 h-3.5 text-success" />
+          Compra 100% segura
+        </div>
+      </div>
 
-      <form onSubmit={submit} className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6 lg:gap-8">
-        <div className="space-y-6">
+      <h1 className="text-xl sm:text-3xl font-extrabold tracking-tight mb-4 sm:mb-6 text-center lg:text-left">
+        Finalizar Compra
+      </h1>
+
+      <form onSubmit={submit} className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-5 lg:gap-8">
+        <div className="space-y-5 sm:space-y-6 min-w-0">
           {/* Dados do Comprador */}
           <section className="checkout-card">
-            <h2 className="checkout-section-title">Dados do Comprador</h2>
+            <div className="flex items-center gap-2 mb-5 sm:mb-6">
+              <UserIcon className="w-5 h-5 text-primary" />
+              <h2 className="checkout-section-title !mb-0">Dados do Comprador</h2>
+            </div>
             <div className="space-y-4">
               <div className="checkout-field">
                 <label className="checkout-label">Nome Completo *</label>
@@ -511,9 +524,9 @@ export default function Checkout() {
 
           {/* Endereço de Entrega */}
           <section className="checkout-card">
-            <div className="flex items-center gap-2 mb-6">
+            <div className="flex items-center gap-2 mb-5 sm:mb-6">
               <MapPin className="w-5 h-5 text-primary" />
-              <h2 className="text-2xl font-bold">Endereço de Entrega</h2>
+              <h2 className="checkout-section-title !mb-0">Endereço de Entrega</h2>
             </div>
             <div className="space-y-4">
               <div className="checkout-field">
@@ -622,7 +635,10 @@ export default function Checkout() {
 
           {/* Entrega e Opções */}
           <section className="checkout-card space-y-6">
-            <h2 className="text-2xl font-bold">Entrega e Opções</h2>
+            <div className="flex items-center gap-2">
+              <Truck className="w-5 h-5 text-primary" />
+              <h2 className="checkout-section-title !mb-0">Entrega e Opções</h2>
+            </div>
 
             <div>
               <label className="text-sm font-medium text-foreground mb-3 block">Tipo de Frete</label>
@@ -714,7 +730,10 @@ export default function Checkout() {
 
           {/* Forma de Pagamento */}
           <section className="checkout-card">
-            <h2 className="text-2xl font-bold mb-4">Forma de Pagamento</h2>
+            <div className="flex items-center gap-2 mb-5 sm:mb-6">
+              <CreditCard className="w-5 h-5 text-primary" />
+              <h2 className="checkout-section-title !mb-0">Forma de Pagamento</h2>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {settings.checkout_enable_pix !== "0" && (
                 <button
@@ -762,9 +781,9 @@ export default function Checkout() {
         </div>
 
         {/* Resumo do Pedido */}
-        <aside className="bg-card p-6 rounded-2xl shadow-xl shadow-primary/5 border border-primary/10 h-fit lg:sticky lg:top-28">
-          <h2 className="text-xl font-bold mb-6">Resumo do Pedido</h2>
-          <div className="space-y-4 mb-6 max-h-72 overflow-y-auto pr-2">
+        <aside className="bg-card p-5 sm:p-6 rounded-2xl shadow-xl shadow-primary/5 border border-primary/10 h-fit lg:sticky lg:top-28">
+          <h2 className="text-lg sm:text-xl font-bold mb-5 sm:mb-6 tracking-tight">Resumo do Pedido</h2>
+          <div className="space-y-4 mb-5 sm:mb-6 max-h-72 overflow-y-auto pr-2">
             {summaryItems}
           </div>
           <div className="space-y-3 py-4 border-t border-border text-sm">
@@ -868,23 +887,24 @@ export default function Checkout() {
             )}
           </div>
 
-          <div className="flex justify-between items-center pt-5 border-t border-border mb-6">
-            <span className="text-lg font-bold">Total</span>
+          <div className="flex justify-between items-center pt-5 border-t border-border mb-5 sm:mb-6">
+            <span className="text-base sm:text-lg font-bold">Total</span>
             <div className="text-right">
-              <div className="text-2xl font-extrabold text-primary">
+              <div className="text-2xl sm:text-3xl font-extrabold text-primary leading-none">
                 {formatBRL(grandTotal)}
               </div>
               {form.payment_method === "credit_card" && (
-                <div className="text-[11px] text-muted-foreground mt-0.5">
+                <div className="text-[11px] text-muted-foreground mt-1">
                   ou 12x de {formatBRL(grandTotal / 12)}
                 </div>
               )}
             </div>
           </div>
+          {/* CTA desktop */}
           <button
             type="submit"
             disabled={submitting}
-            className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-bold text-base hover:bg-primary/90 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed transition-all inline-flex items-center justify-center gap-2"
+            className="hidden lg:inline-flex w-full h-13 py-3.5 rounded-xl bg-primary text-primary-foreground font-bold text-base hover:bg-primary/90 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed transition-all items-center justify-center gap-2 shadow-lg shadow-primary/20"
           >
             {submitting ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Processando…</>
@@ -894,10 +914,35 @@ export default function Checkout() {
               <><CreditCard className="w-5 h-5" /> Pagar com Cartão</>
             )}
           </button>
-          <p className="text-[11px] text-muted-foreground text-center mt-3">
-            Ao confirmar, você concorda com nossos termos de compra.
+          <p className="hidden lg:flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground text-center mt-3">
+            <Lock className="w-3 h-3" /> Pagamento seguro e criptografado
           </p>
         </aside>
+
+        {/* CTA fixa mobile — alta conversão */}
+        <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur-md border-t border-border px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <div className="max-w-6xl mx-auto flex items-center gap-3">
+            <div className="min-w-0">
+              <div className="text-[10px] text-muted-foreground uppercase tracking-wider leading-none">Total</div>
+              <div className="text-lg font-extrabold text-primary leading-tight tabular-nums">
+                {formatBRL(grandTotal)}
+              </div>
+            </div>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed transition-all inline-flex items-center justify-center gap-2 shadow-lg shadow-primary/30"
+            >
+              {submitting ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Processando…</>
+              ) : form.payment_method === "pix" ? (
+                <><QrCode className="w-4 h-4" /> Pagar com PIX</>
+              ) : (
+                <><CreditCard className="w-4 h-4" /> Pagar com Cartão</>
+              )}
+            </button>
+          </div>
+        </div>
       </form>
     </div>
   );
