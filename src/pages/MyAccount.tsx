@@ -6,17 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { LogOut, User as UserIcon, MapPin, ShoppingBag, Eye, Loader2, Users, Copy, Check } from "lucide-react";
+import { LogOut, User as UserIcon, MapPin, ShoppingBag, Eye, Loader2, Users, Copy, Check, Wallet } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { CustomerOrderDetail } from "@/components/account/CustomerOrderDetail";
 
-type Tab = "profile" | "address" | "orders" | "affiliate";
+type Tab = "profile" | "address" | "orders" | "affiliate" | "commissions";
 
 const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "profile", label: "Dados pessoais", icon: UserIcon },
   { id: "address", label: "Endereço", icon: MapPin },
   { id: "orders", label: "Meus pedidos", icon: ShoppingBag },
   { id: "affiliate", label: "Afiliação", icon: Users },
+  { id: "commissions", label: "Comissões", icon: Wallet },
 ];
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
@@ -56,6 +57,9 @@ export default function MyAccount() {
   });
   const [copied, setCopied] = useState(false);
   const [savingPixel, setSavingPixel] = useState(false);
+  const [commissions, setCommissions] = useState<any[]>([]);
+  const [loadingComm, setLoadingComm] = useState(false);
+  const [commFilter, setCommFilter] = useState<string>("all");
 
   useEffect(() => {
     if (!user) return;
