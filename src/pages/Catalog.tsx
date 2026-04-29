@@ -112,6 +112,23 @@ export default function Catalog() {
     [products, selectedCats, query]
   );
 
+  // Score de "atratividade" de venda — usado como tie-breaker dentro das categorias.
+  // Prioriza: em estoque > destaque (is_featured) > mais recente.
+  const productScore = (p: Product) => {
+    const inStock = (p.stock ?? 0) > 0 ? 1 : 0;
+    const featured = p.is_featured ? 1 : 0;
+    const recency = new Date(p.created_at).getTime();
+    return inStock * 1e15 + featured * 1e13 + recency;
+  };
+
+  // % de desconto (0 quando não há promoção real).
+  const discountPctOf = (p: Product) => {
+    const pr = Number(p.price);
+    const sp = p.sale_price != null ? Number(p.sale_price) : 0;
+    if (!(sp > 0 && sp < pr)) return 0;
+    return (pr - sp) / pr;
+  };
+
   // Lista ordenada (usada quando o sort não é "categoria")
   const sorted = useMemo(() => {
     const arr = [...filtered];
@@ -127,11 +144,16 @@ export default function Catalog() {
 
   // Lista achatada para paginação no modo "categoria" (promos primeiro, depois cada categoria em ordem)
   const groupedFlat = useMemo(() => {
-    const promos = filtered.filter((p) => {
-      const pr = Number(p.price);
-      const sp = p.sale_price != null ? Number(p.sale_price) : 0;
-      return sp > 0 && sp < pr && Math.round((1 - sp / pr) * 100) >= 1;
-    }).slice(0, 8);
+    // Promoções: maior % de desconto primeiro (gatilho de conversão).
+    // Em empate de %, prioriza em estoque > destaque > mais recente.
+    const promos = filtered
+      .filter((p) => discountPctOf(p) > 0)
+      .sort((a, b) => {
+        const dDiff = discountPctOf(b) - discountPctOf(a);
+        if (Math.abs(dDiff) > 0.0001) return dDiff;
+        return productScore(b) - productScore(a);
+      })
+      .slice(0, 8);
     // Evita duplicar: produtos já listados em "Promoções" não reaparecem nas seções de categoria.
     const promoIds = new Set(promos.map((p) => p.id));
     const byCat = new Map<string, { name: string; items: Product[] }>();
@@ -143,7 +165,17 @@ export default function Catalog() {
       if (!byCat.has(key)) byCat.set(key, { name, items: [] });
       byCat.get(key)!.items.push(p);
     }
+    // Dentro de cada categoria: produtos com desconto residual (não couberam nas top 8 promos)
+    // primeiro, depois por score (estoque → destaque → recência).
+    for (const s of byCat.values()) {
+      s.items.sort((a, b) => {
+        const dDiff = discountPctOf(b) - discountPctOf(a);
+        if (Math.abs(dDiff) > 0.0001) return dDiff;
+        return productScore(b) - productScore(a);
+      });
+    }
     return { promos, sections: Array.from(byCat.values()) };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtered]);
 
   // Aplica o limite de visibilidade respeitando a ordem (promos → seções)
