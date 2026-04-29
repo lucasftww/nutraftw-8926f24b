@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ShoppingCart, Zap, ShieldCheck, Truck, Lock } from "lucide-react";
+import { ShoppingCart, Zap, ShieldCheck, Truck, Lock, CheckCircle2, Package, CreditCard } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/useCart";
@@ -107,9 +107,9 @@ export default function ProductDetail() {
     : 0;
 
   return (
-    <section className="py-6 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto w-full pb-28 sm:pb-10">
+    <section className="py-5 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full pb-28 sm:pb-10">
       {/* Breadcrumbs — reforçam a navegação até o Catálogo sem duplicar links */}
-      <nav aria-label="Breadcrumb" className="mb-6">
+      <nav aria-label="Breadcrumb" className="mb-5">
         <ol
           className="flex items-center flex-wrap gap-1.5 text-sm text-muted-foreground"
           itemScope
@@ -151,9 +151,9 @@ export default function ProductDetail() {
         </ol>
       </nav>
 
-      <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+      <div className="grid lg:grid-cols-2 gap-6 lg:gap-12 items-start">
         {/* Image */}
-        <div className="relative rounded-3xl border border-border/60 overflow-hidden bg-gradient-to-br from-muted/40 to-background shadow-[var(--shadow-soft)] w-full max-w-md mx-auto lg:max-w-none lg:sticky lg:top-20">
+        <div className="relative rounded-3xl border border-border/60 overflow-hidden bg-white shadow-[var(--shadow-card)] w-full max-w-md mx-auto lg:max-w-none lg:sticky lg:top-20">
           <img
             src={p.image_url || "/assets/no-image.svg"}
             alt={p.name}
@@ -163,15 +163,15 @@ export default function ProductDetail() {
             className="w-full h-full object-cover aspect-square"
           />
           {hasSale && (
-            <span className="absolute top-3 right-3 inline-flex items-center rounded-full bg-secondary text-white text-xs font-bold px-2.5 py-1 shadow-md">
-              -{discountPct}%
+            <span className="absolute top-3 right-3 inline-flex items-center rounded-full bg-secondary text-white text-sm font-extrabold px-3 py-1 shadow-lg">
+              -{discountPct}% OFF
             </span>
           )}
         </div>
 
         {/* Info */}
-        <div className="space-y-5 w-full max-w-md mx-auto lg:max-w-none text-center lg:text-left">
-          <div>
+        <div className="space-y-5 w-full max-w-md mx-auto lg:max-w-none">
+          <div className="text-center lg:text-left">
             {p.category && (
               <Link
                 to={`/?categoria=${p.category.slug}`}
@@ -180,20 +180,123 @@ export default function ProductDetail() {
                 {p.category.name}
               </Link>
             )}
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground mt-2 leading-tight">
+            <h1 className="text-2xl md:text-4xl font-extrabold text-foreground mt-2 leading-tight tracking-tight">
               {p.name}
             </h1>
+            {/* Microprova social — leve, sem inventar números */}
+            <div className="mt-2 flex items-center justify-center lg:justify-start gap-2 text-xs text-muted-foreground">
+              <CheckCircle2 className="h-3.5 w-3.5 text-success" />
+              <span>Produto original importado</span>
+            </div>
           </div>
 
+          {/* Price card — bloco principal de conversão */}
+          <div className="rounded-3xl border border-primary/15 bg-gradient-to-br from-primary/[0.05] to-secondary/[0.05] p-5 sm:p-6 shadow-[var(--shadow-soft)]">
+            {hasSale && (
+              <div className="flex items-center justify-center lg:justify-start gap-2 mb-1">
+                <span className="text-sm text-muted-foreground line-through tabular-nums">
+                  {formatBRL(Number(p.price))}
+                </span>
+                <span className="inline-flex items-center rounded-full bg-secondary text-secondary-foreground text-[10px] font-extrabold uppercase tracking-wide px-2 py-0.5">
+                  -{discountPct}%
+                </span>
+              </div>
+            )}
+            <div className="flex items-baseline justify-center lg:justify-start gap-2 flex-wrap">
+              <span className="text-4xl md:text-5xl font-extrabold tracking-tight text-primary tabular-nums leading-none">
+                {formatBRL(finalPrice)}
+              </span>
+            </div>
+            <div className="mt-2.5 flex items-center justify-center lg:justify-start gap-2 text-sm">
+              <CreditCard className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground">
+                ou <span className="font-bold text-foreground">3x de {formatBRL(finalPrice / 3)}</span> sem juros
+              </span>
+            </div>
+            {hasSale && (
+              <p className="mt-2 text-xs font-semibold text-success text-center lg:text-left">
+                Você economiza {formatBRL(Number(p.price) - finalPrice)}
+              </p>
+            )}
+          </div>
+
+          {/* CTAs — Comprar agora (primário) + Adicionar (secundário) */}
+          <div className="space-y-2.5">
+            <Button
+              disabled={(p.stock ?? 0) <= 0}
+              className="w-full h-14 rounded-2xl text-base font-extrabold bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-lg shadow-secondary/30 active:scale-[0.99] transition-all"
+              onClick={() => {
+                if ((p.stock ?? 0) <= 0) return;
+                add(
+                  { product_id: p.id, slug: p.slug, name: p.name, price: finalPrice, image_url: p.image_url },
+                  1
+                );
+                nav("/checkout");
+              }}
+            >
+              <Zap className="w-5 h-5 mr-2" fill="currentColor" />
+              {(p.stock ?? 0) <= 0 ? "Esgotado" : "Comprar agora"}
+            </Button>
+            <Button
+              variant="outline"
+              disabled={(p.stock ?? 0) <= 0}
+              className="w-full h-12 rounded-2xl text-sm font-semibold border-primary/25 text-primary hover:bg-primary/5"
+              onClick={() => {
+                add(
+                  { product_id: p.id, slug: p.slug, name: p.name, price: finalPrice, image_url: p.image_url },
+                  1
+                );
+                openCart();
+              }}
+            >
+              <ShoppingCart className="w-4 h-4 mr-2" />
+              Adicionar ao carrinho
+            </Button>
+            {(p.stock ?? 0) > 0 && (p.stock ?? 0) <= 5 && (
+              <p className="text-center text-xs font-semibold text-secondary flex items-center justify-center gap-1.5">
+                <Package className="h-3.5 w-3.5" />
+                Restam apenas {p.stock} unidades
+              </p>
+            )}
+          </div>
+
+          {/* Selos de confiança */}
+          <ul className="grid grid-cols-3 gap-2">
+            {[
+              { icon: Truck, label: "Envio Brasil" },
+              { icon: ShieldCheck, label: "Original" },
+              { icon: Lock, label: "Pgto seguro" },
+            ].map((b) => (
+              <li
+                key={b.label}
+                className="flex flex-col items-center gap-1 rounded-xl border border-border/60 bg-muted/30 py-3 px-1 text-center"
+              >
+                <b.icon className="h-4 w-4 text-primary" />
+                <span className="text-[11px] font-semibold text-foreground leading-tight">
+                  {b.label}
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          {/* Descrição */}
           {p.description && (
-            <p className="text-muted-foreground leading-relaxed whitespace-pre-line text-sm md:text-base">
-              {p.description}
-            </p>
+            <div className="pt-2">
+              <h2 className="text-sm font-bold text-foreground uppercase tracking-wider mb-2">
+                Sobre o produto
+              </h2>
+              <p className="text-muted-foreground leading-relaxed whitespace-pre-line text-sm md:text-base">
+                {p.description}
+              </p>
+            </div>
           )}
 
           {/* Tech sheet */}
           {(p.active_principle || p.composition) && (
-            <div className="space-y-3 text-sm bg-muted/40 rounded-2xl p-4 border border-border/50 text-left">
+            <div className="space-y-3 text-sm bg-muted/40 rounded-2xl p-4 border border-border/50">
+              <h2 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                Ficha técnica
+              </h2>
               {p.active_principle && (
                 <div className="flex flex-col sm:flex-row sm:gap-2">
                   <span className="font-bold text-foreground sm:min-w-[140px]">
@@ -210,113 +313,24 @@ export default function ProductDetail() {
               )}
             </div>
           )}
-
-          {/* Price card — destaque com gradiente sutil */}
-          <div className="rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/[0.04] to-secondary/[0.04] p-5 shadow-[var(--shadow-soft)]">
-            <div className="flex items-baseline justify-center lg:justify-start gap-3 flex-wrap">
-              {hasSale && (
-                <span className="text-base text-muted-foreground line-through">
-                  {formatBRL(Number(p.price))}
-                </span>
-              )}
-              <span className="text-4xl font-extrabold tracking-tight text-primary">
-                {formatBRL(finalPrice)}
-              </span>
-              {hasSale && (
-                <span className="inline-flex items-center rounded-full bg-secondary/10 text-secondary text-[11px] font-bold uppercase tracking-wide px-2 py-0.5">
-                  você economiza {formatBRL(Number(p.price) - finalPrice)}
-                </span>
-              )}
-            </div>
-            <p className="mt-2 text-xs text-muted-foreground">
-              ou em até <span className="font-semibold text-foreground">3x sem juros</span> no cartão
-            </p>
-          </div>
-
-          {/* CTAs — Comprar agora (primário) + Adicionar (secundário) */}
-          <div className="space-y-2.5">
-            <Button
-              disabled={(p.stock ?? 0) <= 0}
-              className="w-full h-14 rounded-2xl text-base font-bold bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-lg shadow-secondary/25"
-              onClick={() => {
-                if ((p.stock ?? 0) <= 0) return;
-                add(
-                  { product_id: p.id, slug: p.slug, name: p.name, price: finalPrice, image_url: p.image_url },
-                  1
-                );
-                nav("/checkout");
-              }}
-            >
-              <Zap className="w-5 h-5 mr-2" fill="currentColor" />
-              {(p.stock ?? 0) <= 0 ? "Esgotado" : "Comprar agora"}
-            </Button>
-            <Button
-              variant="outline"
-              disabled={(p.stock ?? 0) <= 0}
-              className="w-full h-12 rounded-2xl text-sm font-semibold border-primary/20 text-primary hover:bg-primary/5"
-              onClick={() => {
-                add(
-                  { product_id: p.id, slug: p.slug, name: p.name, price: finalPrice, image_url: p.image_url },
-                  1
-                );
-                openCart();
-              }}
-            >
-              <ShoppingCart className="w-4 h-4 mr-2" />
-              Adicionar ao carrinho
-            </Button>
-          </div>
-
-          {/* Selos de confiança */}
-          <ul className="grid grid-cols-3 gap-2 pt-2">
-            {[
-              { icon: Truck, label: "Envio Brasil" },
-              { icon: ShieldCheck, label: "Original" },
-              { icon: Lock, label: "Pgto seguro" },
-            ].map((b) => (
-              <li
-                key={b.label}
-                className="flex flex-col items-center gap-1 rounded-xl border border-border/60 bg-background py-2.5 px-1 text-center"
-              >
-                <b.icon className="h-4 w-4 text-primary" />
-                <span className="text-[11px] font-medium text-muted-foreground leading-tight">
-                  {b.label}
-                </span>
-              </li>
-            ))}
-          </ul>
         </div>
       </div>
 
       {/* Produtos relacionados */}
       {related.length > 0 && (
-        <section className="mt-16 pt-10 border-t border-border">
-          {/* Cabeçalho de seção padronizado com o Catálogo (faixa de acento + contador) */}
-          <div className="mb-6 md:mb-8">
-            <div className="flex items-end justify-between gap-4 border-b-2 border-primary/15 pb-3">
-              <div className="flex items-center gap-3 min-w-0">
-                <span
-                  aria-hidden="true"
-                  className="inline-block h-7 md:h-8 w-1.5 rounded-full bg-primary shrink-0"
-                />
-                <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-primary leading-none truncate">
-                  {p.category ? `Mais de ${p.category.name}` : "Você também pode gostar"}
-                </h2>
-              </div>
-              <div className="shrink-0 flex items-center gap-4">
-                {p.category && (
-                  <Link
-                    to={`/?categoria=${p.category.slug}`}
-                    className="hidden sm:inline text-sm font-semibold text-primary hover:underline whitespace-nowrap"
-                  >
-                    Ver categoria →
-                  </Link>
-                )}
-                <span className="text-[12px] md:text-[13px] font-semibold text-muted-foreground tabular-nums">
-                  {related.length} {related.length === 1 ? "produto" : "produtos"}
-                </span>
-              </div>
-            </div>
+        <section className="mt-14 pt-10 border-t border-border">
+          <div className="mb-5 md:mb-7 flex items-end justify-between gap-3">
+            <h2 className="text-lg md:text-2xl font-bold tracking-tight text-foreground">
+              {p.category ? `Mais de ${p.category.name}` : "Você também pode gostar"}
+            </h2>
+            {p.category && (
+              <Link
+                to={`/?categoria=${p.category.slug}`}
+                className="text-xs sm:text-sm font-semibold text-primary hover:underline whitespace-nowrap"
+              >
+                Ver tudo →
+              </Link>
+            )}
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
             {related.map((r) => {
@@ -324,35 +338,44 @@ export default function ProductDetail() {
               const rSale = r.sale_price != null ? Number(r.sale_price) : 0;
               const rHasSale = rSale > 0 && rSale < rPrice;
               const rFinal = rHasSale ? rSale : rPrice;
+              const rPct = rHasSale ? Math.round((1 - rSale / rPrice) * 100) : 0;
               return (
                 <Link
                   key={r.id}
                   to={`/produto/${r.slug}`}
-                  className="flex flex-col h-full rounded-2xl bg-card overflow-hidden"
+                  className="group flex flex-col h-full rounded-2xl bg-card overflow-hidden border border-border/50 hover:border-primary/30 hover:shadow-[var(--shadow-card)] transition-all"
                 >
-                  <div className="relative aspect-square overflow-hidden bg-white rounded-2xl">
+                  <div className="relative aspect-square overflow-hidden bg-white">
                     <img
                       src={r.image_url || "/assets/no-image.svg"}
                       alt={r.name}
                       loading="lazy"
                       decoding="async"
                       sizes="(max-width: 640px) 50vw, 25vw"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
                     />
+                    {rHasSale && (
+                      <span className="absolute top-2 right-2 inline-flex items-center rounded-full bg-secondary text-secondary-foreground text-[10px] font-bold px-2 py-0.5 shadow-sm">
+                        -{rPct}%
+                      </span>
+                    )}
                   </div>
-                  <div className="pt-3 pb-1 px-1">
-                    <h3 className="font-medium text-sm leading-snug line-clamp-2 min-h-[2.5rem] text-foreground">
+                  <div className="pt-3 pb-3 px-2.5">
+                    <h3 className="font-medium text-[13px] sm:text-sm leading-snug line-clamp-2 min-h-[2.5rem] text-foreground">
                       {r.name}
                     </h3>
-                    <div className="mt-2 flex items-baseline gap-2">
-                      <span className="text-base font-bold text-foreground">
-                        {formatBRL(rFinal)}
-                      </span>
+                    <div className="mt-1.5 flex flex-col gap-0.5">
                       {rHasSale && (
-                        <span className="text-xs text-muted-foreground line-through">
-                          {formatBRL(rPrice)}
+                        <span className="text-[11px] text-muted-foreground line-through tabular-nums leading-none">
+                          de {formatBRL(rPrice)}
                         </span>
                       )}
+                      <span className="text-base md:text-lg font-extrabold text-primary tabular-nums leading-tight">
+                        {formatBRL(rFinal)}
+                      </span>
+                      <span className="text-[10px] sm:text-[11px] text-muted-foreground tabular-nums">
+                        ou 3x de {formatBRL(rFinal / 3)}
+                      </span>
                     </div>
                   </div>
                 </Link>
@@ -376,16 +399,16 @@ export default function ProductDetail() {
                     {formatBRL(Number(p.price))}
                   </span>
                 )}
-                <span className="text-lg font-extrabold text-primary leading-none">
+                <span className="text-xl font-extrabold text-primary leading-none tabular-nums">
                   {formatBRL(finalPrice)}
                 </span>
               </div>
               <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
-                ou 3x sem juros
+                3x de {formatBRL(finalPrice / 3)} sem juros
               </p>
             </div>
             <Button
-              className="h-12 px-5 rounded-2xl text-sm font-bold bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-md whitespace-nowrap"
+              className="h-12 px-6 rounded-2xl text-sm font-extrabold bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-lg shadow-secondary/30 whitespace-nowrap active:scale-[0.98] transition-all"
               onClick={() => {
                 add(
                   { product_id: p.id, slug: p.slug, name: p.name, price: finalPrice, image_url: p.image_url },
@@ -395,7 +418,7 @@ export default function ProductDetail() {
               }}
             >
               <Zap className="w-4 h-4 mr-1.5" fill="currentColor" />
-              Comprar
+              Comprar agora
             </Button>
           </div>
         </div>
