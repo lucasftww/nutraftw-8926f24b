@@ -5,6 +5,7 @@ import { useCart } from "@/hooks/useCart";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import logoGimports from "@/assets/logo-gimports.svg";
+import { prefetchMyAccount } from "@/App";
 
 export function Header() {
   const { user, isAdmin } = useAuth();
@@ -27,6 +28,11 @@ export function Header() {
 
   const accountHref = user ? "/minha-conta" : "/login";
   const accountLabel = user ? "Minha conta" : "Entrar";
+  // Pré-carrega o chunk de MyAccount no primeiro hover/touch para eliminar
+  // o "Carregando…" no primeiro clique do ícone de perfil.
+  const prefetchAccount = () => {
+    if (user) prefetchMyAccount().catch(() => {});
+  };
 
   return (
     <>
@@ -81,6 +87,9 @@ export function Header() {
                 to={accountHref}
                 aria-label={accountLabel}
                 title={accountLabel}
+                onMouseEnter={prefetchAccount}
+                onTouchStart={prefetchAccount}
+                onFocus={prefetchAccount}
                 className="relative inline-flex items-center justify-center h-9 w-9 rounded-full text-primary hover:bg-primary/5 transition-colors"
               >
                 {user ? (
