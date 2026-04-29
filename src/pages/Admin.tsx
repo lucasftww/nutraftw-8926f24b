@@ -306,24 +306,40 @@ function AdminCategories() {
 
   async function add() {
     if (!name.trim()) return;
-    const { error } = await supabase.from("categories").insert({ name, slug: slugify(name) });
+    const payload = { name, slug: slugify(name) };
+    const { data, error } = await supabase.from("categories").insert(payload).select().maybeSingle();
     if (error) {
       logSupabaseError("Adicionar categoria", error, { name });
       toast.error(error.message);
     } else {
       setName("");
+      logAdminAction({
+        action: "create",
+        entity: "categories",
+        entityId: (data as any)?.id ?? null,
+        summary: `Categoria criada: ${payload.name}`,
+        diff: { after: data || payload },
+      });
       qc.invalidateQueries({ queryKey: queryKeys.categories.all });
       load();
     }
   }
   async function del(id: string) {
     if (!confirm("Remover categoria?")) return;
+    const before = items.find((c) => c.id === id);
     const { error: err } = await supabase.from("categories").delete().eq("id", id);
     if (err) {
       logSupabaseError("Remover categoria", err, { id });
       toast.error(err.message);
       return;
     }
+    logAdminAction({
+      action: "delete",
+      entity: "categories",
+      entityId: id,
+      summary: `Categoria removida: ${before?.name ?? id.slice(0, 8)}`,
+      diff: { before },
+    });
     qc.invalidateQueries({ queryKey: queryKeys.categories.all });
     load();
   }
@@ -420,12 +436,20 @@ function AdminOrders() {
   }, [items, query]);
 
   async function setStatus(id: string, status: string) {
+    const before = items.find((o) => o.id === id);
     const { error: err } = await supabase.from("orders").update({ status: status as any }).eq("id", id);
     if (err) {
       logSupabaseError("Atualizar estado do pedido", err, { order_id: id, new_status: status });
       toast.error(`Falha ao atualizar: ${err.message}`);
     } else {
       toast.success("Estado atualizado");
+      logAdminAction({
+        action: "status_change",
+        entity: "orders",
+        entityId: id,
+        summary: `Pedido #${id.slice(0, 8)}: ${before?.status ?? "?"} → ${status}`,
+        diff: { from: before?.status ?? null, to: status },
+      });
       setItems((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
     }
   }
