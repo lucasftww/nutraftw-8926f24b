@@ -58,6 +58,7 @@ export default function Checkout() {
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState<string | null>(null);
   const [couponOpen, setCouponOpen] = useState<boolean>(false);
+  const [complementOpen, setComplementOpen] = useState<boolean>(false);
 
   // Funil: registra `checkout_started` ao chegar na página com itens.
   // Usa um ref-like guard via state pra disparar uma vez por carga.
