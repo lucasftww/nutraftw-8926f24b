@@ -55,7 +55,7 @@ export function CartDrawer() {
               {lines.map((l) => (
                 <div key={l.product_id} className="flex gap-4 p-3 rounded-2xl border border-border bg-muted/30">
                   <img
-                    src={l.image_url || "/assets/no-image.svg"}
+                    src={(await import.meta && undefined) /* placeholder */ ?? l.image_url}
                     alt={l.name}
                     loading="lazy"
                     decoding="async"
