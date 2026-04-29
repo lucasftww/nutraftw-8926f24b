@@ -179,13 +179,24 @@ export default function Checkout() {
     if (settings.insurance_optional === "0") setInsuranceOn(true);
   }, [settings.insurance_optional]);
 
-  // Garante método de pagamento válido conforme settings
+  // Garante método de pagamento válido conforme settings.
+  // Inclui form.payment_method nas deps para reagir imediatamente quando
+  // o usuário troca o método manualmente para um que está desabilitado
+  // pelo admin (ex.: alterna para PIX e PIX foi desligado).
   useEffect(() => {
     const pixOn = settings.checkout_enable_pix !== "0";
     const cardOn = settings.checkout_enable_card !== "0";
-    if (form.payment_method === "pix" && !pixOn && cardOn) setForm((f) => ({ ...f, payment_method: "credit_card" }));
-    if (form.payment_method === "credit_card" && !cardOn && pixOn) setForm((f) => ({ ...f, payment_method: "pix" }));
-  }, [settings.checkout_enable_pix, settings.checkout_enable_card]);
+    if (form.payment_method === "pix" && !pixOn && cardOn) {
+      setForm((f) => ({ ...f, payment_method: "credit_card" }));
+    }
+    if (form.payment_method === "credit_card" && !cardOn && pixOn) {
+      setForm((f) => ({ ...f, payment_method: "pix" }));
+    }
+  }, [
+    settings.checkout_enable_pix,
+    settings.checkout_enable_card,
+    form.payment_method,
+  ]);
 
   /**
    * Revalida um cupom contra o subtotal atual e retorna mensagem de erro
