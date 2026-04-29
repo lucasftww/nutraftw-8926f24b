@@ -93,6 +93,7 @@ export function CartDrawer() {
                 >
                   <img
                     src={imageUrl(l.image_url, { width: 160, quality: 75 })}
+                    srcSet={`${imageUrl(l.image_url, { width: 160, quality: 75 })} 1x, ${imageUrl(l.image_url, { width: 320, quality: 75 })} 2x`}
                     alt={l.name}
                     loading="lazy"
                     decoding="async"
