@@ -183,6 +183,26 @@
            shadow-sm hover:shadow-xl hover:border-primary/20
            transition-all duration-300 overflow-hidden;
   }
+
+  /* ===== Checkout — visual KA Imports (cards grandes, inputs h-12 border-2) ===== */
+  .checkout-card {
+    @apply bg-card p-6 rounded-2xl shadow-sm border border-border/50;
+  }
+  .checkout-section-title {
+    @apply text-2xl font-bold mb-6;
+  }
+  .checkout-field {
+    @apply w-full space-y-1.5;
+  }
+  .checkout-label {
+    @apply text-sm font-medium text-foreground ml-1 block;
+  }
+  .checkout-input {
+    @apply flex h-12 w-full rounded-xl border-2 border-border bg-white px-4 py-2 text-base
+           placeholder:text-muted-foreground
+           focus-visible:outline-none focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/10
+           transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50;
+  }
   .glass {
     @apply bg-background/80 backdrop-blur-md;
   }
