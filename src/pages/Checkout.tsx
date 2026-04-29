@@ -873,24 +873,48 @@ export default function Checkout() {
         </div>
 
         {/* Resumo do Pedido */}
-        <aside className="bg-card p-5 sm:p-6 rounded-2xl shadow-xl shadow-primary/5 border border-primary/10 h-fit lg:sticky lg:top-28">
-          <h2 className="text-lg sm:text-xl font-bold mb-5 sm:mb-6 tracking-tight">Resumo do Pedido</h2>
-          <div className="space-y-4 mb-5 sm:mb-6 max-h-72 overflow-y-auto pr-2">
+        <aside className="bg-card p-4 sm:p-6 rounded-2xl shadow-xl shadow-primary/5 border border-primary/10 h-fit lg:sticky lg:top-28">
+          {/* Cabeçalho — colapsável no mobile, sempre aberto no desktop */}
+          <button
+            type="button"
+            onClick={() => setItemsOpen((v) => !v)}
+            aria-expanded={itemsOpen}
+            aria-controls="checkout-summary-items"
+            className="w-full flex items-center justify-between gap-3 lg:cursor-default lg:pointer-events-none"
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <ShoppingBag className="w-5 h-5 text-primary shrink-0" />
+              <h2 className="text-base sm:text-xl font-bold tracking-tight">Resumo</h2>
+              <span className="text-[11px] sm:text-xs font-semibold text-muted-foreground tabular-nums">
+                · {totalQty} {totalQty === 1 ? "item" : "itens"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-sm font-bold text-foreground tabular-nums lg:hidden">{formatBRL(total)}</span>
+              <ChevronDown
+                className={`w-4 h-4 text-muted-foreground transition-transform lg:hidden ${itemsOpen ? "rotate-180" : ""}`}
+              />
+            </div>
+          </button>
+
+          {/* Lista de itens — colapsável no mobile */}
+          <ul
+            id="checkout-summary-items"
+            className={`mt-3 sm:mt-4 mb-4 sm:mb-5 max-h-72 overflow-y-auto pr-1 divide-y divide-border/60 ${itemsOpen ? "block" : "hidden"} lg:block`}
+          >
             {summaryItems}
-          </div>
-          <div className="space-y-3 py-4 border-t border-border text-sm">
+          </ul>
+
+          <div className="space-y-2.5 py-4 border-t border-border text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Subtotal</span>
-              <span className="font-semibold">{formatBRL(total)}</span>
+              <span className="font-semibold tabular-nums">{formatBRL(total)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground inline-flex items-center gap-1.5 flex-wrap">
-                Frete{selectedShipping?.label ? ` (${selectedShipping.label})` : ""}
+                Frete
                 {shippingLoading && (
                   <Loader2 className="h-3 w-3 animate-spin text-primary" aria-label="Atualizando frete" />
-                )}
-                {selectedShipping?.delivery_days_min && selectedShipping?.delivery_days_max && (
-                  <span className="block text-[10px] mt-0.5">{selectedShipping.delivery_days_min}–{selectedShipping.delivery_days_max} dias úteis</span>
                 )}
               </span>
               <span className={`font-semibold tabular-nums transition-opacity ${shippingLoading ? "opacity-50" : ""}`}>
@@ -899,20 +923,20 @@ export default function Checkout() {
             </div>
             {insurance > 0 && (
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Seguro (10%)</span>
-                <span className="font-semibold">{formatBRL(insurance)}</span>
+                <span className="text-muted-foreground">Seguro</span>
+                <span className="font-semibold tabular-nums">{formatBRL(insurance)}</span>
               </div>
             )}
             {couponDiscount > 0 && (
               <div className="flex justify-between text-secondary font-semibold">
-                <span>Cupom {coupon?.code}</span>
-                <span>−{formatBRL(couponDiscount)}</span>
+                <span className="truncate">Cupom {coupon?.code}</span>
+                <span className="tabular-nums">−{formatBRL(couponDiscount)}</span>
               </div>
             )}
             {pixDiscount > 0 && (
               <div className="flex justify-between text-secondary font-semibold">
-                <span>Desconto PIX (5%)</span>
-                <span>−{formatBRL(pixDiscount)}</span>
+                <span>Desconto PIX</span>
+                <span className="tabular-nums">−{formatBRL(pixDiscount)}</span>
               </div>
             )}
           </div>
@@ -984,17 +1008,29 @@ export default function Checkout() {
             )}
           </div>
 
-          <div className="flex justify-between items-center pt-5 border-t border-border mb-5 sm:mb-6">
-            <span className="text-base sm:text-lg font-bold">Total</span>
-            <div className="text-right">
-              <div className="text-2xl sm:text-3xl font-extrabold text-primary leading-none">
-                {formatBRL(grandTotal)}
-              </div>
-              {form.payment_method === "credit_card" && (
-                <div className="text-[11px] text-muted-foreground mt-1">
-                  ou 12x de {formatBRL(grandTotal / 12)}
+          {/* Total em destaque — card próprio com gradiente sutil */}
+          <div className="mt-4 mb-5 sm:mb-6 rounded-2xl bg-gradient-to-br from-primary/5 via-primary/[0.03] to-transparent border-2 border-primary/15 p-4">
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <div className="text-[10px] uppercase tracking-[0.14em] font-semibold text-muted-foreground leading-none">
+                  Total a pagar
                 </div>
-              )}
+                {form.payment_method === "pix" && pixDiscount > 0 && (
+                  <div className="text-[11px] text-success font-semibold mt-1">
+                    Você economiza {formatBRL(couponDiscount + pixDiscount)}
+                  </div>
+                )}
+              </div>
+              <div className="text-right">
+                <div className="text-3xl sm:text-4xl font-extrabold text-primary leading-none tabular-nums">
+                  {formatBRL(grandTotal)}
+                </div>
+                {form.payment_method === "credit_card" && (
+                  <div className="text-[11px] text-muted-foreground mt-1.5 tabular-nums">
+                    ou 12x de {formatBRL(grandTotal / 12)}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           {/* CTA desktop */}
