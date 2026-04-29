@@ -1222,11 +1222,10 @@ export default function Checkout() {
               </div>
             </div>
           </div>
-          {/* CTA desktop */}
           <button
             type="submit"
             disabled={submitting}
-            className="hidden lg:inline-flex w-full h-13 py-3.5 rounded-xl bg-primary text-primary-foreground font-bold text-base hover:bg-primary/90 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed transition-all items-center justify-center gap-2 shadow-lg shadow-primary/20"
+            className="inline-flex w-full h-13 py-3.5 rounded-xl bg-primary text-primary-foreground font-bold text-base hover:bg-primary/90 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed transition-all items-center justify-center gap-2 shadow-lg shadow-primary/20"
           >
             {submitting ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Processando…</>
@@ -1236,35 +1235,11 @@ export default function Checkout() {
               <><CreditCard className="w-5 h-5" /> Pagar com Cartão</>
             )}
           </button>
-          <p className="hidden lg:flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground text-center mt-3">
+          <p className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground text-center mt-3">
             <Lock className="w-3 h-3" /> Pagamento seguro e criptografado
           </p>
         </aside>
 
-        {/* CTA fixa mobile — alta conversão */}
-        <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur-md border-t border-border px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-          <div className="max-w-6xl mx-auto flex items-center gap-3">
-            <div className="min-w-0">
-              <div className="text-[10px] text-muted-foreground uppercase tracking-wider leading-none">Total</div>
-              <div className="text-lg font-extrabold text-primary leading-tight tabular-nums">
-                {formatBRL(grandTotal)}
-              </div>
-            </div>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed transition-all inline-flex items-center justify-center gap-2 shadow-lg shadow-primary/30"
-            >
-              {submitting ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /> Processando…</>
-              ) : form.payment_method === "pix" ? (
-                <><QrCode className="w-4 h-4" /> Pagar com PIX</>
-              ) : (
-                <><CreditCard className="w-4 h-4" /> Pagar com Cartão</>
-              )}
-            </button>
-          </div>
-        </div>
       </form>
     </div>
   );
