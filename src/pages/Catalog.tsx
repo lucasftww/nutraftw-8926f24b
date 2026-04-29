@@ -140,19 +140,39 @@ export default function Catalog() {
   };
 
   const filtered = useMemo(
-    () =>
-      products.filter((p) => {
+    () => {
+      // Normaliza para busca tolerante: remove acentos, pontuação (`.`, `-`, `/`, `_`)
+      // e colapsa espaços. Assim "tg" encontra "T.G.", "amox 500" encontra
+      // "Amoxicilina-500", "vit b12" encontra "Vitamina B12", etc.
+      const normalize = (s: string) =>
+        s
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "") // remove acentos
+          .replace(/[^\p{L}\p{N}]+/gu, " ") // pontuação/símbolos viram espaço
+          .trim()
+          .replace(/\s+/g, " ");
+      // Versão "compacta" (sem espaços) — usada como segunda chance, para
+      // que "tg" case com "t g" (que veio de "T.G.").
+      const compact = (s: string) => normalize(s).replace(/\s+/g, "");
+
+      const qNorm = query ? normalize(query) : "";
+      const qCompact = query ? compact(query) : "";
+
+      return products.filter((p) => {
         if (selectedCats.size > 0 && (!p.category || !selectedCats.has(p.category.slug)))
           return false;
-        if (query) {
-          const q = query.toLowerCase();
-          return (
-            p.name.toLowerCase().includes(q) ||
-            (p.description?.toLowerCase().includes(q) ?? false)
-          );
-        }
-        return true;
-      }),
+        if (!qNorm) return true;
+        const nameNorm = normalize(p.name);
+        const descNorm = p.description ? normalize(p.description) : "";
+        if (nameNorm.includes(qNorm) || descNorm.includes(qNorm)) return true;
+        // Segunda passada sem espaços: "tg" → casa em "tg" dentro de
+        // compact("T.G. 500mg") = "tg500mg".
+        const nameCompact = nameNorm.replace(/\s+/g, "");
+        const descCompact = descNorm.replace(/\s+/g, "");
+        return nameCompact.includes(qCompact) || descCompact.includes(qCompact);
+      });
+    },
     [products, selectedCats, query]
   );
 
