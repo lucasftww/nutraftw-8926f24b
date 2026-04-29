@@ -196,7 +196,7 @@ export default function ProductDetail() {
             );
           })()}
           {hasSale && (
-            <span className="absolute top-3 right-3 inline-flex items-center rounded-full bg-secondary text-white text-sm font-extrabold px-3 py-1 shadow-lg">
+            <span className="absolute top-3 right-3 inline-flex items-center rounded-full bg-secondary text-secondary-foreground text-sm font-extrabold px-3 py-1 shadow-lg">
               -{discountPct}% OFF
             </span>
           )}

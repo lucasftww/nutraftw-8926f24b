@@ -106,7 +106,7 @@ export function AdminSettings() {
         </div>
       ))}
       <div className="pt-4 border-t border-border">
-        <Button onClick={save} disabled={saving}>{saving ? "Guardando…" : "Guardar configurações"}</Button>
+        <Button onClick={save} disabled={saving}>{saving ? "Salvando…" : "Salvar configurações"}</Button>
       </div>
     </div>
   );

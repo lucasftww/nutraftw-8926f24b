@@ -180,7 +180,7 @@ export function AdminCoupons() {
             </div>
             <div className="flex justify-end gap-2 pt-4 border-t border-border">
               <Button type="button" variant="outline" onClick={() => setEditing(null)}>Cancelar</Button>
-              <Button type="submit">Guardar</Button>
+              <Button type="submit">Salvar</Button>
             </div>
           </form>
         </div>
