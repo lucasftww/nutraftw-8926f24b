@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { setAffiliateRef } from "@/lib/affiliateRef";
+import { readAttributionFromUrl, setAffiliateRef } from "@/lib/affiliateRef";
 
 /**
  * Captura `?ref=CODIGO` em QUALQUER rota e persiste o código (30 dias).
@@ -11,6 +11,6 @@ export function useCaptureAffiliateRef() {
   const { search } = useLocation();
   useEffect(() => {
     const ref = new URLSearchParams(search).get("ref");
-    if (ref) setAffiliateRef(ref);
+    if (ref) setAffiliateRef(ref, readAttributionFromUrl(search));
   }, [search]);
 }
