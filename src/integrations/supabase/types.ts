@@ -298,6 +298,41 @@ export type Database = {
         }
         Relationships: []
       }
+      product_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          product_id: string | null
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          product_id?: string | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          product_id?: string | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           active_principle: string | null
@@ -601,6 +636,33 @@ export type Database = {
           p_zip: string
         }
         Returns: string
+      }
+      funnel_by_product: {
+        Args: { p_end: string; p_limit?: number; p_start: string }
+        Returns: {
+          cart_adds: number
+          cart_to_paid: number
+          product_id: string
+          product_name: string
+          product_slug: string
+          units_paid: number
+          view_to_cart: number
+          views: number
+          wishlist_adds: number
+        }[]
+      }
+      funnel_summary: {
+        Args: { p_end: string; p_start: string }
+        Returns: {
+          cart_adds: number
+          checkout_started: number
+          orders_paid: number
+          orders_total: number
+          revenue_paid: number
+          unique_viewers: number
+          views: number
+          wishlist_adds: number
+        }[]
       }
       has_role: {
         Args: {

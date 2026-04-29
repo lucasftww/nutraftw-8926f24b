@@ -11,6 +11,7 @@ import { imageUrl } from "@/lib/image";
 import { toast } from "sonner";
 import { ShieldCheck, Truck, Lock, CreditCard, QrCode, ArrowLeft, Ticket, Check } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { trackEvent } from "@/lib/analytics";
 
 const SHIPPING_FALLBACK = 80;
 const INSURANCE_RATE = 0.1;
@@ -51,6 +52,14 @@ export default function Checkout() {
   const [couponInput, setCouponInput] = useState("");
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState<string | null>(null);
+
+  // Funil: registra `checkout_started` ao chegar na página com itens.
+  // Usa um ref-like guard via state pra disparar uma vez por carga.
+  useEffect(() => {
+    if (lines.length === 0) return;
+    void trackEvent("checkout_started", lines[0]?.product_id ?? null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Pré-carrega + revalida cupom já aplicado no carrinho (drawer).
   useEffect(() => {

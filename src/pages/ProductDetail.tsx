@@ -1,4 +1,5 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { ShoppingCart, Zap, ShieldCheck, Truck, Lock, Package, CreditCard } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { responsiveImage } from "@/lib/image";
