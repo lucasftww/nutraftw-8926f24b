@@ -15,10 +15,30 @@ import { trackEvent } from "@/lib/analytics";
 import { CheckoutSteps } from "@/components/checkout/CheckoutSteps";
 import { useFieldValidation } from "@/hooks/useFieldValidation";
 import { validateFullName, validateEmail, validatePhoneBR, validateCPF, validateCEP } from "@/lib/validators";
+import type { FieldStatus } from "@/lib/validators";
 
 const SHIPPING_FALLBACK = 80;
 const INSURANCE_RATE = 0.1;
 const PIX_DISCOUNT = 0.05;
+
+/** Mensagem inline de validação — verde "ok" / vermelho "erro" / nada quando idle. */
+function FieldHint({ status, message }: { status: FieldStatus; message?: string }) {
+  if (status === "idle") return null;
+  if (status === "valid") {
+    return (
+      <p className="field-hint field-hint-ok" aria-live="polite">
+        <CheckCircle2 className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+        <span>Tudo certo</span>
+      </p>
+    );
+  }
+  return (
+    <p role="alert" className="field-hint field-hint-error">
+      <AlertCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+      <span>{message}</span>
+    </p>
+  );
+}
 
 export default function Checkout() {
   const { lines, total, clear, coupon: cartCouponCode, setCoupon: setCartCoupon } = useCart();
