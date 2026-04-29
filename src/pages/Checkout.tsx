@@ -27,6 +27,9 @@ export default function Checkout() {
   const [cepLoading, setCepLoading] = useState(false);
   const [shippingOptions, setShippingOptions] = useState<any[]>([]);
   const [shippingId, setShippingId] = useState<string | null>(null);
+  const [shippingLoading, setShippingLoading] = useState(false);
+  // Cache em memória por UF — evita refetch ao trocar UF e voltar.
+  const shippingCacheRef = useRef<Map<string, any[]>>(new Map());
   const [insuranceOn, setInsuranceOn] = useState<boolean>(true);
   const [coupon, setCoupon] = useState<any | null>(null);
   const [couponInput, setCouponInput] = useState("");
@@ -147,25 +150,45 @@ export default function Checkout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.zip]);
 
-  // Frete dinâmico por UF — agora carrega TODAS as modalidades
+  // Frete dinâmico por UF — recalcula SOMENTE quando a UF muda de verdade.
+  // - Normaliza UF (uppercase) e usa em deps para evitar refetch a cada keystroke.
+  // - Cacheia por UF em memória: trocar UF e voltar não dispara nova chamada.
+  // - Mostra loading discreto enquanto busca.
+  const ufNormalized = form.state.trim().toUpperCase();
   useEffect(() => {
-    const uf = form.state.toUpperCase();
-    if (uf.length !== 2) { setShippingOptions([]); setShippingId(null); return; }
+    if (ufNormalized.length !== 2) {
+      setShippingOptions([]);
+      setShippingId(null);
+      setShippingLoading(false);
+      return;
+    }
+    // Cache hit: aplica imediatamente, sem loading.
+    const cached = shippingCacheRef.current.get(ufNormalized);
+    if (cached) {
+      setShippingOptions(cached);
+      setShippingId((cur) => cached.find((o) => o.id === cur)?.id || cached[0]?.id || null);
+      setShippingLoading(false);
+      return;
+    }
     let cancelled = false;
+    setShippingLoading(true);
     (supabase as any)
       .from("shipping_rates")
       .select("*")
-      .eq("state", uf)
+      .eq("state", ufNormalized)
       .eq("active", true)
       .order("price")
       .then(({ data }: any) => {
         if (cancelled) return; // evita race quando o usuário troca UF rápido
         const arr = (data as any[]) || [];
+        shippingCacheRef.current.set(ufNormalized, arr);
         setShippingOptions(arr);
         setShippingId((cur) => arr.find((o) => o.id === cur)?.id || arr[0]?.id || null);
-      });
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setShippingLoading(false); });
     return () => { cancelled = true; };
-  }, [form.state]);
+  }, [ufNormalized]);
 
   // Aplica preferência admin para seguro
   useEffect(() => {
