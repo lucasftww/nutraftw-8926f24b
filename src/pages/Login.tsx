@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { getAffiliateRef, clearAffiliateRef } from "@/lib/affiliateRef";
+import { getAffiliateRef, setAffiliateRef, clearAffiliateRef } from "@/lib/affiliateRef";
+import { Users } from "lucide-react";
 
 export default function Login() {
   const [params] = useSearchParams();
@@ -20,6 +21,15 @@ export default function Login() {
   // não com "//" para evitar protocol-relative URLs / open redirect).
   const rawNext = params.get("next") || "/minha-conta";
   const next = /^\/(?!\/)/.test(rawNext) ? rawNext : "/minha-conta";
+
+  // ?ref=CODIGO direto na URL do /login tem prioridade. Se vier, persiste já
+  // (cobre o caso do usuário compartilhar /login?ref=XXX direto).
+  const refFromUrl = useMemo(() => {
+    const r = params.get("ref");
+    return r ? setAffiliateRef(r) : null;
+  }, [params]);
+  // Código efetivo: o da URL atual (se válido) ou o já persistido.
+  const activeRef = refFromUrl || getAffiliateRef();
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -43,6 +53,7 @@ export default function Login() {
           nav(next, { replace: true });
         }
       } else {
+        // Re-lê no momento do submit (pode ter sido atualizado por outra aba).
         const refCode = getAffiliateRef();
         const { data: signUp, error } = await supabase.auth.signUp({
           email: cleanEmail,
@@ -56,17 +67,18 @@ export default function Login() {
         // Atribuição: grava o código no perfil do novo usuário e cria a indicação.
         const newUid = signUp.user?.id;
         if (newUid && refCode) {
-          await supabase.from("profiles")
-            .update({ referred_by_code: refCode })
-            .eq("user_id", newUid);
-
-          // Resolve o afiliado dono do código e cria registro de referral.
+          // 1) Resolve o afiliado dono do código ANTES de gravar — evita gravar
+          //    códigos inválidos no perfil.
           const { data: aff } = await supabase
             .from("profiles")
-            .select("user_id")
+            .select("user_id, affiliate_code")
             .eq("affiliate_code", refCode)
             .maybeSingle();
+
           if (aff?.user_id && aff.user_id !== newUid) {
+          await supabase.from("profiles")
+              .update({ referred_by_code: aff.affiliate_code })
+            .eq("user_id", newUid);
             await supabase.from("affiliate_referrals").insert({
               affiliate_user_id: aff.user_id,
               referred_user_id: newUid,
@@ -125,6 +137,15 @@ export default function Login() {
         </div>
 
         <form onSubmit={onSubmit} className="space-y-4">
+          {mode === "register" && activeRef && (
+            <div className="flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-primary">
+              <Users className="h-4 w-4 shrink-0" />
+              <span>
+                Você foi indicado pelo código{" "}
+                <span className="font-mono font-semibold">{activeRef}</span>
+              </span>
+            </div>
+          )}
           {mode === "register" && (
             <div className="space-y-2">
               <Label htmlFor="name">Nome completo</Label>

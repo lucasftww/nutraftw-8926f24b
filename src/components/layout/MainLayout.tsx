@@ -4,8 +4,11 @@ import { CartDrawer } from "@/components/cart/CartDrawer";
 import { Outlet } from "react-router-dom";
 import { CurrentProductProvider } from "@/contexts/CurrentProductContext";
 import { PerfOverlay } from "@/components/debug/PerfOverlay";
+import { useCaptureAffiliateRef } from "@/hooks/useCaptureAffiliateRef";
 
 export function MainLayout() {
+  // Captura ?ref=CODIGO em qualquer página (não só /r/:code).
+  useCaptureAffiliateRef();
   return (
     <CurrentProductProvider>
       <div className="min-h-screen flex flex-col overflow-x-hidden bg-background pt-12 md:pt-14 [&_:target]:scroll-mt-16 md:[&_:target]:scroll-mt-20">
