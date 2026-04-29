@@ -535,30 +535,72 @@ export default function MyAccount() {
 
       {tab === "commissions" && (
         <div className="space-y-2.5 md:space-y-4">
-          <div className="bg-card rounded-2xl border border-border p-3.5 md:p-5">
-            <h2 className="font-display text-[14px] md:text-lg font-bold text-primary">Histórico de comissões</h2>
-            <p className="text-[11px] md:text-sm text-muted-foreground mt-0.5">Geradas pelas suas indicações.</p>
-            <div className="-mx-3.5 md:mx-0 mt-2.5 px-3.5 md:px-0 overflow-x-auto scrollbar-thin [mask-image:linear-gradient(to_right,black_85%,transparent)] md:[mask-image:none]">
-              <div className="flex gap-1.5 text-xs whitespace-nowrap pb-1">
-                {[
-                  { id: "all", label: "Todas" },
-                  { id: "pending", label: "Pendentes" },
-                  { id: "released", label: "Liberadas" },
-                  { id: "paid", label: "Pagas" },
-                  { id: "cancelled", label: "Canceladas" },
-                  { id: "clawback", label: "Estornadas" },
-                ].map((f) => (
-                  <button
-                    key={f.id}
-                    onClick={() => setCommFilter(f.id)}
-                    className={`px-3 py-1.5 rounded-full border text-[11px] md:text-xs font-semibold transition shrink-0 ${commFilter === f.id ? "bg-primary text-primary-foreground border-primary" : "border-border bg-background text-muted-foreground hover:bg-muted/50"}`}
-                  >
-                    {f.label}
-                  </button>
-                ))}
+          {(() => {
+            const FILTERS = [
+              { id: "all", label: "Todas", short: "Todas" },
+              { id: "pending", label: "Pendentes", short: "Pendentes" },
+              { id: "released", label: "Liberadas", short: "Liberadas" },
+              { id: "paid", label: "Pagas", short: "Pagas" },
+              { id: "cancelled", label: "Canceladas", short: "Cancel." },
+              { id: "clawback", label: "Estornadas", short: "Estorn." },
+            ];
+            const counts: Record<string, number> = { all: commissions.length };
+            for (const c of commissions) counts[c.status] = (counts[c.status] || 0) + 1;
+            const current = FILTERS.find((f) => f.id === commFilter) || FILTERS[0];
+            const filteredCount = counts[commFilter] || 0;
+            return (
+              <div className="bg-card rounded-2xl border border-border p-3.5 md:p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h2 className="font-display text-[14px] md:text-lg font-bold text-primary">Histórico de comissões</h2>
+                    <p className="text-[11px] md:text-sm text-muted-foreground mt-0.5">Geradas pelas suas indicações.</p>
+                  </div>
+                  <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] md:text-[11px] font-bold tabular-nums">
+                    {filteredCount} {filteredCount === 1 ? "item" : "itens"}
+                  </span>
+                </div>
+
+                {/* Mobile: select nativo — mais claro, sem scroll horizontal */}
+                <div className="md:hidden mt-3">
+                  <label className="block text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-semibold mb-1.5">
+                    Filtrar por status
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={commFilter}
+                      onChange={(e) => setCommFilter(e.target.value)}
+                      className="appearance-none w-full h-11 rounded-xl border border-input bg-background pl-4 pr-10 text-[13px] font-semibold text-foreground"
+                    >
+                      {FILTERS.map((f) => (
+                        <option key={f.id} value={f.id}>
+                          {f.label} ({counts[f.id] || 0})
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronRight className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 rotate-90 text-muted-foreground" />
+                  </div>
+                </div>
+
+                {/* Desktop: chips em linha */}
+                <div className="hidden md:flex flex-wrap gap-1.5 mt-3">
+                  {FILTERS.map((f) => {
+                    const active = commFilter === f.id;
+                    const n = counts[f.id] || 0;
+                    return (
+                      <button
+                        key={f.id}
+                        onClick={() => setCommFilter(f.id)}
+                        className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition inline-flex items-center gap-1.5 ${active ? "bg-primary text-primary-foreground border-primary" : "border-border bg-background text-muted-foreground hover:bg-muted/50"}`}
+                      >
+                        {f.label}
+                        <span className={`tabular-nums text-[10px] px-1.5 py-0.5 rounded-full ${active ? "bg-white/20" : "bg-muted"}`}>{n}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          </div>
+            );
+          })()}
 
           {(() => {
             if (loadingComm) {
