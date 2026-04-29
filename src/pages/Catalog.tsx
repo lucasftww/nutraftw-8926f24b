@@ -623,10 +623,11 @@ const Section = memo(function Section({
         </span>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
-        {items.map((p) => (
+        {items.map((p, idx) => (
           <ProductCard
             key={p.id}
             p={p}
+            index={idx}
             onAdd={onAdd}
             onPrefetch={onPrefetch}
             onPrefetchFull={onPrefetchFull}
@@ -641,11 +642,13 @@ const Section = memo(function Section({
 // e disparar prefetch (dados + imagem hi-res) quando o card aparece na tela.
 const ProductCard = memo(function ProductCard({
   p,
+  index,
   onAdd,
   onPrefetch,
   onPrefetchFull,
 }: {
   p: Product;
+  index: number;
   onAdd: (p: Product, finalPrice: number) => void;
   onPrefetch?: (slug: string) => void;
   onPrefetchFull?: (p: Product) => void;
