@@ -31,11 +31,6 @@ export default function AdminLogin() {
   const rawNext = params.get("next") || "/admin";
   const next = /^\/admin(\/|$)/.test(rawNext) ? rawNext : "/admin";
 
-  // Se já está logado E confirmado como admin → redireciona.
-  if (!loading && user && isAdmin) {
-    return <Navigate to={next} replace />;
-  }
-
   // Se logou em outra aba como cliente comum, avisa e oferece logout.
   useEffect(() => {
     if (!loading && user && !isAdmin && !denied) {
@@ -44,6 +39,14 @@ export default function AdminLogin() {
       );
     }
   }, [loading, user, isAdmin, denied]);
+
+  // Se já está logado E confirmado como admin → redireciona.
+  // ⚠️ Esse early return DEVE vir DEPOIS de todos os hooks (Rules of Hooks),
+  // senão React quebra com "rendered fewer hooks than expected" no momento
+  // em que `isAdmin` vira true entre renders.
+  if (!loading && user && isAdmin) {
+    return <Navigate to={next} replace />;
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
