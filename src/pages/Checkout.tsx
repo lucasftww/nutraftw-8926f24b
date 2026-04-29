@@ -15,6 +15,7 @@ import { trackEvent } from "@/lib/analytics";
 import { CheckoutSteps } from "@/components/checkout/CheckoutSteps";
 import { useFieldValidation } from "@/hooks/useFieldValidation";
 import { validateFullName, validateEmail, validatePhoneBR, validateCPF, validateCEP } from "@/lib/validators";
+import { isValidCPF } from "@/lib/validators";
 import type { FieldStatus } from "@/lib/validators";
 
 const SHIPPING_FALLBACK = 80;
@@ -428,12 +429,19 @@ export default function Checkout() {
     );
 
   function validate() {
-    if (!form.full_name.trim() || form.full_name.trim().length < 3) {
-      toast.error("Informe o nome completo.");
+    // Bug fix: nome agora exige nome+sobrenome (alinhado ao validador inline).
+    if (!form.full_name.trim() || form.full_name.trim().split(/\s+/).filter(p => p.length >= 2).length < 2) {
+      toast.error("Informe nome e sobrenome.");
       return false;
     }
-    if (onlyDigits(form.cpf).length !== 11) {
-      toast.error("CPF inválido.");
+    // Bug fix: e-mail era exigido pela UI mas NUNCA validado no submit.
+    if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.email.trim())) {
+      toast.error("Informe um e-mail válido.");
+      return false;
+    }
+    // Bug fix: aceitava qualquer 11 dígitos (ex.: 11111111111). Agora roda DV.
+    if (!isValidCPF(form.cpf)) {
+      toast.error("CPF inválido. Verifique os números digitados.");
       return false;
     }
     if (onlyDigits(form.phone).length < 10) {
@@ -479,19 +487,51 @@ export default function Checkout() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    // Bug fix (race condition): impede duplo-submit DURANTE a revalidação
+    // do cupom. Antes, o `submitting=true` só era setado após o await,
+    // o que abria janela para 2 cliques criarem 2 pedidos.
+    if (submitting) return;
     if (!validate()) return;
+    setSubmitting(true);
 
     // Revalida cupom no momento do envio (pode ter expirado / esgotado durante a sessão).
     if (coupon) {
       const res = await revalidateCouponByCode(coupon.code, { silent: true });
       if (!res.ok) {
         toast.error(res.error || "Cupom não pôde ser aplicado. Remova-o para continuar.");
+        setSubmitting(false);
         return;
       }
     }
-
-    setSubmitting(true);
     try {
+      // Bug fix: o RPC create_order não recebe e-mail. O e-mail digitado
+      // no checkout era jogado fora se o usuário não tinha profile com email.
+      // Persistimos no profile (best-effort, não bloqueia o pedido) para
+      // que notificações/relatórios admins tenham o contato correto.
+      try {
+        await (supabase as any)
+          .from("profiles")
+          .upsert(
+            {
+              user_id: user!.id,
+              email: form.email.trim(),
+              full_name: form.full_name.trim(),
+              phone: onlyDigits(form.phone),
+              cpf: onlyDigits(form.cpf),
+              address_zip: onlyDigits(form.zip),
+              address_street: form.street.trim(),
+              address_number: form.number.trim(),
+              address_complement: form.complement.trim() || null,
+              address_district: form.district.trim(),
+              address_city: form.city.trim(),
+              address_state: form.state.trim().toUpperCase(),
+            },
+            { onConflict: "user_id" }
+          );
+      } catch (profileErr) {
+        console.warn("[Checkout] profile upsert failed (non-blocking)", profileErr);
+      }
+
       // Tudo é validado e calculado server-side via RPC (transação atômica).
       const { data: orderId, error: rpcErr } = await (supabase as any).rpc("create_order", {
         p_items: lines.map((l) => ({ product_id: l.product_id, qty: l.qty })),
@@ -514,9 +554,11 @@ export default function Checkout() {
       if (rpcErr) throw rpcErr;
       void orderId;
 
-      clear();
+      // Bug fix: navegar ANTES de clear() evita um frame com a tela
+      // "Seu carrinho está vazio" enquanto a transição acontece.
       toast.success("Pedido criado! Em breve entraremos em contato.");
       nav("/minha-conta");
+      clear();
     } catch (err: any) {
       const raw: string = err?.message || "Erro ao criar pedido";
       // Mensagens vindas do RPC create_order (Postgres RAISE EXCEPTION)
