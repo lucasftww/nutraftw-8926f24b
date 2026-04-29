@@ -240,9 +240,9 @@ function AdminProducts() {
                   {cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
-              <div className="space-y-2"><Label>Preço (R$)</Label><Input type="number" step="0.01" required value={editing.price || ""} onChange={(e) => setEditing({ ...editing, price: e.target.value })} /></div>
-              <div className="space-y-2"><Label>Preço promocional (R$)</Label><Input type="number" step="0.01" placeholder="opcional" value={editing.sale_price ?? ""} onChange={(e) => setEditing({ ...editing, sale_price: e.target.value })} /></div>
-              <div className="space-y-2"><Label>Stock</Label><Input type="number" value={editing.stock || 0} onChange={(e) => setEditing({ ...editing, stock: e.target.value })} /></div>
+              <div className="space-y-2"><Label>Preço (R$)</Label><Input type="number" step="0.01" min="0" required value={editing.price ?? ""} onChange={(e) => setEditing({ ...editing, price: e.target.value })} /></div>
+              <div className="space-y-2"><Label>Preço promocional (R$)</Label><Input type="number" step="0.01" min="0" placeholder="opcional" value={editing.sale_price ?? ""} onChange={(e) => setEditing({ ...editing, sale_price: e.target.value })} /></div>
+              <div className="space-y-2"><Label>Stock</Label><Input type="number" min="0" value={editing.stock ?? 0} onChange={(e) => setEditing({ ...editing, stock: e.target.value })} /></div>
               <div className="space-y-2 sm:col-span-2">
                 <Label>Imagem</Label>
                 <ImageUpload value={editing.image_url || ""} onChange={(url) => setEditing({ ...editing, image_url: url })} />
