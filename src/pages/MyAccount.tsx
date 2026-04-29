@@ -6,18 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { LogOut, User as UserIcon, MapPin, ShoppingBag, Eye, Loader2, Users, Copy, Check, Wallet } from "lucide-react";
+import { LogOut, User as UserIcon, MapPin, ShoppingBag, Eye, Loader2, Users, Copy, Check, Wallet, ChevronRight, ChevronLeft, Mail, Share2 } from "lucide-react";
 import { formatBRL, maskCPF, maskPhone, maskCEP } from "@/lib/utils";
 import { CustomerOrderDetail } from "@/components/account/CustomerOrderDetail";
 
 type Tab = "profile" | "address" | "orders" | "affiliate" | "commissions";
 
-const TABS: { id: Tab; label: string; icon: any }[] = [
-  { id: "profile", label: "Dados pessoais", icon: UserIcon },
-  { id: "address", label: "Endereço", icon: MapPin },
-  { id: "orders", label: "Meus pedidos", icon: ShoppingBag },
-  { id: "affiliate", label: "Afiliação", icon: Users },
-  { id: "commissions", label: "Comissões", icon: Wallet },
+const TABS: { id: Tab; label: string; description: string; icon: any }[] = [
+  { id: "profile",     label: "Dados pessoais", description: "Nome, telefone e CPF",     icon: UserIcon },
+  { id: "address",     label: "Endereço",       description: "Para entrega dos pedidos", icon: MapPin },
+  { id: "orders",      label: "Meus pedidos",   description: "Histórico de compras",     icon: ShoppingBag },
+  { id: "affiliate",   label: "Afiliação",      description: "Indique e ganhe 1%",       icon: Users },
+  { id: "commissions", label: "Comissões",      description: "Pagamentos e status",       icon: Wallet },
 ];
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
@@ -189,33 +189,60 @@ export default function MyAccount() {
   }, [orders]);
 
   return (
-    <div className="container py-8 md:py-12 max-w-5xl">
-      <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-        <div>
-          <h1 className="font-display text-3xl md:text-4xl font-extrabold text-primary">Minha conta</h1>
-          <p className="text-sm text-muted-foreground mt-1">{user?.email}</p>
+    <div className="container py-4 md:py-12 max-w-5xl">
+      {/* ===== Hero header — perfil, identidade, sair ===== */}
+      <div className="bg-gradient-to-br from-primary to-primary/85 rounded-2xl md:rounded-3xl text-primary-foreground p-5 md:p-7 mb-4 md:mb-6 shadow-card">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="h-12 w-12 md:h-14 md:w-14 rounded-full bg-white/15 backdrop-blur flex items-center justify-center text-lg md:text-xl font-extrabold shrink-0 ring-2 ring-white/20">
+              {(profile?.full_name || user?.email || "?").trim().charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] uppercase tracking-wider text-white/70 font-semibold">Minha conta</p>
+              <h1 className="font-display text-xl md:text-3xl font-extrabold leading-tight truncate">
+                {profile?.full_name || "Olá!"}
+              </h1>
+              <p className="text-xs md:text-sm text-white/80 flex items-center gap-1.5 mt-0.5 truncate">
+                <Mail className="h-3 w-3 shrink-0" />
+                <span className="truncate">{user?.email}</span>
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={logout}
+            aria-label="Sair"
+            className="shrink-0 h-10 w-10 md:h-auto md:w-auto md:px-4 md:py-2 rounded-full md:rounded-full bg-white/15 hover:bg-white/25 active:bg-white/30 backdrop-blur flex items-center justify-center md:gap-2 transition-colors text-sm font-semibold"
+          >
+            <LogOut className="h-4 w-4" />
+            <span className="hidden md:inline">Sair</span>
+          </button>
         </div>
-        <Button variant="outline" onClick={logout}><LogOut className="h-4 w-4" /> Sair</Button>
+
+        {/* Stats embutidos no hero — mobile-first */}
+        <div className="grid grid-cols-3 gap-2 md:gap-3 mt-5">
+          <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl p-3 md:p-4">
+            <p className="text-[10px] md:text-xs uppercase tracking-wide text-white/70 font-semibold">Pedidos</p>
+            <p className="text-xl md:text-2xl font-extrabold mt-0.5">{stats.count}</p>
+          </div>
+          <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl p-3 md:p-4">
+            <p className="text-[10px] md:text-xs uppercase tracking-wide text-white/70 font-semibold">Gasto</p>
+            <p className="text-base md:text-2xl font-extrabold mt-0.5 truncate">{formatBRL(stats.total)}</p>
+          </div>
+          <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl p-3 md:p-4">
+            <p className="text-[10px] md:text-xs uppercase tracking-wide text-white/70 font-semibold">Desde</p>
+            <p className="text-base md:text-2xl font-extrabold mt-0.5 capitalize">
+              {profile?.created_at
+                ? new Date(profile.created_at).toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }).replace(".", "")
+                : "—"}
+            </p>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
-        <div className="bg-card rounded-2xl border border-border p-4">
-          <p className="text-xs text-muted-foreground">Total de pedidos</p>
-          <p className="text-2xl font-bold mt-1">{stats.count}</p>
-        </div>
-        <div className="bg-card rounded-2xl border border-border p-4">
-          <p className="text-xs text-muted-foreground">Total gasto</p>
-          <p className="text-2xl font-bold mt-1 text-primary">{formatBRL(stats.total)}</p>
-        </div>
-        <div className="bg-card rounded-2xl border border-border p-4 hidden md:block">
-          <p className="text-xs text-muted-foreground">Cliente desde</p>
-          <p className="text-2xl font-bold mt-1">
-            {profile?.created_at ? new Date(profile.created_at).toLocaleDateString("pt-BR", { month: "short", year: "numeric" }) : "—"}
-          </p>
-        </div>
-      </div>
-
-      <div className="flex gap-1 mb-6 border-b border-border overflow-x-auto">
+      {/* ===== Navegação mobile: lista estilo iOS quando nenhuma aba ativa específica ===== */}
+      {/* No mobile mostramos sempre a lista + a seção em sequência (com âncora de volta).
+          No desktop, tabs horizontais clássicas. */}
+      <div className="hidden md:flex gap-1 mb-6 border-b border-border overflow-x-auto">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -228,6 +255,50 @@ export default function MyAccount() {
             {t.label}
           </button>
         ))}
+      </div>
+
+      {/* Mobile: lista de seções (estilo app) */}
+      <div className="md:hidden mb-4">
+        <div className="bg-card rounded-2xl border border-border overflow-hidden divide-y divide-border">
+          {TABS.map((t) => {
+            const active = tab === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition-colors ${
+                  active ? "bg-primary/5" : "active:bg-muted/40"
+                }`}
+              >
+                <span className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 ${
+                  active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                }`}>
+                  <t.icon className="h-4 w-4" />
+                </span>
+                <span className="flex-1 min-w-0">
+                  <span className={`block text-sm font-semibold ${active ? "text-primary" : "text-foreground"}`}>{t.label}</span>
+                  <span className="block text-xs text-muted-foreground truncate">{t.description}</span>
+                </span>
+                <ChevronRight className={`h-4 w-4 shrink-0 transition-transform ${active ? "rotate-90 text-primary" : "text-muted-foreground"}`} />
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Cabeçalho da seção ativa — só mobile, dá contexto + clean */}
+      <div className="md:hidden flex items-center gap-2 mb-3 px-1">
+        {(() => {
+          const current = TABS.find((t) => t.id === tab);
+          if (!current) return null;
+          const Icon = current.icon;
+          return (
+            <>
+              <Icon className="h-4 w-4 text-primary" />
+              <h2 className="font-display text-base font-bold text-primary">{current.label}</h2>
+            </>
+          );
+        })()}
       </div>
 
       {(tab === "profile" || tab === "address") && (
