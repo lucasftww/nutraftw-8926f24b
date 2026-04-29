@@ -137,6 +137,15 @@ export default function Login() {
         </div>
 
         <form onSubmit={onSubmit} className="space-y-4">
+          {mode === "register" && activeRef && (
+            <div className="flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-primary">
+              <Users className="h-4 w-4 shrink-0" />
+              <span>
+                Você foi indicado pelo código{" "}
+                <span className="font-mono font-semibold">{activeRef}</span>
+              </span>
+            </div>
+          )}
           {mode === "register" && (
             <div className="space-y-2">
               <Label htmlFor="name">Nome completo</Label>
