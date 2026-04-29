@@ -83,22 +83,37 @@ export default function Login() {
             .maybeSingle();
 
           if (aff?.user_id && aff.user_id !== newUid) {
-          await supabase.from("profiles")
-              .update({ referred_by_code: aff.affiliate_code })
-            .eq("user_id", newUid);
-            await supabase.from("affiliate_referrals").insert({
-              affiliate_user_id: aff.user_id,
-              referred_user_id: newUid,
-              referred_email: cleanEmail,
-              status: "inactive",
-              utm_source: refData?.utm_source ?? null,
-              utm_medium: refData?.utm_medium ?? null,
-              utm_campaign: refData?.utm_campaign ?? null,
-              utm_term: refData?.utm_term ?? null,
-              utm_content: refData?.utm_content ?? null,
-              landing_path: refData?.landing_path ?? null,
-              referrer: refData?.referrer ?? null,
-            });
+            // 2) Política first-touch: se o perfil já tem uma indicação salva
+            //    (ex.: o usuário já existia, criou conta anterior, ou outra
+            //    aba/sessão gravou primeiro), NÃO sobrescreve. Mantém o
+            //    primeiro afiliado que trouxe o usuário.
+            const { data: existingProfile } = await supabase
+              .from("profiles")
+              .select("referred_by_code")
+              .eq("user_id", newUid)
+              .maybeSingle();
+
+            const alreadyAttributed = !!existingProfile?.referred_by_code?.trim();
+
+            if (!alreadyAttributed) {
+              await supabase.from("profiles")
+                .update({ referred_by_code: aff.affiliate_code })
+                .eq("user_id", newUid);
+
+              await supabase.from("affiliate_referrals").insert({
+                affiliate_user_id: aff.user_id,
+                referred_user_id: newUid,
+                referred_email: cleanEmail,
+                status: "inactive",
+                utm_source: refData?.utm_source ?? null,
+                utm_medium: refData?.utm_medium ?? null,
+                utm_campaign: refData?.utm_campaign ?? null,
+                utm_term: refData?.utm_term ?? null,
+                utm_content: refData?.utm_content ?? null,
+                landing_path: refData?.landing_path ?? null,
+                referrer: refData?.referrer ?? null,
+              });
+            }
           }
           clearAffiliateRef();
         }
