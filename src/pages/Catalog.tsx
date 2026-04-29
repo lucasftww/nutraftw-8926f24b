@@ -3,7 +3,8 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { queryKeys } from "@/lib/queryKeys";
-import { responsiveImage } from "@/lib/image";
+import { responsiveImage, imageUrl } from "@/lib/image";
+import { prefetchImage, shouldPrefetch } from "@/lib/prefetch";
 import { WishlistButton } from "@/components/wishlist/WishlistButton";
 import { Search, SlidersHorizontal, ShoppingCart, X, ArrowUpDown, Zap } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
@@ -92,6 +93,19 @@ export default function Catalog() {
       staleTime: 60_000,
     });
   }, [qc]);
+
+  // Prefetch combinado: dados do produto + imagem hero hi-res (a mesma variante
+  // usada na ProductDetail). Disparado quando o card entra na viewport ou o
+  // usuário sinaliza intenção (touchstart/hover).
+  const prefetchProductFull = useCallback(
+    (p: Product) => {
+      if (!shouldPrefetch()) return;
+      prefetchProduct(p.slug);
+      // Casa com responsiveImage(..., { fallbackWidth: 800, quality: 80 }) na ProductDetail
+      prefetchImage(imageUrl(p.image_url, { width: 800, quality: 80 }));
+    },
+    [prefetchProduct]
+  );
 
   // Handler estável para "Adicionar ao carrinho" no card → evita re-render dos cards.
   const handleAdd = useCallback((p: Product, price: number) => {
@@ -397,6 +411,7 @@ export default function Catalog() {
                         items={paginated.promos}
                         onAdd={handleAdd}
                         onPrefetch={prefetchProduct}
+                        onPrefetchFull={prefetchProductFull}
                       />
                     )}
                     {paginated.sections.map((s) => (
@@ -406,6 +421,7 @@ export default function Catalog() {
                         items={s.items}
                         onAdd={handleAdd}
                         onPrefetch={prefetchProduct}
+                        onPrefetchFull={prefetchProductFull}
                       />
                     ))}
                   </>
@@ -415,6 +431,7 @@ export default function Catalog() {
                     items={paginated.sections[0]?.items ?? []}
                     onAdd={handleAdd}
                     onPrefetch={prefetchProduct}
+                    onPrefetchFull={prefetchProductFull}
                   />
                 )}
                 {hasMore && (
@@ -585,11 +602,13 @@ const Section = memo(function Section({
   items,
   onAdd,
   onPrefetch,
+  onPrefetchFull,
 }: {
   title: string;
   items: Product[];
   onAdd: (p: Product, finalPrice: number) => void;
   onPrefetch?: (slug: string) => void;
+  onPrefetchFull?: (p: Product) => void;
 }) {
   if (items.length === 0) return null;
   const isPromo = /promo/i.test(title);
@@ -604,8 +623,65 @@ const Section = memo(function Section({
         </span>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
-        {items.map((p) => {
-          const priceNum = Number(p.price);
+        {items.map((p) => (
+          <ProductCard
+            key={p.id}
+            p={p}
+            onAdd={onAdd}
+            onPrefetch={onPrefetch}
+            onPrefetchFull={onPrefetchFull}
+          />
+        ))}
+      </div>
+    </div>
+  );
+});
+
+// Card individual — extraído para podermos plugar IntersectionObserver por item
+// e disparar prefetch (dados + imagem hi-res) quando o card aparece na tela.
+const ProductCard = memo(function ProductCard({
+  p,
+  onAdd,
+  onPrefetch,
+  onPrefetchFull,
+}: {
+  p: Product;
+  onAdd: (p: Product, finalPrice: number) => void;
+  onPrefetch?: (slug: string) => void;
+  onPrefetchFull?: (p: Product) => void;
+}) {
+  const linkRef = useRef<HTMLAnchorElement | null>(null);
+
+  // Observa visibilidade UMA vez: ao primeiro intersect, dispara prefetch full
+  // e desconecta. `rootMargin` antecipa enquanto o card ainda está fora da tela.
+  useEffect(() => {
+    if (!onPrefetchFull) return;
+    const el = linkRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            // `requestIdleCallback` quando disponível — não compete com a renderização
+            const run = () => onPrefetchFull(p);
+            if ("requestIdleCallback" in window) {
+              (window as unknown as { requestIdleCallback: (cb: () => void) => void })
+                .requestIdleCallback(run);
+            } else {
+              setTimeout(run, 200);
+            }
+            io.disconnect();
+            break;
+          }
+        }
+      },
+      { rootMargin: "300px 0px" }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [p, onPrefetchFull]);
+
+  const priceNum = Number(p.price);
           const saleNum = p.sale_price != null ? Number(p.sale_price) : 0;
           const discountPct =
             saleNum > 0 && saleNum < priceNum
@@ -625,7 +701,7 @@ const Section = memo(function Section({
           const installment = finalPrice / 3;
           return (
             <Link
-              key={p.id}
+              ref={linkRef}
               to={`/produto/${p.slug}`}
               onMouseEnter={() => onPrefetch?.(p.slug)}
               onTouchStart={() => onPrefetch?.(p.slug)}
@@ -712,8 +788,4 @@ const Section = memo(function Section({
               </div>
             </Link>
           );
-        })}
-      </div>
-    </div>
-  );
 });
