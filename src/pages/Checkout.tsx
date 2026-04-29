@@ -50,18 +50,13 @@ export default function Checkout() {
   const [coupon, setCoupon] = useState<any | null>(null);
   const [couponInput, setCouponInput] = useState("");
   const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
 
-  // Pré-carrega cupom já aplicado no carrinho (quando o usuário aplicou via drawer).
+  // Pré-carrega + revalida cupom já aplicado no carrinho (drawer).
   useEffect(() => {
     if (!cartCouponCode) return;
     setCouponInput(cartCouponCode);
-    (supabase as any)
-      .from("coupons")
-      .select("*")
-      .eq("code", cartCouponCode)
-      .eq("active", true)
-      .maybeSingle()
-      .then(({ data }: any) => { if (data) setCoupon(data); });
+    void revalidateCouponByCode(cartCouponCode, { silent: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -175,29 +170,81 @@ export default function Checkout() {
     if (form.payment_method === "credit_card" && !cardOn && pixOn) setForm((f) => ({ ...f, payment_method: "pix" }));
   }, [settings.checkout_enable_pix, settings.checkout_enable_card]);
 
-  async function applyCoupon() {
-    const code = couponInput.trim().toUpperCase();
-    if (!code) return;
+  /**
+   * Revalida um cupom contra o subtotal atual e retorna mensagem de erro
+   * quando inválido. Nunca lança — fonte da verdade é o RPC `create_order`.
+   */
+  function checkCouponClientSide(data: any, subtotal: number): string | null {
+    if (!data) return "Cupom inválido ou inexistente.";
+    if (data.active === false) return "Este cupom não está mais ativo.";
+    if (data.expires_at && new Date(data.expires_at) < new Date()) {
+      return "Este cupom expirou.";
+    }
+    if (data.max_uses != null && Number(data.uses) >= Number(data.max_uses)) {
+      return "Este cupom já atingiu o limite de usos.";
+    }
+    const min = Number(data.min_subtotal || 0);
+    if (min > 0 && subtotal < min) {
+      return `Subtotal mínimo de ${formatBRL(min)} para usar este cupom (faltam ${formatBRL(min - subtotal)}).`;
+    }
+    return null;
+  }
+
+  async function revalidateCouponByCode(
+    rawCode: string,
+    opts: { silent?: boolean } = {},
+  ): Promise<{ ok: boolean; data?: any; error?: string }> {
+    const code = rawCode.trim().toUpperCase();
+    if (!code) return { ok: false, error: "Informe um cupom." };
     setCouponLoading(true);
     try {
       const { data, error } = await (supabase as any)
         .from("coupons")
         .select("*")
         .eq("code", code)
-        .eq("active", true)
         .maybeSingle();
-      if (error || !data) { toast.error("Cupom inválido"); return; }
-      if (data.expires_at && new Date(data.expires_at) < new Date()) { toast.error("Cupom expirado"); return; }
-      if (data.max_uses && data.uses >= data.max_uses) { toast.error("Cupom esgotado"); return; }
-      if (Number(data.min_subtotal) > total) { toast.error(`Mínimo de ${formatBRL(Number(data.min_subtotal))} para usar este cupom`); return; }
+      if (error) {
+        const msg = "Erro ao validar cupom. Tente novamente.";
+        setCouponError(msg);
+        if (!opts.silent) toast.error(msg);
+        return { ok: false, error: msg };
+      }
+      const errMsg = checkCouponClientSide(data, total);
+      if (errMsg) {
+        setCoupon(null);
+        setCouponError(errMsg);
+        if (!opts.silent) toast.error(errMsg);
+        return { ok: false, error: errMsg };
+      }
       setCoupon(data);
-      toast.success("Cupom aplicado!");
+      setCouponError(null);
+      if (!opts.silent) toast.success("Cupom aplicado!");
+      return { ok: true, data };
     } catch {
-      toast.error("Erro ao validar cupom. Tente novamente.");
+      const msg = "Erro ao validar cupom. Tente novamente.";
+      setCouponError(msg);
+      if (!opts.silent) toast.error(msg);
+      return { ok: false, error: msg };
     } finally {
       setCouponLoading(false);
     }
   }
+
+  async function applyCoupon() {
+    await revalidateCouponByCode(couponInput);
+  }
+
+  // Re-checa cupom já aplicado sempre que o subtotal mudar (itens / quantidades).
+  useEffect(() => {
+    if (!coupon) {
+      if (couponError && !couponInput) setCouponError(null);
+      return;
+    }
+    const errMsg = checkCouponClientSide(coupon, total);
+    setCouponError(errMsg);
+    // Não removemos o cupom automaticamente — apenas avisamos o usuário.
+    // O RPC do servidor é a fonte da verdade no momento do checkout.
+  }, [total, coupon]);
 
   const selectedShipping = shippingOptions.find((o) => o.id === shippingId);
   const shippingValue = selectedShipping ? Number(selectedShipping.price) : SHIPPING_FALLBACK;
@@ -267,6 +314,16 @@ export default function Checkout() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!validate()) return;
+
+    // Revalida cupom no momento do envio (pode ter expirado / esgotado durante a sessão).
+    if (coupon) {
+      const res = await revalidateCouponByCode(coupon.code, { silent: true });
+      if (!res.ok) {
+        toast.error(res.error || "Cupom não pôde ser aplicado. Remova-o para continuar.");
+        return;
+      }
+    }
+
     setSubmitting(true);
     try {
       // Tudo é validado e calculado server-side via RPC (transação atômica).
@@ -295,7 +352,28 @@ export default function Checkout() {
       toast.success("Pedido criado! Em breve entraremos em contato.");
       nav("/minha-conta");
     } catch (err: any) {
-      toast.error(err.message || "Erro ao criar pedido");
+      const raw: string = err?.message || "Erro ao criar pedido";
+      // Mensagens vindas do RPC create_order (Postgres RAISE EXCEPTION)
+      if (/cupom inválido/i.test(raw)) {
+        setCoupon(null);
+        setCouponError("Cupom inválido. Tente outro código.");
+        toast.error("Cupom inválido. Removemos do pedido.");
+      } else if (/cupom expirado/i.test(raw)) {
+        setCoupon(null);
+        setCouponError("Este cupom expirou.");
+        toast.error("Este cupom expirou. Removemos do pedido.");
+      } else if (/cupom esgotado/i.test(raw)) {
+        setCoupon(null);
+        setCouponError("Este cupom atingiu o limite de usos.");
+        toast.error("Cupom esgotado. Removemos do pedido.");
+      } else if (/subtotal mínimo/i.test(raw)) {
+        setCouponError("Subtotal mínimo do cupom não foi atingido.");
+        toast.error("Subtotal mínimo do cupom não foi atingido.");
+      } else if (/estoque insuficiente/i.test(raw)) {
+        toast.error(raw); // já vem com nome do produto
+      } else {
+        toast.error(raw);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -611,24 +689,67 @@ export default function Checkout() {
           {/* Cupom */}
           <div className="border-t border-border pt-4 pb-4">
             {coupon ? (
-              <div className="flex items-center justify-between bg-secondary/10 rounded-lg px-3 py-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <Check className="h-4 w-4 text-secondary" />
-                  <span className="font-semibold">{coupon.code}</span>
-                  <span className="text-xs text-muted-foreground">aplicado</span>
+              <>
+                <div
+                  className={`flex items-center justify-between rounded-lg px-3 py-2 ${
+                    couponError ? "bg-destructive/10" : "bg-secondary/10"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 text-sm">
+                    <Check className={`h-4 w-4 ${couponError ? "text-destructive" : "text-secondary"}`} />
+                    <span className="font-semibold">{coupon.code}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {couponError ? "indisponível" : "aplicado"}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCoupon(null);
+                      setCouponInput("");
+                      setCouponError(null);
+                    }}
+                    className="text-xs text-muted-foreground hover:text-destructive"
+                  >
+                    remover
+                  </button>
                 </div>
-                <button type="button" onClick={() => { setCoupon(null); setCouponInput(""); }} className="text-xs text-muted-foreground hover:text-destructive">remover</button>
-              </div>
+                {couponError && (
+                  <p role="alert" className="mt-2 text-xs text-destructive">
+                    {couponError}
+                  </p>
+                )}
+              </>
             ) : (
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input className="pl-9 uppercase" placeholder="Cupom de desconto" value={couponInput} onChange={(e) => setCouponInput(e.target.value.toUpperCase())} />
+              <>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      className="pl-9 uppercase"
+                      placeholder="Cupom de desconto"
+                      value={couponInput}
+                      onChange={(e) => {
+                        setCouponInput(e.target.value.toUpperCase());
+                        if (couponError) setCouponError(null);
+                      }}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={couponLoading || !couponInput.trim()}
+                    onClick={applyCoupon}
+                  >
+                    {couponLoading ? "…" : "Aplicar"}
+                  </Button>
                 </div>
-                <Button type="button" variant="outline" disabled={couponLoading || !couponInput.trim()} onClick={applyCoupon}>
-                  {couponLoading ? "…" : "Aplicar"}
-                </Button>
-              </div>
+                {couponError && (
+                  <p role="alert" className="mt-2 text-xs text-destructive">
+                    {couponError}
+                  </p>
+                )}
+              </>
             )}
           </div>
 
