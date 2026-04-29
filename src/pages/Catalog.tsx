@@ -1,5 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { queryKeys } from "@/lib/queryKeys";
+import { imageUrl } from "@/lib/image";
 import { Search, SlidersHorizontal, ShoppingCart, X, ArrowUpDown, Zap } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { useCart } from "@/hooks/useCart";
@@ -68,6 +72,31 @@ export default function Catalog() {
 
   const loading = loadingProducts;
   const { add, openCart } = useCart();
+  const qc = useQueryClient();
+
+  // Pré-carrega o produto quando o usuário sinaliza intenção (hover/touchstart no card).
+  const prefetchProduct = useCallback((slug: string) => {
+    qc.prefetchQuery({
+      queryKey: queryKeys.products.detail(slug),
+      queryFn: async () => {
+        const { data, error } = await supabase
+          .from("products")
+          .select("*, category:categories(name, slug)")
+          .eq("slug", slug)
+          .eq("is_active", true)
+          .maybeSingle();
+        if (error) throw error;
+        return data;
+      },
+      staleTime: 60_000,
+    });
+  }, [qc]);
+
+  // Handler estável para "Adicionar ao carrinho" no card → evita re-render dos cards.
+  const handleAdd = useCallback((p: Product, price: number) => {
+    add({ product_id: p.id, slug: p.slug, name: p.name, price, image_url: p.image_url });
+    openCart();
+  }, [add, openCart]);
 
   useSEO({
     title: "GIMPORTS — Catálogo de farmacêuticos importados",
