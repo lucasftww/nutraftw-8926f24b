@@ -14,7 +14,16 @@ import Admin from "@/pages/Admin";
 import NotFound from "@/pages/NotFound";
 import About from "@/pages/About";
 
-const qc = new QueryClient();
+const qc = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,
+      gcTime: 5 * 60_000,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 export default function App() {
   return (

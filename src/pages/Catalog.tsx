@@ -1,29 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Search, SlidersHorizontal, ShoppingCart, X, ArrowUpDown } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { useCart } from "@/hooks/useCart";
 import { useSEO } from "@/hooks/useSEO";
+import { useProducts, useCategories, type ProductRow } from "@/hooks/useProducts";
 
-interface Product {
-  id: string;
-  slug: string;
-  name: string;
-  description: string | null;
-  price: number;
-  sale_price: number | null;
-  image_url: string | null;
-  is_featured: boolean;
-  stock: number;
-  created_at: string;
-  category: { id: string; name: string; slug: string } | null;
-}
-interface Category {
-  id: string;
-  name: string;
-  slug: string;
-}
+type Product = ProductRow;
 
 const SORT_KEYS = ["categoria", "recentes", "az"] as const;
 type SortKey = (typeof SORT_KEYS)[number];
@@ -34,8 +17,8 @@ const SORT_LABELS: Record<SortKey, string> = {
 };
 
 export default function Catalog() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const { data: products = [], isLoading: loadingProducts } = useProducts();
+  const { data: categories = [] } = useCategories();
   const [selectedCats, setSelectedCats] = useState<Set<string>>(new Set());
   const [searchParams, setSearchParams] = useSearchParams();
   const urlQuery = searchParams.get("q") ?? "";
@@ -83,7 +66,7 @@ export default function Catalog() {
     setVisibleCount(PAGE_SIZE);
   }, [query, selectedCats, sort]);
 
-  const [loading, setLoading] = useState(true);
+  const loading = loadingProducts;
   const { add, openCart } = useCart();
 
   useSEO({
@@ -102,33 +85,6 @@ export default function Catalog() {
       })),
     },
   });
-
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      const [catsRes, prodsRes] = await Promise.all([
-        supabase.from("categories").select("id, name, slug").order("display_order"),
-        supabase
-          .from("products")
-          .select(
-            "id, slug, name, description, price, sale_price, image_url, is_featured, stock, created_at, category:categories(id, name, slug)"
-          )
-          .eq("is_active", true)
-          .order("is_featured", { ascending: false })
-          .order("created_at", { ascending: false }),
-      ]);
-      if (cancelled) return;
-      if (catsRes.error) console.error("[Catalog] categories", catsRes.error);
-      if (prodsRes.error) console.error("[Catalog] products", prodsRes.error);
-      setCategories((catsRes.data as any) || []);
-      setProducts((prodsRes.data as any) || []);
-      setLoading(false);
-    }
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const toggleCat = (slug: string) => {
     setSelectedCats((prev) => {

@@ -19,18 +19,20 @@ export default function Login() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const cleanEmail = email.trim().toLowerCase();
     setLoading(true);
     try {
       if (mode === "login") {
-        const { data: signIn, error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data: signIn, error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
         if (error) throw error;
         toast.success("Bem-vindo!");
         const uid = signIn.user?.id;
         if (uid) {
-          const { data: roles } = await supabase
+          const { data: roles, error: rolesErr } = await supabase
             .from("user_roles")
             .select("role")
             .eq("user_id", uid);
+          if (rolesErr) console.error("[Login] roles fetch failed", rolesErr);
           const isAdmin = roles?.some((r: any) => r.role === "admin");
           nav(isAdmin ? "/admin" : next, { replace: true });
         } else {
@@ -38,7 +40,7 @@ export default function Login() {
         }
       } else {
         const { error } = await supabase.auth.signUp({
-          email,
+          email: cleanEmail,
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/`,
