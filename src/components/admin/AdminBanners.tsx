@@ -8,6 +8,7 @@ import { ImageUpload } from "@/components/admin/ImageUpload";
 import { Plus, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
+import { queryKeys } from "@/lib/queryKeys";
 
 export function AdminBanners() {
   const [items, setItems] = useState<any[]>([]);
@@ -49,7 +50,7 @@ export function AdminBanners() {
     } else {
       toast.success("Banner guardado");
       setEditing(null);
-      qc.invalidateQueries({ queryKey: ["site_banners"] });
+      qc.invalidateQueries({ queryKey: queryKeys.banners.all });
       load();
     }
   }
@@ -62,7 +63,7 @@ export function AdminBanners() {
       toast.error(err.message);
       return;
     }
-    qc.invalidateQueries({ queryKey: ["site_banners"] });
+    qc.invalidateQueries({ queryKey: queryKeys.banners.all });
     load();
   }
 
