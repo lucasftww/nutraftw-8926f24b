@@ -6,16 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { LogOut, User as UserIcon, MapPin, ShoppingBag, Eye, Loader2 } from "lucide-react";
+import { LogOut, User as UserIcon, MapPin, ShoppingBag, Eye, Loader2, Users, Copy, Check } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { CustomerOrderDetail } from "@/components/account/CustomerOrderDetail";
 
-type Tab = "profile" | "address" | "orders";
+type Tab = "profile" | "address" | "orders" | "affiliate";
 
 const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "profile", label: "Dados pessoais", icon: UserIcon },
   { id: "address", label: "Endereço", icon: MapPin },
   { id: "orders", label: "Meus pedidos", icon: ShoppingBag },
+  { id: "affiliate", label: "Afiliação", icon: Users },
 ];
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
@@ -45,6 +46,15 @@ export default function MyAccount() {
   const [saving, setSaving] = useState(false);
   const [cepLoading, setCepLoading] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
+  // Afiliação
+  const [affStats, setAffStats] = useState({
+    released: 0,
+    pending: 0,
+    activeRefs: 0,
+    inactiveRefs: 0,
+  });
+  const [copied, setCopied] = useState(false);
+  const [savingPixel, setSavingPixel] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -55,6 +65,50 @@ export default function MyAccount() {
       .order("created_at", { ascending: false })
       .then(({ data }) => setOrders(data || []));
   }, [user]);
+
+  // Carrega estatísticas de afiliação ao abrir a aba.
+  useEffect(() => {
+    if (!user || tab !== "affiliate") return;
+    (async () => {
+      const [{ data: comm }, { data: refs }] = await Promise.all([
+        supabase.from("affiliate_commissions").select("amount, status").eq("affiliate_user_id", user.id),
+        supabase.from("affiliate_referrals").select("status").eq("affiliate_user_id", user.id),
+      ]);
+      const released = (comm || []).filter((c: any) => c.status === "released" || c.status === "paid").reduce((s: number, c: any) => s + Number(c.amount || 0), 0);
+      const pending = (comm || []).filter((c: any) => c.status === "pending").reduce((s: number, c: any) => s + Number(c.amount || 0), 0);
+      const activeRefs = (refs || []).filter((r: any) => r.status === "active").length;
+      const inactiveRefs = (refs || []).filter((r: any) => r.status === "inactive").length;
+      setAffStats({ released, pending, activeRefs, inactiveRefs });
+    })();
+  }, [user, tab]);
+
+  const affiliateUrl = useMemo(() => {
+    if (!profile?.affiliate_code) return "";
+    return `${window.location.origin}/r/${profile.affiliate_code}`;
+  }, [profile?.affiliate_code]);
+
+  async function copyLink() {
+    if (!affiliateUrl) return;
+    try {
+      await navigator.clipboard.writeText(affiliateUrl);
+      setCopied(true);
+      toast.success("Link copiado!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Não foi possível copiar");
+    }
+  }
+
+  async function savePixel() {
+    if (!user) return;
+    setSavingPixel(true);
+    const { error } = await supabase.from("profiles")
+      .update({ facebook_pixel: profile.facebook_pixel?.trim() || null })
+      .eq("user_id", user.id);
+    setSavingPixel(false);
+    if (error) toast.error(error.message);
+    else toast.success("Pixel salvo!");
+  }
 
   async function lookupCEP(cep: string) {
     const digits = cep.replace(/\D/g, "");
@@ -264,6 +318,75 @@ export default function MyAccount() {
       )}
 
       {orderId && <CustomerOrderDetail orderId={orderId} onClose={() => setOrderId(null)} />}
+
+      {tab === "affiliate" && (
+        <div className="space-y-4">
+          {/* Banner */}
+          <div className="bg-card rounded-2xl border border-border p-5">
+            <h2 className="font-display text-lg font-bold text-primary">Programa de indicações</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Compartilhe seu link e ganhe <strong>1% de comissão</strong> nas compras aprovadas.
+            </p>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="bg-card rounded-2xl border border-border p-4">
+              <p className="text-xs text-muted-foreground">Comissões liberadas</p>
+              <p className="text-2xl font-extrabold mt-1 text-primary">{formatBRL(affStats.released)}</p>
+            </div>
+            <div className="bg-card rounded-2xl border border-border p-4">
+              <p className="text-xs text-muted-foreground">Comissões pendentes</p>
+              <p className="text-2xl font-extrabold mt-1">{formatBRL(affStats.pending)}</p>
+            </div>
+            <div className="bg-card rounded-2xl border border-border p-4">
+              <p className="text-xs text-muted-foreground">Indicações ativas</p>
+              <p className="text-2xl font-extrabold mt-1">{affStats.activeRefs}</p>
+            </div>
+            <div className="bg-card rounded-2xl border border-border p-4">
+              <p className="text-xs text-muted-foreground">Indicações inativas</p>
+              <p className="text-2xl font-extrabold mt-1">{affStats.inactiveRefs}</p>
+            </div>
+          </div>
+
+          {/* Link de divulgação */}
+          <div className="bg-card rounded-2xl border border-border p-5 space-y-3">
+            <div>
+              <h3 className="font-display font-bold text-primary">Link de divulgação</h3>
+              <p className="text-sm text-muted-foreground">Ganhe 1% de comissão nas compras aprovadas de produtos da loja.</p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Input value={affiliateUrl} readOnly className="bg-muted/40 font-mono text-sm" />
+              <Button type="button" variant="outline" onClick={copyLink} className="shrink-0">
+                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                {copied ? "Copiado" : "Copiar"}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Código de afiliado: <span className="font-mono font-semibold text-foreground">{profile?.affiliate_code || "—"}</span>
+            </p>
+          </div>
+
+          {/* Pixel do Facebook */}
+          <div className="bg-card rounded-2xl border border-border p-5 space-y-3">
+            <div>
+              <h3 className="font-display font-bold text-primary">Pixel do Facebook</h3>
+              <p className="text-sm text-muted-foreground">Adicione seu Pixel para rastrear as conversões geradas pelas suas indicações.</p>
+            </div>
+            <Input
+              value={profile.facebook_pixel || ""}
+              onChange={(e) => setProfile({ ...profile, facebook_pixel: e.target.value })}
+              placeholder="Ex.: 123456789012345"
+              inputMode="numeric"
+            />
+            <div className="flex justify-end">
+              <Button type="button" onClick={savePixel} disabled={savingPixel}>
+                {savingPixel ? "Salvando…" : "Salvar alterações"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
