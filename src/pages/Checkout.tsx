@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { formatBRL, onlyDigits, maskCPF, maskPhone, maskCEP } from "@/lib/utils";
 import { imageUrl } from "@/lib/image";
 import { toast } from "sonner";
-import { ShieldCheck, Truck, CreditCard, QrCode, ArrowLeft, Ticket, Check, MapPin, User as UserIcon, Package, Loader2, ChevronDown, ShoppingBag, AlertCircle, CheckCircle2 } from "lucide-react";
+import { ShieldCheck, Truck, Lock, CreditCard, QrCode, ArrowLeft, Ticket, Check, MapPin, User as UserIcon, Package, Loader2, ChevronDown, ShoppingBag, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { trackEvent } from "@/lib/analytics";
 import { useFieldValidation } from "@/hooks/useFieldValidation";
@@ -57,6 +57,8 @@ export default function Checkout() {
   const [couponInput, setCouponInput] = useState("");
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponOpen, setCouponOpen] = useState<boolean>(false);
+  const [complementOpen, setComplementOpen] = useState<boolean>(false);
 
   // Funil: registra `checkout_started` ao chegar na página com itens.
   // Usa um ref-like guard via state pra disparar uma vez por carga.
@@ -315,6 +317,7 @@ export default function Checkout() {
   const selectedShipping = shippingOptions.find((o) => o.id === shippingId);
   const shippingValue = selectedShipping ? Number(selectedShipping.price) : SHIPPING_FALLBACK;
   const insurance = insuranceOn ? Math.round(total * INSURANCE_RATE * 100) / 100 : 0;
+  const cepReady = onlyDigits(form.zip).length === 8 && form.state.trim().length === 2;
 
   // === Progresso das etapas (derivado, sem novo state) ===
   // Cada etapa "concluída" exige seus campos mínimos válidos.
@@ -580,23 +583,21 @@ export default function Checkout() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 md:py-10">
-      <div className="flex items-center justify-between mb-4 sm:mb-6">
+      <div className="flex items-center mb-3 sm:mb-6">
         <button
           onClick={() => nav(-1)}
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary"
+          aria-label="Voltar"
+          className="inline-flex items-center justify-center w-9 h-9 rounded-full text-muted-foreground hover:text-primary hover:bg-muted transition-colors -ml-1"
         >
-          <ArrowLeft className="h-4 w-4" /> Voltar
+          <ArrowLeft className="h-5 w-5" />
         </button>
       </div>
 
       <form onSubmit={submit} className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-5 lg:gap-8">
-        <div className="space-y-5 sm:space-y-6 min-w-0">
+        <div className="space-y-4 sm:space-y-6 min-w-0">
           {/* Dados do Comprador */}
           <section className="checkout-card">
-            <div className="flex items-center gap-2 mb-5 sm:mb-6">
-              <UserIcon className="w-5 h-5 text-primary" />
-              <h2 className="checkout-section-title !mb-0">Dados do Comprador</h2>
-            </div>
+            <h2 className="checkout-section-title">Seus dados</h2>
             <div className="space-y-4">
               <div className="checkout-field">
                 <label className="checkout-label">Nome Completo *</label>
@@ -614,8 +615,8 @@ export default function Checkout() {
                 />
                 <FieldHint status={vName.status} message={vName.message} />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="checkout-field">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="checkout-field sm:col-span-2">
                   <label className="checkout-label">E-mail *</label>
                   <input
                     required
@@ -650,8 +651,7 @@ export default function Checkout() {
                   />
                   <FieldHint status={vPhone.status} message={vPhone.message} />
                 </div>
-              </div>
-              <div className="checkout-field">
+                <div className="checkout-field">
                 <label className="checkout-label">CPF *</label>
                 <input
                   required
@@ -666,16 +666,14 @@ export default function Checkout() {
                   maxLength={14}
                 />
                 <FieldHint status={vCPF.status} message={vCPF.message} />
+                </div>
               </div>
             </div>
           </section>
 
           {/* Endereço de Entrega */}
           <section className="checkout-card">
-            <div className="flex items-center gap-2 mb-5 sm:mb-6">
-              <MapPin className="w-5 h-5 text-primary" />
-              <h2 className="checkout-section-title !mb-0">Endereço de Entrega</h2>
-            </div>
+            <h2 className="checkout-section-title">Endereço</h2>
             <div className="space-y-4">
               <div className="checkout-field">
                 <label className="checkout-label">CEP *</label>
@@ -705,8 +703,8 @@ export default function Checkout() {
                   </p>
                 )}
               </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="col-span-2 checkout-field">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="sm:col-span-2 checkout-field">
                   <label className="checkout-label">Rua / Logradouro *</label>
                   <input
                     required
@@ -727,7 +725,25 @@ export default function Checkout() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="checkout-field">
+                <label className="checkout-label">Bairro *</label>
+                <input
+                  required
+                  value={form.district}
+                  onChange={(e) => setForm({ ...form, district: e.target.value })}
+                  placeholder="Centro"
+                  className="checkout-input"
+                />
+              </div>
+              {!complementOpen ? (
+                <button
+                  type="button"
+                  onClick={() => setComplementOpen(true)}
+                  className="text-xs font-semibold text-primary hover:underline"
+                >
+                  + Adicionar complemento
+                </button>
+              ) : (
                 <div className="checkout-field">
                   <label className="checkout-label">Complemento</label>
                   <input
@@ -735,21 +751,12 @@ export default function Checkout() {
                     onChange={(e) => setForm({ ...form, complement: e.target.value })}
                     placeholder="Apto 12, Bloco B"
                     className="checkout-input"
+                    autoFocus
                   />
                 </div>
-                <div className="checkout-field">
-                  <label className="checkout-label">Bairro *</label>
-                  <input
-                    required
-                    value={form.district}
-                    onChange={(e) => setForm({ ...form, district: e.target.value })}
-                    placeholder="Centro"
-                    className="checkout-input"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="col-span-2 checkout-field">
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="sm:col-span-2 checkout-field">
                   <label className="checkout-label">Cidade *</label>
                   <input
                     required
@@ -780,11 +787,11 @@ export default function Checkout() {
             </div>
           </section>
 
-          {/* Entrega e Opções */}
-          <section className="checkout-card space-y-6">
-            <div className="flex items-center gap-2">
-              <Truck className="w-5 h-5 text-primary" />
-              <h2 className="checkout-section-title !mb-0">Entrega e Opções</h2>
+          {/* Entrega — só aparece após CEP/UF preenchidos */}
+          {cepReady && (
+          <section className="checkout-card space-y-5">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="checkout-section-title !mb-0">Entrega</h2>
               {shippingLoading && (
                 <span className="ml-auto inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground" aria-live="polite">
                   <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
@@ -885,13 +892,11 @@ export default function Checkout() {
               </div>
             )}
           </section>
+          )}
 
           {/* Forma de Pagamento */}
           <section className="checkout-card">
-            <div className="flex items-center gap-2 mb-5 sm:mb-6">
-              <CreditCard className="w-5 h-5 text-primary" />
-              <h2 className="checkout-section-title !mb-0">Forma de Pagamento</h2>
-            </div>
+            <h2 className="checkout-section-title">Pagamento</h2>
             {(() => {
               const pixOn = settings.checkout_enable_pix !== "0";
               const cardOn = settings.checkout_enable_card !== "0";
@@ -1131,6 +1136,7 @@ export default function Checkout() {
                       setCoupon(null);
                       setCouponInput("");
                       setCouponError(null);
+                      setCouponOpen(false);
                     }}
                     className="text-xs text-muted-foreground hover:text-destructive"
                   >
@@ -1143,6 +1149,14 @@ export default function Checkout() {
                   </p>
                 )}
               </>
+            ) : !couponOpen ? (
+              <button
+                type="button"
+                onClick={() => setCouponOpen(true)}
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+              >
+                <Ticket className="w-4 h-4" /> Tem cupom?
+              </button>
             ) : (
               <>
                 <div className="flex gap-2">
@@ -1152,6 +1166,7 @@ export default function Checkout() {
                       className="checkout-input pl-9 uppercase"
                       placeholder="Cupom de desconto"
                       value={couponInput}
+                      autoFocus
                       onChange={(e) => {
                         setCouponInput(e.target.value.toUpperCase());
                         if (couponError) setCouponError(null);
@@ -1208,6 +1223,23 @@ export default function Checkout() {
               <><CreditCard className="w-5 h-5" /> Pagar com Cartão</>
             )}
           </button>
+          {/* Reforços de confiança discretos abaixo do CTA */}
+          <div className="mt-3 space-y-2">
+            {form.payment_method === "pix" && (
+              <p className="text-center text-[11px] text-success font-semibold">
+                ✓ Aprovação imediata no PIX
+              </p>
+            )}
+            <div className="flex items-center justify-center gap-3 text-muted-foreground/70">
+              <Lock className="w-3 h-3" aria-hidden />
+              <span className="text-[10px] font-semibold tracking-wider uppercase">SSL</span>
+              <span className="w-px h-3 bg-border" />
+              <span className="text-[10px] font-bold tracking-wider">PIX</span>
+              <span className="text-[10px] font-bold tracking-wider">VISA</span>
+              <span className="text-[10px] font-bold tracking-wider">MASTER</span>
+              <span className="text-[10px] font-bold tracking-wider">ELO</span>
+            </div>
+          </div>
         </aside>
 
       </form>
