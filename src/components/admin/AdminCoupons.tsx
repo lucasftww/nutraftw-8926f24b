@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Plus, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
+import { queryKeys } from "@/lib/queryKeys";
 
 export function AdminCoupons() {
   const [items, setItems] = useState<any[]>([]);
@@ -63,7 +64,7 @@ export function AdminCoupons() {
       logSupabaseError("Guardar cupom", error, { id: f.id, code: payload.code });
       toast.error(error.message);
     } else { toast.success("Cupom guardado"); setEditing(null); load(); }
-    qc.invalidateQueries({ queryKey: ["coupons"] });
+    qc.invalidateQueries({ queryKey: queryKeys.coupons.all });
   }
 
   async function del(id: string) {
@@ -73,7 +74,7 @@ export function AdminCoupons() {
       logSupabaseError("Remover cupom", error, { id });
       toast.error(error.message);
     } else { toast.success("Removido"); load(); }
-    qc.invalidateQueries({ queryKey: ["coupons"] });
+    qc.invalidateQueries({ queryKey: queryKeys.coupons.all });
   }
 
   if (error) return <AdminErrorBanner error={error} onRetry={load} />;
