@@ -5,6 +5,7 @@ import { formatBRL } from "@/lib/utils";
 import { toast } from "sonner";
 import { PackageCheck, Truck } from "lucide-react";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
+import { logAdminAction } from "@/lib/auditLog";
 
 const STATUS_OPTIONS = [
   { value: "", label: "—" },
@@ -41,7 +42,17 @@ export function AdminResends() {
     if (error) {
       logSupabaseError("Atualizar reenvio", error, { id, patch });
       toast.error(error.message);
-    } else { toast.success("Atualizado"); load(); }
+    } else {
+      toast.success("Atualizado");
+      logAdminAction({
+        action: "status_change",
+        entity: "resends",
+        entityId: id,
+        summary: `Reenvio #${id.slice(0, 8)} → ${patch.resend_status ?? "atualizado"}`,
+        diff: { after: patch },
+      });
+      load();
+    }
   }
 
   if (error) return <AdminErrorBanner error={error} onRetry={load} />;
