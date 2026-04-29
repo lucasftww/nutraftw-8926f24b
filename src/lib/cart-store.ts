@@ -11,9 +11,11 @@ export interface CartLine {
 }
 
 const STORAGE_KEY = "gimports-cart-v1";
+const COUPON_KEY = "gimports-coupon-v1";
 
 let lines: CartLine[] = [];
 let drawerOpen = false;
+let couponCode: string | null = null;
 const listeners = new Set<Listener>();
 
 function load() {
@@ -26,11 +28,17 @@ function load() {
       lines = [];
     }
   } catch {}
+  try {
+    const c = localStorage.getItem(COUPON_KEY);
+    couponCode = c && c.length > 0 ? c : null;
+  } catch {}
 }
 
 function persist() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(lines));
+    if (couponCode) localStorage.setItem(COUPON_KEY, couponCode);
+    else localStorage.removeItem(COUPON_KEY);
   } catch {}
   listeners.forEach((l) => l());
 }
@@ -40,7 +48,7 @@ if (typeof window !== "undefined") {
   // Sincroniza o carrinho entre abas/janelas. Sem isto, abrir o site em
   // duas abas leva a contagens divergentes e o cliente fica confuso.
   window.addEventListener("storage", (e) => {
-    if (e.key !== STORAGE_KEY) return;
+    if (e.key !== STORAGE_KEY && e.key !== COUPON_KEY) return;
     load();
     listeners.forEach((l) => l());
   });
@@ -56,6 +64,13 @@ export const cart = {
   getCount: () => lines.reduce((s, l) => s + l.qty, 0),
   getTotal: () => lines.reduce((s, l) => s + l.price * l.qty, 0),
   isOpen: () => drawerOpen,
+  getCoupon: () => couponCode,
+  setCoupon(code: string | null) {
+    const next = code && code.trim().length > 0 ? code.trim().toUpperCase() : null;
+    if (next === couponCode) return;
+    couponCode = next;
+    persist();
+  },
   add(line: Omit<CartLine, "qty">, qty = 1) {
     const i = lines.findIndex((l) => l.product_id === line.product_id);
     if (i >= 0) {
@@ -82,6 +97,7 @@ export const cart = {
   },
   clear() {
     lines = [];
+    couponCode = null;
     persist();
   },
   openDrawer() {

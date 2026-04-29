@@ -4,8 +4,8 @@ import { cart } from "@/lib/cart-store";
 // Snapshot serializado garante re-render confiável quando carrinho/drawer mudam.
 const subscribe = (cb: () => void) => cart.subscribe(cb);
 const getSnapshot = () =>
-  JSON.stringify(cart.getLines()) + "|" + cart.isOpen();
-const getServerSnapshot = () => "[]|false";
+  JSON.stringify(cart.getLines()) + "|" + cart.isOpen() + "|" + (cart.getCoupon() ?? "");
+const getServerSnapshot = () => "[]|false|";
 
 export function useCart() {
   // useSyncExternalStore garante re-render; lemos os dados frescos do store.
@@ -15,6 +15,8 @@ export function useCart() {
     count: cart.getCount(),
     total: cart.getTotal(),
     open: cart.isOpen(),
+    coupon: cart.getCoupon(),
+    setCoupon: cart.setCoupon.bind(cart),
     add: cart.add.bind(cart),
     remove: cart.remove.bind(cart),
     setQty: cart.setQty.bind(cart),
