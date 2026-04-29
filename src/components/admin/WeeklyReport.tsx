@@ -850,3 +850,42 @@ function Stat({
     </div>
   );
 }
+
+function Pager({
+  page,
+  totalPages,
+  onChange,
+}: {
+  page: number;
+  totalPages: number;
+  onChange: (p: number) => void;
+}) {
+  if (totalPages <= 1) return null;
+  return (
+    <div className="flex items-center justify-between gap-2 mt-3">
+      <span className="text-[11px] text-muted-foreground">
+        Página {page} de {totalPages}
+      </span>
+      <div className="inline-flex items-center gap-1">
+        <button
+          type="button"
+          onClick={() => onChange(Math.max(1, page - 1))}
+          disabled={page <= 1}
+          className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-border bg-background text-xs hover:bg-accent disabled:opacity-40 disabled:cursor-not-allowed"
+          aria-label="Página anterior"
+        >
+          <ChevronLeft className="h-3.5 w-3.5" />
+        </button>
+        <button
+          type="button"
+          onClick={() => onChange(Math.min(totalPages, page + 1))}
+          disabled={page >= totalPages}
+          className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-border bg-background text-xs hover:bg-accent disabled:opacity-40 disabled:cursor-not-allowed"
+          aria-label="Próxima página"
+        >
+          <ChevronRight className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    </div>
+  );
+}
