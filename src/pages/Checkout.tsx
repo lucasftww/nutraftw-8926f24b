@@ -325,6 +325,20 @@ export default function Checkout() {
       );
       return false;
     }
+    const pixOn = settings.checkout_enable_pix !== "0";
+    const cardOn = settings.checkout_enable_card !== "0";
+    if (!pixOn && !cardOn) {
+      toast.error("Pagamentos temporariamente indisponíveis. Contate o suporte.");
+      return false;
+    }
+    if (form.payment_method === "pix" && !pixOn) {
+      toast.error("PIX indisponível. Selecione cartão.");
+      return false;
+    }
+    if (form.payment_method === "credit_card" && !cardOn) {
+      toast.error("Cartão indisponível. Selecione PIX.");
+      return false;
+    }
     return true;
   }
 
