@@ -302,7 +302,7 @@ export default function MyAccount() {
       </div>
 
       {(tab === "profile" || tab === "address") && (
-        <form onSubmit={save} className="bg-card rounded-2xl border border-border p-6 space-y-4">
+        <form onSubmit={save} className="bg-card rounded-2xl border border-border p-4 md:p-6 space-y-4">
           {tab === "profile" && (
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -315,11 +315,11 @@ export default function MyAccount() {
               </div>
               <div className="space-y-2">
                 <Label>Telefone</Label>
-                <Input value={maskPhone(profile.phone || "")} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} placeholder="(00) 00000-0000" />
+                <Input inputMode="tel" value={maskPhone(profile.phone || "")} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} placeholder="(00) 00000-0000" />
               </div>
               <div className="space-y-2">
                 <Label>CPF</Label>
-                <Input value={maskCPF(profile.cpf || "")} onChange={(e) => setProfile({ ...profile, cpf: e.target.value })} placeholder="000.000.000-00" />
+                <Input inputMode="numeric" value={maskCPF(profile.cpf || "")} onChange={(e) => setProfile({ ...profile, cpf: e.target.value })} placeholder="000.000.000-00" />
               </div>
             </div>
           )}
@@ -330,6 +330,7 @@ export default function MyAccount() {
                 <Label>CEP</Label>
                 <div className="relative">
                   <Input
+                    inputMode="numeric"
                     value={maskCEP(profile.address_zip || "")}
                     onChange={(e) => {
                       const v = e.target.value;
@@ -345,11 +346,17 @@ export default function MyAccount() {
                 <Label>Rua</Label>
                 <Input value={profile.address_street || ""} onChange={(e) => setProfile({ ...profile, address_street: e.target.value })} />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 grid-cols-2 grid sm:block gap-3 sm:gap-0">
+                <div className="space-y-2">
                 <Label>Número</Label>
-                <Input value={profile.address_number || ""} onChange={(e) => setProfile({ ...profile, address_number: e.target.value })} />
+                <Input inputMode="numeric" value={profile.address_number || ""} onChange={(e) => setProfile({ ...profile, address_number: e.target.value })} />
+                </div>
+                <div className="space-y-2 sm:hidden">
+                  <Label>UF</Label>
+                  <Input value={profile.address_state || ""} onChange={(e) => setProfile({ ...profile, address_state: e.target.value.toUpperCase() })} maxLength={2} />
+                </div>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 sm:col-span-1">
                 <Label>Complemento</Label>
                 <Input value={profile.address_complement || ""} onChange={(e) => setProfile({ ...profile, address_complement: e.target.value })} />
               </div>
@@ -361,54 +368,65 @@ export default function MyAccount() {
                 <Label>Cidade</Label>
                 <Input value={profile.address_city || ""} onChange={(e) => setProfile({ ...profile, address_city: e.target.value })} />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 hidden sm:block">
                 <Label>UF</Label>
                 <Input value={profile.address_state || ""} onChange={(e) => setProfile({ ...profile, address_state: e.target.value.toUpperCase() })} maxLength={2} />
               </div>
             </div>
           )}
 
-          <div className="pt-2 border-t border-border flex justify-end">
-            <Button type="submit" disabled={saving}>{saving ? "A guardar…" : "Guardar alterações"}</Button>
+          <div className="pt-3 border-t border-border">
+            <Button type="submit" disabled={saving} size="lg" className="w-full sm:w-auto sm:ml-auto sm:flex">
+              {saving ? "A guardar…" : "Guardar alterações"}
+            </Button>
           </div>
         </form>
       )}
 
       {tab === "orders" && (
-        <div className="bg-card rounded-2xl border border-border overflow-hidden">
-          {orders.length === 0 ? (
-            <div className="text-center py-16 px-6">
-              <ShoppingBag className="h-12 w-12 mx-auto text-muted-foreground/40 mb-3" />
-              <p className="text-muted-foreground">Você ainda não fez nenhum pedido.</p>
-              <Button className="mt-4" onClick={() => nav("/")}>Explorar produtos</Button>
+        orders.length === 0 ? (
+          <div className="bg-card rounded-2xl border border-border text-center py-12 md:py-16 px-6">
+            <div className="h-14 w-14 rounded-2xl bg-muted/60 mx-auto flex items-center justify-center mb-3">
+              <ShoppingBag className="h-7 w-7 text-muted-foreground/70" />
             </div>
-          ) : (
-            <ul className="divide-y divide-border">
-              {orders.map((o) => {
-                const status = STATUS_LABELS[o.status] || { label: o.status, color: "bg-muted" };
-                return (
-                  <li key={o.id} className="flex items-center justify-between gap-3 p-4 hover:bg-muted/30 transition-colors">
-                    <div className="min-w-0">
-                      <p className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(o.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
-                      </p>
-                      <span className={`inline-flex mt-1 px-2 py-0.5 rounded-full text-xs font-semibold ${status.color}`}>
-                        {status.label}
-                      </span>
+            <p className="text-foreground font-semibold">Nenhum pedido ainda</p>
+            <p className="text-sm text-muted-foreground mt-1">Quando você comprar, ele aparece aqui.</p>
+            <Button className="mt-4" onClick={() => nav("/")}>Explorar produtos</Button>
+          </div>
+        ) : (
+          <ul className="space-y-2.5">
+            {orders.map((o) => {
+              const status = STATUS_LABELS[o.status] || { label: o.status, color: "bg-muted text-foreground" };
+              return (
+                <li key={o.id}>
+                  <button
+                    onClick={() => setOrderId(o.id)}
+                    className="w-full text-left bg-card rounded-2xl border border-border p-4 hover:border-primary/40 active:scale-[0.99] transition-all flex items-center gap-3"
+                  >
+                    <div className="h-11 w-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                      <ShoppingBag className="h-5 w-5" />
                     </div>
-                    <div className="text-right flex items-center gap-3">
-                      <p className="font-display font-bold text-primary">{formatBRL(o.total)}</p>
-                      <button onClick={() => setOrderId(o.id)} className="p-2 hover:bg-muted rounded-lg" aria-label="Ver detalhes">
-                        <Eye className="h-4 w-4" />
-                      </button>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="font-mono text-[11px] text-muted-foreground">#{o.id.slice(0, 8).toUpperCase()}</p>
+                        <p className="font-display font-extrabold text-primary text-base">{formatBRL(o.total)}</p>
+                      </div>
+                      <div className="flex items-center justify-between gap-2 mt-1">
+                        <span className={`inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold ${status.color}`}>
+                          {status.label}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground">
+                          {new Date(o.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
+                        </span>
+                      </div>
                     </div>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )
       )}
 
       {orderId && <CustomerOrderDetail orderId={orderId} onClose={() => setOrderId(null)} />}
