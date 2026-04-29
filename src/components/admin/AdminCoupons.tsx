@@ -36,7 +36,9 @@ export function AdminCoupons() {
       min_subtotal: Number(f.min_subtotal) || 0,
       max_uses: f.max_uses ? Number(f.max_uses) : null,
       active: f.active !== false,
-      expires_at: f.expires_at || null,
+      // datetime-local devolve "YYYY-MM-DDTHH:mm" sem timezone — converter para
+      // ISO garante que o Postgres interprete como timestamptz local do cliente.
+      expires_at: f.expires_at ? new Date(f.expires_at).toISOString() : null,
     };
     const { error } = f.id
       ? await supabase.from("coupons" as any).update(payload).eq("id", f.id)

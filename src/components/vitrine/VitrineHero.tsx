@@ -13,11 +13,16 @@ export function VitrineHero() {
   const bio = settings.hero_bio || "✨ Sua parceira no cuidado com a saúde ⚖️ Produtos que auxiliam no emagrecimento 💊 Medicamentos, suplementos e vitaminas 🤝 Atendimento de confiança 📲 Fale conosco e saiba mais!";
 
   if (banner && banner.image_url) {
+    const hasCta = !!(banner.cta_url && banner.cta_url.trim() && banner.cta_url !== "#");
+    const Wrapper: any = hasCta ? "a" : "div";
+    const wrapperProps = hasCta
+      ? { href: banner.cta_url, ...(/^https?:\/\//i.test(banner.cta_url) ? { target: "_blank", rel: "noreferrer" } : {}) }
+      : {};
     return (
       <header className="relative w-full pt-4 sm:pt-6 pb-2">
         <div className="container mx-auto px-5">
-          <a
-            href={banner.cta_url || "#"}
+          <Wrapper
+            {...wrapperProps}
             className="block relative rounded-2xl overflow-hidden shadow-lg"
           >
             <img
@@ -31,14 +36,14 @@ export function VitrineHero() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-5 sm:p-8 text-white">
                 {banner.title && <h1 className="text-xl sm:text-3xl font-bold tracking-tight">{banner.title}</h1>}
                 {banner.subtitle && <p className="text-sm sm:text-base mt-1 opacity-90">{banner.subtitle}</p>}
-                {banner.cta_label && (
+                {banner.cta_label && hasCta && (
                   <span className="mt-3 inline-flex w-max items-center px-4 py-2 rounded-full bg-background text-foreground text-sm font-semibold">
                     {banner.cta_label}
                   </span>
                 )}
               </div>
             )}
-          </a>
+          </Wrapper>
         </div>
       </header>
     );
