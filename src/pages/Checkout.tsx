@@ -504,6 +504,34 @@ export default function Checkout() {
       }
     }
     try {
+      // Bug fix: o RPC create_order não recebe e-mail. O e-mail digitado
+      // no checkout era jogado fora se o usuário não tinha profile com email.
+      // Persistimos no profile (best-effort, não bloqueia o pedido) para
+      // que notificações/relatórios admins tenham o contato correto.
+      try {
+        await (supabase as any)
+          .from("profiles")
+          .upsert(
+            {
+              user_id: user!.id,
+              email: form.email.trim(),
+              full_name: form.full_name.trim(),
+              phone: onlyDigits(form.phone),
+              cpf: onlyDigits(form.cpf),
+              address_zip: onlyDigits(form.zip),
+              address_street: form.street.trim(),
+              address_number: form.number.trim(),
+              address_complement: form.complement.trim() || null,
+              address_district: form.district.trim(),
+              address_city: form.city.trim(),
+              address_state: form.state.trim().toUpperCase(),
+            },
+            { onConflict: "user_id" }
+          );
+      } catch (profileErr) {
+        console.warn("[Checkout] profile upsert failed (non-blocking)", profileErr);
+      }
+
       // Tudo é validado e calculado server-side via RPC (transação atômica).
       const { data: orderId, error: rpcErr } = await (supabase as any).rpc("create_order", {
         p_items: lines.map((l) => ({ product_id: l.product_id, qty: l.qty })),
