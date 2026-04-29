@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate, useParams } from "react-router-dom";
-import { setAffiliateRef } from "@/lib/affiliateRef";
+import { readAttributionFromUrl, setAffiliateRef } from "@/lib/affiliateRef";
 
 /**
  * /r/:code — registra a indicação no localStorage e redireciona para o catálogo.
@@ -15,7 +15,7 @@ export default function ReferralCapture() {
   const { code } = useParams<{ code: string }>();
   const [ready, setReady] = useState(false);
   useEffect(() => {
-    setAffiliateRef(code ?? null);
+    setAffiliateRef(code ?? null, readAttributionFromUrl());
     setReady(true);
   }, [code]);
   if (!ready) return null;
