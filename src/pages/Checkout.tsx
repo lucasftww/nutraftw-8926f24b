@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatBRL } from "@/lib/utils";
+import { imageUrl } from "@/lib/image";
 import { toast } from "sonner";
 import { ShieldCheck, Truck, Lock, CreditCard, QrCode, ArrowLeft, Ticket, Check } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
@@ -532,7 +533,7 @@ export default function Checkout() {
               <div key={l.product_id} className="flex gap-3">
                 <div className="w-12 h-12 rounded-lg border border-border bg-muted/30 overflow-hidden flex-shrink-0 flex items-center justify-center">
                   <img
-                    src={(undefined as any) /* replaced below */}
+                    src={imageUrl(l.image_url, { width: 96, quality: 75 })}
                     alt={l.name}
                     loading="lazy"
                     decoding="async"
