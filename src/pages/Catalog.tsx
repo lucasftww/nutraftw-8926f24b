@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Search, SlidersHorizontal, ShoppingCart, X, ArrowUpDown } from "lucide-react";
+import { Search, SlidersHorizontal, ShoppingCart, X, ArrowUpDown, Zap } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { useCart } from "@/hooks/useCart";
 import { useSEO } from "@/hooks/useSEO";
@@ -530,10 +530,13 @@ function Section({
   const isPromo = /promo/i.test(title);
   return (
     <div>
-      <div className="mb-5 md:mb-7">
-        <h2 className="text-base md:text-xl font-semibold tracking-tight text-foreground">
+      <div className="mb-4 md:mb-6 flex items-baseline justify-between gap-3">
+        <h2 className="text-lg md:text-2xl font-bold tracking-tight text-foreground">
           {title}
         </h2>
+        <span className="text-[11px] md:text-xs text-muted-foreground tabular-nums">
+          {items.length} {items.length === 1 ? "item" : "itens"}
+        </span>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
         {items.map((p) => {
@@ -548,54 +551,58 @@ function Section({
           const isOut = (p.stock ?? 0) <= 0;
           const ageDays = (Date.now() - new Date(p.created_at).getTime()) / 86400000;
           const isNew = !isOut && ageDays <= 30;
-          // Apenas um badge prioritário por card (clean): esgotado > novo. Oferta vira só o "-x%".
+          // Apenas um badge prioritário por card. Oferta vira só o "-x%" colorido.
           const badge = isOut
-            ? { label: "Esgotado", cls: "bg-foreground/80 text-background" }
+            ? { label: "Esgotado", cls: "bg-foreground/85 text-background" }
             : isNew && !hasRealSale
-            ? { label: "Novo", cls: "bg-foreground/80 text-background" }
+            ? { label: "Novo", cls: "bg-foreground/85 text-background" }
             : null;
+          const installment = finalPrice / 3;
           return (
             <Link
               key={p.id}
               to={`/produto/${p.slug}`}
-              className={`group flex flex-col h-full rounded-2xl bg-card overflow-hidden border border-transparent hover:border-primary/15 ${isOut ? "opacity-70" : ""}`}
+              className={`group flex flex-col h-full rounded-2xl bg-card overflow-hidden border border-border/50 hover:border-primary/30 hover:shadow-[var(--shadow-card)] transition-all ${isOut ? "opacity-70" : ""}`}
             >
               {/* Imagem */}
-              <div className="relative aspect-square overflow-hidden bg-white rounded-2xl">
+              <div className="relative aspect-square overflow-hidden bg-white">
                 <img
                   src={p.image_url || "/assets/no-image.svg"}
                   alt={p.name}
                   loading="lazy"
                   decoding="async"
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
                 />
                 {badge && (
-                  <span className={`absolute top-2 left-2 inline-flex items-center rounded-full text-[10px] font-medium px-2 py-0.5 ${badge.cls}`}>
+                  <span className={`absolute top-2 left-2 inline-flex items-center rounded-full text-[10px] font-semibold px-2 py-0.5 ${badge.cls}`}>
                     {badge.label}
                   </span>
                 )}
                 {hasRealSale && !isOut && (
-                  <span className="absolute top-2 right-2 inline-flex items-center rounded-full bg-foreground/85 text-background text-[10px] font-medium px-2 py-0.5">
+                  <span className="absolute top-2 right-2 inline-flex items-center rounded-full bg-secondary text-secondary-foreground text-[10px] font-bold px-2 py-0.5 shadow-sm">
                     -{discountPct}%
                   </span>
                 )}
               </div>
 
-              {/* Conteúdo — minimalista, sem botão preenchido em cada card */}
-              <div className="pt-3 pb-2 px-1 flex-1 flex flex-col">
-                <h3 className="font-normal text-[13px] sm:text-sm leading-snug line-clamp-2 min-h-[2.4rem] text-foreground">
+              {/* Conteúdo — hierarquia clara para conversão */}
+              <div className="pt-3 pb-3 px-2.5 flex-1 flex flex-col">
+                <h3 className="font-medium text-[13px] sm:text-sm leading-snug line-clamp-2 min-h-[2.4rem] text-foreground">
                   {p.name}
                 </h3>
-                <div className="mt-1.5 flex items-baseline gap-2">
-                  <span className="text-sm md:text-base font-semibold text-foreground tabular-nums">
-                    {formatBRL(finalPrice)}
-                  </span>
+                <div className="mt-2 flex flex-col gap-0.5">
                   {hasRealSale && (
-                    <span className="text-[11px] text-muted-foreground line-through tabular-nums">
-                      {formatBRL(priceNum)}
+                    <span className="text-[11px] text-muted-foreground line-through tabular-nums leading-none">
+                      de {formatBRL(priceNum)}
                     </span>
                   )}
+                  <span className="text-base md:text-lg font-extrabold text-primary tabular-nums leading-tight">
+                    {formatBRL(finalPrice)}
+                  </span>
+                  <span className="text-[10px] sm:text-[11px] text-muted-foreground tabular-nums">
+                    ou 3x de {formatBRL(installment)}
+                  </span>
                 </div>
                 <button
                   onClick={(e) => {
@@ -605,11 +612,17 @@ function Section({
                     onAdd(p, finalPrice);
                   }}
                   disabled={isOut}
-                  aria-label={isOut ? "Esgotado" : `Adicionar ${p.name} ao carrinho`}
-                  className="mt-2.5 inline-flex items-center justify-center gap-1.5 whitespace-nowrap font-medium border border-border text-foreground bg-background hover:bg-foreground hover:text-background transition-colors rounded-full w-full text-xs h-9 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-background disabled:hover:text-foreground"
+                  aria-label={isOut ? "Esgotado" : `Comprar ${p.name}`}
+                  className="mt-2.5 inline-flex items-center justify-center gap-1.5 whitespace-nowrap font-bold bg-secondary text-secondary-foreground hover:bg-secondary/90 active:scale-[0.98] transition-all rounded-full w-full text-xs h-10 shadow-sm shadow-secondary/20 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
                 >
-                  <ShoppingCart className="h-3.5 w-3.5" />
-                  {isOut ? "Esgotado" : "Adicionar"}
+                  {isOut ? (
+                    "Esgotado"
+                  ) : (
+                    <>
+                      <ShoppingCart className="h-3.5 w-3.5" />
+                      Comprar
+                    </>
+                  )}
                 </button>
               </div>
             </Link>
