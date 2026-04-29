@@ -81,6 +81,8 @@ export default function Checkout() {
   // Pre-fill from profile
   useEffect(() => {
     if (!user) return;
+    // Garante e-mail preenchido mesmo se não houver registro em `profiles` ainda.
+    setForm((f) => (f.email ? f : { ...f, email: user.email || "" }));
     let cancelled = false;
     supabase
       .from("profiles")
