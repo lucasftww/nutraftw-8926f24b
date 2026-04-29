@@ -6,12 +6,19 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider } from "@/hooks/useAuth";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, type ReactNode } from "react";
 import Catalog from "@/pages/Catalog";
 import ProductDetail from "@/pages/ProductDetail";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/NotFound";
 import About from "@/pages/About";
+import {
+  MyAccountSkeleton,
+  CheckoutSkeleton,
+  AdminSkeleton,
+  WishlistSkeleton,
+  GenericPageSkeleton,
+} from "@/components/loading/RouteSkeletons";
 
 // Code-split das rotas pesadas/raras: reduz drasticamente o JS inicial.
 const MyAccount = lazy(() => import("@/pages/MyAccount"));
@@ -25,12 +32,12 @@ const AdminHealth = lazy(() => import("@/pages/AdminHealth"));
 const Wishlist = lazy(() => import("@/pages/Wishlist"));
 const Install = lazy(() => import("@/pages/Install"));
 
-function RouteFallback() {
-  return (
-    <div className="container py-20 text-center text-sm text-muted-foreground">
-      Carregando…
-    </div>
-  );
+/**
+ * Wrap por rota para que cada página lazy mostre um skeleton com a forma
+ * final esperada — reduz percepção de lentidão e CLS no primeiro clique.
+ */
+function Lazy({ fallback, children }: { fallback: ReactNode; children: ReactNode }) {
+  return <Suspense fallback={fallback}>{children}</Suspense>;
 }
 
 const qc = new QueryClient({
@@ -52,24 +59,22 @@ export default function App() {
           <Toaster />
           <BrowserRouter>
             <AuthProvider>
-              <Suspense fallback={<RouteFallback />}>
               <Routes>
                 <Route element={<MainLayout />}>
                   <Route path="/" element={<Catalog />} />
                   <Route path="/produto/:slug" element={<ProductDetail />} />
                   <Route path="/login" element={<Login />} />
-                  <Route path="/admin/login" element={<AdminLogin />} />
-                  <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/minha-conta" element={<RequireAuth><MyAccount /></RequireAuth>} />
-                  <Route path="/favoritos" element={<Wishlist />} />
-                  <Route path="/instalar" element={<Install />} />
-                  <Route path="/admin" element={<RequireAuth adminOnly><Admin /></RequireAuth>} />
-                  <Route path="/admin/health" element={<RequireAuth adminOnly><AdminHealth /></RequireAuth>} />
+                  <Route path="/admin/login" element={<Lazy fallback={<GenericPageSkeleton />}><AdminLogin /></Lazy>} />
+                  <Route path="/checkout" element={<Lazy fallback={<CheckoutSkeleton />}><Checkout /></Lazy>} />
+                  <Route path="/minha-conta" element={<RequireAuth fallback={<MyAccountSkeleton />}><Lazy fallback={<MyAccountSkeleton />}><MyAccount /></Lazy></RequireAuth>} />
+                  <Route path="/favoritos" element={<Lazy fallback={<WishlistSkeleton />}><Wishlist /></Lazy>} />
+                  <Route path="/instalar" element={<Lazy fallback={<GenericPageSkeleton />}><Install /></Lazy>} />
+                  <Route path="/admin" element={<RequireAuth adminOnly fallback={<AdminSkeleton />}><Lazy fallback={<AdminSkeleton />}><Admin /></Lazy></RequireAuth>} />
+                  <Route path="/admin/health" element={<RequireAuth adminOnly fallback={<AdminSkeleton />}><Lazy fallback={<AdminSkeleton />}><AdminHealth /></Lazy></RequireAuth>} />
                   <Route path="/sobre" element={<About />} />
                   <Route path="*" element={<NotFound />} />
                 </Route>
               </Routes>
-              </Suspense>
             </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>

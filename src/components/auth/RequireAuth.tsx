@@ -2,10 +2,22 @@ import { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
-export function RequireAuth({ children, adminOnly = false }: { children: ReactNode; adminOnly?: boolean }) {
+export function RequireAuth({
+  children,
+  adminOnly = false,
+  fallback,
+}: {
+  children: ReactNode;
+  adminOnly?: boolean;
+  /** Skeleton mostrado enquanto a sessão (e role, se admin) carrega. */
+  fallback?: ReactNode;
+}) {
   const { user, loading, isAdmin, role } = useAuth();
   const location = useLocation();
-  if (loading) return <div className="container py-20 text-center text-muted-foreground">Carregando…</div>;
+  const loadingNode = fallback ?? (
+    <div className="container py-20 text-center text-muted-foreground">Carregando…</div>
+  );
+  if (loading) return <>{loadingNode}</>;
   // Rotas admin sempre redirecionam para o login dedicado do painel.
   const loginPath = adminOnly ? "/admin/login" : "/login";
   if (!user) {
@@ -15,7 +27,7 @@ export function RequireAuth({ children, adminOnly = false }: { children: ReactNo
   if (adminOnly) {
     // Aguarda o role carregar antes de decidir (evita falso negativo).
     if (role === null) {
-      return <div className="container py-20 text-center text-muted-foreground">Carregando…</div>;
+      return <>{loadingNode}</>;
     }
     if (!isAdmin) {
     // Logado mas sem permissão → vai para o login admin que mostra o erro claro
