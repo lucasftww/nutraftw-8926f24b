@@ -15,6 +15,7 @@ import { trackEvent } from "@/lib/analytics";
 import { CheckoutSteps } from "@/components/checkout/CheckoutSteps";
 import { useFieldValidation } from "@/hooks/useFieldValidation";
 import { validateFullName, validateEmail, validatePhoneBR, validateCPF, validateCEP } from "@/lib/validators";
+import { isValidCPF } from "@/lib/validators";
 import type { FieldStatus } from "@/lib/validators";
 
 const SHIPPING_FALLBACK = 80;
