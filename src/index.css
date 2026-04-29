@@ -234,4 +234,12 @@
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
   }
+  /* Glow sutil para badge de economia — chama o olho sem distrair */
+  .badge-pulse {
+    animation: badge-pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes badge-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 hsl(var(--success) / 0.45); }
+    50%      { box-shadow: 0 0 0 6px hsl(var(--success) / 0); }
+  }
 }
