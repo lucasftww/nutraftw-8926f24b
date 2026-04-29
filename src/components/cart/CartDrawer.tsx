@@ -5,6 +5,7 @@ import { formatBRL } from "@/lib/utils";
 import { imageUrl } from "@/lib/image";
 import { Button } from "@/components/ui/button";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
+import { CouponInput } from "@/components/cart/CouponInput";
 
 export function CartDrawer() {
   const { lines, total, open, closeCart, setQty, remove } = useCart();
@@ -149,6 +150,9 @@ export function CartDrawer() {
             className="sticky bottom-0 z-10 border-t border-border bg-background/95 backdrop-blur-md shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.18)] px-4 sm:px-5 pt-3"
             style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.875rem)" }}
           >
+            <div className="mb-3">
+              <CouponInput />
+            </div>
             <div className="flex items-end justify-between gap-3 mb-3">
               <div className="min-w-0">
                 <span className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">

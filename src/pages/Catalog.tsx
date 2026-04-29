@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { queryKeys } from "@/lib/queryKeys";
 import { responsiveImage } from "@/lib/image";
+import { WishlistButton } from "@/components/wishlist/WishlistButton";
 import { Search, SlidersHorizontal, ShoppingCart, X, ArrowUpDown, Zap } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { useCart } from "@/hooks/useCart";
@@ -663,6 +664,11 @@ const Section = memo(function Section({
                     -{discountPct}%
                   </span>
                 )}
+                <WishlistButton
+                  productId={p.id}
+                  size="sm"
+                  className={hasRealSale && !isOut ? "absolute bottom-2 right-2" : "absolute top-2 right-2"}
+                />
               </div>
 
               {/* Conteúdo — hierarquia clara para conversão */}
