@@ -204,22 +204,22 @@ export default function MyAccount() {
   }, [orders]);
 
   return (
-    <div className="container py-4 md:py-12 max-w-5xl">
+    <div className="container px-4 md:px-6 py-5 md:py-12 max-w-5xl space-y-5 md:space-y-6">
       {/* ===== Hero header — perfil, identidade, sair ===== */}
-      <div className="bg-gradient-to-br from-primary via-primary to-primary/80 rounded-2xl md:rounded-3xl text-primary-foreground p-5 md:p-7 mb-4 md:mb-6 shadow-card relative overflow-hidden">
+      <div className="bg-gradient-to-br from-primary via-primary to-primary/80 rounded-2xl md:rounded-3xl text-primary-foreground p-5 md:p-7 shadow-card relative overflow-hidden">
         <div aria-hidden className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="h-12 w-12 md:h-14 md:w-14 rounded-full bg-white/15 backdrop-blur flex items-center justify-center text-lg md:text-xl font-extrabold shrink-0 ring-2 ring-white/20">
+        <div className="relative flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3 md:gap-4 min-w-0">
+            <div className="h-11 w-11 md:h-14 md:w-14 rounded-full bg-white/15 backdrop-blur flex items-center justify-center text-base md:text-xl font-extrabold shrink-0 ring-2 ring-white/20">
               {(profile?.full_name || user?.email || "?").trim().charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
-              <p className="text-[11px] uppercase tracking-wider text-white/70 font-semibold">Minha conta</p>
-              <h1 className="font-display text-xl md:text-3xl font-extrabold leading-tight truncate">
+              <p className="text-[10px] md:text-[11px] uppercase tracking-[0.14em] text-white/70 font-semibold">Minha conta</p>
+              <h1 className="font-display text-lg md:text-3xl font-extrabold leading-tight truncate mt-0.5">
                 {profile?.full_name || "Bem-vindo"}
               </h1>
-              <p className="text-xs md:text-sm text-white/80 flex items-center gap-1.5 mt-0.5 truncate">
-                <Mail className="h-3 w-3 shrink-0" />
+              <p className="text-[11px] md:text-sm text-white/75 flex items-center gap-1.5 mt-1 truncate">
+                <Mail className="h-3 w-3 shrink-0 opacity-80" />
                 <span className="truncate">{user?.email}</span>
               </p>
             </div>
@@ -227,26 +227,26 @@ export default function MyAccount() {
           <button
             onClick={logout}
             aria-label="Sair"
-            className="shrink-0 h-10 w-10 md:h-auto md:w-auto md:px-4 md:py-2 rounded-full md:rounded-full bg-white/15 hover:bg-white/25 active:bg-white/30 backdrop-blur flex items-center justify-center md:gap-2 transition-colors text-sm font-semibold"
+            className="shrink-0 h-9 w-9 md:h-auto md:w-auto md:px-4 md:py-2 rounded-full bg-white/15 hover:bg-white/25 active:bg-white/30 backdrop-blur flex items-center justify-center md:gap-2 transition-colors text-sm font-semibold"
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-3.5 w-3.5 md:h-4 md:w-4" />
             <span className="hidden md:inline">Sair</span>
           </button>
         </div>
 
         {/* Stats embutidos no hero — mobile-first */}
-        <div className="grid grid-cols-3 gap-2 md:gap-3 mt-5">
-          <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl p-3 md:p-4">
-            <p className="text-[10px] md:text-xs uppercase tracking-wide text-white/70 font-semibold">Pedidos</p>
-            <p className="text-lg md:text-2xl font-extrabold mt-0.5 tabular-nums">{stats.count}</p>
+        <div className="relative grid grid-cols-3 gap-2 md:gap-3 mt-5 md:mt-6">
+          <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl px-3 py-2.5 md:p-4">
+            <p className="text-[10px] md:text-xs uppercase tracking-wide text-white/65 font-semibold">Pedidos</p>
+            <p className="text-lg md:text-2xl font-extrabold mt-1 tabular-nums leading-none">{stats.count}</p>
           </div>
-          <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl p-3 md:p-4">
-            <p className="text-[10px] md:text-xs uppercase tracking-wide text-white/70 font-semibold">Gasto</p>
-            <p className="text-lg md:text-2xl font-extrabold mt-0.5 truncate tabular-nums">{formatBRL(stats.total)}</p>
+          <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl px-3 py-2.5 md:p-4">
+            <p className="text-[10px] md:text-xs uppercase tracking-wide text-white/65 font-semibold">Gasto</p>
+            <p className="text-sm md:text-2xl font-extrabold mt-1 truncate tabular-nums leading-none">{formatBRL(stats.total)}</p>
           </div>
-          <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl p-3 md:p-4">
-            <p className="text-[10px] md:text-xs uppercase tracking-wide text-white/70 font-semibold">Desde</p>
-            <p className="text-lg md:text-2xl font-extrabold mt-0.5 capitalize">
+          <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl px-3 py-2.5 md:p-4">
+            <p className="text-[10px] md:text-xs uppercase tracking-wide text-white/65 font-semibold">Desde</p>
+            <p className="text-sm md:text-2xl font-extrabold mt-1 capitalize leading-none">
               {profile?.created_at
                 ? new Date(profile.created_at).toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }).replace(".", "")
                 : "—"}
@@ -258,7 +258,7 @@ export default function MyAccount() {
       {/* ===== Navegação mobile: lista estilo iOS quando nenhuma aba ativa específica ===== */}
       {/* No mobile mostramos sempre a lista + a seção em sequência (com âncora de volta).
           No desktop, tabs horizontais clássicas. */}
-      <div className="hidden md:flex gap-1 mb-6 border-b border-border overflow-x-auto">
+      <div className="hidden md:flex gap-1 border-b border-border overflow-x-auto">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -274,28 +274,28 @@ export default function MyAccount() {
       </div>
 
       {/* Mobile: lista de seções (estilo app) */}
-      <div className="md:hidden mb-4">
-        <div className="bg-card rounded-2xl border border-border overflow-hidden divide-y divide-border">
+      <div className="md:hidden">
+        <div className="bg-card rounded-2xl border border-border overflow-hidden divide-y divide-border/70">
           {TABS.map((t) => {
             const active = tab === t.id;
             return (
               <button
                 key={t.id}
                 onClick={() => setTab(t.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition-colors ${
+                className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
                   active ? "bg-primary/5" : "active:bg-muted/40"
                 }`}
               >
-                <span className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 ${
-                  active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                <span className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                  active ? "bg-primary text-primary-foreground" : "bg-muted/70 text-muted-foreground"
                 }`}>
-                  <t.icon className="h-4 w-4" />
+                  <t.icon className="h-3.5 w-3.5" />
                 </span>
                 <span className="flex-1 min-w-0">
-                  <span className={`block text-sm font-semibold ${active ? "text-primary" : "text-foreground"}`}>{t.label}</span>
-                  <span className="block text-xs text-muted-foreground truncate">{t.description}</span>
+                  <span className={`block text-[13px] font-semibold leading-tight ${active ? "text-primary" : "text-foreground"}`}>{t.label}</span>
+                  <span className="block text-[11px] text-muted-foreground truncate mt-0.5">{t.description}</span>
                 </span>
-                <ChevronRight className={`h-4 w-4 shrink-0 transition-transform ${active ? "rotate-90 text-primary" : "text-muted-foreground"}`} />
+                <ChevronRight className={`h-4 w-4 shrink-0 transition-transform ${active ? "rotate-90 text-primary" : "text-muted-foreground/60"}`} />
               </button>
             );
           })}
@@ -303,22 +303,22 @@ export default function MyAccount() {
       </div>
 
       {/* Cabeçalho da seção ativa — só mobile, dá contexto + clean */}
-      <div className="md:hidden flex items-center gap-2 mb-3 px-1">
+      <div className="md:hidden flex items-center gap-2 px-1 -mb-2">
         {(() => {
           const current = TABS.find((t) => t.id === tab);
           if (!current) return null;
           const Icon = current.icon;
           return (
             <>
-              <Icon className="h-4 w-4 text-primary" />
-              <h2 className="font-display text-base font-bold text-primary">{current.label}</h2>
+              <span className="h-1 w-4 rounded-full bg-primary" />
+              <h2 className="text-[11px] uppercase tracking-[0.14em] font-bold text-primary">{current.label}</h2>
             </>
           );
         })()}
       </div>
 
       {(tab === "profile" || tab === "address") && (
-        <form onSubmit={save} className="bg-card rounded-2xl border border-border p-4 md:p-6 space-y-4">
+        <form onSubmit={save} className="bg-card rounded-2xl border border-border p-5 md:p-6 space-y-5">
           {tab === "profile" && (
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -401,42 +401,42 @@ export default function MyAccount() {
 
       {tab === "orders" && (
         orders.length === 0 ? (
-          <div className="bg-card rounded-2xl border border-border text-center py-12 md:py-16 px-6">
-            <div className="h-14 w-14 rounded-2xl bg-muted/60 mx-auto flex items-center justify-center mb-3">
-              <ShoppingBag className="h-7 w-7 text-muted-foreground/70" />
+          <div className="bg-card rounded-2xl border border-border text-center py-14 md:py-16 px-6">
+            <div className="h-14 w-14 rounded-2xl bg-muted/60 mx-auto flex items-center justify-center mb-4">
+              <ShoppingBag className="h-6 w-6 text-muted-foreground/70" />
             </div>
-            <p className="text-foreground font-semibold">Nenhum pedido ainda</p>
-            <p className="text-sm text-muted-foreground mt-1">Quando você comprar, ele aparece aqui.</p>
-            <Button className="mt-4" onClick={() => nav("/")}>Explorar produtos</Button>
+            <p className="text-foreground font-semibold text-[15px]">Nenhum pedido ainda</p>
+            <p className="text-[13px] text-muted-foreground mt-1">Quando você comprar, ele aparece aqui.</p>
+            <Button className="mt-5" onClick={() => nav("/")}>Explorar produtos</Button>
           </div>
         ) : (
-          <ul className="space-y-2.5">
+          <ul className="space-y-2">
             {orders.map((o) => {
               const status = STATUS_LABELS[o.status] || { label: o.status, color: "bg-muted text-foreground" };
               return (
                 <li key={o.id}>
                   <button
                     onClick={() => setOrderId(o.id)}
-                    className="w-full text-left bg-card rounded-2xl border border-border p-4 hover:border-primary/40 active:scale-[0.99] transition-all flex items-center gap-3"
+                    className="w-full text-left bg-card rounded-2xl border border-border p-3.5 md:p-4 hover:border-primary/40 active:scale-[0.99] transition-all flex items-center gap-3"
                   >
-                    <div className="h-11 w-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                      <ShoppingBag className="h-5 w-5" />
+                    <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                      <ShoppingBag className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
-                        <p className="font-mono text-[11px] text-muted-foreground">#{o.id.slice(0, 8).toUpperCase()}</p>
-                        <p className="font-display font-extrabold text-primary text-base">{formatBRL(o.total)}</p>
+                        <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">#{o.id.slice(0, 8)}</p>
+                        <p className="font-display font-extrabold text-primary text-[15px] tabular-nums">{formatBRL(o.total)}</p>
                       </div>
-                      <div className="flex items-center justify-between gap-2 mt-1">
+                      <div className="flex items-center justify-between gap-2 mt-1.5">
                         <span className={`inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold ${status.color}`}>
                           {status.label}
                         </span>
-                        <span className="text-[11px] text-muted-foreground">
+                        <span className="text-[11px] text-muted-foreground tabular-nums">
                           {new Date(o.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
                         </span>
                       </div>
                     </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground/50 shrink-0" />
                   </button>
                 </li>
               );
@@ -448,26 +448,26 @@ export default function MyAccount() {
       {orderId && <CustomerOrderDetail orderId={orderId} onClose={() => setOrderId(null)} />}
 
       {tab === "affiliate" && (
-        <div className="space-y-4">
+        <div className="space-y-3 md:space-y-4">
           {/* Hero do programa: foco mobile, CTA grande de compartilhar */}
-          <div className="rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/15 p-5 md:p-6">
+          <div className="rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/15 p-4 md:p-6">
             <div className="flex items-start gap-3">
-              <div className="h-10 w-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shrink-0">
-                <Users className="h-5 w-5" />
+              <div className="h-9 w-9 md:h-10 md:w-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shrink-0">
+                <Users className="h-4 w-4 md:h-5 md:w-5" />
               </div>
               <div className="min-w-0">
-                <h2 className="font-display text-lg md:text-xl font-extrabold text-primary leading-tight">Programa de indicações</h2>
-                <p className="text-sm text-muted-foreground mt-1">
+                <h2 className="font-display text-base md:text-xl font-extrabold text-primary leading-tight">Programa de indicações</h2>
+                <p className="text-[13px] md:text-sm text-muted-foreground mt-1 leading-relaxed">
                   Compartilhe seu link e ganhe <strong className="text-foreground">1% de comissão</strong> em cada compra aprovada.
                 </p>
               </div>
             </div>
 
             {/* Link + ações */}
-            <div className="mt-4 space-y-2">
+            <div className="mt-4 space-y-2.5">
               <div className="flex items-center gap-2 bg-card border border-border rounded-xl px-3 py-2.5">
-                <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold shrink-0">Link</span>
-                <span className="font-mono text-xs text-foreground truncate flex-1">{affiliateUrl || "—"}</span>
+                <span className="text-[9px] md:text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-semibold shrink-0">Link</span>
+                <span className="font-mono text-[11px] md:text-xs text-foreground truncate flex-1">{affiliateUrl || "—"}</span>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <Button type="button" onClick={shareLink} size="lg" className="w-full">
@@ -478,47 +478,47 @@ export default function MyAccount() {
                   {copied ? "Copiado!" : "Copiar"}
                 </Button>
               </div>
-              <p className="text-[11px] text-muted-foreground text-center">
+              <p className="text-[11px] text-muted-foreground text-center pt-0.5">
                 Código: <span className="font-mono font-semibold text-foreground">{profile?.affiliate_code || "—"}</span>
               </p>
             </div>
           </div>
 
           {/* Stats — 2 colunas no mobile (3 linhas simétricas), 5 em desktop */}
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-2.5 md:gap-3">
-            <div className="bg-card rounded-2xl border border-border p-3.5 md:p-4">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-2 md:gap-3">
+            <div className="bg-card rounded-2xl border border-border p-3 md:p-4">
               <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Pendentes</p>
-              <p className="text-lg md:text-2xl font-extrabold mt-1 text-amber-600 truncate tabular-nums">{formatBRL(affStats.pending)}</p>
+              <p className="text-base md:text-2xl font-extrabold mt-1.5 text-amber-600 truncate tabular-nums leading-none">{formatBRL(affStats.pending)}</p>
             </div>
-            <div className="bg-card rounded-2xl border border-border p-3.5 md:p-4">
+            <div className="bg-card rounded-2xl border border-border p-3 md:p-4">
               <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Liberadas</p>
-              <p className="text-lg md:text-2xl font-extrabold mt-1 text-primary truncate tabular-nums">{formatBRL(affStats.released)}</p>
+              <p className="text-base md:text-2xl font-extrabold mt-1.5 text-primary truncate tabular-nums leading-none">{formatBRL(affStats.released)}</p>
             </div>
-            <div className="bg-card rounded-2xl border border-border p-3.5 md:p-4 col-span-2 lg:col-span-1">
+            <div className="bg-card rounded-2xl border border-border p-3 md:p-4 col-span-2 lg:col-span-1">
               <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Pagas</p>
-              <p className="text-lg md:text-2xl font-extrabold mt-1 text-emerald-600 truncate tabular-nums">{formatBRL(affStats.paid)}</p>
+              <p className="text-base md:text-2xl font-extrabold mt-1.5 text-emerald-600 truncate tabular-nums leading-none">{formatBRL(affStats.paid)}</p>
             </div>
-            <div className="bg-card rounded-2xl border border-border p-3.5 md:p-4">
+            <div className="bg-card rounded-2xl border border-border p-3 md:p-4">
               <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Indic. ativas</p>
-              <p className="text-lg md:text-2xl font-extrabold mt-1 tabular-nums">{affStats.activeRefs}</p>
+              <p className="text-base md:text-2xl font-extrabold mt-1.5 tabular-nums leading-none">{affStats.activeRefs}</p>
             </div>
-            <div className="bg-card rounded-2xl border border-border p-3.5 md:p-4">
+            <div className="bg-card rounded-2xl border border-border p-3 md:p-4">
               <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Indic. inativas</p>
-              <p className="text-lg md:text-2xl font-extrabold mt-1 tabular-nums">{affStats.inactiveRefs}</p>
+              <p className="text-base md:text-2xl font-extrabold mt-1.5 tabular-nums leading-none">{affStats.inactiveRefs}</p>
             </div>
           </div>
 
-          <div className="bg-muted/40 rounded-2xl border border-border p-4 text-xs text-muted-foreground leading-relaxed">
-            <strong className="text-foreground block mb-1">Como funciona</strong>
+          <div className="bg-muted/40 rounded-2xl border border-border p-4 text-[12px] md:text-xs text-muted-foreground leading-relaxed">
+            <strong className="text-foreground block mb-1.5 text-[13px]">Como funciona</strong>
             Ao pedido aprovar, a comissão fica <span className="text-amber-600 font-semibold">pendente</span> por 7 dias.
             Depois é <span className="text-primary font-semibold">liberada</span> automaticamente e, quando o administrador efetua o repasse, passa a <span className="text-emerald-600 font-semibold">paga</span>.
           </div>
 
           {/* Pixel do Facebook */}
-          <div className="bg-card rounded-2xl border border-border p-4 md:p-5 space-y-3">
+          <div className="bg-card rounded-2xl border border-border p-4 md:p-5 space-y-3.5">
             <div>
-              <h3 className="font-display font-bold text-primary">Pixel do Facebook</h3>
-              <p className="text-xs md:text-sm text-muted-foreground">Adicione seu Pixel para rastrear as conversões das suas indicações.</p>
+              <h3 className="font-display font-bold text-primary text-[15px] md:text-base">Pixel do Facebook</h3>
+              <p className="text-[12px] md:text-sm text-muted-foreground mt-0.5 leading-relaxed">Adicione seu Pixel para rastrear as conversões das suas indicações.</p>
             </div>
             <Input
               value={profile.facebook_pixel || ""}
@@ -534,10 +534,10 @@ export default function MyAccount() {
       )}
 
       {tab === "commissions" && (
-        <div className="space-y-4">
+        <div className="space-y-3 md:space-y-4">
           <div className="bg-card rounded-2xl border border-border p-4 md:p-5">
-            <h2 className="font-display text-base md:text-lg font-bold text-primary">Histórico de comissões</h2>
-            <p className="text-xs md:text-sm text-muted-foreground mt-0.5">Geradas pelas suas indicações.</p>
+            <h2 className="font-display text-[15px] md:text-lg font-bold text-primary">Histórico de comissões</h2>
+            <p className="text-[12px] md:text-sm text-muted-foreground mt-0.5">Geradas pelas suas indicações.</p>
             <div className="-mx-4 md:mx-0 mt-3 px-4 md:px-0 overflow-x-auto scrollbar-thin [mask-image:linear-gradient(to_right,black_85%,transparent)] md:[mask-image:none]">
               <div className="flex gap-1.5 text-xs whitespace-nowrap pb-1">
                 {[
@@ -551,7 +551,7 @@ export default function MyAccount() {
                   <button
                     key={f.id}
                     onClick={() => setCommFilter(f.id)}
-                    className={`px-3 py-1.5 rounded-full border font-semibold transition shrink-0 ${commFilter === f.id ? "bg-primary text-primary-foreground border-primary" : "border-border bg-background text-muted-foreground hover:bg-muted/50"}`}
+                    className={`px-3 py-1.5 rounded-full border text-[11px] md:text-xs font-semibold transition shrink-0 ${commFilter === f.id ? "bg-primary text-primary-foreground border-primary" : "border-border bg-background text-muted-foreground hover:bg-muted/50"}`}
                   >
                     {f.label}
                   </button>
@@ -564,15 +564,15 @@ export default function MyAccount() {
             if (loadingComm) {
               return (
                 <div className="bg-card rounded-2xl border border-border p-10 flex items-center justify-center text-muted-foreground">
-                  <Loader2 className="h-5 w-5 animate-spin" /> <span className="ml-2 text-sm">Carregando…</span>
+                  <Loader2 className="h-4 w-4 animate-spin" /> <span className="ml-2 text-[13px]">Carregando…</span>
                 </div>
               );
             }
             const filtered = commissions.filter((c) => commFilter === "all" || c.status === commFilter);
             if (filtered.length === 0) {
               return (
-                <div className="bg-card rounded-2xl border border-border p-10 text-center text-sm text-muted-foreground">
-                  <Wallet className="h-10 w-10 mx-auto text-muted-foreground/40 mb-2" />
+                <div className="bg-card rounded-2xl border border-border p-10 text-center text-[13px] md:text-sm text-muted-foreground">
+                  <Wallet className="h-9 w-9 mx-auto text-muted-foreground/40 mb-3" />
                   Nenhuma comissão {commFilter === "all" ? "registrada" : "com este status"} no momento.
                 </div>
               );
@@ -595,17 +595,17 @@ export default function MyAccount() {
             return (
               <>
                 {/* Mobile: lista de cards */}
-                <ul className="md:hidden space-y-2.5">
+                <ul className="md:hidden space-y-2">
                   {filtered.map((c) => (
-                    <li key={c.id} className="bg-card rounded-2xl border border-border p-4">
+                    <li key={c.id} className="bg-card rounded-2xl border border-border p-3.5">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="font-mono text-[11px] text-muted-foreground">
-                            {c.order_id ? `#${String(c.order_id).slice(0, 8).toUpperCase()}` : "—"}
+                          <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                            {c.order_id ? `#${String(c.order_id).slice(0, 8)}` : "—"}
                           </p>
-                          <p className="text-xl font-extrabold text-primary leading-none mt-1">{formatBRL(Number(c.amount || 0))}</p>
+                          <p className="text-lg font-extrabold text-primary leading-none mt-1.5 tabular-nums">{formatBRL(Number(c.amount || 0))}</p>
                           {c.orders?.total != null && (
-                            <p className="text-[11px] text-muted-foreground mt-0.5">
+                            <p className="text-[11px] text-muted-foreground mt-1">
                               do pedido {formatBRL(Number(c.orders.total))}
                             </p>
                           )}
@@ -615,16 +615,16 @@ export default function MyAccount() {
                         </span>
                       </div>
                       {c.cancellation_reason && (c.status === "cancelled" || c.status === "clawback") && (
-                        <p className="text-[11px] text-muted-foreground mt-2 italic">{c.cancellation_reason}</p>
+                        <p className="text-[11px] text-muted-foreground mt-2.5 italic leading-relaxed">{c.cancellation_reason}</p>
                       )}
-                      <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-border text-[11px]">
+                      <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-border/70 text-[11px]">
                         <div>
-                          <p className="text-muted-foreground uppercase tracking-wide">Gerada</p>
-                          <p className="font-semibold text-foreground mt-0.5">{fmtDate(c.created_at)}</p>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Gerada</p>
+                          <p className="font-semibold text-foreground mt-0.5 tabular-nums">{fmtDate(c.created_at)}</p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground uppercase tracking-wide">Liberação</p>
-                          <p className="font-semibold text-foreground mt-0.5">
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Liberação</p>
+                          <p className="font-semibold text-foreground mt-0.5 tabular-nums">
                             {c.released_at
                               ? fmtDate(c.released_at)
                               : c.status === "pending" && c.eligible_release_at
@@ -633,8 +633,8 @@ export default function MyAccount() {
                           </p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground uppercase tracking-wide">Pago</p>
-                          <p className="font-semibold text-foreground mt-0.5">{fmtDate(c.paid_at)}</p>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Pago</p>
+                          <p className="font-semibold text-foreground mt-0.5 tabular-nums">{fmtDate(c.paid_at)}</p>
                         </div>
                       </div>
                     </li>
