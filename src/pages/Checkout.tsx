@@ -1014,9 +1014,9 @@ export default function Checkout() {
                     <Option
                       value="pix"
                       title="PIX"
-                      subtitle="Aprovação imediata"
+                      subtitle="Liberação na hora · 5% off"
                       icon={QrCode}
-                      badge={pixSaves > 0 ? { text: `−${formatBRL(pixSaves)}`, tone: "secondary" } : { text: "−5%", tone: "secondary" }}
+                      badge={pixSaves > 0 ? { text: `Economize ${formatBRL(pixSaves)}`, tone: "secondary" } : { text: "Economize 5%", tone: "secondary" }}
                       totalLabel="Total no PIX"
                       totalValue={pixTotal}
                     />
