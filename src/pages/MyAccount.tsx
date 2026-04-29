@@ -110,6 +110,30 @@ export default function MyAccount() {
     return `${window.location.origin}/r/${profile.affiliate_code}`;
   }, [profile?.affiliate_code]);
 
+  // ===== Predicado ÚNICO usado por contadores e por lista filtrada.
+  // Garante que o badge "X itens", o select mobile, os chips desktop
+  // e a renderização da lista NUNCA divirjam — todos passam por aqui.
+  // Para adicionar um novo critério (ex.: por data), altere SÓ aqui. =====
+  const matchesCommFilter = (c: any, filterId: string) =>
+    filterId === "all" || c.status === filterId;
+
+  // Deriva contadores + lista filtrada da MESMA fonte (commissions),
+  // numa única passagem — números sempre batem com o que é exibido.
+  const COMM_FILTER_IDS = ["all", "pending", "released", "paid", "cancelled", "clawback"] as const;
+  const { commCounts, filteredComm } = useMemo(() => {
+    const counts: Record<string, number> = Object.fromEntries(COMM_FILTER_IDS.map((id) => [id, 0]));
+    const filtered: any[] = [];
+    for (const c of commissions) {
+      // Cada comissão é testada contra cada filtro pelo mesmo predicado.
+      for (const id of COMM_FILTER_IDS) {
+        if (matchesCommFilter(c, id)) counts[id] += 1;
+      }
+      if (matchesCommFilter(c, commFilter)) filtered.push(c);
+    }
+    return { commCounts: counts, filteredComm: filtered };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [commissions, commFilter]);
+
   async function copyLink() {
     if (!affiliateUrl) return;
     try {
@@ -548,10 +572,9 @@ export default function MyAccount() {
               { id: "cancelled", label: "Canceladas", short: "Cancel." },
               { id: "clawback", label: "Estornadas", short: "Estorn." },
             ];
-            const counts: Record<string, number> = { all: commissions.length };
-            for (const c of commissions) counts[c.status] = (counts[c.status] || 0) + 1;
-            const current = FILTERS.find((f) => f.id === commFilter) || FILTERS[0];
-            const filteredCount = counts[commFilter] || 0;
+            // Fonte única — mesmos números usados na lista logo abaixo.
+            const counts = commCounts;
+            const filteredCount = filteredComm.length;
             return (
               <div className="bg-card rounded-2xl border border-border p-3.5 md:p-5">
                 <div className="flex items-start justify-between gap-3">
@@ -616,7 +639,8 @@ export default function MyAccount() {
                 </div>
               );
             }
-            const filtered = commissions.filter((c) => commFilter === "all" || c.status === commFilter);
+            // MESMA lista usada para calcular o contador "X itens" no card acima.
+            const filtered = filteredComm;
             if (filtered.length === 0) {
               return (
                 <div className="bg-card rounded-2xl border border-border p-10 text-center text-[13px] md:text-sm text-muted-foreground">
