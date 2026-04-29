@@ -8,6 +8,34 @@
   display: none !important;
 }
 
+/* Mobile-first refinements */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+  body {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+  /* Evita zoom indesejado em iOS quando o usuário toca em inputs (font-size < 16px) */
+  @media (max-width: 640px) {
+    input, select, textarea {
+      font-size: 16px;
+    }
+  }
+  img { max-width: 100%; height: auto; }
+  /* Tap targets mínimos em mobile */
+  @media (hover: none) and (pointer: coarse) {
+    button, a[role="button"], [data-tap] {
+      touch-action: manipulation;
+    }
+  }
+}
+
 /* GIMPORTS Design System — Azul marinho profissional */
 @layer base {
   :root {
