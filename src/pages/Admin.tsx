@@ -21,6 +21,7 @@ import { AdminSettings } from "@/components/admin/AdminSettings";
 import { AdminDiagnostics } from "@/components/admin/AdminDiagnostics";
 import { queryKeys } from "@/lib/queryKeys";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
+import { logAdminAction, shallowDiff } from "@/lib/auditLog";
 
 type Tab = "dashboard" | "reports" | "products" | "categories" | "orders" | "coupons" | "shipping" | "banners" | "resends" | "settings" | "diagnostics";
 
@@ -149,14 +150,23 @@ function AdminProducts() {
       is_featured: !!f.is_featured,
       is_active: f.is_active !== false,
     };
-    const { error } = f.id
-      ? await supabase.from("products").update(payload).eq("id", f.id)
-      : await supabase.from("products").insert(payload);
+    const before = f.id ? items.find((p) => p.id === f.id) : null;
+    const { data, error } = f.id
+      ? await supabase.from("products").update(payload).eq("id", f.id).select().maybeSingle()
+      : await supabase.from("products").insert(payload).select().maybeSingle();
     if (error) {
       logSupabaseError("Guardar produto", error, { id: f.id, name: payload.name });
       toast.error(error.message);
     } else {
       toast.success("Produto guardado");
+      const saved: any = data || payload;
+      logAdminAction({
+        action: f.id ? "update" : "create",
+        entity: "products",
+        entityId: saved?.id ?? f.id ?? null,
+        summary: `Produto "${payload.name}"`,
+        diff: f.id ? shallowDiff(before, saved) : { after: saved },
+      });
       setEditing(null);
       qc.invalidateQueries({ queryKey: queryKeys.products.all });
       qc.invalidateQueries({ queryKey: queryKeys.products.detailRoot });
@@ -166,12 +176,20 @@ function AdminProducts() {
 
   async function del(id: string) {
     if (!confirm("Remover produto?")) return;
+    const before = items.find((p) => p.id === id);
     const { error } = await supabase.from("products").delete().eq("id", id);
     if (error) {
       logSupabaseError("Remover produto", error, { id });
       toast.error(error.message);
     } else {
       toast.success("Removido");
+      logAdminAction({
+        action: "delete",
+        entity: "products",
+        entityId: id,
+        summary: `Produto removido: ${before?.name ?? id.slice(0, 8)}`,
+        diff: { before },
+      });
       qc.invalidateQueries({ queryKey: queryKeys.products.all });
       load();
     }
