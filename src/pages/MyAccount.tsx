@@ -96,7 +96,7 @@ export default function MyAccount() {
     (async () => {
       const { data, error } = await supabase
         .from("affiliate_commissions")
-        .select("id, amount, status, created_at, released_at, paid_at, eligible_release_at, order_id, orders(id, total, status, created_at, shipping_full_name)")
+        .select("id, amount, status, created_at, released_at, paid_at, eligible_release_at, cancellation_reason, cancelled_at, order_id, orders(id, total, status, created_at, shipping_full_name)")
         .eq("affiliate_user_id", user.id)
         .order("created_at", { ascending: false });
       if (error) toast.error(error.message);
@@ -437,6 +437,7 @@ export default function MyAccount() {
                   { id: "released", label: "Liberadas" },
                   { id: "paid", label: "Pagas" },
                   { id: "cancelled", label: "Canceladas" },
+                  { id: "clawback", label: "Estornadas" },
                 ].map((f) => (
                   <button
                     key={f.id}
@@ -469,12 +470,14 @@ export default function MyAccount() {
                 released: "bg-blue-100 text-blue-700",
                 paid: "bg-emerald-100 text-emerald-700",
                 cancelled: "bg-red-100 text-red-700",
+                clawback: "bg-orange-100 text-orange-700",
               };
               const statusLabel: Record<string, string> = {
                 pending: "Pendente",
                 released: "Liberada",
                 paid: "Paga",
                 cancelled: "Cancelada",
+                clawback: "Estornada",
               };
               const fmtDate = (d?: string | null) => d ? new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }) : "—";
               return (
@@ -504,6 +507,11 @@ export default function MyAccount() {
                             <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${statusBadge[c.status] || "bg-gray-100 text-gray-700"}`}>
                               {statusLabel[c.status] || c.status}
                             </span>
+                            {c.cancellation_reason && (c.status === "cancelled" || c.status === "clawback") && (
+                              <div className="text-[11px] text-muted-foreground mt-1 max-w-[200px]">
+                                {c.cancellation_reason}
+                              </div>
+                            )}
                           </td>
                           <td className="px-4 py-3 text-muted-foreground">{fmtDate(c.created_at)}</td>
                           <td className="px-4 py-3 text-muted-foreground">

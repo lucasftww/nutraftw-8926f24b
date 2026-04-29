@@ -54,6 +54,8 @@ export type Database = {
         Row: {
           affiliate_user_id: string
           amount: number
+          cancellation_reason: string | null
+          cancelled_at: string | null
           created_at: string
           eligible_release_at: string | null
           id: string
@@ -66,6 +68,8 @@ export type Database = {
         Insert: {
           affiliate_user_id: string
           amount?: number
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
           created_at?: string
           eligible_release_at?: string | null
           id?: string
@@ -78,6 +82,8 @@ export type Database = {
         Update: {
           affiliate_user_id?: string
           amount?: number
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
           created_at?: string
           eligible_release_at?: string | null
           id?: string
@@ -723,6 +729,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_set_order_status: {
+        Args: { p_order_id: string; p_reason?: string; p_status: string }
+        Returns: undefined
+      }
       affiliate_commission_rate: { Args: never; Returns: number }
       affiliate_release_days: { Args: never; Returns: number }
       create_order: {
