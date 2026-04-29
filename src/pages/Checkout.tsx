@@ -64,6 +64,7 @@ export default function Checkout() {
 
   const [form, setForm] = useState({
     full_name: "",
+    email: "",
     cpf: "",
     phone: "",
     zip: "",
