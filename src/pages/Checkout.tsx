@@ -94,25 +94,32 @@ export default function Checkout() {
       });
   }, [user]);
 
-  // ViaCEP autocomplete
+  // ViaCEP autocomplete — debounced + abortável (evita rate-limit e race conditions)
   useEffect(() => {
     const cep = onlyDigits(form.zip);
     if (cep.length !== 8) return;
-    setCepLoading(true);
-    fetch(`https://viacep.com.br/ws/${cep}/json/`)
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.erro) return;
-        setForm((f) => ({
-          ...f,
-          street: f.street || d.logradouro || "",
-          district: f.district || d.bairro || "",
-          city: f.city || d.localidade || "",
-          state: f.state || d.uf || "",
-        }));
-      })
-      .catch(() => {})
-      .finally(() => setCepLoading(false));
+    const ctrl = new AbortController();
+    const t = setTimeout(() => {
+      setCepLoading(true);
+      fetch(`https://viacep.com.br/ws/${cep}/json/`, { signal: ctrl.signal })
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.erro) return;
+          setForm((f) => ({
+            ...f,
+            street: f.street || d.logradouro || "",
+            district: f.district || d.bairro || "",
+            city: f.city || d.localidade || "",
+            state: f.state || d.uf || "",
+          }));
+        })
+        .catch(() => {})
+        .finally(() => setCepLoading(false));
+    }, 350);
+    return () => {
+      clearTimeout(t);
+      ctrl.abort();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.zip]);
 
@@ -163,6 +170,8 @@ export default function Checkout() {
       if (Number(data.min_subtotal) > total) { toast.error(`Mínimo de ${formatBRL(Number(data.min_subtotal))} para usar este cupom`); return; }
       setCoupon(data);
       toast.success("Cupom aplicado!");
+    } catch {
+      toast.error("Erro ao validar cupom. Tente novamente.");
     } finally {
       setCouponLoading(false);
     }
@@ -198,6 +207,10 @@ export default function Checkout() {
     );
 
   function validate() {
+    if (!form.full_name.trim() || form.full_name.trim().length < 3) {
+      toast.error("Informe o nome completo.");
+      return false;
+    }
     if (onlyDigits(form.cpf).length !== 11) {
       toast.error("CPF inválido.");
       return false;
@@ -208,6 +221,22 @@ export default function Checkout() {
     }
     if (onlyDigits(form.zip).length !== 8) {
       toast.error("CEP inválido.");
+      return false;
+    }
+    if (!form.street.trim() || !form.number.trim() || !form.district.trim()) {
+      toast.error("Preencha rua, número e bairro.");
+      return false;
+    }
+    if (!form.city.trim() || form.state.trim().length !== 2) {
+      toast.error("Informe cidade e estado (UF).");
+      return false;
+    }
+    if (!shippingId) {
+      toast.error(
+        shippingOptions.length === 0
+          ? "Não há frete disponível para este estado. Entre em contato pelo WhatsApp."
+          : "Selecione uma opção de frete."
+      );
       return false;
     }
     return true;
