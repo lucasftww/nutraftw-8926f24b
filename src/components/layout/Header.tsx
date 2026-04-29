@@ -197,6 +197,18 @@ export function Header() {
                   <path d="M9 18l6-6-6-6" />
                 </svg>
               </Link>
+              <Link
+                to="/favoritos"
+                className="grid grid-cols-[20px_1fr_16px] items-center gap-3 h-12 text-[15px] font-semibold text-primary hover:bg-primary/5 transition-colors border-b border-border/50"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-primary/60">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+                <span>Favoritos</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-primary/40 justify-self-end">
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </Link>
               {/*
                 Conta NÃO é exibida aqui — o ícone de perfil no header (acima)
                 já dá acesso a /minha-conta (ou /admin) em mobile e desktop.
