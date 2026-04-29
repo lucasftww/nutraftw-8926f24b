@@ -214,11 +214,11 @@ export default function MyAccount() {
               {(profile?.full_name || user?.email || "?").trim().charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
-              <p className="text-eyebrow text-white/60">Minha conta</p>
+              <p className="text-eyebrow text-white/75">Minha conta</p>
               <h1 className="font-display text-base md:text-3xl font-extrabold leading-tight truncate mt-0.5">
                 {profile?.full_name || "Bem-vindo"}
               </h1>
-              <p className="text-[11px] md:text-sm text-white/70 flex items-center gap-1.5 mt-0.5 truncate">
+              <p className="text-[11px] md:text-sm text-white/85 flex items-center gap-1.5 mt-0.5 truncate">
                 <Mail className="h-3 w-3 shrink-0 opacity-80" />
                 <span className="truncate">{user?.email}</span>
               </p>
@@ -227,9 +227,9 @@ export default function MyAccount() {
           <button
             onClick={logout}
             aria-label="Sair"
-            className="shrink-0 h-9 w-9 md:h-auto md:w-auto md:px-4 md:py-2 rounded-full bg-white/15 hover:bg-white/25 active:bg-white/30 backdrop-blur flex items-center justify-center md:gap-2 transition-colors text-sm font-semibold"
+            className="shrink-0 h-11 w-11 md:h-auto md:w-auto md:px-4 md:py-2 rounded-full bg-white/15 hover:bg-white/25 active:bg-white/30 backdrop-blur flex items-center justify-center md:gap-2 transition-colors text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
           >
-            <LogOut className="h-3.5 w-3.5 md:h-4 md:w-4" />
+            <LogOut className="h-4 w-4" />
             <span className="hidden md:inline">Sair</span>
           </button>
         </div>
@@ -237,15 +237,15 @@ export default function MyAccount() {
         {/* Stats embutidos no hero — mobile-first */}
         <div className="relative grid grid-cols-3 gap-1.5 md:gap-3 mt-4 md:mt-6">
           <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl px-2.5 py-2 md:p-4">
-            <p className="text-[9px] md:text-xs uppercase tracking-wide text-white/60 font-semibold">Pedidos</p>
+            <p className="text-[10px] md:text-xs uppercase tracking-wide text-white/75 font-semibold">Pedidos</p>
             <p className="text-base md:text-2xl font-extrabold mt-1 tabular-nums leading-none">{stats.count}</p>
           </div>
           <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl px-2.5 py-2 md:p-4">
-            <p className="text-[9px] md:text-xs uppercase tracking-wide text-white/60 font-semibold">Gasto</p>
+            <p className="text-[10px] md:text-xs uppercase tracking-wide text-white/75 font-semibold">Gasto</p>
             <p className="text-[13px] md:text-2xl font-extrabold mt-1 truncate tabular-nums leading-none">{formatBRL(stats.total)}</p>
           </div>
           <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl px-2.5 py-2 md:p-4">
-            <p className="text-[9px] md:text-xs uppercase tracking-wide text-white/60 font-semibold">Desde</p>
+            <p className="text-[10px] md:text-xs uppercase tracking-wide text-white/75 font-semibold">Desde</p>
             <p className="text-[13px] md:text-2xl font-extrabold mt-1 capitalize leading-none">
               {profile?.created_at
                 ? new Date(profile.created_at).toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }).replace(".", "")
@@ -263,11 +263,12 @@ export default function MyAccount() {
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
+            aria-current={tab === t.id ? "page" : undefined}
+            className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset rounded-t-md ${
               tab === t.id ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
-            <t.icon className="h-4 w-4" />
+            <t.icon className="h-4 w-4" aria-hidden="true" />
             {t.label}
           </button>
         ))}
@@ -275,31 +276,33 @@ export default function MyAccount() {
 
       {/* Mobile: lista de seções (estilo app) */}
       <div className="md:hidden">
-        <div className="bg-card rounded-2xl border border-border overflow-hidden divide-y divide-border/60">
+        <nav aria-label="Seções da minha conta" className="bg-card rounded-2xl border border-border overflow-hidden divide-y divide-border/60">
           {TABS.map((t) => {
             const active = tab === t.id;
             return (
               <button
                 key={t.id}
                 onClick={() => setTab(t.id)}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
+                aria-current={active ? "page" : undefined}
+                aria-label={`${t.label}: ${t.description}`}
+                className={`w-full min-h-[44px] flex items-center gap-3 px-4 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset ${
                   active ? "bg-primary/5" : "active:bg-muted/40"
                 }`}
               >
                 <span className={`h-7 w-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
                   active ? "bg-primary text-primary-foreground" : "bg-muted/70 text-muted-foreground"
                 }`}>
-                  <t.icon className="h-3.5 w-3.5" />
+                  <t.icon className="h-3.5 w-3.5" aria-hidden="true" />
                 </span>
                 <span className="flex-1 min-w-0">
                   <span className={`block text-[13px] font-semibold leading-tight ${active ? "text-primary" : "text-foreground"}`}>{t.label}</span>
-                  <span className="block text-[11px] text-muted-foreground/80 truncate mt-0.5">{t.description}</span>
+                  <span className="block text-[11px] text-muted-foreground truncate mt-0.5">{t.description}</span>
                 </span>
-                <ChevronRight className={`h-4 w-4 shrink-0 transition-transform ${active ? "rotate-90 text-primary" : "text-muted-foreground/60"}`} />
+                <ChevronRight aria-hidden="true" className={`h-4 w-4 shrink-0 transition-transform ${active ? "rotate-90 text-primary" : "text-muted-foreground/70"}`} />
               </button>
             );
           })}
-        </div>
+        </nav>
       </div>
 
       {/* Cabeçalho da seção ativa — só mobile, dá contexto + clean */}
@@ -417,10 +420,11 @@ export default function MyAccount() {
                 <li key={o.id}>
                   <button
                     onClick={() => setOrderId(o.id)}
-                    className="w-full text-left bg-card rounded-2xl border border-border p-3 md:p-4 hover:border-primary/40 active:scale-[0.99] transition-all flex items-center gap-3"
+                    aria-label={`Ver pedido ${o.id.slice(0, 8)}, ${status.label}, ${formatBRL(o.total)}`}
+                    className="w-full min-h-[44px] text-left bg-card rounded-2xl border border-border p-3 md:p-4 hover:border-primary/40 active:scale-[0.99] transition-all flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
                     <div className="h-9 w-9 md:h-10 md:w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                      <ShoppingBag className="h-4 w-4" />
+                      <ShoppingBag className="h-4 w-4" aria-hidden="true" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
@@ -436,7 +440,7 @@ export default function MyAccount() {
                         </span>
                       </div>
                     </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground/50 shrink-0" />
+                    <ChevronRight aria-hidden="true" className="h-4 w-4 text-muted-foreground/70 shrink-0" />
                   </button>
                 </li>
               );
@@ -569,7 +573,8 @@ export default function MyAccount() {
                     <select
                       value={commFilter}
                       onChange={(e) => setCommFilter(e.target.value)}
-                      className="appearance-none w-full h-11 rounded-xl border border-input bg-background pl-4 pr-10 text-[13px] font-semibold text-foreground"
+                      aria-label="Filtrar comissões por status"
+                      className="appearance-none w-full h-11 rounded-xl border border-input bg-background pl-4 pr-10 text-[13px] font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring"
                     >
                       {FILTERS.map((f) => (
                         <option key={f.id} value={f.id}>
@@ -577,7 +582,7 @@ export default function MyAccount() {
                         </option>
                       ))}
                     </select>
-                    <ChevronRight className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 rotate-90 text-muted-foreground" />
+                    <ChevronRight aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 rotate-90 text-muted-foreground" />
                   </div>
                 </div>
 
@@ -590,7 +595,8 @@ export default function MyAccount() {
                       <button
                         key={f.id}
                         onClick={() => setCommFilter(f.id)}
-                        className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition inline-flex items-center gap-1.5 ${active ? "bg-primary text-primary-foreground border-primary" : "border-border bg-background text-muted-foreground hover:bg-muted/50"}`}
+                        aria-pressed={active}
+                        className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition inline-flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${active ? "bg-primary text-primary-foreground border-primary" : "border-border bg-background text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:border-primary/30"}`}
                       >
                         {f.label}
                         <span className={`badge-pill-sm tabular-nums ${active ? "bg-white/20" : "bg-muted"}`}>{n}</span>

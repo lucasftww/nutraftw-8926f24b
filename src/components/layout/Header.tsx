@@ -231,7 +231,7 @@ export function Header() {
                 href={`https://wa.me/${wa}${waMsg ? `?text=${waMsg}` : ""}`}
                 target="_blank"
                 rel="noreferrer"
-                className="block w-full text-center h-10 leading-[40px] rounded-full bg-[#25D366] text-white font-semibold text-sm hover:opacity-90 transition-opacity"
+                className="block w-full text-center h-11 leading-[44px] rounded-full bg-whatsapp text-whatsapp-foreground font-semibold text-sm hover:bg-whatsapp-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-whatsapp focus-visible:ring-offset-2"
               >
                 Suporte WhatsApp
               </a>
