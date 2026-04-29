@@ -56,11 +56,15 @@ export async function trackEvent(
     if (type === "view" && productId && shouldSkipDuplicateView(productId)) {
       return;
     }
-    const { data: auth } = await supabase.auth.getUser();
+    // Usa getSession() (cache local, síncrono no cliente) em vez de
+    // getUser() — este último faz network request a cada view e estoura
+    // tráfego em páginas de catálogo/produto. A sessão local é
+    // suficiente para preencher user_id no evento de funil.
+    const { data: sess } = await supabase.auth.getSession();
     await (supabase as any).from("product_events").insert({
       event_type: type,
       product_id: productId ?? null,
-      user_id: auth?.user?.id ?? null,
+      user_id: sess?.session?.user?.id ?? null,
       session_id: getSessionId(),
     });
   } catch {
