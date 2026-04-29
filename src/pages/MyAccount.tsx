@@ -50,6 +50,7 @@ export default function MyAccount() {
   const [affStats, setAffStats] = useState({
     released: 0,
     pending: 0,
+    paid: 0,
     activeRefs: 0,
     inactiveRefs: 0,
   });
@@ -74,11 +75,13 @@ export default function MyAccount() {
         supabase.from("affiliate_commissions").select("amount, status").eq("affiliate_user_id", user.id),
         supabase.from("affiliate_referrals").select("status").eq("affiliate_user_id", user.id),
       ]);
-      const released = (comm || []).filter((c: any) => c.status === "released" || c.status === "paid").reduce((s: number, c: any) => s + Number(c.amount || 0), 0);
-      const pending = (comm || []).filter((c: any) => c.status === "pending").reduce((s: number, c: any) => s + Number(c.amount || 0), 0);
+      const sumBy = (st: string) => (comm || []).filter((c: any) => c.status === st).reduce((s: number, c: any) => s + Number(c.amount || 0), 0);
+      const pending = sumBy("pending");
+      const released = sumBy("released");
+      const paid = sumBy("paid");
       const activeRefs = (refs || []).filter((r: any) => r.status === "active").length;
       const inactiveRefs = (refs || []).filter((r: any) => r.status === "inactive").length;
-      setAffStats({ released, pending, activeRefs, inactiveRefs });
+      setAffStats({ released, pending, paid, activeRefs, inactiveRefs });
     })();
   }, [user, tab]);
 
@@ -330,14 +333,18 @@ export default function MyAccount() {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+            <div className="bg-card rounded-2xl border border-border p-4">
+              <p className="text-xs text-muted-foreground">Comissões pendentes</p>
+              <p className="text-2xl font-extrabold mt-1 text-amber-600">{formatBRL(affStats.pending)}</p>
+            </div>
             <div className="bg-card rounded-2xl border border-border p-4">
               <p className="text-xs text-muted-foreground">Comissões liberadas</p>
               <p className="text-2xl font-extrabold mt-1 text-primary">{formatBRL(affStats.released)}</p>
             </div>
             <div className="bg-card rounded-2xl border border-border p-4">
-              <p className="text-xs text-muted-foreground">Comissões pendentes</p>
-              <p className="text-2xl font-extrabold mt-1">{formatBRL(affStats.pending)}</p>
+              <p className="text-xs text-muted-foreground">Comissões pagas</p>
+              <p className="text-2xl font-extrabold mt-1 text-emerald-600">{formatBRL(affStats.paid)}</p>
             </div>
             <div className="bg-card rounded-2xl border border-border p-4">
               <p className="text-xs text-muted-foreground">Indicações ativas</p>
@@ -347,6 +354,13 @@ export default function MyAccount() {
               <p className="text-xs text-muted-foreground">Indicações inativas</p>
               <p className="text-2xl font-extrabold mt-1">{affStats.inactiveRefs}</p>
             </div>
+          </div>
+
+          <div className="bg-muted/30 rounded-xl border border-border p-4 text-xs text-muted-foreground">
+            <strong className="text-foreground">Como funciona o pagamento:</strong> ao aprovar o pedido, sua comissão fica
+            <span className="text-amber-600 font-semibold"> pendente</span> por 7 dias. Após esse período ela é
+            <span className="text-primary font-semibold"> liberada</span> automaticamente para saque, e quando o administrador
+            efetua o repasse passa a <span className="text-emerald-600 font-semibold">paga</span>.
           </div>
 
           {/* Link de divulgação */}

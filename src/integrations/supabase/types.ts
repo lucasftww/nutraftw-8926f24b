@@ -55,8 +55,11 @@ export type Database = {
           affiliate_user_id: string
           amount: number
           created_at: string
+          eligible_release_at: string | null
           id: string
           order_id: string | null
+          paid_at: string | null
+          released_at: string | null
           status: string
           updated_at: string
         }
@@ -64,8 +67,11 @@ export type Database = {
           affiliate_user_id: string
           amount?: number
           created_at?: string
+          eligible_release_at?: string | null
           id?: string
           order_id?: string | null
+          paid_at?: string | null
+          released_at?: string | null
           status?: string
           updated_at?: string
         }
@@ -73,8 +79,11 @@ export type Database = {
           affiliate_user_id?: string
           amount?: number
           created_at?: string
+          eligible_release_at?: string | null
           id?: string
           order_id?: string | null
+          paid_at?: string | null
+          released_at?: string | null
           status?: string
           updated_at?: string
         }
@@ -694,6 +703,7 @@ export type Database = {
     }
     Functions: {
       affiliate_commission_rate: { Args: never; Returns: number }
+      affiliate_release_days: { Args: never; Returns: number }
       create_order: {
         Args: {
           p_city: string
@@ -750,6 +760,11 @@ export type Database = {
         }
         Returns: boolean
       }
+      mark_affiliate_commission_paid: {
+        Args: { p_commission_id: string }
+        Returns: undefined
+      }
+      release_due_affiliate_commissions: { Args: never; Returns: number }
     }
     Enums: {
       app_role: "admin" | "customer"
