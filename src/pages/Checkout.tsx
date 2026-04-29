@@ -561,9 +561,15 @@ export default function Checkout() {
                   required
                   value={form.full_name}
                   onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+                  onBlur={vName.touch}
                   placeholder="João da Silva"
                   className="checkout-input"
+                  data-status={vName.status === "idle" ? undefined : vName.status}
+                  aria-invalid={vName.status === "invalid"}
+                  autoComplete="name"
+                  maxLength={100}
                 />
+                <FieldHint status={vName.status} message={vName.message} />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="checkout-field">
@@ -573,9 +579,15 @@ export default function Checkout() {
                     type="email"
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    onBlur={vEmail.touch}
                     placeholder="joao@exemplo.com"
                     className="checkout-input"
+                    data-status={vEmail.status === "idle" ? undefined : vEmail.status}
+                    aria-invalid={vEmail.status === "invalid"}
+                    autoComplete="email"
+                    maxLength={255}
                   />
+                  <FieldHint status={vEmail.status} message={vEmail.message} />
                 </div>
                 <div className="checkout-field">
                   <label className="checkout-label">Telefone (WhatsApp) *</label>
@@ -584,10 +596,16 @@ export default function Checkout() {
                     type="tel"
                     value={form.phone}
                     onChange={(e) => setForm({ ...form, phone: maskPhone(e.target.value) })}
+                    onBlur={vPhone.touch}
                     placeholder="(11) 99999-9999"
                     inputMode="tel"
                     className="checkout-input"
+                    data-status={vPhone.status === "idle" ? undefined : vPhone.status}
+                    aria-invalid={vPhone.status === "invalid"}
+                    autoComplete="tel"
+                    maxLength={15}
                   />
+                  <FieldHint status={vPhone.status} message={vPhone.message} />
                 </div>
               </div>
               <div className="checkout-field">
@@ -596,10 +614,15 @@ export default function Checkout() {
                   required
                   value={form.cpf}
                   onChange={(e) => setForm({ ...form, cpf: maskCPF(e.target.value) })}
+                  onBlur={vCPF.touch}
                   placeholder="000.000.000-00"
                   inputMode="numeric"
                   className="checkout-input"
+                  data-status={vCPF.status === "idle" ? undefined : vCPF.status}
+                  aria-invalid={vCPF.status === "invalid"}
+                  maxLength={14}
                 />
+                <FieldHint status={vCPF.status} message={vCPF.message} />
               </div>
             </div>
           </section>
@@ -618,18 +641,26 @@ export default function Checkout() {
                     required
                     value={form.zip}
                     onChange={(e) => setForm({ ...form, zip: maskCEP(e.target.value) })}
+                    onBlur={vCEP.touch}
                     placeholder="00000-000"
                     inputMode="numeric"
                     maxLength={9}
                     className="checkout-input pr-10"
+                    data-status={vCEP.status === "idle" ? undefined : vCEP.status}
+                    aria-invalid={vCEP.status === "invalid"}
+                    autoComplete="postal-code"
                   />
                   {cepLoading && (
                     <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary animate-spin" />
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground ml-1 mt-1.5">
-                  Digite o CEP para preenchimento automático do endereço
-                </p>
+                {vCEP.status === "invalid" ? (
+                  <FieldHint status="invalid" message={vCEP.message} />
+                ) : (
+                  <p className="text-xs text-muted-foreground ml-1 mt-1.5">
+                    Digite o CEP para preenchimento automático do endereço
+                  </p>
+                )}
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div className="col-span-2 checkout-field">
