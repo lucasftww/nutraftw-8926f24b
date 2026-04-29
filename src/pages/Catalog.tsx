@@ -716,16 +716,29 @@ const ProductCard = memo(function ProductCard({
                   const r = responsiveImage(
                     p.image_url,
                     "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw",
-                    { fallbackWidth: 400 }
+                    {
+                      // Quality 65 nas thumbs do catálogo: visualmente
+                      // imperceptível em aspect-square pequeno, mas ~20-30% mais leve.
+                      quality: 65,
+                      // Widths enxutos (sem 1080/1280) — não fazem sentido em thumbs.
+                      widths: [200, 300, 400, 560, 800],
+                      fallbackWidth: 400,
+                    }
                   );
+                  // Os 4 primeiros cards são quase sempre o LCP no mobile
+                  // (grid 2 colunas → 1ª linha = 2, 2ª linha = 4).
+                  // Eager + fetchPriority high antecipa essas imagens críticas;
+                  // o restante continua lazy para preservar dados.
+                  const isAboveFold = index < 4;
                   return (
                     <img
                       src={r.src}
                       srcSet={r.srcSet || undefined}
                       sizes={r.sizes}
                       alt={p.name}
-                      loading="lazy"
+                      loading={isAboveFold ? "eager" : "lazy"}
                       decoding="async"
+                      {...(isAboveFold ? { fetchPriority: "high" as const } : {})}
                       width={400}
                       height={400}
                       onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
