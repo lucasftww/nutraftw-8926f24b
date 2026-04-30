@@ -396,7 +396,10 @@ export default function Catalog() {
           {selectedCats.size > 0 && (
             <div className="flex flex-wrap gap-2">
               {[...selectedCats].map((slug) => {
-                const c = categories.find((x) => x.slug === slug);
+                const c =
+                  slug === "__promos__"
+                    ? { slug: "__promos__", name: "Promoções" }
+                    : categories.find((x) => x.slug === slug);
                 if (!c) return null;
                 return (
                   <button
