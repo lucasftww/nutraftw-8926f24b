@@ -976,7 +976,7 @@ const ProductCard = memo(function ProductCard({
                   }}
                   disabled={isOut}
                   aria-label={isOut ? "Esgotado" : `Comprar ${p.name}`}
-                  className="mt-auto pt-2.5 inline-flex items-center justify-center gap-1.5 whitespace-nowrap font-bold bg-secondary text-secondary-foreground hover:bg-secondary/90 active:scale-[0.98] transition-all rounded-full w-full text-xs h-10 shadow-sm shadow-secondary/20 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
+                  className="mt-3 inline-flex items-center justify-center gap-1.5 whitespace-nowrap font-bold bg-secondary text-secondary-foreground hover:bg-secondary/90 active:scale-[0.98] transition-all rounded-full w-full text-xs h-10 shadow-sm shadow-secondary/20 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
                 >
                   {isOut ? (
                     "Esgotado"
