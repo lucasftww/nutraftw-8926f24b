@@ -1,7 +1,9 @@
 User-agent: *
 Allow: /
 Disallow: /admin
+Disallow: /admin/
 Disallow: /checkout
 Disallow: /minha-conta
+Disallow: /favoritos
 
-Sitemap: /sitemap.xml
+Sitemap: https://nutraftw.lovable.app/sitemap.xml
