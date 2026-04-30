@@ -320,105 +320,10 @@ export default function Catalog() {
     return { promos, sections, showOnlyPromos };
   }, [categories, filtered, selectedCats, sortComparator, sort]);
 
-  // Paginação uniforme: PAGE_SIZE itens por batch, fluindo na ordem
-  // Promoções → Categoria 1 → Categoria 2 → … Mesma regra em mobile e desktop.
-  const paginated = useMemo(() => {
-    let remaining = visibleCount;
-    // Promoções: no PRIMEIRO batch (visibleCount === PAGE_SIZE) limita ao
-    // preview para dar espaço às categorias na 1ª impressão. A partir do
-    // 2º "Carregar mais" expande progressivamente — antes ficava preso em
-    // 4 mesmo havendo 13 promos disponíveis.
-    const isFirstBatch = visibleCount <= PAGE_SIZE;
-    const promoLimit = grouped.showOnlyPromos
-      ? remaining
-      : isFirstBatch
-        ? Math.min(PROMO_PREVIEW_LIMIT, remaining, grouped.promos.length)
-        : Math.min(remaining, grouped.promos.length);
-    const promos = grouped.promos.slice(0, promoLimit);
-    remaining -= promos.length;
-
-    // Round-robin: garante que TODAS as categorias apareçam (pelo menos 1
-    // item) antes de uma só monopolizar a paginação. Antes, Tirzepatida com
-    // 8+ produtos consumia tudo e categorias menores nunca apareciam até o
-    // usuário clicar "Carregar mais" várias vezes.
-    // Distribuição em DUAS fases:
-    // 1) Garante até MIN_PER_CATEGORY itens por categoria (bloco visual completo).
-    //    Categorias menores que isso aparecem por inteiro.
-    // 2) Se ainda há orçamento (remaining > 0), faz round-robin do excedente
-    //    para preencher categorias maiores sem nenhuma monopolizar.
-    const counts = new Map<string, number>();
-    grouped.sections.forEach((s) => counts.set(s.slug, 0));
-    // Fase 1 — bloco mínimo por categoria.
-    for (const s of grouped.sections) {
-      if (remaining <= 0) break;
-      const want = Math.min(MIN_PER_CATEGORY, s.items.length, remaining);
-      counts.set(s.slug, want);
-      remaining -= want;
-    }
-    // Fase 2 — round-robin do excedente.
-    let progress = true;
-    while (remaining > 0 && progress) {
-      progress = false;
-      for (const s of grouped.sections) {
-        if (remaining <= 0) break;
-        const taken = counts.get(s.slug) ?? 0;
-        if (taken < s.items.length) {
-          counts.set(s.slug, taken + 1);
-          remaining -= 1;
-          progress = true;
-        }
-      }
-    }
-    const sections = grouped.sections
-      .map((s) => ({
-        slug: s.slug,
-        name: s.name,
-        items: s.items.slice(0, counts.get(s.slug) ?? 0),
-      }))
-      .filter((s) => s.items.length > 0);
-    return { promos, sections };
-  }, [grouped, visibleCount]);
-
-  const totalAvailable = useMemo(
-    () =>
-      grouped.promos.length +
-      grouped.sections.reduce((acc, s) => acc + s.items.length, 0),
-    [grouped]
-  );
-
-  const hasMore = visibleCount < totalAvailable;
-
-  // IntersectionObserver para carregar mais ao se aproximar do fim da lista
-  useEffect(() => {
-    if (!hasMore || loading) return;
-    const el = sentinelRef.current;
-    if (!el) return;
-    // Throttle: evita disparos em rajada quando o sentinel fica
-    // continuamente dentro da margem após cada batch carregado.
-    let pending = false;
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (pending) return;
-        if (entries.some((e) => e.isIntersecting)) {
-          pending = true;
-          setVisibleCount((c) => c + PAGE_SIZE);
-          // Libera o próximo disparo só depois do próximo frame, dando
-          // tempo do React commitar e o sentinel reposicionar.
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => { pending = false; });
-          });
-        }
-      },
-      // 300px é suficiente pra começar a carregar antes do usuário ver o fim,
-      // sem manter o sentinel "permanentemente intersectando" e disparando loop.
-      { rootMargin: "300px 0px" }
-    );
-    io.observe(el);
-    return () => io.disconnect();
-    // Não dependemos de `paginated` aqui — ele é recriado a cada render
-    // e estava recriando o observer toda vez (vazamento + flicker).
-    // O updater de setVisibleCount já garante valor atual.
-  }, [hasMore, loading]);
+  // Sem paginação: mostra TODAS as promoções e TODOS os produtos de TODAS as
+  // categorias de uma vez. Performance é mantida via `content-visibility:auto`
+  // nas seções (ver componente <Section/>) e lazy-loading das imagens.
+  const paginated = grouped;
 
   // Contagem de produtos por categoria (para mostrar no filtro)
   const countByCat = useMemo(() => {
