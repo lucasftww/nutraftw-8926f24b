@@ -288,16 +288,23 @@ export default function Catalog() {
 
     const categoryIndex = new Map(categories.map((c, index) => [c.slug, index]));
     const byCat = new Map<string, { slug: string; name: string; items: Product[] }>();
+    // Bucket fallback para produtos sem categoria — antes eram silenciosamente
+    // descartados quando o sort era "categoria", causando divergência entre o
+    // contador "Ver N produtos" e o que de fato aparecia na grade.
+    const ORPHAN_KEY = "__sem-categoria__";
     for (const p of showOnlyPromos ? [] : filtered) {
-      if (!p.category?.slug) continue;
-      const key = p.category.slug;
-      const name = p.category.name;
+      const key = p.category?.slug ?? ORPHAN_KEY;
+      const name = p.category?.name ?? "Outros produtos";
       if (!byCat.has(key)) byCat.set(key, { slug: key, name, items: [] });
       byCat.get(key)!.items.push(p);
     }
     for (const s of byCat.values()) s.items.sort(sortComparator);
 
     const sections = Array.from(byCat.values()).sort((a, b) => {
+      // Órfãos sempre por último.
+      const aOrphan = a.slug === ORPHAN_KEY ? 1 : 0;
+      const bOrphan = b.slug === ORPHAN_KEY ? 1 : 0;
+      if (aOrphan !== bOrphan) return aOrphan - bOrphan;
       const aTirz = isTirzepatidaCategory(a) ? 0 : 1;
       const bTirz = isTirzepatidaCategory(b) ? 0 : 1;
       if (aTirz !== bTirz) return aTirz - bTirz;
