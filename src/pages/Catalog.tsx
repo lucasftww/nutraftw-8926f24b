@@ -695,11 +695,29 @@ const Section = memo(function Section({
   onPrefetchFull?: (p: Product) => void;
 }) {
   if (items.length === 0) return null;
+  // Subtítulo automático para a seção de Promoções: comunica o maior
+  // desconto disponível e reforça a hierarquia visual sem poluir.
+  const isPromos = title.toLowerCase().includes("promo");
+  const maxDiscount = isPromos
+    ? items.reduce((acc, it) => {
+        const pn = Number(it.price);
+        const sn = it.sale_price != null ? Number(it.sale_price) : 0;
+        const pct = sn > 0 && sn < pn ? Math.round((1 - sn / pn) * 100) : 0;
+        return pct > acc ? pct : acc;
+      }, 0)
+    : 0;
   return (
     <div style={{ contentVisibility: "auto", containIntrinsicSize: "1px 600px" }}>
-      <h2 className="mb-4 md:mb-6 text-lg md:text-2xl font-bold tracking-tight text-foreground">
-        {title}
-      </h2>
+      <div className="mb-4 md:mb-6">
+        <h2 className="text-lg md:text-2xl font-bold tracking-tight text-foreground">
+          {title}
+        </h2>
+        {isPromos && maxDiscount > 0 && (
+          <p className="mt-0.5 text-xs md:text-sm text-muted-foreground">
+            Ofertas com até <span className="font-semibold text-secondary">{maxDiscount}% off</span>
+          </p>
+        )}
+      </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
         {items.map((p, idx) => (
           <ProductCard
