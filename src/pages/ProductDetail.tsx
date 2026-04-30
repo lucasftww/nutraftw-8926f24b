@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { ShoppingCart, ShieldCheck, Truck, Package, CreditCard, MessageCircle } from "lucide-react";
+import { ShoppingCart, ShieldCheck, Truck, Package, CreditCard, MessageCircle, QrCode, ChevronDown } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { responsiveImage } from "@/lib/image";
 import { Button } from "@/components/ui/button";
@@ -242,6 +242,22 @@ export default function ProductDetail() {
               <span className="text-muted-foreground">
                 ou <span className="font-bold text-foreground">3x de {formatBRL(finalPrice / 3)}</span> sem juros
               </span>
+            </div>
+            {/* PIX em destaque — antecipa o desconto que só aparecia no checkout.
+                Reduz fricção: cliente já decide com o preço final no PIX visível. */}
+            <div className="mt-3 flex items-center gap-2.5 rounded-xl bg-success/8 border border-success/20 px-3 py-2.5">
+              <QrCode className="h-5 w-5 text-success shrink-0" strokeWidth={2.25} />
+              <div className="flex-1 min-w-0 text-left">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-success leading-none">
+                  No PIX
+                </p>
+                <p className="text-base font-extrabold text-foreground tabular-nums leading-tight mt-0.5">
+                  {formatBRL(finalPrice * 0.95)}{" "}
+                  <span className="text-[11px] font-semibold text-success uppercase tracking-wider align-middle">
+                    5% off
+                  </span>
+                </p>
+              </div>
             </div>
           </div>
 
