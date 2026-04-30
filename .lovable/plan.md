@@ -1,74 +1,148 @@
-## Objetivo
 
-Reduzir ruído visual e atrito de decisão. Mais respiro, menos botões competindo, foco em preço + categoria + 1 ação clara. Aplicar em 4 áreas, em ordem de impacto.
+# Reformulação mobile-first para conversão
 
----
-
-## 1. Card do produto (Catalog.tsx → ProductCard)
-
-- **Imagem** muda de `aspect-square` para `aspect-[4/3]` (alinha com a memória `catalog-ui`, deixa card mais baixo, cabe mais por scroll).
-- **Título** vira 1 linha com `truncate` (não mais 2 linhas com altura mínima).
-- **Preço riscado** removido do card. Quando há promoção, o sinal de desconto fica só no badge `-X%` no canto superior direito (já existe).
-- **Botão "Comprar" cheio** removido. Substituído por ícone `+` discreto (40px, círculo, fundo `secondary`, ícone branco) absolutamente posicionado no canto inferior direito do card, sobreposto à info.
-- **Wishlist (coração)**: no desktop só aparece em `group-hover`; no mobile fica visível mas em cinza claro (não branco com sombra) para não competir com preço.
-- **Badge "Novo"**: trocar do preto agressivo para um ponto cinza + texto pequeno discreto (ou remover quando há `-X%`, para nunca empilhar).
-- **Resultado**: linha do card vira `Imagem 4:3` → `título 1 linha` → `preço grande` (com `+` flutuante ao lado). Bem mais respirado.
-
-## 2. Catálogo — filtros + cabeçalhos (Catalog.tsx)
-
-- **Chips horizontais de categoria** logo abaixo da busca, com scroll horizontal no mobile (`overflow-x-auto`, `snap`). Itens: `Tudo` · `Promoções` (se houver) · todas as categorias na ordem atual. Chip ativo usa `bg-primary text-primary-foreground`. Substitui o botão "Filtros" como caminho principal.
-- **Botão "Filtros"** vira só ícone `SlidersHorizontal` (40×40) ao lado da busca — abre o drawer já existente para multi-seleção avançada e ordenação. O `<select>` de ordenar sai do header (vai pra dentro do drawer onde já não está; adicionar lá).
-- **Cabeçalho de cada seção (`<Section>`)**: remover o contador "N itens". Manter só o título grande. Limpa muito a coluna direita.
-- **Seção "Promoções"** continua existindo, mas perde o destaque duplicado: quando o usuário clicar no chip "Promoções", o catálogo já mostra só elas — então a seção topo "Promoções" só aparece quando o filtro é "Tudo" (comportamento atual mantido aí).
-
-## 3. Página do produto (ProductDetail.tsx)
-
-- **Um único CTA primário**: "Comprar agora" (mantém o estilo atual, grande, laranja). Em vez do segundo botão grande "Adicionar ao carrinho", deixar um link de texto pequeno e centralizado abaixo: `ou adicionar ao carrinho`.
-- **"Você economiza R$X"** sai de baixo do preço e vira uma pílula verde acima do preço grande: `ECONOMIZE R$X (-20%)`. Gatilho mais visível.
-- **Selos de confiança** mudam de 2 cards para 3 itens em linha horizontal fina (sem caixa, só ícone + texto): `Envio nacional · 100% original · Suporte WhatsApp`.
-- **Sticky CTA mobile**: remover a linha "em 3x sem juros" (duplica o card de preço acima). Fica só preço + botão `Comprar agora`.
-- **Wishlist inline**: manter como está (link discreto abaixo do CTA).
-
-## 4. Hero / Vitrine (VitrineHero.tsx)
-
-Quando NÃO há banner ativo (estado padrão), substituir o layout "logo grande + bio + Instagram" por uma vitrine direta:
-
-- Headline curta: `Farmacêuticos importados, originais.`
-- Sublinha: `Envio para todo o Brasil. Suporte direto no WhatsApp.`
-- Linha de micro-prova (3 itens com ícone fininho): `Procedência verificada · Envio nacional · Pagamento seguro`.
-- Sem logo gigante, sem ícone Instagram em destaque. Altura total ~30% menor que hoje.
-
-Quando HOUVER banner ativo, manter exatamente o layout atual (não mexer).
+Análise do que está hoje + plano prático de mudanças, página por página. Foco: cliente comprando 100% pelo celular, faixa 25–50 anos, compra de farmacêuticos importados (decisão exige confiança).
 
 ---
 
-## Detalhes técnicos
+## 1. Diagnóstico do que atrapalha hoje
 
-**Arquivos editados:**
-- `src/pages/Catalog.tsx` — `ProductCard`, `Section`, header de filtros, novo bloco de chips horizontais.
-- `src/pages/ProductDetail.tsx` — bloco de preço, CTAs, selos, sticky bar.
-- `src/components/vitrine/VitrineHero.tsx` — branch sem banner.
+**Catálogo**
+- Header tem só logo + 2 ícones (perfil e carrinho). Sem busca visível, sem chamada do que a loja vende. Cliente novo cai e não entende em 1 segundo.
+- Não há "barra de confiança" no topo (envio, garantia, original). Em farma isso é decisivo.
+- Promoções e categorias aparecem como blocos longos sem hierarquia. Mobile rola muito até achar produto.
+- Sem prova social no catálogo (avaliações, "X compraram hoje").
 
-**Sem migração**, sem novos componentes externos, sem libs novas. Tudo Tailwind + tokens semânticos existentes (`primary`, `secondary`, `success`, `muted`, `border`).
+**Página de produto**
+- Bloco de preço grande, mas a CTA "Comprar agora" some na rolagem. Não existe **barra fixa de compra** no rodapé mobile — fricção #1 em e-commerce mobile.
+- Selos de confiança são uma linha fina cinza, sem peso visual.
+- "Sobre o produto" e "Ficha técnica" empilhados — em farma o usuário quer ver Princípio Ativo logo, depois decidir.
+- Não há FAQ inline ("É original?", "Em quanto tempo chega?", "Como pago?") — gera dúvida que não vira venda.
+- Sem garantia explícita ("compra protegida", "devolução em 7 dias").
 
-**Manter intacto:**
-- Drawer de filtros (só adicionar o select de ordenação dentro dele).
-- Lógica de `useProducts`, `useCategories`, agrupamento `grouped`, busca, prefetch.
-- Header, Footer, Carrinho, Checkout.
+**Carrinho / checkout**
+- Carrinho OK, mas o checkout tem 1257 linhas em uma única página — formulário muito longo no mobile (nome, e-mail, CPF, telefone, CEP, endereço, complemento, frete, cupom, pagamento, observação tudo junto). Sem etapas. Abandono alto.
+- PIX tem 5% de desconto na função SQL mas não está bem destacado no checkout como o gatilho que é.
+- Parcelamento 3x sem juros aparece no produto/carrinho mas não há reforço de "compra segura, dados criptografados" perto do botão final.
 
-**Acessibilidade:**
-- Chips de categoria viram `<button>` com `aria-pressed`.
-- Botão `+` do card mantém `aria-label="Adicionar {nome} ao carrinho"`.
-- Link de "adicionar ao carrinho" na página de produto continua sendo `<button>` (não `<a>`), com foco visível.
-
----
-
-## Fora do escopo deste plano
-
-- Header (já está limpo, sem mudanças).
-- Footer (alinhar com `mem://features/contact-support` fica para outro ciclo).
-- Notificações de compra, carrinho drawer, checkout — não mexer.
+**Admin**
+- Painel tem 14 abas (`dashboard, funnel, reports, products, categories, orders, coupons, shipping, users, resends, settings, diagnostics, audit`). Pelo celular é praticamente inutilizável.
+- Cadastro de produto e edição de pedidos provavelmente em modais grandes — precisa virar fluxo mobile-friendly.
 
 ---
 
-Confirma que quero seguir tudo isso?
+## 2. Plano de mudanças (em ordem de impacto na venda)
+
+### Etapa 1 — Página de produto mobile (MAIOR IMPACTO)
+
+1. **Sticky buy bar fixa no rodapé mobile**
+   - Sempre visível enquanto rola: imagem mini + preço + botão "Comprar agora" laranja.
+   - Faz a CTA acompanhar o scroll → conversão sobe forte em mobile.
+
+2. **Bloco de confiança reformulado**
+   - Acima do preço, 3 pílulas em linha: "✓ 100% Original" · "✓ Envio Brasil" · "✓ PIX 5% off".
+   - Abaixo do CTA, faixa "Compra protegida · Dados criptografados · Suporte WhatsApp" com cadeado.
+
+3. **Reordenar conteúdo**
+   - Ordem nova: Imagem → Categoria + Nome → Preço/economia/PIX → CTA → Pílulas confiança → Estoque baixo → Calculadora frete → Princípio ativo (destacado em card) → Composição → Sobre o produto → FAQ → Relacionados.
+
+4. **Mini FAQ inline (4 perguntas)**
+   - "É original?" / "Quanto tempo demora?" / "Como funciona o PIX 5%?" / "E se não chegar?"
+   - Acordeão simples, dispara dúvida e responde no mesmo lugar.
+
+5. **Reforçar gatilho PIX**
+   - Pílula verde "PIX -5%" ao lado do preço, com preço PIX calculado embaixo: "À vista no PIX por R$ 949,05".
+
+6. **Galeria preparada para múltiplas imagens** (estrutura — produto hoje só tem 1 imagem; deixar pronto para quando o admin subir mais).
+
+### Etapa 2 — Catálogo mobile
+
+1. **Header com proposta de valor**
+   - Linha fina sob o logo: "Farmacêuticos importados · Originais · Envio Brasil"
+   - Barra de busca **sempre visível** colada no header (e não só após scroll), porque hoje o input está no corpo da página.
+
+2. **Faixa de confiança (trust bar)**
+   - Embaixo do header, 1 linha discreta com 3 ícones+texto: "100% Originais · Envio Nacional · PIX -5%". Sumiu na rolagem.
+
+3. **Card mais "comercial"**
+   - Já temos o card novo (imagem quadrada + strikethrough + botão laranja). Adicionar:
+     - Badge "Mais vendido" / "Novo" / "Últimas unidades" quando aplicável.
+     - Linha pequena "PIX R$ 949" abaixo do preço.
+
+4. **Filtros mais simples no mobile**
+   - Botão "Filtros" hoje é icon-only. Trocar por pill com texto "Filtros" + badge de contagem ativa — fica mais óbvio.
+
+5. **Empty state e seções**
+   - Topo: "🔥 Promoções da semana" com badge animado sutil.
+   - Tirar contadores que poluem.
+
+### Etapa 3 — Checkout em etapas (mobile)
+
+Quebrar o checkout monolítico em **3 passos** visíveis com indicador no topo:
+
+```
+[1 Identificação] → [2 Entrega] → [3 Pagamento]
+```
+
+- **Passo 1**: nome, e-mail, CPF, telefone (4 campos, 1 botão "Continuar").
+- **Passo 2**: CEP (autocompleta), número, complemento opcional → mostra opções de frete.
+- **Passo 3**: PIX em destaque com selo "-5%" + cartão como alternativa secundária. Cupom em link "Tem cupom?" colapsável.
+
+Outras mudanças no checkout:
+- Resumo do pedido **fixo** no topo (mobile) ou lateral (desktop), sempre visível.
+- Botão final "Pagar agora R$ XX,XX" sempre mostra o valor.
+- Reforço de segurança: cadeado + "Pagamento seguro · Dados criptografados" abaixo do botão.
+
+### Etapa 4 — Admin mais usável
+
+1. **Reduzir abas de 14 para 6 grupos lógicos no menu lateral**:
+   - Visão geral (dashboard + funil + relatórios em sub-abas)
+   - Catálogo (produtos + categorias)
+   - Vendas (pedidos + cupons + fretes + reenvios)
+   - Pessoas (usuários)
+   - Sistema (configurações + diagnóstico + auditoria)
+
+2. **Mobile admin**: hoje quase não funciona no celular. Adicionar:
+   - Menu lateral vira drawer no mobile.
+   - Tabela de pedidos vira lista de cards no mobile (cada pedido = 1 card tocável).
+   - Cadastro de produto: form em uma coluna no mobile, com preview da imagem grande.
+
+3. **Quick actions na lista de pedidos**: swipe ou botões diretos para "Marcar como pago", "Enviado".
+
+### Etapa 5 — Microcopy de conversão (em todo lugar)
+
+- Botões: "Comprar agora" (não "Adicionar"), "Finalizar pedido seguro", "Pagar com PIX e economizar 5%".
+- Vazios: "Seu carrinho está vazio — comece pelas promoções da semana →".
+- Erros: humanos, não técnicos ("CEP não encontrado, digite o endereço manualmente").
+
+---
+
+## 3. Detalhes técnicos
+
+**Arquivos a editar (sem criar dependências novas)**:
+- `src/pages/ProductDetail.tsx` — sticky buy bar, FAQ, reordenação, PIX em destaque
+- `src/pages/Catalog.tsx` — header proposta + trust bar + badges contextuais nos cards
+- `src/components/layout/Header.tsx` — busca sempre visível no mobile
+- `src/pages/Checkout.tsx` — refatorar em wizard de 3 passos com indicador de progresso (estado local, sem mudança de rotas)
+- `src/pages/Admin.tsx` + `CommandPalette.tsx` — reagrupar abas em 5 grupos
+- `src/components/admin/AdminDashboard.tsx`, `OrderDetailModal.tsx` — versão mobile-cards para tabelas
+
+**Sem mudanças de banco**. Toda a lógica nova (PIX 5%, parcelamento, frete) já existe.
+
+**Sem novas dependências**. Acordeão de FAQ implementado com `<details>` nativo + Tailwind.
+
+**Performance**: sticky bars usam `position: sticky` + `bottom: 0` com `env(safe-area-inset-bottom)` para iPhone com notch.
+
+---
+
+## 4. Como vou entregar
+
+Sugiro implementar nesta ordem (cada etapa traz ganho imediato visível):
+
+1. **Página de produto** com sticky buy bar + FAQ + PIX destaque  ← maior conversão imediata
+2. **Catálogo** com header proposta + trust bar + badges
+3. **Checkout em 3 passos**
+4. **Admin reagrupado + mobile-friendly**
+5. **Microcopy** revisado em tudo
+
+Posso fazer tudo em um único commit grande, ou ir por etapas — você prefere ver o resultado da Etapa 1 antes ou faço tudo de uma vez?
