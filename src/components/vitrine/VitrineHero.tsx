@@ -1,7 +1,5 @@
-import { Instagram } from "lucide-react";
-import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { ShieldCheck, Truck, Lock } from "lucide-react";
 import { useActiveBanner } from "@/hooks/useProducts";
-import logoImg from "@/assets/vitrine-logo.png";
 
 /**
  * Vitrine hero — usa banner ativo do admin se disponível,
@@ -9,8 +7,6 @@ import logoImg from "@/assets/vitrine-logo.png";
  */
 export function VitrineHero() {
   const { data: banner } = useActiveBanner();
-  const settings = useSiteSettings();
-  const bio = settings.hero_bio || "Produtos farmacêuticos importados com procedência, atendimento direto e envio para todo o Brasil.";
 
   if (banner && banner.image_url) {
     const hasCta = !!(banner.cta_url && banner.cta_url.trim() && banner.cta_url !== "#");
@@ -54,36 +50,30 @@ export function VitrineHero() {
   }
 
   return (
-    <header className="relative w-full pt-10 sm:pt-16 pb-4">
+    // Vitrine direta ao ponto (sem banner). Headline + sublinha + 3 micro-provas.
+    // Sem logo gigante: o cliente já está aqui pra ver produtos, não a marca.
+    <header className="relative w-full pt-7 sm:pt-12 pb-3">
       <div className="container mx-auto px-5">
-        <div className="flex flex-col items-center text-center">
-          <span className="relative flex shrink-0 overflow-hidden rounded-full w-24 h-24 sm:w-28 sm:h-28 bg-background">
-            <img
-              src={logoImg}
-              alt="GIMPORTS"
-              width={112}
-              height={112}
-              className="aspect-square h-full w-full object-cover"
-            />
-          </span>
-
-          <h1 className="mt-5 text-xl sm:text-2xl font-semibold text-foreground tracking-tight">
-            GIMPORTS
+        <div className="max-w-2xl mx-auto text-center">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-foreground tracking-tight leading-[1.15]">
+            Farmacêuticos importados, originais.
           </h1>
-
-          <p className="mt-2 text-[13px] sm:text-sm text-muted-foreground max-w-md leading-relaxed">
-            {bio}
+          <p className="mt-2.5 text-sm sm:text-base text-muted-foreground leading-relaxed">
+            Envio para todo o Brasil. Suporte direto no WhatsApp.
           </p>
 
-          <a
-            href="https://instagram.com/gimports"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Instagram"
-            className="mt-5 inline-flex items-center justify-center h-10 w-10 rounded-full text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Instagram className="h-[18px] w-[18px]" />
-          </a>
+          <ul className="mt-5 flex items-center justify-center gap-x-5 gap-y-2 flex-wrap text-[12px] sm:text-[13px] text-muted-foreground">
+            {[
+              { icon: ShieldCheck, label: "Procedência verificada" },
+              { icon: Truck, label: "Envio nacional" },
+              { icon: Lock, label: "Pagamento seguro" },
+            ].map((b) => (
+              <li key={b.label} className="inline-flex items-center gap-1.5">
+                <b.icon className="h-3.5 w-3.5 text-primary/80" strokeWidth={1.75} />
+                <span className="font-medium text-foreground/80">{b.label}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </header>
