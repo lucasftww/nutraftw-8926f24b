@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { ShoppingCart, ShieldCheck, Truck, RefreshCw, Package, CreditCard } from "lucide-react";
+import { ShoppingCart, ShieldCheck, Truck, Package, CreditCard, Sparkles } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { responsiveImage } from "@/lib/image";
 import { Button } from "@/components/ui/button";
@@ -291,7 +291,7 @@ export default function ProductDetail() {
             {[
               { icon: Truck, label: "Envio Brasil" },
               { icon: ShieldCheck, label: "Original" },
-              { icon: RefreshCw, label: "Reembolso 7d" },
+              { icon: Sparkles, label: "Lacrado" },
             ].map((b) => (
               <li
                 key={b.label}
