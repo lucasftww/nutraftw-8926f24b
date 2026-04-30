@@ -881,9 +881,13 @@ const ProductCard = memo(function ProductCard({
                 {/* Bloco de preço com altura mínima reservada para a linha
                     "de R$" — alinha cards com e sem desconto na mesma altura. */}
                 <div className="mt-2 leading-tight min-h-[64px] flex flex-col justify-end">
-                  <div className="min-h-[16px] text-xs text-muted-foreground line-through tabular-nums">
-                    {hasRealSale ? <>de {formatBRL(priceNum)}</> : <>&nbsp;</>}
-                  </div>
+                  {hasRealSale ? (
+                    <div className="text-xs text-muted-foreground line-through tabular-nums">
+                      de {formatBRL(priceNum)}
+                    </div>
+                  ) : (
+                    <div aria-hidden className="h-[16px]" />
+                  )}
                   <div className="text-base md:text-lg font-extrabold text-primary tabular-nums">
                     {formatBRL(finalPrice)}
                   </div>
