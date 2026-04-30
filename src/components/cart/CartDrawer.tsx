@@ -1,17 +1,28 @@
 import { X, Minus, Plus, ShoppingBag, ArrowRight, Trash2, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { useCart } from "@/hooks/useCart";
 import { formatBRL } from "@/lib/utils";
 import { imageUrl } from "@/lib/image";
 import { Button } from "@/components/ui/button";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { CouponInput } from "@/components/cart/CouponInput";
+import { prefetchCheckout } from "@/App";
 
 export function CartDrawer() {
   const { lines, total, open, closeCart, setQty, remove } = useCart();
   const nav = useNavigate();
 
   useBodyScrollLock(open);
+
+  // Pré-carrega o chunk do Checkout assim que o carrinho abre com itens.
+  // Quando o usuário clicar em "Finalizar pedido", o JS já está pronto
+  // → navegação instantânea (elimina o spinner/atraso no mobile).
+  useEffect(() => {
+    if (open && lines.length > 0) {
+      prefetchCheckout().catch(() => {});
+    }
+  }, [open, lines.length]);
 
   const itemCount = lines.reduce((acc, l) => acc + l.qty, 0);
   const installment = total / 3;

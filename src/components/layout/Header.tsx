@@ -29,9 +29,11 @@ export function Header() {
   const accountHref = user ? "/minha-conta" : "/login";
   const accountLabel = user ? "Minha conta" : "Entrar";
   // Pré-carrega o chunk de MyAccount no primeiro hover/touch para eliminar
-  // o "Carregando…" no primeiro clique do ícone de perfil.
+  // o "Carregando…" no primeiro clique do ícone de perfil. Faz prefetch
+  // mesmo sem user — o chunk MyAccount é pequeno e usuário pode logar em
+  // seguida.
   const prefetchAccount = () => {
-    if (user) prefetchMyAccount().catch(() => {});
+    prefetchMyAccount().catch(() => {});
   };
 
   return (
