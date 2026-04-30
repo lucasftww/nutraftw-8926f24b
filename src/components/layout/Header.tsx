@@ -59,6 +59,8 @@ export function Header() {
                 <img
                   src={logoGimports}
                   alt="GIMPORTS"
+                  width={32}
+                  height={32}
                   className="h-7 w-7 md:h-8 md:w-8 object-contain shrink-0"
                 />
                 <span className="font-display font-semibold text-[15px] md:text-base tracking-tight text-primary hidden sm:block truncate">
@@ -158,7 +160,7 @@ export function Header() {
                     destino "/" que já é coberto pelo item "Catálogo" abaixo.
                   */}
                   <div className="flex items-center gap-2 min-w-0" aria-hidden="true">
-                    <img src={logoGimports} alt="" className="h-7 w-7 md:h-8 md:w-8 object-contain shrink-0" />
+                    <img src={logoGimports} alt="" width={32} height={32} className="h-7 w-7 md:h-8 md:w-8 object-contain shrink-0" />
                     <span className="font-display font-semibold text-[15px] md:text-base tracking-tight text-primary truncate">
                       GIMPORTS
                     </span>

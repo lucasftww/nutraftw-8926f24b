@@ -61,6 +61,8 @@ export function VitrineHero() {
             <img
               src={logoImg}
               alt="GIMPORTS"
+              width={112}
+              height={112}
               className="aspect-square h-full w-full object-cover"
             />
           </span>
