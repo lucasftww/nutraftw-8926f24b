@@ -468,21 +468,15 @@ export default function Catalog() {
               </div>
             ) : (
               <>
-                {/* Layout uniforme: Promoções + Categorias com mesma ordenação
-                    e mesma paginação, independente do sort escolhido. */}
+                {/* Layout uniforme: Promoções + TODAS as categorias com TODOS
+                    os produtos visíveis de uma vez (sem paginação). */}
                 {paginated.promos.length > 0 && (
                   <Section
                     title="Promoções"
                     items={paginated.promos}
-                    total={grouped.promos.length}
                     onAdd={handleAdd}
                     onPrefetch={prefetchProduct}
                     onPrefetchFull={prefetchProductFull}
-                    onSeeAll={
-                      grouped.promos.length > paginated.promos.length
-                        ? () => setSelectedCats(new Set(["__promos__"]))
-                        : undefined
-                    }
                   />
                 )}
                 {paginated.sections.map((s) => (
@@ -490,46 +484,11 @@ export default function Catalog() {
                     key={s.name}
                     title={s.name}
                     items={s.items}
-                    total={grouped.sections.find((g) => g.slug === s.slug)?.items.length ?? s.items.length}
                     onAdd={handleAdd}
                     onPrefetch={prefetchProduct}
                     onPrefetchFull={prefetchProductFull}
-                    onSeeAll={
-                      ((grouped.sections.find((g) => g.slug === s.slug)?.items.length ?? s.items.length) > s.items.length)
-                        ? () => {
-                            setSelectedCats(new Set([s.slug]));
-                            window.scrollTo({ top: 0, behavior: "smooth" });
-                          }
-                        : undefined
-                    }
                   />
                 ))}
-                {hasMore && (
-                  <div ref={sentinelRef} className="flex flex-col items-center gap-3 py-8">
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5 w-full">
-                      {Array.from({ length: 4 }).map((_, i) => (
-                        <div key={i} className="rounded-2xl bg-card overflow-hidden">
-                          <div className="aspect-square skeleton-shimmer rounded-2xl" />
-                          <div className="pt-3 px-1 space-y-2">
-                            <div className="h-3 w-4/5 skeleton-shimmer rounded" />
-                            <div className="h-3 w-2/5 skeleton-shimmer rounded" />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <button
-                      onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-                      className="mt-2 inline-flex items-center justify-center h-10 px-5 rounded-full border border-input bg-background text-sm font-semibold hover:bg-accent transition-colors"
-                    >
-                      Carregar mais
-                    </button>
-                  </div>
-                )}
-                {!hasMore && totalAvailable > PAGE_SIZE && (
-                  <p className="text-center text-xs text-muted-foreground py-6">
-                    Você viu todos os {totalAvailable} produtos.
-                  </p>
-                )}
               </>
             )}
           </div>
