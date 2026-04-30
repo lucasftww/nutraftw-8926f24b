@@ -51,9 +51,11 @@ const TABS: { id: Tab; label: string; icon: any }[] = [
 
 export default function Admin() {
   return (
-    <ConfirmProvider>
-      <AdminInner />
-    </ConfirmProvider>
+    <div className="dark min-h-screen bg-background text-foreground">
+      <ConfirmProvider>
+        <AdminInner />
+      </ConfirmProvider>
+    </div>
   );
 }
 
@@ -100,7 +102,7 @@ function AdminInner() {
       <div className="sticky top-0 z-30 -mx-4 md:-mx-6 px-4 md:px-6 pt-4 pb-3 mb-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border">
         <div className="flex justify-between items-center gap-4 mb-3">
           <div className="min-w-0">
-            <h1 className="font-display text-xl md:text-3xl font-extrabold text-primary truncate">Painel administrativo</h1>
+            <h1 className="font-display text-xl md:text-3xl font-extrabold text-foreground truncate">Painel administrativo</h1>
             <p className="text-xs md:text-sm text-muted-foreground truncate">{user?.email}</p>
           </div>
           <div className="flex items-center gap-2">

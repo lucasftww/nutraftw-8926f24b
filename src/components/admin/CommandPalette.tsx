@@ -26,7 +26,7 @@ type Action = {
 
 type Tab =
   | "dashboard" | "funnel" | "reports" | "products" | "categories"
-  | "orders" | "coupons" | "shipping" | "banners" | "users"
+  | "orders" | "coupons" | "shipping" | "users"
   | "resends" | "settings" | "diagnostics" | "audit";
 
 const SHORTCUT_TABS: { id: Tab; label: string }[] = [
@@ -36,7 +36,6 @@ const SHORTCUT_TABS: { id: Tab; label: string }[] = [
   { id: "categories", label: "Ir para Categorias" },
   { id: "coupons", label: "Ir para Cupons" },
   { id: "shipping", label: "Ir para Fretes" },
-  { id: "banners", label: "Ir para Banners" },
   { id: "users", label: "Ir para Usuários" },
   { id: "funnel", label: "Ir para Funil" },
   { id: "reports", label: "Ir para Relatórios" },
