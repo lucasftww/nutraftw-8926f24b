@@ -696,18 +696,22 @@ export default function Catalog() {
 const Section = memo(function Section({
   title,
   items,
+  total,
   onAdd,
   onPrefetch,
   onPrefetchFull,
 }: {
   title: string;
   items: Product[];
+  total?: number;
   onAdd: (p: Product, finalPrice: number) => void;
   onPrefetch?: (slug: string) => void;
   onPrefetchFull?: (p: Product) => void;
 }) {
   if (items.length === 0) return null;
-  const isPromo = /promo/i.test(title);
+  const shown = items.length;
+  const totalCount = total ?? shown;
+  const showingPartial = totalCount > shown;
   return (
     <div style={{ contentVisibility: "auto", containIntrinsicSize: "1px 600px" }}>
       <div className="mb-4 md:mb-6 flex items-baseline justify-between gap-3">
@@ -715,7 +719,9 @@ const Section = memo(function Section({
           {title}
         </h2>
         <span className="text-[11px] md:text-xs text-muted-foreground tabular-nums">
-          {items.length} {items.length === 1 ? "item" : "itens"}
+          {showingPartial
+            ? `${shown} de ${totalCount}`
+            : `${shown} ${shown === 1 ? "item" : "itens"}`}
         </span>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
