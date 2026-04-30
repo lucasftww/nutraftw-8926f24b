@@ -341,9 +341,10 @@ export default function Catalog() {
   return (
     <>
       <div className="container mx-auto px-4 pt-6 md:pt-10 pb-1">
-        <div className="w-full max-w-3xl mx-auto space-y-4">
-          {/* Search bar — mobile: ocupa toda a largura; controles abaixo */}
-          <div className="space-y-2 sm:space-y-0 sm:flex sm:gap-2">
+        <div className="w-full max-w-3xl mx-auto space-y-3">
+          {/* Linha 1: busca + ícone de filtros (drawer com ordenação e
+              multi-seleção avançada). Mais limpa: 1 input grande + 1 ícone. */}
+          <div className="flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               <input
@@ -362,67 +363,80 @@ export default function Catalog() {
                 </button>
               )}
             </div>
-            {/* Controles em grid no mobile (2 colunas iguais) */}
-            <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-2">
-              <button
-                onClick={() => setFiltersOpen(true)}
-                className="inline-flex items-center justify-center gap-1.5 h-10 px-4 rounded-full border border-input bg-background text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors"
-              >
-                <SlidersHorizontal className="h-4 w-4" />
-                Filtros
-                {selectedCats.size > 0 && (
-                  <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
-                    {selectedCats.size}
-                  </span>
-                )}
-              </button>
-              <div className="relative">
-                <ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                <select
-                  value={sort}
-                  onChange={(e) => setSort(e.target.value as SortKey)}
-                  aria-label="Ordenar produtos"
-                  className="appearance-none w-full h-10 pl-9 pr-7 rounded-full border border-input bg-background text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 cursor-pointer"
-                >
-                  {SORT_KEYS.map((k) => (
-                    <option key={k} value={k}>
-                      {SORT_LABELS[k]}
-                    </option>
-                  ))}
-                </select>
-                <span aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">▾</span>
-              </div>
-            </div>
+            <button
+              onClick={() => setFiltersOpen(true)}
+              aria-label="Filtros e ordenação"
+              className="relative inline-flex items-center justify-center h-10 w-10 shrink-0 rounded-full border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              {(selectedCats.size > 0 || sort !== "categoria") && (
+                <span aria-hidden className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-background" />
+              )}
+            </button>
           </div>
+        </div>
+      </div>
 
-          {/* Active filter chips */}
-          {selectedCats.size > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {[...selectedCats].map((slug) => {
-                const c =
-                  slug === "__promos__"
-                    ? { slug: "__promos__", name: "Promoções" }
-                    : categories.find((x) => x.slug === slug);
-                if (!c) return null;
-                return (
-                  <button
-                    key={slug}
-                    onClick={() => toggleCat(slug)}
-                    className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15 transition-colors"
-                  >
-                    {c.name}
-                    <X className="h-3 w-3" />
-                  </button>
-                );
-              })}
+      {/* Linha 2 (full-width): chips horizontais de categoria.
+          Caminho principal de filtragem — substitui o select e o painel
+          de filtros para o uso do dia-a-dia. */}
+      <div className="container mx-auto px-4 mt-3 md:mt-4">
+        <div
+          role="tablist"
+          aria-label="Categorias"
+          className="-mx-4 px-4 flex gap-2 overflow-x-auto scroll-smooth snap-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {(() => {
+            const promoCount = countByCat.get("__promos__") ?? 0;
+            const allActive = selectedCats.size === 0;
+            const chips: { key: string; label: string; active: boolean; onClick: () => void }[] = [
+              {
+                key: "__all__",
+                label: "Tudo",
+                active: allActive,
+                onClick: () => setSelectedCats(new Set()),
+              },
+              ...(promoCount > 0
+                ? [
+                    {
+                      key: "__promos__",
+                      label: "Promoções",
+                      active: selectedCats.size === 1 && selectedCats.has("__promos__"),
+                      onClick: () => setSelectedCats(new Set(["__promos__"])),
+                    },
+                  ]
+                : []),
+              ...[...categories]
+                .sort((a, b) => {
+                  const aTirz = isTirzepatidaCategory(a) ? 0 : 1;
+                  const bTirz = isTirzepatidaCategory(b) ? 0 : 1;
+                  if (aTirz !== bTirz) return aTirz - bTirz;
+                  return 0;
+                })
+                .map((c) => ({
+                  key: c.slug,
+                  label: c.name,
+                  active: selectedCats.size === 1 && selectedCats.has(c.slug),
+                  onClick: () => setSelectedCats(new Set([c.slug])),
+                })),
+            ];
+            return chips.map((chip) => (
               <button
-                onClick={() => setSelectedCats(new Set())}
-                className="text-xs font-semibold text-muted-foreground hover:text-foreground self-center"
+                key={chip.key}
+                type="button"
+                role="tab"
+                aria-pressed={chip.active}
+                onClick={chip.onClick}
+                className={`shrink-0 snap-start inline-flex items-center justify-center h-9 px-4 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                  chip.active
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "bg-muted/60 text-foreground hover:bg-muted"
+                }`}
               >
-                Limpar
+                {chip.label}
               </button>
-            </div>
-          )}
+            ));
+          })()}
         </div>
       </div>
 
