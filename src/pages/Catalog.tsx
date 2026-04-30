@@ -200,8 +200,13 @@ export default function Catalog() {
       const qCompact = query ? compact(query) : "";
 
       return products.filter((p) => {
-        if (selectedCats.size > 0 && (!p.category || !selectedCats.has(p.category.slug)))
-          return false;
+        if (selectedCats.size > 0) {
+          // "__promos__" é uma pseudo-categoria: produtos com desconto real.
+          const wantsPromos = selectedCats.has("__promos__");
+          const matchesCat = p.category ? selectedCats.has(p.category.slug) : false;
+          const matchesPromo = wantsPromos && discountPctOf(p) > 0;
+          if (!matchesCat && !matchesPromo) return false;
+        }
         if (!qNorm) return true;
         const nameNorm = normalize(p.name);
         const descNorm = p.description ? normalize(p.description) : "";
@@ -324,6 +329,9 @@ export default function Catalog() {
       if (!k) continue;
       map.set(k, (map.get(k) ?? 0) + 1);
     }
+    // Pseudo-categoria "Promoções": conta produtos com desconto real.
+    const promoCount = products.reduce((acc, p) => acc + (discountPctOf(p) > 0 ? 1 : 0), 0);
+    map.set("__promos__", promoCount);
     return map;
   }, [products]);
 
@@ -388,7 +396,10 @@ export default function Catalog() {
           {selectedCats.size > 0 && (
             <div className="flex flex-wrap gap-2">
               {[...selectedCats].map((slug) => {
-                const c = categories.find((x) => x.slug === slug);
+                const c =
+                  slug === "__promos__"
+                    ? { slug: "__promos__", name: "Promoções" }
+                    : categories.find((x) => x.slug === slug);
                 if (!c) return null;
                 return (
                   <button
@@ -554,9 +565,14 @@ export default function Catalog() {
                 )}
               </div>
               <ul className="flex flex-col gap-1.5">
-                {categories.map((c) => {
+                {[
+                  { id: "__promos__", slug: "__promos__", name: "Promoções" } as { id: string; slug: string; name: string },
+                  ...categories,
+                ].map((c) => {
                   const checked = selectedCats.has(c.slug);
                   const count = countByCat.get(c.slug) ?? 0;
+                  const isPromo = c.slug === "__promos__";
+                  if (isPromo && count === 0) return null;
                   return (
                     <li key={c.id}>
                       <label
