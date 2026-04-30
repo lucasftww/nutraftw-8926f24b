@@ -1292,6 +1292,54 @@ export default function Checkout() {
         </aside>
 
       </form>
+
+      {/* Sticky bottom bar mobile — total + CTA sempre visível.
+          Mesmo padrão da página de produto. Só aparece quando há total. */}
+      {grandTotal > 0 && (
+        <div
+          className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border px-4 py-3 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.15)]"
+          style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.75rem)" }}
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex-1 min-w-0 leading-tight">
+              <span className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Total</span>
+              <span className="block text-lg font-extrabold text-foreground tabular-nums">
+                {formatBRL(grandTotal)}
+              </span>
+            </div>
+            <button
+              type="button"
+              disabled={submitting}
+              onClick={() => {
+                // Foca a primeira seção incompleta para guiar o usuário.
+                const target = !buyerDone
+                  ? document.querySelector<HTMLInputElement>('input[autocomplete="name"]')
+                  : !addressDone
+                  ? document.querySelector<HTMLInputElement>('input[autocomplete="postal-code"]')
+                  : !shippingDone || !paymentDone
+                  ? document.querySelector<HTMLElement>('[data-checkout-payment]') || document.querySelector<HTMLElement>('h2.checkout-section-title')
+                  : null;
+                if (target) {
+                  target.scrollIntoView({ behavior: "smooth", block: "center" });
+                  if ((target as HTMLInputElement).focus) setTimeout(() => (target as HTMLInputElement).focus(), 350);
+                  return;
+                }
+                // Tudo pronto → submete o form.
+                document.querySelector<HTMLFormElement>('form')?.requestSubmit();
+              }}
+              className="h-12 px-5 rounded-2xl text-sm font-extrabold bg-success hover:bg-success/90 text-success-foreground shadow-lg shadow-success/30 whitespace-nowrap active:scale-[0.98] transition-all disabled:opacity-60"
+            >
+              {submitting ? (
+                <><Loader2 className="w-4 h-4 mr-1.5 animate-spin inline" /> Processando…</>
+              ) : (buyerDone && addressDone && shippingDone && paymentDone) ? (
+                <>Finalizar pedido</>
+              ) : (
+                <>Continuar</>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
