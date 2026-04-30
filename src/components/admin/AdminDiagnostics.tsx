@@ -84,22 +84,6 @@ export function AdminDiagnostics() {
       invalidate: () => qc.invalidateQueries({ queryKey: queryKeys.categories.all }),
     },
     {
-      key: "banners",
-      label: "Banners",
-      table: "site_banners",
-      // o site só consome 1 banner ativo, então comparamos com "todos ativos no DB" abaixo
-      readCache: () => {
-        const queries = qc.getQueryCache().findAll({ queryKey: queryKeys.banners.all, exact: false });
-        // banner ativo é objeto único, conta como 1 se truthy
-        for (const q of queries) {
-          if (Array.isArray(q.state.data)) return (q.state.data as unknown[]).length;
-          if (q.state.data) return 1;
-        }
-        return null;
-      },
-      invalidate: () => qc.invalidateQueries({ queryKey: queryKeys.banners.all }),
-    },
-    {
       key: "coupons",
       label: "Cupons (ativos)",
       table: "coupons",

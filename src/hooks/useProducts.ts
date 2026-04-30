@@ -93,23 +93,3 @@ export function useRelatedProducts(categoryId: string | undefined, excludeId: st
     },
   });
 }
-
-export function useActiveBanner() {
-  return useQuery<any | null>({
-    queryKey: queryKeys.banners.active,
-    queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from("site_banners")
-        .select("*")
-        .eq("active", true)
-        .order("display_order")
-        .limit(1)
-        .maybeSingle();
-      if (error) {
-        // Tabela pode não existir em ambientes antigos — degrade silenciosa
-        return null;
-      }
-      return data || null;
-    },
-  });
-}
