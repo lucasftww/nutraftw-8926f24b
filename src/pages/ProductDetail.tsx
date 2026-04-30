@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { ShoppingCart, ShieldCheck, Truck, Package, CreditCard } from "lucide-react";
+import { ShoppingCart, ShieldCheck, Truck, Package, CreditCard, MessageCircle } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { responsiveImage } from "@/lib/image";
 import { Button } from "@/components/ui/button";
@@ -221,9 +221,14 @@ export default function ProductDetail() {
           {/* Price card — bloco principal de conversão */}
           <div className="rounded-3xl border border-border bg-card p-5 sm:p-6 shadow-[var(--shadow-card)]">
             {hasSale && (
-              <div className="flex items-center justify-center lg:justify-start mb-1">
+              <div className="flex items-center justify-center lg:justify-start gap-2 mb-2">
+                {/* Pílula verde de economia — gatilho de conversão acima do preço.
+                    Mais visível que o "Você economiza" cinza embaixo. */}
+                <span className="inline-flex items-center rounded-full bg-success/10 text-success px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider">
+                  Economize {formatBRL(Number(p.price) - finalPrice)} (-{discountPct}%)
+                </span>
                 <span className="text-sm text-muted-foreground line-through tabular-nums">
-                  De {formatBRL(Number(p.price))}
+                  {formatBRL(Number(p.price))}
                 </span>
               </div>
             )}
@@ -238,15 +243,11 @@ export default function ProductDetail() {
                 ou <span className="font-bold text-foreground">3x de {formatBRL(finalPrice / 3)}</span> sem juros
               </span>
             </div>
-            {hasSale && (
-              <p className="mt-2 text-xs font-semibold text-success text-center lg:text-left">
-                Você economiza {formatBRL(Number(p.price) - finalPrice)}
-              </p>
-            )}
           </div>
 
-          {/* CTAs — Comprar agora (primário) + Adicionar (secundário) */}
-          <div className="space-y-2.5">
+          {/* CTA único — "Comprar agora" como ação primária. Secundária
+              vira link de texto pequeno para reduzir competição visual. */}
+          <div className="space-y-2">
             <Button
               disabled={(p.stock ?? 0) <= 0}
               className="w-full h-14 rounded-2xl text-base font-extrabold bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-lg shadow-secondary/30 active:scale-[0.99] transition-all"
@@ -262,21 +263,21 @@ export default function ProductDetail() {
               <ShoppingCart className="w-4 h-4 mr-2" strokeWidth={2.5} />
               {(p.stock ?? 0) <= 0 ? "Esgotado" : "Comprar agora"}
             </Button>
-            <Button
-              variant="outline"
-              disabled={(p.stock ?? 0) <= 0}
-              className="w-full h-12 rounded-2xl text-sm font-semibold border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
-              onClick={() => {
-                add(
-                  { product_id: p.id, slug: p.slug, name: p.name, price: finalPrice, image_url: p.image_url },
-                  1
-                );
-                openCart();
-              }}
-            >
-              <ShoppingCart className="w-4 h-4 mr-2" />
-              Adicionar ao carrinho
-            </Button>
+            {(p.stock ?? 0) > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  add(
+                    { product_id: p.id, slug: p.slug, name: p.name, price: finalPrice, image_url: p.image_url },
+                    1
+                  );
+                  openCart();
+                }}
+                className="w-full text-center text-sm font-medium text-muted-foreground hover:text-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded-md py-1"
+              >
+                ou adicionar ao carrinho
+              </button>
+            )}
             <WishlistButton productId={p.id} variant="inline" className="w-full justify-center text-muted-foreground hover:text-foreground" />
             {(p.stock ?? 0) > 0 && (p.stock ?? 0) <= 5 && (
               <p className="text-center text-xs font-bold text-destructive flex items-center justify-center gap-1.5">
@@ -286,20 +287,16 @@ export default function ProductDetail() {
             )}
           </div>
 
-          {/* Selos de confiança — clean, 2 colunas */}
-          <ul className="grid grid-cols-2 gap-2">
+          {/* Selos de confiança — linha horizontal fina, sem caixas. */}
+          <ul className="flex items-center justify-center lg:justify-start gap-x-5 gap-y-2 flex-wrap text-[12px] text-muted-foreground">
             {[
-              { icon: Truck, label: "Envio Brasil" },
-              { icon: ShieldCheck, label: "Original" },
+              { icon: Truck, label: "Envio nacional" },
+              { icon: ShieldCheck, label: "100% original" },
+              { icon: MessageCircle, label: "Suporte WhatsApp" },
             ].map((b) => (
-              <li
-                key={b.label}
-                className="flex flex-col items-center gap-1 rounded-xl border border-border/60 bg-muted/30 py-3 px-1 text-center"
-              >
-                <b.icon className="h-4 w-4 text-primary" />
-                <span className="text-[11px] font-semibold text-foreground leading-tight">
-                  {b.label}
-                </span>
+              <li key={b.label} className="inline-flex items-center gap-1.5">
+                <b.icon className="h-3.5 w-3.5 text-primary/80" strokeWidth={1.75} />
+                <span className="font-medium text-foreground/80">{b.label}</span>
               </li>
             ))}
           </ul>
@@ -436,9 +433,6 @@ export default function ProductDetail() {
               <span className="block text-xl font-extrabold text-primary leading-none tabular-nums">
                 {formatBRL(finalPrice)}
               </span>
-              <p className="text-[11px] text-muted-foreground mt-1 truncate">
-                em 3x sem juros
-              </p>
             </div>
             <Button
               className="h-12 px-6 rounded-2xl text-sm font-extrabold bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-lg shadow-secondary/30 whitespace-nowrap active:scale-[0.98] transition-all"

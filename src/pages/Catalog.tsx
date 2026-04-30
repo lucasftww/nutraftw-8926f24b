@@ -6,7 +6,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { responsiveImage, imageUrl } from "@/lib/image";
 import { prefetchImage, shouldPrefetch } from "@/lib/prefetch";
 import { WishlistButton } from "@/components/wishlist/WishlistButton";
-import { Search, SlidersHorizontal, ShoppingCart, X, ArrowUpDown } from "lucide-react";
+import { Search, SlidersHorizontal, X, ArrowUpDown, Plus } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { useCart } from "@/hooks/useCart";
 import { useSEO } from "@/hooks/useSEO";
@@ -341,9 +341,10 @@ export default function Catalog() {
   return (
     <>
       <div className="container mx-auto px-4 pt-6 md:pt-10 pb-1">
-        <div className="w-full max-w-3xl mx-auto space-y-4">
-          {/* Search bar — mobile: ocupa toda a largura; controles abaixo */}
-          <div className="space-y-2 sm:space-y-0 sm:flex sm:gap-2">
+        <div className="w-full max-w-3xl mx-auto space-y-3">
+          {/* Linha 1: busca + ícone de filtros (drawer com ordenação e
+              multi-seleção avançada). Mais limpa: 1 input grande + 1 ícone. */}
+          <div className="flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               <input
@@ -362,67 +363,80 @@ export default function Catalog() {
                 </button>
               )}
             </div>
-            {/* Controles em grid no mobile (2 colunas iguais) */}
-            <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-2">
-              <button
-                onClick={() => setFiltersOpen(true)}
-                className="inline-flex items-center justify-center gap-1.5 h-10 px-4 rounded-full border border-input bg-background text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors"
-              >
-                <SlidersHorizontal className="h-4 w-4" />
-                Filtros
-                {selectedCats.size > 0 && (
-                  <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
-                    {selectedCats.size}
-                  </span>
-                )}
-              </button>
-              <div className="relative">
-                <ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                <select
-                  value={sort}
-                  onChange={(e) => setSort(e.target.value as SortKey)}
-                  aria-label="Ordenar produtos"
-                  className="appearance-none w-full h-10 pl-9 pr-7 rounded-full border border-input bg-background text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 cursor-pointer"
-                >
-                  {SORT_KEYS.map((k) => (
-                    <option key={k} value={k}>
-                      {SORT_LABELS[k]}
-                    </option>
-                  ))}
-                </select>
-                <span aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">▾</span>
-              </div>
-            </div>
+            <button
+              onClick={() => setFiltersOpen(true)}
+              aria-label="Filtros e ordenação"
+              className="relative inline-flex items-center justify-center h-10 w-10 shrink-0 rounded-full border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              {(selectedCats.size > 0 || sort !== "categoria") && (
+                <span aria-hidden className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-background" />
+              )}
+            </button>
           </div>
+        </div>
+      </div>
 
-          {/* Active filter chips */}
-          {selectedCats.size > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {[...selectedCats].map((slug) => {
-                const c =
-                  slug === "__promos__"
-                    ? { slug: "__promos__", name: "Promoções" }
-                    : categories.find((x) => x.slug === slug);
-                if (!c) return null;
-                return (
-                  <button
-                    key={slug}
-                    onClick={() => toggleCat(slug)}
-                    className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15 transition-colors"
-                  >
-                    {c.name}
-                    <X className="h-3 w-3" />
-                  </button>
-                );
-              })}
+      {/* Linha 2 (full-width): chips horizontais de categoria.
+          Caminho principal de filtragem — substitui o select e o painel
+          de filtros para o uso do dia-a-dia. */}
+      <div className="container mx-auto px-4 mt-3 md:mt-4">
+        <div
+          role="tablist"
+          aria-label="Categorias"
+          className="-mx-4 px-4 flex gap-2 overflow-x-auto scroll-smooth snap-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {(() => {
+            const promoCount = countByCat.get("__promos__") ?? 0;
+            const allActive = selectedCats.size === 0;
+            const chips: { key: string; label: string; active: boolean; onClick: () => void }[] = [
+              {
+                key: "__all__",
+                label: "Tudo",
+                active: allActive,
+                onClick: () => setSelectedCats(new Set()),
+              },
+              ...(promoCount > 0
+                ? [
+                    {
+                      key: "__promos__",
+                      label: "Promoções",
+                      active: selectedCats.size === 1 && selectedCats.has("__promos__"),
+                      onClick: () => setSelectedCats(new Set(["__promos__"])),
+                    },
+                  ]
+                : []),
+              ...[...categories]
+                .sort((a, b) => {
+                  const aTirz = isTirzepatidaCategory(a) ? 0 : 1;
+                  const bTirz = isTirzepatidaCategory(b) ? 0 : 1;
+                  if (aTirz !== bTirz) return aTirz - bTirz;
+                  return 0;
+                })
+                .map((c) => ({
+                  key: c.slug,
+                  label: c.name,
+                  active: selectedCats.size === 1 && selectedCats.has(c.slug),
+                  onClick: () => setSelectedCats(new Set([c.slug])),
+                })),
+            ];
+            return chips.map((chip) => (
               <button
-                onClick={() => setSelectedCats(new Set())}
-                className="text-xs font-semibold text-muted-foreground hover:text-foreground self-center"
+                key={chip.key}
+                type="button"
+                role="tab"
+                aria-pressed={chip.active}
+                onClick={chip.onClick}
+                className={`shrink-0 snap-start inline-flex items-center justify-center h-9 px-4 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                  chip.active
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "bg-muted/60 text-foreground hover:bg-muted"
+                }`}
               >
-                Limpar
+                {chip.label}
               </button>
-            </div>
-          )}
+            ));
+          })()}
         </div>
       </div>
 
@@ -434,14 +448,13 @@ export default function Catalog() {
               evita a sensação de a página subir sozinha no mobile. */}
           <div className="space-y-12 pb-16 [overflow-anchor:none]">
             {loading ? (
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div key={i} className="rounded-2xl bg-card overflow-hidden">
-                    <div className="aspect-square skeleton-shimmer rounded-2xl" />
-                    <div className="pt-3 px-1 space-y-2">
+                    <div className="aspect-[4/3] skeleton-shimmer" />
+                    <div className="pt-3 pb-3 px-3 space-y-2">
                       <div className="h-3 w-4/5 skeleton-shimmer rounded" />
-                      <div className="h-3 w-2/5 skeleton-shimmer rounded" />
-                      <div className="h-9 w-full skeleton-shimmer rounded-full mt-3" />
+                      <div className="h-4 w-2/5 skeleton-shimmer rounded mt-1" />
                     </div>
                   </div>
                 ))}
@@ -528,6 +541,35 @@ export default function Catalog() {
 
             {/* Lista de categorias — área de toque ampla, contagem visível */}
             <div className="flex-1 overflow-y-auto px-4 py-4">
+              {/* Ordenação — agora dentro do drawer (saiu do header para
+                  liberar espaço na área principal). */}
+              <div className="mb-5">
+                <h3 className="text-[13px] font-bold uppercase tracking-wider text-muted-foreground px-2 mb-2">
+                  Ordenar por
+                </h3>
+                <div className="flex flex-wrap gap-2 px-1">
+                  {SORT_KEYS.map((k) => {
+                    const active = sort === k;
+                    return (
+                      <button
+                        key={k}
+                        type="button"
+                        onClick={() => setSort(k)}
+                        aria-pressed={active}
+                        className={`inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full text-sm font-medium transition-colors ${
+                          active
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "bg-muted/60 text-foreground hover:bg-muted"
+                        }`}
+                      >
+                        {active && <ArrowUpDown className="h-3.5 w-3.5" />}
+                        {SORT_LABELS[k]}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div className="flex items-center justify-between px-2 mb-3">
                 <h3 className="text-[13px] font-bold uppercase tracking-wider text-muted-foreground">
                   Categorias
@@ -649,19 +691,11 @@ const Section = memo(function Section({
   onPrefetchFull?: (p: Product) => void;
 }) {
   if (items.length === 0) return null;
-  const shown = items.length;
   return (
     <div style={{ contentVisibility: "auto", containIntrinsicSize: "1px 600px" }}>
-      <div className="mb-4 md:mb-6 flex items-baseline justify-between gap-3">
-        <h2 className="text-lg md:text-2xl font-bold tracking-tight text-foreground">
-          {title}
-        </h2>
-        <div className="flex items-baseline gap-3 shrink-0">
-          <span className="text-[11px] md:text-xs text-muted-foreground tabular-nums">
-            {`${shown} ${shown === 1 ? "item" : "itens"}`}
-          </span>
-        </div>
-      </div>
+      <h2 className="mb-4 md:mb-6 text-lg md:text-2xl font-bold tracking-tight text-foreground">
+        {title}
+      </h2>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
         {items.map((p, idx) => (
           <ProductCard
@@ -739,22 +773,20 @@ const ProductCard = memo(function ProductCard({
   const isOut = (p.stock ?? 0) <= 0;
   const ageDays = (Date.now() - new Date(p.created_at).getTime()) / 86400000;
   const isNew = !isOut && ageDays <= 30;
-  // Apenas um badge prioritário por card. Oferta vira só o "-x%" colorido.
-  const badge = isOut
-    ? { label: "Esgotado", cls: "bg-foreground/85 text-background" }
-    : isNew && !hasRealSale
-    ? { label: "Novo", cls: "bg-foreground/85 text-background" }
-    : null;
+  // Apenas um badge por card e nunca empilhado com "-x%". "Novo" vira um
+  // ponto sutil + texto pequeno em cinza (não compete com o preço).
+  // "Esgotado" continua forte porque indica indisponibilidade real.
   return (
             <Link
               ref={linkRef}
               to={`/produto/${p.slug}`}
               onMouseEnter={() => onPrefetch?.(p.slug)}
               onTouchStart={() => onPrefetch?.(p.slug)}
-              className={`group flex flex-col h-full rounded-2xl bg-card overflow-hidden border border-border/50 hover:border-primary/30 hover:shadow-[var(--shadow-card)] transition-all ${isOut ? "opacity-70" : ""}`}
+              className={`group relative flex flex-col h-full rounded-2xl bg-card overflow-hidden border border-border/50 hover:border-primary/30 hover:shadow-[var(--shadow-card)] transition-all ${isOut ? "opacity-70" : ""}`}
             >
-              {/* Imagem */}
-              <div className="relative aspect-square overflow-hidden bg-white">
+              {/* Imagem — aspect 4:3 deixa o card mais baixo e respira mais
+                  na vertical (mais cards visíveis por scroll). */}
+              <div className="relative aspect-[4/3] overflow-hidden bg-white">
                 {(() => {
                   const r = responsiveImage(
                     p.image_url,
@@ -783,47 +815,44 @@ const ProductCard = memo(function ProductCard({
                       decoding="async"
                       {...(isAboveFold ? { fetchPriority: "high" } as Record<string, string> : {})}
                       width={400}
-                      height={400}
+                      height={300}
                       onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
                       className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
                     />
                   );
                 })()}
-                {badge && (
-                  <span className={`absolute top-2 left-2 inline-flex items-center rounded-full text-[10px] font-semibold px-2 py-0.5 ${badge.cls}`}>
-                    {badge.label}
+                {isOut && (
+                  <span className="absolute top-2 left-2 inline-flex items-center rounded-full text-[10px] font-semibold px-2 py-0.5 bg-foreground/85 text-background">
+                    Esgotado
                   </span>
                 )}
                 {hasRealSale && !isOut && (
-                  <span className="badge-pill absolute top-2 right-2 bg-secondary text-secondary-foreground font-bold shadow-sm">
+                  <span className="badge-pill absolute top-2 left-2 bg-secondary text-secondary-foreground font-bold shadow-sm">
                     -{discountPct}%
                   </span>
                 )}
+                {/* Wishlist: discreto sempre, levemente realçado em hover (desktop) */}
                 <WishlistButton
                   productId={p.id}
                   size="sm"
-                  className={hasRealSale && !isOut ? "absolute bottom-2 right-2" : "absolute top-2 right-2"}
+                  className="absolute top-2 right-2 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                 />
               </div>
 
-              {/* Conteúdo — hierarquia clara para conversão.
-                  - `min-h` no título e no bloco de preço reserva o espaço da linha
-                    "de R$X" (riscado) mesmo quando não há promoção: assim os botões
-                    "Comprar" alinham perfeitamente entre cards lado-a-lado.
-                  - `mt-auto` no botão garante que ele cole na base do card
-                    independentemente do tamanho do título. */}
-              <div className="pt-3 pb-3 px-2.5 flex-1 flex flex-col">
-                <h3 className="font-medium text-[13px] sm:text-sm leading-snug line-clamp-2 min-h-[2.4rem] text-foreground">
+              {/* Conteúdo: título 1 linha + preço grande. Botão "Comprar" virou
+                  um ícone "+" flutuante (canto inferior direito), sobreposto ao
+                  conteúdo, para reduzir o "muro de botões" ao percorrer o catálogo. */}
+              <div className="relative pt-3 pb-3 pl-3 pr-12 sm:pl-3.5 sm:pr-14">
+                {isNew && !hasRealSale && !isOut && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                    <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-primary/60" />
+                    Novo
+                  </span>
+                )}
+                <h3 className="font-medium text-[13px] sm:text-sm leading-snug truncate text-foreground">
                   {p.name}
                 </h3>
-                <div className="mt-2 flex flex-col gap-0.5 min-h-[2.75rem] sm:min-h-[3rem] justify-end">
-                  {hasRealSale ? (
-                    <span className="text-[11px] text-muted-foreground line-through tabular-nums leading-none">
-                      de {formatBRL(priceNum)}
-                    </span>
-                  ) : (
-                    <span aria-hidden className="text-[11px] leading-none invisible">.</span>
-                  )}
+                <div className="mt-1.5">
                   <span className="text-base md:text-lg font-extrabold text-primary tabular-nums leading-tight">
                     {formatBRL(finalPrice)}
                   </span>
@@ -836,17 +865,10 @@ const ProductCard = memo(function ProductCard({
                     onAdd(p, finalPrice);
                   }}
                   disabled={isOut}
-                  aria-label={isOut ? "Esgotado" : `Comprar ${p.name}`}
-                  className="mt-3 inline-flex items-center justify-center gap-1.5 whitespace-nowrap font-bold bg-secondary text-secondary-foreground hover:bg-secondary/90 active:scale-[0.98] transition-all rounded-full w-full text-xs h-10 shadow-sm shadow-secondary/20 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
+                  aria-label={isOut ? "Esgotado" : `Adicionar ${p.name} ao carrinho`}
+                  className="absolute bottom-3 right-3 inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/90 active:scale-95 transition-all shadow-md shadow-secondary/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
                 >
-                  {isOut ? (
-                    "Esgotado"
-                  ) : (
-                    <>
-                      <ShoppingCart className="h-3.5 w-3.5" />
-                      Comprar
-                    </>
-                  )}
+                  <Plus className="h-[18px] w-[18px]" strokeWidth={2.5} />
                 </button>
               </div>
             </Link>
