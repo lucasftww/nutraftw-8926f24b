@@ -591,6 +591,11 @@ export default function Catalog() {
                     onAdd={handleAdd}
                     onPrefetch={prefetchProduct}
                     onPrefetchFull={prefetchProductFull}
+                    onSeeAll={
+                      grouped.promos.length > paginated.promos.length
+                        ? () => setSelectedCats(new Set(["__promos__"]))
+                        : undefined
+                    }
                   />
                 )}
                 {paginated.sections.map((s) => (
