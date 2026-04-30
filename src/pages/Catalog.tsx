@@ -709,7 +709,10 @@ const Section = memo(function Section({
   return (
     <div className="scroll-mt-36 md:scroll-mt-40">
       <div className="mb-3 md:mb-5">
-        <h2 className="!text-primary text-xl md:text-2xl font-bold tracking-tight leading-tight">
+        <h2
+          className="text-xl md:text-2xl font-bold tracking-tight leading-tight"
+          style={{ color: "#0a1f4d", border: "3px solid red", background: "yellow" }}
+        >
           {title}
         </h2>
         {isPromos && maxDiscount > 0 && (
