@@ -311,16 +311,38 @@ export default function Catalog() {
   // Promoções → Categoria 1 → Categoria 2 → … Mesma regra em mobile e desktop.
   const paginated = useMemo(() => {
     let remaining = visibleCount;
-    const promoLimit = grouped.showOnlyPromos ? remaining : Math.min(PROMO_PREVIEW_LIMIT, remaining);
+    const promoLimit = grouped.showOnlyPromos
+      ? remaining
+      : Math.min(PROMO_PREVIEW_LIMIT, remaining, grouped.promos.length);
     const promos = grouped.promos.slice(0, promoLimit);
     remaining -= promos.length;
-    const sections: { slug: string; name: string; items: Product[] }[] = [];
-    for (const s of grouped.sections) {
-      if (remaining <= 0) break;
-      const items = s.items.slice(0, remaining);
-      if (items.length > 0) sections.push({ slug: s.slug, name: s.name, items });
-      remaining -= items.length;
+
+    // Round-robin: garante que TODAS as categorias apareçam (pelo menos 1
+    // item) antes de uma só monopolizar a paginação. Antes, Tirzepatida com
+    // 8+ produtos consumia tudo e categorias menores nunca apareciam até o
+    // usuário clicar "Carregar mais" várias vezes.
+    const counts = new Map<string, number>();
+    grouped.sections.forEach((s) => counts.set(s.slug, 0));
+    let progress = true;
+    while (remaining > 0 && progress) {
+      progress = false;
+      for (const s of grouped.sections) {
+        if (remaining <= 0) break;
+        const taken = counts.get(s.slug) ?? 0;
+        if (taken < s.items.length) {
+          counts.set(s.slug, taken + 1);
+          remaining -= 1;
+          progress = true;
+        }
+      }
     }
+    const sections = grouped.sections
+      .map((s) => ({
+        slug: s.slug,
+        name: s.name,
+        items: s.items.slice(0, counts.get(s.slug) ?? 0),
+      }))
+      .filter((s) => s.items.length > 0);
     return { promos, sections };
   }, [grouped, visibleCount]);
 
