@@ -760,6 +760,9 @@ function AdminOrders() {
       .order("created_at", { ascending: false })
       .limit(5000);
     if (filter !== "all") q = q.eq("status", filter as any);
+    if (paymentFilter !== "all") q = q.eq("payment_method", paymentFilter as any);
+    if (dateFrom) q = q.gte("created_at", new Date(dateFrom + "T00:00:00").toISOString());
+    if (dateTo) q = q.lte("created_at", new Date(dateTo + "T23:59:59").toISOString());
     const { data, error: err } = await q;
     if (err || !data) {
       toast.error(`Falha ao exportar: ${err?.message ?? "sem dados"}`);
