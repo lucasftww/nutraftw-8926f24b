@@ -102,6 +102,22 @@ export default function Catalog() {
     setVisibleCount(PAGE_SIZE);
   }, [query, selectedCats, sort]);
 
+  // Drawer de filtros: ESC fecha + trava scroll do body enquanto aberto.
+  // Mesmo comportamento do CartDrawer para consistência de UX/A11y.
+  useEffect(() => {
+    if (!filtersOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setFiltersOpen(false);
+    };
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [filtersOpen]);
+
   const loading = loadingProducts;
   const { add, openCart } = useCart();
   const qc = useQueryClient();
