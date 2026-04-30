@@ -16,6 +16,7 @@ type Product = ProductRow;
 
 const SORT_KEYS = ["categoria", "recentes", "az"] as const;
 type SortKey = (typeof SORT_KEYS)[number];
+const PROMO_PREVIEW_LIMIT = 4;
 const SORT_LABELS: Record<SortKey, string> = {
   categoria: "Por categoria",
   recentes: "Mais recentes",
@@ -256,13 +257,12 @@ export default function Catalog() {
     const promos = filtered
       .filter((p) => discountPctOf(p) > 0)
       .sort(sortComparator);
-    const promoIds = new Set(promos.map((p) => p.id));
+    const showOnlyPromos = selectedCats.size === 1 && selectedCats.has("__promos__");
 
     const categoryIndex = new Map(categories.map((c, index) => [c.slug, index]));
     const byCat = new Map<string, { slug: string; name: string; items: Product[] }>();
-    for (const p of filtered) {
+    for (const p of showOnlyPromos ? [] : filtered) {
       if (!p.category?.slug) continue;
-      if (promoIds.has(p.id)) continue;
       const key = p.category.slug;
       const name = p.category.name;
       if (!byCat.has(key)) byCat.set(key, { slug: key, name, items: [] });
@@ -277,14 +277,15 @@ export default function Catalog() {
       return (categoryIndex.get(a.slug) ?? 999) - (categoryIndex.get(b.slug) ?? 999);
     });
 
-    return { promos, sections };
-  }, [categories, filtered, sortComparator]);
+    return { promos, sections, showOnlyPromos };
+  }, [categories, filtered, selectedCats, sortComparator]);
 
   // Paginação uniforme: PAGE_SIZE itens por batch, fluindo na ordem
   // Promoções → Categoria 1 → Categoria 2 → … Mesma regra em mobile e desktop.
   const paginated = useMemo(() => {
     let remaining = visibleCount;
-    const promos = grouped.promos.slice(0, remaining);
+    const promoLimit = grouped.showOnlyPromos ? remaining : Math.min(PROMO_PREVIEW_LIMIT, remaining);
+    const promos = grouped.promos.slice(0, promoLimit);
     remaining -= promos.length;
     const sections: { slug: string; name: string; items: Product[] }[] = [];
     for (const s of grouped.sections) {
