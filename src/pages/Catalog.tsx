@@ -398,16 +398,6 @@ export default function Catalog() {
                   active: allActive,
                   onClick: () => setSelectedCats(new Set()),
                 },
-                ...(promoCount > 0
-                  ? [
-                      {
-                        key: "__promos__",
-                        label: "Promoções",
-                        active: selectedCats.size === 1 && selectedCats.has("__promos__"),
-                        onClick: () => setSelectedCats(new Set(["__promos__"])),
-                      },
-                    ]
-                  : []),
                 ...[...categories]
                   .sort((a, b) => {
                     const aTirz = isTirzepatidaCategory(a) ? 0 : 1;
@@ -588,15 +578,12 @@ export default function Catalog() {
                 )}
               </div>
               <ul className="flex flex-col gap-1.5">
-                {[
-                  { id: "__promos__", slug: "__promos__", name: "Promoções" } as { id: string; slug: string; name: string },
-                  ...[...categories].sort((a, b) => {
-                    const aTirz = isTirzepatidaCategory(a) ? 0 : 1;
-                    const bTirz = isTirzepatidaCategory(b) ? 0 : 1;
-                    if (aTirz !== bTirz) return aTirz - bTirz;
-                    return 0;
-                  }),
-                ].map((c) => {
+                {[...categories].sort((a, b) => {
+                  const aTirz = isTirzepatidaCategory(a) ? 0 : 1;
+                  const bTirz = isTirzepatidaCategory(b) ? 0 : 1;
+                  if (aTirz !== bTirz) return aTirz - bTirz;
+                  return 0;
+                }).map((c) => {
                   const checked = selectedCats.has(c.slug);
                   const count = countByCat.get(c.slug) ?? 0;
                   const isPromo = c.slug === "__promos__";
