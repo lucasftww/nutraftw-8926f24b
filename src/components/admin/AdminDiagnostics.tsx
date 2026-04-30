@@ -18,7 +18,7 @@ import { refreshSiteSettings } from "@/hooks/useSiteSettings";
  * Botões permitem forçar invalidação por entidade ou de tudo.
  */
 
-type EntityKey = "products" | "categories" | "banners" | "coupons" | "shipping" | "settings";
+type EntityKey = "products" | "categories" | "coupons" | "shipping" | "settings";
 
 type Row = {
   key: EntityKey;
@@ -35,7 +35,6 @@ export function AdminDiagnostics() {
   const [counts, setCounts] = useState<Record<EntityKey, { db: number | null; cache: number | null }>>({
     products: { db: null, cache: null },
     categories: { db: null, cache: null },
-    banners: { db: null, cache: null },
     coupons: { db: null, cache: null },
     shipping: { db: null, cache: null },
     settings: { db: null, cache: null },
@@ -113,9 +112,9 @@ export function AdminDiagnostics() {
       await Promise.all(
         rows.map(async (r) => {
           const q = (supabase as any).from(r.table).select("id", { count: "exact", head: true });
-          // Para banners/coupons/shipping interessa "ativos" — alinha com o que o site consome.
+          // Para coupons/shipping interessa "ativos" — alinha com o que o site consome.
           if (r.key === "products") q.eq("is_active", true);
-          if (r.key === "banners" || r.key === "coupons" || r.key === "shipping") q.eq("active", true);
+          if (r.key === "coupons" || r.key === "shipping") q.eq("active", true);
           const { count, error } = await q;
           if (error) {
             console.error("[diagnostics]", r.key, error);
