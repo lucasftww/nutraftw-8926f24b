@@ -191,7 +191,7 @@ export function AdminDashboard() {
                 <li key={(p.id || p.name) + i} className="py-3 flex items-center gap-3 text-sm">
                   <img src={p.image || "/assets/no-image.svg"} alt={p.name} className="w-10 h-10 rounded object-cover bg-muted" />
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{p.name}</p>
+                    <p className="font-medium line-clamp-2 leading-snug">{p.name}</p>
                     <p className="text-xs text-muted-foreground">{p.qty} unid. vendidas</p>
                   </div>
                   <p className="font-semibold tabular-nums">{formatBRL(p.revenue)}</p>

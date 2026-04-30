@@ -101,7 +101,7 @@ export function AdminBanners() {
             </div>
             <div className="p-4">
               <div className="flex items-start justify-between gap-2 mb-2">
-                <h3 className="font-bold text-sm line-clamp-1">{b.title || "—"}</h3>
+                <h3 className="font-bold text-sm line-clamp-2 leading-snug">{b.title || "—"}</h3>
                 <span className={`text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap ${b.active ? "bg-emerald-100 text-emerald-700" : "bg-muted text-muted-foreground"}`}>
                   {b.active ? "Ativo" : "Inativo"}
                 </span>

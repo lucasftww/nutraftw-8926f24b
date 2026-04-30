@@ -246,12 +246,12 @@ export default function MyAccount() {
             </div>
             <div className="min-w-0">
               <p className="text-eyebrow text-white/75">Minha conta</p>
-              <h1 className="font-display text-base md:text-3xl font-extrabold leading-tight truncate mt-0.5">
+              <h1 className="font-display text-base md:text-3xl font-extrabold leading-tight line-clamp-2 mt-0.5">
                 {profile?.full_name || "Bem-vindo"}
               </h1>
-              <p className="text-[11px] md:text-sm text-white/85 flex items-center gap-1.5 mt-0.5 truncate">
-                <Mail className="h-3 w-3 shrink-0 opacity-80" />
-                <span className="truncate">{user?.email}</span>
+              <p className="text-[11px] md:text-sm text-white/85 flex items-start gap-1.5 mt-0.5">
+                <Mail className="h-3 w-3 shrink-0 opacity-80 mt-1" />
+                <span className="break-all">{user?.email}</span>
               </p>
             </div>
           </div>
@@ -327,7 +327,7 @@ export default function MyAccount() {
                 </span>
                 <span className="flex-1 min-w-0">
                   <span className={`block text-[13px] font-semibold leading-tight ${active ? "text-primary" : "text-foreground"}`}>{t.label}</span>
-                  <span className="block text-[11px] text-muted-foreground truncate mt-0.5">{t.description}</span>
+                  <span className="block text-[11px] text-muted-foreground line-clamp-2 mt-0.5">{t.description}</span>
                 </span>
                 <ChevronRight aria-hidden="true" className={`h-4 w-4 shrink-0 transition-transform ${active ? "rotate-90 text-primary" : "text-muted-foreground/70"}`} />
               </button>
@@ -749,7 +749,7 @@ export default function MyAccount() {
                               {statusLabel[c.status] || c.status}
                             </span>
                             {c.cancellation_reason && (c.status === "cancelled" || c.status === "clawback") && (
-                              <div className="text-[11px] text-muted-foreground mt-1 max-w-[200px]">
+                              <div className="text-[11px] text-muted-foreground mt-1 max-w-[260px] whitespace-normal">
                                 {c.cancellation_reason}
                               </div>
                             )}
