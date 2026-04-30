@@ -6,7 +6,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { responsiveImage, imageUrl } from "@/lib/image";
 import { prefetchImage, shouldPrefetch } from "@/lib/prefetch";
 import { WishlistButton } from "@/components/wishlist/WishlistButton";
-import { Search, SlidersHorizontal, X, ArrowUpDown, ShoppingCart, Truck, ShieldCheck, MessageCircle } from "lucide-react";
+import { Search, SlidersHorizontal, X, ArrowUpDown, ShoppingCart } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { useCart } from "@/hooks/useCart";
 import { useSEO } from "@/hooks/useSEO";
@@ -340,16 +340,6 @@ export default function Catalog() {
 
   return (
     <>
-      {/* Linha discreta de selos — só mobile, reforça confiança sem virar
-          uma faixa fixa global que polui o visual desktop. */}
-      <div className="sm:hidden border-b border-border/40 bg-muted/30">
-        <div className="container mx-auto px-4 py-1.5 flex items-center justify-around gap-2 text-[10.5px] font-medium text-muted-foreground">
-          <span className="inline-flex items-center gap-1"><Truck className="h-3 w-3 text-primary/70" strokeWidth={2} /> Envio nacional</span>
-          <span className="inline-flex items-center gap-1"><ShieldCheck className="h-3 w-3 text-primary/70" strokeWidth={2} /> 100% original</span>
-          <span className="inline-flex items-center gap-1"><MessageCircle className="h-3 w-3 text-primary/70" strokeWidth={2} /> Suporte</span>
-        </div>
-      </div>
-
       {/* Busca sticky — fica logo abaixo do header (h-12 mobile = top-12).
           Mantém acessível ao rolar a lista, reduz “voltar ao topo”. */}
       <div className="sticky top-12 md:top-14 z-20 bg-background/95 backdrop-blur-md border-b border-border/40 pt-3 md:pt-4 pb-2 md:pb-3">
