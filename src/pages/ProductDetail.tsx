@@ -354,6 +354,47 @@ export default function ProductDetail() {
               )}
             </div>
           )}
+
+          {/* FAQ inline — quebra objeções comuns sem sair da página.
+              Usa <details> nativo: zero JS, zero dependência, acessível. */}
+          <div className="pt-2">
+            <h2 className="text-sm font-bold text-foreground uppercase tracking-wider mb-3">
+              Perguntas frequentes
+            </h2>
+            <div className="divide-y divide-border/60 rounded-2xl border border-border/60 bg-card overflow-hidden">
+              {[
+                {
+                  q: "O produto é original?",
+                  a: "Sim. Trabalhamos exclusivamente com produtos originais, importados e armazenados conforme as recomendações do fabricante. Garantia de procedência em todas as compras.",
+                },
+                {
+                  q: "Quanto tempo demora para chegar?",
+                  a: "Enviamos para todo o Brasil. O prazo varia conforme sua região (geralmente 2 a 7 dias úteis após a confirmação do pagamento). Use a calculadora de frete acima para ver o prazo da sua cidade.",
+                },
+                {
+                  q: "Quais formas de pagamento vocês aceitam?",
+                  a: "PIX (com 5% de desconto à vista) e cartão de crédito em até 3x sem juros. Pagamento 100% seguro com criptografia.",
+                },
+                {
+                  q: "Como posso falar com o suporte?",
+                  a: "Atendimento humano via WhatsApp em horário comercial. Tire dúvidas antes da compra ou acompanhe seu pedido a qualquer momento — basta tocar no botão de WhatsApp do site.",
+                },
+              ].map((item, i) => (
+                <details
+                  key={i}
+                  className="group [&_summary::-webkit-details-marker]:hidden"
+                >
+                  <summary className="flex items-center justify-between gap-3 px-4 py-3.5 cursor-pointer list-none hover:bg-muted/40 transition-colors">
+                    <span className="text-sm font-semibold text-foreground">{item.q}</span>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0 transition-transform group-open:rotate-180" strokeWidth={2.25} />
+                  </summary>
+                  <p className="px-4 pb-4 -mt-1 text-sm text-muted-foreground leading-relaxed">
+                    {item.a}
+                  </p>
+                </details>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
