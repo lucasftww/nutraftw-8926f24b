@@ -542,6 +542,35 @@ export default function Catalog() {
 
             {/* Lista de categorias — área de toque ampla, contagem visível */}
             <div className="flex-1 overflow-y-auto px-4 py-4">
+              {/* Ordenação — agora dentro do drawer (saiu do header para
+                  liberar espaço na área principal). */}
+              <div className="mb-5">
+                <h3 className="text-[13px] font-bold uppercase tracking-wider text-muted-foreground px-2 mb-2">
+                  Ordenar por
+                </h3>
+                <div className="flex flex-wrap gap-2 px-1">
+                  {SORT_KEYS.map((k) => {
+                    const active = sort === k;
+                    return (
+                      <button
+                        key={k}
+                        type="button"
+                        onClick={() => setSort(k)}
+                        aria-pressed={active}
+                        className={`inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full text-sm font-medium transition-colors ${
+                          active
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "bg-muted/60 text-foreground hover:bg-muted"
+                        }`}
+                      >
+                        {active && <ArrowUpDown className="h-3.5 w-3.5" />}
+                        {SORT_LABELS[k]}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div className="flex items-center justify-between px-2 mb-3">
                 <h3 className="text-[13px] font-bold uppercase tracking-wider text-muted-foreground">
                   Categorias
