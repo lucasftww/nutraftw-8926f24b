@@ -62,19 +62,6 @@ export default function Catalog() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const sort: SortKey = SORT_KEYS.includes(urlSort) ? urlSort : "categoria";
 
-  // Infinite scroll — carrega incrementalmente para reduzir tempo inicial de render.
-  // PAGE_SIZE controla a "primeira dose" de produtos visíveis e o incremento de cada
-  // "Carregar mais". Foi ampliado para 24 para evitar a sensação de "só 4 por categoria"
-  // — com muitas categorias o round-robin antigo distribuía 1-2 itens em cada e dava
-  // a impressão de catálogo vazio.
-  const PAGE_SIZE = 24;
-  // Mínimo garantido por categoria no PRIMEIRO batch antes do round-robin distribuir
-  // o excedente. Mantém cada categoria com bloco visualmente completo (linha 4×2 do
-  // grid mobile, ou 4×2 do desktop).
-  const MIN_PER_CATEGORY = 8;
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
-
   const setSort = (next: SortKey) => {
     const params = new URLSearchParams(searchParams);
     if (next === "categoria") params.delete("ordenar");
@@ -104,11 +91,6 @@ export default function Catalog() {
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
-
-  // Reseta a paginação sempre que os critérios de listagem mudarem
-  useEffect(() => {
-    setVisibleCount(PAGE_SIZE);
-  }, [query, selectedCats, sort]);
 
   // Drawer de filtros: ESC fecha + trava scroll do body enquanto aberto.
   // Mesmo comportamento do CartDrawer para consistência de UX/A11y.
