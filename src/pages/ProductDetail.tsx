@@ -416,9 +416,6 @@ export default function ProductDetail() {
                       <span className="text-base md:text-lg font-extrabold text-primary tabular-nums leading-tight">
                         {formatBRL(rFinal)}
                       </span>
-                      <span className="text-[10px] sm:text-[11px] text-muted-foreground tabular-nums">
-                        ou 3x de {formatBRL(rFinal / 3)}
-                      </span>
                     </div>
                   </div>
                 </Link>
