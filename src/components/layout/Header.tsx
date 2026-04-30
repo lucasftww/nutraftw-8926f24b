@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import logoGimports from "@/assets/logo-gimports.svg";
 import { prefetchMyAccount } from "@/App";
 
@@ -25,6 +26,10 @@ export function Header() {
 
   // Lock body scroll while drawer is open (compartilhado com CartDrawer via contador)
   useBodyScrollLock(mobileMenuOpen);
+
+  // Focus trap + ESC + restauração de foco para o drawer mobile.
+  const closeMobileMenu = () => setMobileMenuOpen(false);
+  const drawerRef = useFocusTrap<HTMLElement>(mobileMenuOpen, closeMobileMenu);
 
   const accountHref = user ? "/minha-conta" : "/login";
   const accountLabel = user ? "Minha conta" : "Entrar";
@@ -147,12 +152,20 @@ export function Header() {
 
       {/* Mobile drawer — herda exatamente os estilos do navbar */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
+        <div className="fixed inset-0 z-50 md:hidden" role="presentation">
           <div
             className="absolute inset-0 bg-foreground/40 animate-fade-in"
             onClick={() => setMobileMenuOpen(false)}
+            aria-hidden="true"
           />
-          <aside className="absolute left-0 right-0 top-0 w-full bg-background shadow-2xl flex flex-col animate-in slide-in-from-top duration-300 max-h-[100dvh]">
+          <aside
+            ref={drawerRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menu de navegação"
+            tabIndex={-1}
+            className="absolute left-0 right-0 top-0 w-full bg-background shadow-2xl flex flex-col animate-in slide-in-from-top duration-300 max-h-[100dvh] outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+          >
             {/* Cabeçalho — mesmas medidas, padding e tipografia do header fixo */}
             <div className="w-full glass border-b border-border/50 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-background/70">
               <div className="w-full pl-2 pr-3 sm:pl-3 sm:pr-6">
