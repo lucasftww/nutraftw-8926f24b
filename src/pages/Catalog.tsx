@@ -708,14 +708,14 @@ const Section = memo(function Section({
     : 0;
   return (
       <div className="scroll-mt-36 md:scroll-mt-40">
-      <div className="mb-3 md:mb-5">
-        <h2 className="text-xl md:text-2xl font-bold tracking-tight leading-tight text-primary">
+      <div className="mb-3 md:mb-4 flex items-baseline gap-2 flex-wrap">
+        <h2 className="text-lg md:text-2xl font-bold tracking-tight leading-tight text-primary">
           {title}
         </h2>
         {isPromos && maxDiscount > 0 && (
-          <p className="mt-1 text-xs md:text-sm text-muted-foreground">
-            Ofertas com até <span className="font-semibold text-secondary">{maxDiscount}% off</span>
-          </p>
+          <span className="text-xs md:text-sm text-muted-foreground">
+            até <span className="font-semibold text-secondary">{maxDiscount}% off</span>
+          </span>
         )}
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
