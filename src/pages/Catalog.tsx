@@ -445,7 +445,7 @@ export default function Catalog() {
       </div>
 
       {/* Sections */}
-      <section className="pt-6 md:pt-8 pb-2 scroll-mt-32">
+      <section className="relative z-10 pt-3 md:pt-5 pb-2 scroll-mt-32">
         <div className="container mx-auto px-4">
           {/* overflow-anchor:none impede o navegador de "puxar" o scroll
               quando novos cards são inseridos pelo infinite scroll —
