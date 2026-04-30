@@ -16,6 +16,7 @@ type Product = ProductRow;
 
 const SORT_KEYS = ["categoria", "recentes", "az"] as const;
 type SortKey = (typeof SORT_KEYS)[number];
+const PROMO_PREVIEW_LIMIT = 4;
 const SORT_LABELS: Record<SortKey, string> = {
   categoria: "Por categoria",
   recentes: "Mais recentes",
@@ -39,6 +40,14 @@ const discountPctOf = (p: ProductRow) => {
   const sp = p.sale_price != null ? Number(p.sale_price) : 0;
   if (!(sp > 0 && sp < pr)) return 0;
   return (pr - sp) / pr;
+};
+
+const isTirzepatidaCategory = (c: { name?: string | null; slug?: string | null }) => {
+  const value = `${c.name ?? ""} ${c.slug ?? ""}`
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  return value.includes("tirzepatida") || value.includes("tirze") || value.includes("tizer");
 };
 
 export default function Catalog() {
@@ -248,33 +257,41 @@ export default function Catalog() {
     const promos = filtered
       .filter((p) => discountPctOf(p) > 0)
       .sort(sortComparator);
-    const promoIds = new Set(promos.map((p) => p.id));
+    const showOnlyPromos = selectedCats.size === 1 && selectedCats.has("__promos__");
 
-    const byCat = new Map<string, { name: string; items: Product[] }>();
-    for (const p of filtered) {
+    const categoryIndex = new Map(categories.map((c, index) => [c.slug, index]));
+    const byCat = new Map<string, { slug: string; name: string; items: Product[] }>();
+    for (const p of showOnlyPromos ? [] : filtered) {
       if (!p.category?.slug) continue;
-      if (promoIds.has(p.id)) continue;
       const key = p.category.slug;
       const name = p.category.name;
-      if (!byCat.has(key)) byCat.set(key, { name, items: [] });
+      if (!byCat.has(key)) byCat.set(key, { slug: key, name, items: [] });
       byCat.get(key)!.items.push(p);
     }
     for (const s of byCat.values()) s.items.sort(sortComparator);
 
-    return { promos, sections: Array.from(byCat.values()) };
-  }, [filtered, sortComparator]);
+    const sections = Array.from(byCat.values()).sort((a, b) => {
+      const aTirz = isTirzepatidaCategory(a) ? 0 : 1;
+      const bTirz = isTirzepatidaCategory(b) ? 0 : 1;
+      if (aTirz !== bTirz) return aTirz - bTirz;
+      return (categoryIndex.get(a.slug) ?? 999) - (categoryIndex.get(b.slug) ?? 999);
+    });
+
+    return { promos, sections, showOnlyPromos };
+  }, [categories, filtered, selectedCats, sortComparator]);
 
   // Paginação uniforme: PAGE_SIZE itens por batch, fluindo na ordem
   // Promoções → Categoria 1 → Categoria 2 → … Mesma regra em mobile e desktop.
   const paginated = useMemo(() => {
     let remaining = visibleCount;
-    const promos = grouped.promos.slice(0, remaining);
+    const promoLimit = grouped.showOnlyPromos ? remaining : Math.min(PROMO_PREVIEW_LIMIT, remaining);
+    const promos = grouped.promos.slice(0, promoLimit);
     remaining -= promos.length;
-    const sections: { name: string; items: Product[] }[] = [];
+    const sections: { slug: string; name: string; items: Product[] }[] = [];
     for (const s of grouped.sections) {
       if (remaining <= 0) break;
       const items = s.items.slice(0, remaining);
-      if (items.length > 0) sections.push({ name: s.name, items });
+      if (items.length > 0) sections.push({ slug: s.slug, name: s.name, items });
       remaining -= items.length;
     }
     return { promos, sections };
@@ -567,9 +584,12 @@ export default function Catalog() {
               <ul className="flex flex-col gap-1.5">
                 {[
                   { id: "__promos__", slug: "__promos__", name: "Promoções" } as { id: string; slug: string; name: string },
-                  ...[...categories].sort(
-                    (a, b) => (countByCat.get(b.slug) ?? 0) - (countByCat.get(a.slug) ?? 0)
-                  ),
+                  ...[...categories].sort((a, b) => {
+                    const aTirz = isTirzepatidaCategory(a) ? 0 : 1;
+                    const bTirz = isTirzepatidaCategory(b) ? 0 : 1;
+                    if (aTirz !== bTirz) return aTirz - bTirz;
+                    return 0;
+                  }),
                 ].map((c) => {
                   const checked = selectedCats.has(c.slug);
                   const count = countByCat.get(c.slug) ?? 0;
