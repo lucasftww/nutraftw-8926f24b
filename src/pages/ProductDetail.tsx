@@ -161,7 +161,7 @@ export default function ProductDetail() {
           >
             <span
               itemProp="name"
-              className="text-foreground font-medium truncate max-w-[60vw] sm:max-w-xs"
+              className="text-foreground font-medium line-clamp-2 leading-snug"
             >
               {p.name}
             </span>
