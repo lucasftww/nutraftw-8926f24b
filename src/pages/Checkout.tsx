@@ -407,9 +407,18 @@ export default function Checkout() {
 
   if (lines.length === 0)
     return (
-      <div className="max-w-7xl mx-auto px-4 py-20 text-center">
-        <p className="text-muted-foreground mb-4">Seu carrinho está vazio.</p>
-        <Button onClick={() => nav("/")}>Voltar ao catálogo</Button>
+      <div className="max-w-7xl mx-auto px-4 py-20 text-center flex flex-col items-center">
+        <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mb-5">
+          <ShoppingBag className="h-10 w-10 text-primary" />
+        </div>
+        <h2 className="text-xl font-bold text-foreground mb-1">Seu carrinho está vazio</h2>
+        <p className="text-muted-foreground mb-6 max-w-sm">Confira nossos produtos e aproveite as ofertas exclusivas.</p>
+        <Button
+          onClick={() => nav("/")}
+          className="h-12 px-8 rounded-full bg-secondary hover:bg-secondary/90 text-secondary-foreground font-bold shadow-cta"
+        >
+          Ver catálogo
+        </Button>
       </div>
     );
 

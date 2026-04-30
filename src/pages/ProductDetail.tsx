@@ -219,7 +219,7 @@ export default function ProductDetail() {
           </div>
 
           {/* Price card — bloco principal de conversão */}
-          <div className="rounded-3xl border border-primary/15 bg-gradient-to-br from-primary/[0.05] to-secondary/[0.05] p-5 sm:p-6 shadow-[var(--shadow-soft)]">
+          <div className="rounded-3xl border border-border bg-card p-5 sm:p-6 shadow-[var(--shadow-card)]">
             {hasSale && (
               <div className="flex items-center justify-center lg:justify-start mb-1">
                 <span className="text-sm text-muted-foreground line-through tabular-nums">
@@ -228,7 +228,7 @@ export default function ProductDetail() {
               </div>
             )}
             <div className="flex items-baseline justify-center lg:justify-start gap-2 flex-wrap">
-              <span className="text-4xl md:text-5xl font-extrabold tracking-tight text-primary tabular-nums leading-none">
+              <span className="text-4xl md:text-5xl font-extrabold tracking-tight tabular-nums leading-none bg-gradient-price bg-clip-text text-transparent">
                 {formatBRL(finalPrice)}
               </span>
             </div>
@@ -265,7 +265,7 @@ export default function ProductDetail() {
             <Button
               variant="outline"
               disabled={(p.stock ?? 0) <= 0}
-              className="w-full h-12 rounded-2xl text-sm font-semibold border-primary/25 text-primary hover:bg-primary/5"
+              className="w-full h-12 rounded-2xl text-sm font-semibold border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
               onClick={() => {
                 add(
                   { product_id: p.id, slug: p.slug, name: p.name, price: finalPrice, image_url: p.image_url },
@@ -277,9 +277,9 @@ export default function ProductDetail() {
               <ShoppingCart className="w-4 h-4 mr-2" />
               Adicionar ao carrinho
             </Button>
-            <WishlistButton productId={p.id} variant="inline" className="w-full justify-center" />
+            <WishlistButton productId={p.id} variant="inline" className="w-full justify-center text-muted-foreground hover:text-foreground" />
             {(p.stock ?? 0) > 0 && (p.stock ?? 0) <= 5 && (
-              <p className="text-center text-xs font-semibold text-secondary flex items-center justify-center gap-1.5">
+              <p className="text-center text-xs font-bold text-destructive flex items-center justify-center gap-1.5">
                 <Package className="h-3.5 w-3.5" />
                 Restam apenas {p.stock} unidades
               </p>
