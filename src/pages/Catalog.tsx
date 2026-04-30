@@ -342,9 +342,16 @@ export default function Catalog() {
   // Promoções → Categoria 1 → Categoria 2 → … Mesma regra em mobile e desktop.
   const paginated = useMemo(() => {
     let remaining = visibleCount;
+    // Promoções: no PRIMEIRO batch (visibleCount === PAGE_SIZE) limita ao
+    // preview para dar espaço às categorias na 1ª impressão. A partir do
+    // 2º "Carregar mais" expande progressivamente — antes ficava preso em
+    // 4 mesmo havendo 13 promos disponíveis.
+    const isFirstBatch = visibleCount <= PAGE_SIZE;
     const promoLimit = grouped.showOnlyPromos
       ? remaining
-      : Math.min(PROMO_PREVIEW_LIMIT, remaining, grouped.promos.length);
+      : isFirstBatch
+        ? Math.min(PROMO_PREVIEW_LIMIT, remaining, grouped.promos.length)
+        : Math.min(remaining, grouped.promos.length);
     const promos = grouped.promos.slice(0, promoLimit);
     remaining -= promos.length;
 
