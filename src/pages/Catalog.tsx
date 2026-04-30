@@ -16,7 +16,6 @@ type Product = ProductRow;
 
 const SORT_KEYS = ["categoria", "recentes", "az"] as const;
 type SortKey = (typeof SORT_KEYS)[number];
-const PROMO_PREVIEW_LIMIT = 4;
 const SORT_LABELS: Record<SortKey, string> = {
   categoria: "Por categoria",
   recentes: "Mais recentes",
