@@ -862,7 +862,7 @@ const ProductCard = memo(function ProductCard({
                     Novo
                   </span>
                 )}
-                <h3 className="font-medium text-[13px] sm:text-sm leading-snug text-foreground line-clamp-2 min-h-[2.6em]">
+                <h3 className="font-medium text-[13px] sm:text-sm leading-snug text-foreground line-clamp-3 min-h-[3.9em]">
                   {p.name}
                 </h3>
                 <div className="mt-2 leading-tight">
