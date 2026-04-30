@@ -69,9 +69,11 @@ export default function Catalog() {
     setQuery(urlQuery);
   }, [urlQuery]);
   useEffect(() => {
-    if (urlCategoria) {
-      setSelectedCats(new Set([urlCategoria]));
-    }
+    // Sincroniza URL → state em AMBAS as direções:
+    // - `?categoria=peptideos`  → seleciona só essa categoria
+    // - sem `?categoria=...`    → limpa o filtro (antes ficava preso ao
+    //   navegar para `/` depois de uma categoria, exigindo recarregar a página).
+    setSelectedCats(urlCategoria ? new Set([urlCategoria]) : new Set());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [urlCategoria]);
   useEffect(() => {
