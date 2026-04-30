@@ -329,6 +329,9 @@ export default function Catalog() {
       if (!k) continue;
       map.set(k, (map.get(k) ?? 0) + 1);
     }
+    // Pseudo-categoria "Promoções": conta produtos com desconto real.
+    const promoCount = products.reduce((acc, p) => acc + (discountPctOf(p) > 0 ? 1 : 0), 0);
+    map.set("__promos__", promoCount);
     return map;
   }, [products]);
 
