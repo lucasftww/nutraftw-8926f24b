@@ -102,6 +102,22 @@ export default function Catalog() {
     setVisibleCount(PAGE_SIZE);
   }, [query, selectedCats, sort]);
 
+  // Drawer de filtros: ESC fecha + trava scroll do body enquanto aberto.
+  // Mesmo comportamento do CartDrawer para consistência de UX/A11y.
+  useEffect(() => {
+    if (!filtersOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setFiltersOpen(false);
+    };
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [filtersOpen]);
+
   const loading = loadingProducts;
   const { add, openCart } = useCart();
   const qc = useQueryClient();
@@ -288,16 +304,23 @@ export default function Catalog() {
 
     const categoryIndex = new Map(categories.map((c, index) => [c.slug, index]));
     const byCat = new Map<string, { slug: string; name: string; items: Product[] }>();
+    // Bucket fallback para produtos sem categoria — antes eram silenciosamente
+    // descartados quando o sort era "categoria", causando divergência entre o
+    // contador "Ver N produtos" e o que de fato aparecia na grade.
+    const ORPHAN_KEY = "__sem-categoria__";
     for (const p of showOnlyPromos ? [] : filtered) {
-      if (!p.category?.slug) continue;
-      const key = p.category.slug;
-      const name = p.category.name;
+      const key = p.category?.slug ?? ORPHAN_KEY;
+      const name = p.category?.name ?? "Outros produtos";
       if (!byCat.has(key)) byCat.set(key, { slug: key, name, items: [] });
       byCat.get(key)!.items.push(p);
     }
     for (const s of byCat.values()) s.items.sort(sortComparator);
 
     const sections = Array.from(byCat.values()).sort((a, b) => {
+      // Órfãos sempre por último.
+      const aOrphan = a.slug === ORPHAN_KEY ? 1 : 0;
+      const bOrphan = b.slug === ORPHAN_KEY ? 1 : 0;
+      if (aOrphan !== bOrphan) return aOrphan - bOrphan;
       const aTirz = isTirzepatidaCategory(a) ? 0 : 1;
       const bTirz = isTirzepatidaCategory(b) ? 0 : 1;
       if (aTirz !== bTirz) return aTirz - bTirz;
@@ -824,24 +847,23 @@ const ProductCard = memo(function ProductCard({
   }, [p, onPrefetchFull]);
 
   const priceNum = Number(p.price);
-          const saleNum = p.sale_price != null ? Number(p.sale_price) : 0;
-          const discountPct =
-            saleNum > 0 && saleNum < priceNum
-              ? Math.round((1 - saleNum / priceNum) * 100)
-              : 0;
-          const hasRealSale = discountPct >= 1;
-          const finalPrice = hasRealSale ? saleNum : priceNum;
-          const isOut = (p.stock ?? 0) <= 0;
-          const ageDays = (Date.now() - new Date(p.created_at).getTime()) / 86400000;
-          const isNew = !isOut && ageDays <= 30;
-          // Apenas um badge prioritário por card. Oferta vira só o "-x%" colorido.
-          const badge = isOut
-            ? { label: "Esgotado", cls: "bg-foreground/85 text-background" }
-            : isNew && !hasRealSale
-            ? { label: "Novo", cls: "bg-foreground/85 text-background" }
-            : null;
-          const installment = finalPrice / 3;
-          return (
+  const saleNum = p.sale_price != null ? Number(p.sale_price) : 0;
+  const discountPct =
+    saleNum > 0 && saleNum < priceNum
+      ? Math.round((1 - saleNum / priceNum) * 100)
+      : 0;
+  const hasRealSale = discountPct >= 1;
+  const finalPrice = hasRealSale ? saleNum : priceNum;
+  const isOut = (p.stock ?? 0) <= 0;
+  const ageDays = (Date.now() - new Date(p.created_at).getTime()) / 86400000;
+  const isNew = !isOut && ageDays <= 30;
+  // Apenas um badge prioritário por card. Oferta vira só o "-x%" colorido.
+  const badge = isOut
+    ? { label: "Esgotado", cls: "bg-foreground/85 text-background" }
+    : isNew && !hasRealSale
+    ? { label: "Novo", cls: "bg-foreground/85 text-background" }
+    : null;
+  return (
             <Link
               ref={linkRef}
               to={`/produto/${p.slug}`}
@@ -877,7 +899,7 @@ const ProductCard = memo(function ProductCard({
                       alt={p.name}
                       loading={isAboveFold ? "eager" : "lazy"}
                       decoding="async"
-                      {...(isAboveFold ? { fetchpriority: "high" } as Record<string, string> : {})}
+                      {...(isAboveFold ? { fetchPriority: "high" } as Record<string, string> : {})}
                       width={400}
                       height={400}
                       onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
@@ -915,9 +937,6 @@ const ProductCard = memo(function ProductCard({
                   )}
                   <span className="text-base md:text-lg font-extrabold text-primary tabular-nums leading-tight">
                     {formatBRL(finalPrice)}
-                  </span>
-                  <span className="text-[10px] sm:text-[11px] text-muted-foreground tabular-nums">
-                    ou 3x de {formatBRL(installment)}
                   </span>
                 </div>
                 <button
