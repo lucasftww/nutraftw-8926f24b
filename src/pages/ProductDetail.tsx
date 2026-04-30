@@ -445,9 +445,22 @@ export default function ProductDetail() {
           style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.75rem)" }}
         >
           <div className="flex items-center gap-3">
-            <div className="flex-1 min-w-0">
-              <span className="block text-xl font-extrabold text-primary leading-none tabular-nums">
+            {/* Mini-thumb — reforça contexto do produto enquanto o usuário rola */}
+            <img
+              src={imageUrl(p.image_url, { width: 96, quality: 70 })}
+              alt=""
+              aria-hidden="true"
+              width={44}
+              height={44}
+              className="h-11 w-11 rounded-lg object-cover bg-white border border-border shrink-0"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
+            />
+            <div className="flex-1 min-w-0 leading-tight">
+              <span className="block text-base font-extrabold text-primary tabular-nums">
                 {formatBRL(finalPrice)}
+              </span>
+              <span className="block text-[11px] text-success font-semibold tabular-nums">
+                PIX {formatBRL(finalPrice * 0.95)}
               </span>
             </div>
             <Button
