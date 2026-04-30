@@ -6,6 +6,7 @@ import { formatBRL } from "@/lib/utils";
 import { imageUrl } from "@/lib/image";
 import { Button } from "@/components/ui/button";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { CouponInput } from "@/components/cart/CouponInput";
 import { prefetchCheckout } from "@/App";
 
@@ -14,6 +15,9 @@ export function CartDrawer() {
   const nav = useNavigate();
 
   useBodyScrollLock(open);
+
+  // Focus trap + ESC + restauração de foco para o carrinho.
+  const drawerRef = useFocusTrap<HTMLElement>(open, closeCart);
 
   // Pré-carrega o chunk do Checkout assim que o carrinho abre com itens.
   // Quando o usuário clicar em "Finalizar pedido", o JS já está pronto
@@ -37,9 +41,11 @@ export function CartDrawer() {
         aria-hidden="true"
       />
       <aside
+        ref={drawerRef}
         role="dialog"
         aria-modal="true"
         aria-label="Carrinho de compras"
+        tabIndex={-1}
         className={`fixed top-0 right-0 h-[100dvh] w-full sm:w-[420px] bg-background z-50 shadow-2xl transition-transform duration-300 flex flex-col ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
