@@ -831,24 +831,23 @@ const ProductCard = memo(function ProductCard({
   }, [p, onPrefetchFull]);
 
   const priceNum = Number(p.price);
-          const saleNum = p.sale_price != null ? Number(p.sale_price) : 0;
-          const discountPct =
-            saleNum > 0 && saleNum < priceNum
-              ? Math.round((1 - saleNum / priceNum) * 100)
-              : 0;
-          const hasRealSale = discountPct >= 1;
-          const finalPrice = hasRealSale ? saleNum : priceNum;
-          const isOut = (p.stock ?? 0) <= 0;
-          const ageDays = (Date.now() - new Date(p.created_at).getTime()) / 86400000;
-          const isNew = !isOut && ageDays <= 30;
-          // Apenas um badge prioritário por card. Oferta vira só o "-x%" colorido.
-          const badge = isOut
-            ? { label: "Esgotado", cls: "bg-foreground/85 text-background" }
-            : isNew && !hasRealSale
-            ? { label: "Novo", cls: "bg-foreground/85 text-background" }
-            : null;
-          const installment = finalPrice / 3;
-          return (
+  const saleNum = p.sale_price != null ? Number(p.sale_price) : 0;
+  const discountPct =
+    saleNum > 0 && saleNum < priceNum
+      ? Math.round((1 - saleNum / priceNum) * 100)
+      : 0;
+  const hasRealSale = discountPct >= 1;
+  const finalPrice = hasRealSale ? saleNum : priceNum;
+  const isOut = (p.stock ?? 0) <= 0;
+  const ageDays = (Date.now() - new Date(p.created_at).getTime()) / 86400000;
+  const isNew = !isOut && ageDays <= 30;
+  // Apenas um badge prioritário por card. Oferta vira só o "-x%" colorido.
+  const badge = isOut
+    ? { label: "Esgotado", cls: "bg-foreground/85 text-background" }
+    : isNew && !hasRealSale
+    ? { label: "Novo", cls: "bg-foreground/85 text-background" }
+    : null;
+  return (
             <Link
               ref={linkRef}
               to={`/produto/${p.slug}`}
@@ -884,7 +883,7 @@ const ProductCard = memo(function ProductCard({
                       alt={p.name}
                       loading={isAboveFold ? "eager" : "lazy"}
                       decoding="async"
-                      {...(isAboveFold ? { fetchpriority: "high" } as Record<string, string> : {})}
+                      {...(isAboveFold ? { fetchPriority: "high" } as Record<string, string> : {})}
                       width={400}
                       height={400}
                       onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
@@ -922,9 +921,6 @@ const ProductCard = memo(function ProductCard({
                   )}
                   <span className="text-base md:text-lg font-extrabold text-primary tabular-nums leading-tight">
                     {formatBRL(finalPrice)}
-                  </span>
-                  <span className="text-[10px] sm:text-[11px] text-muted-foreground tabular-nums">
-                    ou 3x de {formatBRL(installment)}
                   </span>
                 </div>
                 <button
