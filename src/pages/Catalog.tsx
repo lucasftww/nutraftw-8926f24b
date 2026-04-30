@@ -211,10 +211,21 @@ export default function Catalog() {
       return products.filter((p) => {
         if (selectedCats.size > 0) {
           // "__promos__" é uma pseudo-categoria: produtos com desconto real.
+          // Quando combinada com categorias reais, aplicamos INTERSEÇÃO
+          // (produto da categoria X que também está em promoção). Isso evita
+          // o bug em que marcar "Promoções + Tirzepatida" listava qualquer
+          // promo de qualquer categoria misturada com produtos full-price
+          // de Tirzepatida.
           const wantsPromos = selectedCats.has("__promos__");
-          const matchesCat = p.category ? selectedCats.has(p.category.slug) : false;
-          const matchesPromo = wantsPromos && discountPctOf(p) > 0;
-          if (!matchesCat && !matchesPromo) return false;
+          const realCats = new Set(
+            [...selectedCats].filter((s) => s !== "__promos__")
+          );
+          if (wantsPromos && discountPctOf(p) <= 0) return false;
+          if (realCats.size > 0) {
+            if (!p.category || !realCats.has(p.category.slug)) return false;
+          } else if (!wantsPromos) {
+            return false;
+          }
         }
         if (!qNorm) return true;
         const nameNorm = normalize(p.name);
