@@ -24,7 +24,6 @@ const ENTITIES = [
   { value: "categories", label: "Categorias" },
   { value: "coupons", label: "Cupons" },
   { value: "shipping_rates", label: "Fretes" },
-  { value: "site_banners", label: "Banners" },
   { value: "site_settings", label: "Configurações" },
   { value: "orders", label: "Pedidos" },
   { value: "resends", label: "Reenvios" },

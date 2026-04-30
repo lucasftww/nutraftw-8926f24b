@@ -14,10 +14,6 @@ export const queryKeys = {
   categories: {
     all: ["categories"] as const,
   },
-  banners: {
-    all: ["site_banners"] as const,
-    active: ["site_banners", "active"] as const,
-  },
   // Cupons e fretes ainda são consultados on-demand no checkout (sem cache),
   // mas centralizamos as keys para que telas futuras (e o invalidate dos admins)
   // sempre usem o mesmo identificador.

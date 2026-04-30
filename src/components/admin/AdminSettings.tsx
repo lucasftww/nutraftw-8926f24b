@@ -14,7 +14,6 @@ const FIELDS: { key: string; label: string; type: "text" | "textarea" | "toggle"
   { key: "insurance_optional", label: "Seguro de envio é opcional (cliente escolhe)", type: "toggle", help: "Se desligado, o seguro de 10% é cobrado sempre." },
   { key: "whatsapp_number", label: "WhatsApp (com DDI, só números)", type: "text", help: "Ex.: 5511999999999" },
   { key: "whatsapp_message", label: "Mensagem padrão WhatsApp", type: "text" },
-  { key: "hero_bio", label: "Bio do topo (quando não há banner)", type: "textarea" },
   { key: "badge_new_days", label: "Marcar produto como LANÇAMENTO até (dias)", type: "number" },
 ];
 

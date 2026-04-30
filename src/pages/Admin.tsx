@@ -8,14 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatBRL, slugify } from "@/lib/utils";
 import { toast } from "sonner";
-import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, Image as ImageIcon, RefreshCcw, Settings, BarChart3, Activity, History, TrendingUp, Users, Download, ChevronUp, ChevronDown, Check, Calendar, Copy, Command } from "lucide-react";
+import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, RefreshCcw, Settings, BarChart3, Activity, History, TrendingUp, Users, Download, ChevronUp, ChevronDown, Check, Calendar, Copy, Command } from "lucide-react";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { WeeklyReport } from "@/components/admin/WeeklyReport";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { OrderDetailModal } from "@/components/admin/OrderDetailModal";
 import { AdminCoupons } from "@/components/admin/AdminCoupons";
 import { AdminShipping } from "@/components/admin/AdminShipping";
-import { AdminBanners } from "@/components/admin/AdminBanners";
 import { AdminResends } from "@/components/admin/AdminResends";
 import { AdminSettings } from "@/components/admin/AdminSettings";
 import { AdminDiagnostics } from "@/components/admin/AdminDiagnostics";
@@ -30,9 +29,9 @@ import { logAdminAction, shallowDiff } from "@/lib/auditLog";
 import { useNewOrdersNotifier } from "@/hooks/useNewOrdersNotifier";
 import { CommandPalette } from "@/components/admin/CommandPalette";
 
-type Tab = "dashboard" | "funnel" | "reports" | "products" | "categories" | "orders" | "coupons" | "shipping" | "banners" | "users" | "resends" | "settings" | "diagnostics" | "audit";
+type Tab = "dashboard" | "funnel" | "reports" | "products" | "categories" | "orders" | "coupons" | "shipping" | "users" | "resends" | "settings" | "diagnostics" | "audit";
 
-const TAB_IDS: Tab[] = ["dashboard","funnel","reports","products","categories","orders","coupons","shipping","banners","users","resends","settings","diagnostics","audit"];
+const TAB_IDS: Tab[] = ["dashboard","funnel","reports","products","categories","orders","coupons","shipping","users","resends","settings","diagnostics","audit"];
 
 const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -43,7 +42,6 @@ const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "orders", label: "Pedidos", icon: ShoppingBag },
   { id: "coupons", label: "Cupons", icon: Ticket },
   { id: "shipping", label: "Fretes", icon: Truck },
-  { id: "banners", label: "Banners", icon: ImageIcon },
   { id: "users", label: "Usuários", icon: Users },
   { id: "resends", label: "Reenvios", icon: RefreshCcw },
   { id: "settings", label: "Configurações", icon: Settings },
@@ -160,7 +158,6 @@ function AdminInner() {
       {tab === "orders" && <AdminOrders />}
       {tab === "coupons" && <AdminCoupons />}
       {tab === "shipping" && <AdminShipping />}
-      {tab === "banners" && <AdminBanners />}
       {tab === "users" && <AdminUsers />}
       {tab === "resends" && <AdminResends />}
       {tab === "settings" && <AdminSettings />}
