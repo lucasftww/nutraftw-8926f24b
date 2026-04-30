@@ -345,9 +345,9 @@ export default function Catalog() {
             o espaço vazio entre header e conteúdo.
           - Chips logo abaixo da busca formam a "barra de filtros"
             principal, sempre visível durante o scroll. */}
-      <div className="sticky top-12 md:top-14 z-20 bg-background border-b border-border/40 pt-1.5 md:pt-2 pb-2 md:pb-2.5">
+      <div className="sticky top-12 md:top-14 z-20 bg-background border-b border-border/40 pt-2 md:pt-2.5 pb-2 md:pb-2.5">
         <div className="container mx-auto px-4">
-          <div className="w-full max-w-3xl mx-auto space-y-2.5">
+          <div className="w-full max-w-3xl mx-auto space-y-2">
           {/* Linha 1: busca + ícone de filtros (drawer com ordenação e
               multi-seleção avançada). Mais limpa: 1 input grande + 1 ícone. */}
           <div className="flex gap-2">
@@ -445,12 +445,12 @@ export default function Catalog() {
       </div>
 
       {/* Sections */}
-      <section className="relative z-10 pt-6 md:pt-8 pb-2 scroll-mt-32">
+      <section className="relative z-10 pt-5 md:pt-6 pb-2 scroll-mt-32">
         <div className="container mx-auto px-4">
           {/* overflow-anchor:none impede o navegador de "puxar" o scroll
               quando novos cards são inseridos pelo infinite scroll —
               evita a sensação de a página subir sozinha no mobile. */}
-          <div className="space-y-8 md:space-y-12 pb-16 [overflow-anchor:none]">
+          <div className="space-y-6 md:space-y-10 pb-16 [overflow-anchor:none]">
             {loading ? (
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
                 {Array.from({ length: 8 }).map((_, i) => (
@@ -708,8 +708,11 @@ const Section = memo(function Section({
     : 0;
   return (
     <div className="scroll-mt-36 md:scroll-mt-40">
-      <div className="mb-4 md:mb-6 relative z-[1]">
-        <h2 className="text-xl md:text-2xl font-bold tracking-tight text-primary leading-tight">
+      <div className="mb-3 md:mb-5">
+        <h2
+          className="font-bold tracking-tight leading-tight"
+          style={{ color: "hsl(var(--primary))", fontSize: "1.25rem" }}
+        >
           {title}
         </h2>
         {isPromos && maxDiscount > 0 && (
