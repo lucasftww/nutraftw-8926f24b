@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { queryKeys } from "@/lib/queryKeys";
 
 /**
  * Escuta INSERTs em `orders` via Supabase Realtime e notifica o admin.
@@ -58,7 +57,7 @@ export function useNewOrdersNotifier(opts: { enabled?: boolean; onNew?: () => vo
             description: `${o.shipping_full_name || "Cliente"} · R$ ${total}`,
             duration: 8000,
           });
-          qc.invalidateQueries({ queryKey: queryKeys.orders?.all ?? ["orders"] });
+          qc.invalidateQueries({ queryKey: ["orders"] });
           onNewRef.current?.();
         }
       )
