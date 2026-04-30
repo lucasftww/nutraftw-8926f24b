@@ -30,8 +30,6 @@ export function imageUrl(src: string | null | undefined, opts: ImageOpts = {}): 
   return `${host}/storage/v1/render/image/${mode}/${rest}${qs ? `?${qs}` : ""}`;
 }
 
-export const NO_IMAGE_SRC = NO_IMAGE;
-
 /**
  * Larguras responsivas padrão para produtos. Cobre densidades 1x/2x/3x desde
  * thumbs até hero em desktops grandes. O navegador escolhe a melhor com `sizes`.

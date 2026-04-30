@@ -61,38 +61,6 @@ export function isValidCPF(raw: string): boolean {
   return d2 === Number(d[10]);
 }
 
-/** Algoritmo oficial de CNPJ (dígitos verificadores). */
-export function isValidCNPJ(raw: string): boolean {
-  const d = onlyDigits(raw);
-  if (d.length !== 14) return false;
-  if (/^(\d)\1{13}$/.test(d)) return false;
-  const weights1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
-  const weights2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
-  const calc = (slice: string, w: number[]) => {
-    let sum = 0;
-    for (let i = 0; i < slice.length; i++) sum += Number(slice[i]) * w[i];
-    const r = sum % 11;
-    return r < 2 ? 0 : 11 - r;
-  };
-  const d1 = calc(d.slice(0, 12), weights1);
-  if (d1 !== Number(d[12])) return false;
-  const d2 = calc(d.slice(0, 13), weights2);
-  return d2 === Number(d[13]);
-}
-
-/** Aceita CPF (11 dígitos) OU CNPJ (14 dígitos) — útil para checkout PF/PJ. */
-export function validateCPFOrCNPJ(raw: string): ValidationResult {
-  const d = onlyDigits(raw);
-  if (!d) return fail("Informe o CPF ou CNPJ.");
-  if (d.length <= 11) {
-    if (d.length < 11) return fail("CPF incompleto.");
-    return isValidCPF(d) ? OK : fail("CPF inválido. Verifique os números.");
-  }
-  if (d.length < 14) return fail("CNPJ incompleto.");
-  if (d.length > 14) return fail("Documento inválido.");
-  return isValidCNPJ(d) ? OK : fail("CNPJ inválido. Verifique os números.");
-}
-
 /** Wrapper só de CPF (mantido para compatibilidade com fluxos PF). */
 export function validateCPF(raw: string): ValidationResult {
   const d = onlyDigits(raw);
