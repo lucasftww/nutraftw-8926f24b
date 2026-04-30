@@ -6,7 +6,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { responsiveImage, imageUrl } from "@/lib/image";
 import { prefetchImage, shouldPrefetch } from "@/lib/prefetch";
 import { WishlistButton } from "@/components/wishlist/WishlistButton";
-import { Search, SlidersHorizontal, ShoppingCart, X, ArrowUpDown } from "lucide-react";
+import { Search, SlidersHorizontal, ShoppingCart, X, ArrowUpDown, Plus } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { useCart } from "@/hooks/useCart";
 import { useSEO } from "@/hooks/useSEO";
@@ -739,22 +739,20 @@ const ProductCard = memo(function ProductCard({
   const isOut = (p.stock ?? 0) <= 0;
   const ageDays = (Date.now() - new Date(p.created_at).getTime()) / 86400000;
   const isNew = !isOut && ageDays <= 30;
-  // Apenas um badge prioritário por card. Oferta vira só o "-x%" colorido.
-  const badge = isOut
-    ? { label: "Esgotado", cls: "bg-foreground/85 text-background" }
-    : isNew && !hasRealSale
-    ? { label: "Novo", cls: "bg-foreground/85 text-background" }
-    : null;
+  // Apenas um badge por card e nunca empilhado com "-x%". "Novo" vira um
+  // ponto sutil + texto pequeno em cinza (não compete com o preço).
+  // "Esgotado" continua forte porque indica indisponibilidade real.
   return (
             <Link
               ref={linkRef}
               to={`/produto/${p.slug}`}
               onMouseEnter={() => onPrefetch?.(p.slug)}
               onTouchStart={() => onPrefetch?.(p.slug)}
-              className={`group flex flex-col h-full rounded-2xl bg-card overflow-hidden border border-border/50 hover:border-primary/30 hover:shadow-[var(--shadow-card)] transition-all ${isOut ? "opacity-70" : ""}`}
+              className={`group relative flex flex-col h-full rounded-2xl bg-card overflow-hidden border border-border/50 hover:border-primary/30 hover:shadow-[var(--shadow-card)] transition-all ${isOut ? "opacity-70" : ""}`}
             >
-              {/* Imagem */}
-              <div className="relative aspect-square overflow-hidden bg-white">
+              {/* Imagem — aspect 4:3 deixa o card mais baixo e respira mais
+                  na vertical (mais cards visíveis por scroll). */}
+              <div className="relative aspect-[4/3] overflow-hidden bg-white">
                 {(() => {
                   const r = responsiveImage(
                     p.image_url,
@@ -783,47 +781,44 @@ const ProductCard = memo(function ProductCard({
                       decoding="async"
                       {...(isAboveFold ? { fetchPriority: "high" } as Record<string, string> : {})}
                       width={400}
-                      height={400}
+                      height={300}
                       onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
                       className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
                     />
                   );
                 })()}
-                {badge && (
-                  <span className={`absolute top-2 left-2 inline-flex items-center rounded-full text-[10px] font-semibold px-2 py-0.5 ${badge.cls}`}>
-                    {badge.label}
+                {isOut && (
+                  <span className="absolute top-2 left-2 inline-flex items-center rounded-full text-[10px] font-semibold px-2 py-0.5 bg-foreground/85 text-background">
+                    Esgotado
                   </span>
                 )}
                 {hasRealSale && !isOut && (
-                  <span className="badge-pill absolute top-2 right-2 bg-secondary text-secondary-foreground font-bold shadow-sm">
+                  <span className="badge-pill absolute top-2 left-2 bg-secondary text-secondary-foreground font-bold shadow-sm">
                     -{discountPct}%
                   </span>
                 )}
+                {/* Wishlist: discreto sempre, levemente realçado em hover (desktop) */}
                 <WishlistButton
                   productId={p.id}
                   size="sm"
-                  className={hasRealSale && !isOut ? "absolute bottom-2 right-2" : "absolute top-2 right-2"}
+                  className="absolute top-2 right-2 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                 />
               </div>
 
-              {/* Conteúdo — hierarquia clara para conversão.
-                  - `min-h` no título e no bloco de preço reserva o espaço da linha
-                    "de R$X" (riscado) mesmo quando não há promoção: assim os botões
-                    "Comprar" alinham perfeitamente entre cards lado-a-lado.
-                  - `mt-auto` no botão garante que ele cole na base do card
-                    independentemente do tamanho do título. */}
-              <div className="pt-3 pb-3 px-2.5 flex-1 flex flex-col">
-                <h3 className="font-medium text-[13px] sm:text-sm leading-snug line-clamp-2 min-h-[2.4rem] text-foreground">
+              {/* Conteúdo: título 1 linha + preço grande. Botão "Comprar" virou
+                  um ícone "+" flutuante (canto inferior direito), sobreposto ao
+                  conteúdo, para reduzir o "muro de botões" ao percorrer o catálogo. */}
+              <div className="relative pt-3 pb-3 pl-3 pr-12 sm:pl-3.5 sm:pr-14">
+                {isNew && !hasRealSale && !isOut && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                    <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-primary/60" />
+                    Novo
+                  </span>
+                )}
+                <h3 className="font-medium text-[13px] sm:text-sm leading-snug truncate text-foreground">
                   {p.name}
                 </h3>
-                <div className="mt-2 flex flex-col gap-0.5 min-h-[2.75rem] sm:min-h-[3rem] justify-end">
-                  {hasRealSale ? (
-                    <span className="text-[11px] text-muted-foreground line-through tabular-nums leading-none">
-                      de {formatBRL(priceNum)}
-                    </span>
-                  ) : (
-                    <span aria-hidden className="text-[11px] leading-none invisible">.</span>
-                  )}
+                <div className="mt-1.5">
                   <span className="text-base md:text-lg font-extrabold text-primary tabular-nums leading-tight">
                     {formatBRL(finalPrice)}
                   </span>
@@ -836,17 +831,10 @@ const ProductCard = memo(function ProductCard({
                     onAdd(p, finalPrice);
                   }}
                   disabled={isOut}
-                  aria-label={isOut ? "Esgotado" : `Comprar ${p.name}`}
-                  className="mt-3 inline-flex items-center justify-center gap-1.5 whitespace-nowrap font-bold bg-secondary text-secondary-foreground hover:bg-secondary/90 active:scale-[0.98] transition-all rounded-full w-full text-xs h-10 shadow-sm shadow-secondary/20 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
+                  aria-label={isOut ? "Esgotado" : `Adicionar ${p.name} ao carrinho`}
+                  className="absolute bottom-3 right-3 inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/90 active:scale-95 transition-all shadow-md shadow-secondary/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
                 >
-                  {isOut ? (
-                    "Esgotado"
-                  ) : (
-                    <>
-                      <ShoppingCart className="h-3.5 w-3.5" />
-                      Comprar
-                    </>
-                  )}
+                  <Plus className="h-[18px] w-[18px]" strokeWidth={2.5} />
                 </button>
               </div>
             </Link>
