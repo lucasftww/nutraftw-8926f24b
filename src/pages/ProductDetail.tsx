@@ -281,7 +281,7 @@ export default function ProductDetail() {
             {(p.stock ?? 0) > 0 && (p.stock ?? 0) <= 5 && (
               <p className="text-center text-xs font-bold text-destructive flex items-center justify-center gap-1.5">
                 <Package className="h-3.5 w-3.5" />
-                Restam apenas {p.stock} unidades
+                {p.stock === 1 ? "Última unidade disponível!" : `Restam apenas ${p.stock} unidades`}
               </p>
             )}
           </div>
