@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatBRL, slugify } from "@/lib/utils";
 import { toast } from "sonner";
-import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, Image as ImageIcon, RefreshCcw, Settings, BarChart3, Activity, History, TrendingUp, Users, Download, ChevronUp, ChevronDown, Check, Calendar } from "lucide-react";
+import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, Image as ImageIcon, RefreshCcw, Settings, BarChart3, Activity, History, TrendingUp, Users, Download, ChevronUp, ChevronDown, Check, Calendar, Copy, Command } from "lucide-react";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { WeeklyReport } from "@/components/admin/WeeklyReport";
 import { ImageUpload } from "@/components/admin/ImageUpload";
@@ -27,6 +27,8 @@ import { ConfirmProvider, useConfirm } from "@/components/admin/ConfirmDialog";
 import { queryKeys } from "@/lib/queryKeys";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 import { logAdminAction, shallowDiff } from "@/lib/auditLog";
+import { useNewOrdersNotifier } from "@/hooks/useNewOrdersNotifier";
+import { CommandPalette } from "@/components/admin/CommandPalette";
 
 type Tab = "dashboard" | "funnel" | "reports" | "products" | "categories" | "orders" | "coupons" | "shipping" | "banners" | "users" | "resends" | "settings" | "diagnostics" | "audit";
 
@@ -71,6 +73,24 @@ function AdminInner() {
     setParams(next, { replace: true });
   };
 
+  // Cmd/Ctrl+K abre a paleta de comandos global.
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [globalOrderId, setGlobalOrderId] = useState<string | null>(null);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // Notificador realtime de novos pedidos. Limpa o badge ao entrar na aba Pedidos.
+  const { unseenCount, clear } = useNewOrdersNotifier();
+  useEffect(() => { if (tab === "orders") clear(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [tab]);
+
   async function logout() {
     await supabase.auth.signOut();
     nav("/", { replace: true });
@@ -85,10 +105,23 @@ function AdminInner() {
             <h1 className="font-display text-xl md:text-3xl font-extrabold text-primary truncate">Painel administrativo</h1>
             <p className="text-xs md:text-sm text-muted-foreground truncate">{user?.email}</p>
           </div>
-          <Button variant="outline" size="sm" onClick={logout}>
-            <LogOut className="h-4 w-4" />
-            <span className="hidden sm:inline ml-1">Sair</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPaletteOpen(true)}
+              aria-label="Abrir busca global (Ctrl+K)"
+              title="Busca global (Ctrl+K)"
+            >
+              <Search className="h-4 w-4" />
+              <span className="hidden md:inline ml-1.5 text-xs text-muted-foreground">Buscar…</span>
+              <kbd className="hidden md:inline ml-2 text-[10px] font-mono px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border">⌘K</kbd>
+            </Button>
+            <Button variant="outline" size="sm" onClick={logout}>
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline ml-1">Sair</span>
+            </Button>
+          </div>
         </div>
         {/* Tabs com scroll horizontal e fade lateral indicando que há mais. */}
         <div className="relative">
@@ -98,12 +131,20 @@ function AdminInner() {
                 key={t.id}
                 onClick={() => setTab(t.id)}
                 aria-current={tab === t.id ? "page" : undefined}
-                className={`px-3 md:px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap snap-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:rounded-t-md ${
+                className={`relative px-3 md:px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap snap-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:rounded-t-md ${
                   tab === t.id ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}
               >
                 <t.icon className="h-4 w-4 shrink-0" />
                 {t.label}
+                {t.id === "orders" && unseenCount > 0 && (
+                  <span
+                    aria-label={`${unseenCount} novos pedidos`}
+                    className="ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-secondary text-secondary-foreground text-[10px] font-extrabold leading-none animate-pulse"
+                  >
+                    {unseenCount > 9 ? "9+" : unseenCount}
+                  </span>
+                )}
               </button>
             ))}
           </div>
@@ -125,6 +166,16 @@ function AdminInner() {
       {tab === "settings" && <AdminSettings />}
       {tab === "diagnostics" && <AdminDiagnostics />}
       {tab === "audit" && <AdminAuditLog />}
+
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        onNavigate={(t) => setTab(t as Tab)}
+        onOpenOrder={(id) => { setTab("orders"); setGlobalOrderId(id); }}
+      />
+      {globalOrderId && (
+        <OrderDetailModal orderId={globalOrderId} onClose={() => setGlobalOrderId(null)} />
+      )}
     </div>
   );
 }
