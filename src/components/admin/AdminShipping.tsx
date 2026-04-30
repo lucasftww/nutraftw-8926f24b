@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 import { queryKeys } from "@/lib/queryKeys";
 import { logAdminAction, shallowDiff } from "@/lib/auditLog";
+import { AdminModal } from "@/components/admin/AdminModal";
+import { useConfirm } from "@/components/admin/ConfirmDialog";
 
 const UFS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 
@@ -17,6 +19,7 @@ export function AdminShipping() {
   const [editing, setEditing] = useState<any | null>(null);
   const [error, setError] = useState<AdminErrorInfo | null>(null);
   const qc = useQueryClient();
+  const { confirm } = useConfirm();
 
   async function load() {
     setError(null);
@@ -82,8 +85,13 @@ export function AdminShipping() {
   }
 
   async function del(id: string) {
-    if (!confirm("Remover frete?")) return;
     const before = items.find((s) => s.id === id);
+    const ok = await confirm({
+      title: "Remover frete?",
+      description: `O frete de ${before?.state ?? "?"} (${before?.label ?? ""}) será removido.`,
+      variant: "destructive",
+    });
+    if (!ok) return;
     const { error: err } = await supabase.from("shipping_rates" as any).delete().eq("id", id);
     if (err) {
       logSupabaseError("Remover frete", err, { id });
@@ -146,10 +154,9 @@ export function AdminShipping() {
         </table>
       </div>
 
-      {editing && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setEditing(null)}>
-          <form onSubmit={save} onClick={(e) => e.stopPropagation()} className="bg-card rounded-2xl p-6 w-full max-w-lg space-y-4">
-            <h2 className="font-bold text-xl">{editing.id ? "Editar frete" : "Novo frete"}</h2>
+      <AdminModal open={!!editing} onClose={() => setEditing(null)} title={editing?.id ? "Editar frete" : "Novo frete"} size="md">
+        {editing && (
+          <form onSubmit={save} className="space-y-4">
             <div className="grid sm:grid-cols-2 gap-3">
               <div className="space-y-2"><Label>UF *</Label>
                 <select required className="h-11 w-full rounded-xl border border-input bg-background px-4 text-sm" value={editing.state || ""} onChange={(e) => setEditing({ ...editing, state: e.target.value })}>
@@ -174,8 +181,8 @@ export function AdminShipping() {
               <Button type="submit">Salvar</Button>
             </div>
           </form>
-        </div>
-      )}
+        )}
+      </AdminModal>
     </>
   );
 }
