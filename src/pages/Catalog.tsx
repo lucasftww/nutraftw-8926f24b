@@ -860,6 +860,11 @@ const ProductCard = memo(function ProductCard({
                   <div className="text-base md:text-lg font-extrabold text-primary tabular-nums">
                     {formatBRL(finalPrice)}
                   </div>
+                  {/* Parcelamento — gatilho clássico de conversão.
+                      Cinza pequeno para não competir com o preço principal. */}
+                  <div className="text-[11px] text-muted-foreground tabular-nums mt-0.5">
+                    3x {formatBRL(finalPrice / 3)}
+                  </div>
                 </div>
                 <button
                   onClick={(e) => {
