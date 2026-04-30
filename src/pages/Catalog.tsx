@@ -708,8 +708,11 @@ const Section = memo(function Section({
     : 0;
   return (
     <div className="scroll-mt-36 md:scroll-mt-40">
-      <div className="mb-4 md:mb-6 relative z-[1]">
-        <h2 className="text-xl md:text-2xl font-bold tracking-tight text-primary leading-tight">
+      <div className="mb-3 md:mb-5">
+        <h2
+          className="font-bold tracking-tight leading-tight"
+          style={{ color: "hsl(var(--primary))", fontSize: "1.25rem" }}
+        >
           {title}
         </h2>
         {isPromos && maxDiscount > 0 && (
