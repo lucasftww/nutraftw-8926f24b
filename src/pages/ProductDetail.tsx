@@ -1,8 +1,8 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { ShoppingCart, ShieldCheck, Truck, Package, CreditCard, MessageCircle } from "lucide-react";
+import { ShoppingCart, ShieldCheck, Truck, Package, CreditCard, MessageCircle, QrCode, ChevronDown } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
-import { responsiveImage } from "@/lib/image";
+import { responsiveImage, imageUrl } from "@/lib/image";
 import { Button } from "@/components/ui/button";
 import { WishlistButton } from "@/components/wishlist/WishlistButton";
 import { ShippingCalculator } from "@/components/product/ShippingCalculator";
@@ -243,6 +243,22 @@ export default function ProductDetail() {
                 ou <span className="font-bold text-foreground">3x de {formatBRL(finalPrice / 3)}</span> sem juros
               </span>
             </div>
+            {/* PIX em destaque — antecipa o desconto que só aparecia no checkout.
+                Reduz fricção: cliente já decide com o preço final no PIX visível. */}
+            <div className="mt-3 flex items-center gap-2.5 rounded-xl bg-success/8 border border-success/20 px-3 py-2.5">
+              <QrCode className="h-5 w-5 text-success shrink-0" strokeWidth={2.25} />
+              <div className="flex-1 min-w-0 text-left">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-success leading-none">
+                  No PIX
+                </p>
+                <p className="text-base font-extrabold text-foreground tabular-nums leading-tight mt-0.5">
+                  {formatBRL(finalPrice * 0.95)}{" "}
+                  <span className="text-[11px] font-semibold text-success uppercase tracking-wider align-middle">
+                    5% off
+                  </span>
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* CTA único — "Comprar agora" como ação primária. Secundária
@@ -338,6 +354,47 @@ export default function ProductDetail() {
               )}
             </div>
           )}
+
+          {/* FAQ inline — quebra objeções comuns sem sair da página.
+              Usa <details> nativo: zero JS, zero dependência, acessível. */}
+          <div className="pt-2">
+            <h2 className="text-sm font-bold text-foreground uppercase tracking-wider mb-3">
+              Perguntas frequentes
+            </h2>
+            <div className="divide-y divide-border/60 rounded-2xl border border-border/60 bg-card overflow-hidden">
+              {[
+                {
+                  q: "O produto é original?",
+                  a: "Sim. Trabalhamos exclusivamente com produtos originais, importados e armazenados conforme as recomendações do fabricante. Garantia de procedência em todas as compras.",
+                },
+                {
+                  q: "Quanto tempo demora para chegar?",
+                  a: "Enviamos para todo o Brasil. O prazo varia conforme sua região (geralmente 2 a 7 dias úteis após a confirmação do pagamento). Use a calculadora de frete acima para ver o prazo da sua cidade.",
+                },
+                {
+                  q: "Quais formas de pagamento vocês aceitam?",
+                  a: "PIX (com 5% de desconto à vista) e cartão de crédito em até 3x sem juros. Pagamento 100% seguro com criptografia.",
+                },
+                {
+                  q: "Como posso falar com o suporte?",
+                  a: "Atendimento humano via WhatsApp em horário comercial. Tire dúvidas antes da compra ou acompanhe seu pedido a qualquer momento — basta tocar no botão de WhatsApp do site.",
+                },
+              ].map((item, i) => (
+                <details
+                  key={i}
+                  className="group [&_summary::-webkit-details-marker]:hidden"
+                >
+                  <summary className="flex items-center justify-between gap-3 px-4 py-3.5 cursor-pointer list-none hover:bg-muted/40 transition-colors">
+                    <span className="text-sm font-semibold text-foreground">{item.q}</span>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0 transition-transform group-open:rotate-180" strokeWidth={2.25} />
+                  </summary>
+                  <p className="px-4 pb-4 -mt-1 text-sm text-muted-foreground leading-relaxed">
+                    {item.a}
+                  </p>
+                </details>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -429,9 +486,22 @@ export default function ProductDetail() {
           style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.75rem)" }}
         >
           <div className="flex items-center gap-3">
-            <div className="flex-1 min-w-0">
-              <span className="block text-xl font-extrabold text-primary leading-none tabular-nums">
+            {/* Mini-thumb — reforça contexto do produto enquanto o usuário rola */}
+            <img
+              src={imageUrl(p.image_url, { width: 96, quality: 70 })}
+              alt=""
+              aria-hidden="true"
+              width={44}
+              height={44}
+              className="h-11 w-11 rounded-lg object-cover bg-white border border-border shrink-0"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
+            />
+            <div className="flex-1 min-w-0 leading-tight">
+              <span className="block text-base font-extrabold text-primary tabular-nums">
                 {formatBRL(finalPrice)}
+              </span>
+              <span className="block text-[11px] text-success font-semibold tabular-nums">
+                PIX {formatBRL(finalPrice * 0.95)}
               </span>
             </div>
             <Button

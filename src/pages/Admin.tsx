@@ -49,6 +49,22 @@ const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "audit", label: "Histórico", icon: History },
 ];
 
+// Agrupamento das abas em 5 categorias — reduz cognitive load no mobile e dá
+// uma "navegação principal + sub-navegação" mais clara que 13 abas planas.
+type Group = { id: string; label: string; icon: any; tabs: Tab[] };
+const GROUPS: Group[] = [
+  { id: "overview", label: "Visão geral", icon: LayoutDashboard, tabs: ["dashboard", "funnel", "reports"] },
+  { id: "catalog",  label: "Catálogo",    icon: Package,         tabs: ["products", "categories"] },
+  { id: "sales",    label: "Vendas",      icon: ShoppingBag,     tabs: ["orders", "coupons", "shipping"] },
+  { id: "people",   label: "Pessoas",     icon: Users,           tabs: ["users", "resends"] },
+  { id: "system",   label: "Sistema",     icon: Settings,        tabs: ["settings", "diagnostics", "audit"] },
+];
+const TAB_TO_GROUP: Record<Tab, string> = (() => {
+  const m = {} as Record<Tab, string>;
+  for (const g of GROUPS) for (const t of g.tabs) m[t] = g.id;
+  return m;
+})();
+
 export default function Admin() {
   return (
     <div className="dark min-h-screen bg-background text-foreground">
@@ -124,32 +140,89 @@ function AdminInner() {
           </div>
         </div>
         {/* Tabs com scroll horizontal e fade lateral indicando que há mais. */}
-        <div className="relative">
-          <div className="flex gap-1 overflow-x-auto scrollbar-thin -mb-px snap-x snap-mandatory">
-            {TABS.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                aria-current={tab === t.id ? "page" : undefined}
-                className={`relative px-3 md:px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap snap-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:rounded-t-md ${
-                  tab === t.id ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <t.icon className="h-4 w-4 shrink-0" />
-                {t.label}
-                {t.id === "orders" && unseenCount > 0 && (
-                  <span
-                    aria-label={`${unseenCount} novos pedidos`}
-                    className="ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-secondary text-secondary-foreground text-[10px] font-extrabold leading-none animate-pulse"
-                  >
-                    {unseenCount > 9 ? "9+" : unseenCount}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-          <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background to-transparent md:hidden" />
-        </div>
+        {/* Navegação em 2 níveis:
+            - Linha 1: 5 grupos (chips) — caminho principal
+            - Linha 2: sub-abas do grupo ativo
+            Reduz a fricção de 13 abas planas e dá uma hierarquia clara,
+            principalmente no mobile. Mantém URL `?tab=` intacta. */}
+        {(() => {
+          const activeGroupId = TAB_TO_GROUP[tab] ?? "overview";
+          return (
+            <div className="space-y-2">
+              {/* Grupos — chips horizontais com scroll suave no mobile */}
+              <div className="relative">
+                <div className="flex gap-1.5 overflow-x-auto scrollbar-thin snap-x snap-mandatory -mx-1 px-1">
+                  {GROUPS.map((g) => {
+                    const active = activeGroupId === g.id;
+                    const groupHasUnseen = !active && g.tabs.includes("orders") && unseenCount > 0;
+                    return (
+                      <button
+                        key={g.id}
+                        onClick={() => setTab(g.tabs[0])}
+                        aria-current={active ? "page" : undefined}
+                        className={`relative shrink-0 snap-start inline-flex items-center gap-2 h-9 px-3.5 rounded-full text-sm font-semibold whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
+                          active
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
+                        }`}
+                      >
+                        <g.icon className="h-4 w-4 shrink-0" />
+                        {g.label}
+                        {groupHasUnseen && (
+                          <span
+                            aria-label={`${unseenCount} novos pedidos`}
+                            className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-secondary text-secondary-foreground text-[10px] font-extrabold leading-none animate-pulse"
+                          >
+                            {unseenCount > 9 ? "9+" : unseenCount}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Sub-abas do grupo ativo — só aparece se o grupo tem mais de 1 aba */}
+              {(() => {
+                const group = GROUPS.find((g) => g.id === activeGroupId);
+                if (!group || group.tabs.length <= 1) return null;
+                return (
+                  <div className="relative">
+                    <div className="flex gap-1 overflow-x-auto scrollbar-thin -mb-px snap-x snap-mandatory">
+                      {group.tabs.map((tabId) => {
+                        const t = TABS.find((x) => x.id === tabId);
+                        if (!t) return null;
+                        const active = tab === t.id;
+                        return (
+                          <button
+                            key={t.id}
+                            onClick={() => setTab(t.id)}
+                            aria-current={active ? "page" : undefined}
+                            className={`relative px-3 md:px-4 py-2 text-[13px] font-semibold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap snap-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:rounded-t-md ${
+                              active ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+                            }`}
+                          >
+                            <t.icon className="h-3.5 w-3.5 shrink-0" />
+                            {t.label}
+                            {t.id === "orders" && unseenCount > 0 && (
+                              <span
+                                aria-label={`${unseenCount} novos pedidos`}
+                                className="ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-secondary text-secondary-foreground text-[10px] font-extrabold leading-none animate-pulse"
+                              >
+                                {unseenCount > 9 ? "9+" : unseenCount}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background to-transparent md:hidden" />
+                  </div>
+                );
+              })()}
+            </div>
+          );
+        })()}
       </div>
 
       {tab === "dashboard" && <AdminDashboard />}
