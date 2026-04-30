@@ -211,10 +211,21 @@ export default function Catalog() {
       return products.filter((p) => {
         if (selectedCats.size > 0) {
           // "__promos__" é uma pseudo-categoria: produtos com desconto real.
+          // Quando combinada com categorias reais, aplicamos INTERSEÇÃO
+          // (produto da categoria X que também está em promoção). Isso evita
+          // o bug em que marcar "Promoções + Tirzepatida" listava qualquer
+          // promo de qualquer categoria misturada com produtos full-price
+          // de Tirzepatida.
           const wantsPromos = selectedCats.has("__promos__");
-          const matchesCat = p.category ? selectedCats.has(p.category.slug) : false;
-          const matchesPromo = wantsPromos && discountPctOf(p) > 0;
-          if (!matchesCat && !matchesPromo) return false;
+          const realCats = new Set(
+            [...selectedCats].filter((s) => s !== "__promos__")
+          );
+          if (wantsPromos && discountPctOf(p) <= 0) return false;
+          if (realCats.size > 0) {
+            if (!p.category || !realCats.has(p.category.slug)) return false;
+          } else if (!wantsPromos) {
+            return false;
+          }
         }
         if (!qNorm) return true;
         const nameNorm = normalize(p.name);
@@ -300,16 +311,38 @@ export default function Catalog() {
   // Promoções → Categoria 1 → Categoria 2 → … Mesma regra em mobile e desktop.
   const paginated = useMemo(() => {
     let remaining = visibleCount;
-    const promoLimit = grouped.showOnlyPromos ? remaining : Math.min(PROMO_PREVIEW_LIMIT, remaining);
+    const promoLimit = grouped.showOnlyPromos
+      ? remaining
+      : Math.min(PROMO_PREVIEW_LIMIT, remaining, grouped.promos.length);
     const promos = grouped.promos.slice(0, promoLimit);
     remaining -= promos.length;
-    const sections: { slug: string; name: string; items: Product[] }[] = [];
-    for (const s of grouped.sections) {
-      if (remaining <= 0) break;
-      const items = s.items.slice(0, remaining);
-      if (items.length > 0) sections.push({ slug: s.slug, name: s.name, items });
-      remaining -= items.length;
+
+    // Round-robin: garante que TODAS as categorias apareçam (pelo menos 1
+    // item) antes de uma só monopolizar a paginação. Antes, Tirzepatida com
+    // 8+ produtos consumia tudo e categorias menores nunca apareciam até o
+    // usuário clicar "Carregar mais" várias vezes.
+    const counts = new Map<string, number>();
+    grouped.sections.forEach((s) => counts.set(s.slug, 0));
+    let progress = true;
+    while (remaining > 0 && progress) {
+      progress = false;
+      for (const s of grouped.sections) {
+        if (remaining <= 0) break;
+        const taken = counts.get(s.slug) ?? 0;
+        if (taken < s.items.length) {
+          counts.set(s.slug, taken + 1);
+          remaining -= 1;
+          progress = true;
+        }
+      }
     }
+    const sections = grouped.sections
+      .map((s) => ({
+        slug: s.slug,
+        name: s.name,
+        items: s.items.slice(0, counts.get(s.slug) ?? 0),
+      }))
+      .filter((s) => s.items.length > 0);
     return { promos, sections };
   }, [grouped, visibleCount]);
 
@@ -620,7 +653,7 @@ export default function Catalog() {
                           checked
                             ? "bg-primary/5 border-primary/40 shadow-sm"
                             : "bg-background border-border hover:bg-muted/60 hover:border-border"
-                        }`}
+                        } focus-within:ring-2 focus-within:ring-primary/40 focus-within:border-primary/50`}
                       >
                         <input
                           type="checkbox"
@@ -844,7 +877,7 @@ const ProductCard = memo(function ProductCard({
                       alt={p.name}
                       loading={isAboveFold ? "eager" : "lazy"}
                       decoding="async"
-                      {...(isAboveFold ? { fetchPriority: "high" as const } : {})}
+                      {...(isAboveFold ? { fetchpriority: "high" } as Record<string, string> : {})}
                       width={400}
                       height={400}
                       onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
