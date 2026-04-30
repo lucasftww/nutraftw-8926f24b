@@ -16,7 +16,6 @@ type Product = ProductRow;
 
 const SORT_KEYS = ["categoria", "recentes", "az"] as const;
 type SortKey = (typeof SORT_KEYS)[number];
-const PROMO_PREVIEW_LIMIT = 4;
 const SORT_LABELS: Record<SortKey, string> = {
   categoria: "Por categoria",
   recentes: "Mais recentes",
@@ -62,19 +61,6 @@ export default function Catalog() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const sort: SortKey = SORT_KEYS.includes(urlSort) ? urlSort : "categoria";
 
-  // Infinite scroll — carrega incrementalmente para reduzir tempo inicial de render.
-  // PAGE_SIZE controla a "primeira dose" de produtos visíveis e o incremento de cada
-  // "Carregar mais". Foi ampliado para 24 para evitar a sensação de "só 4 por categoria"
-  // — com muitas categorias o round-robin antigo distribuía 1-2 itens em cada e dava
-  // a impressão de catálogo vazio.
-  const PAGE_SIZE = 24;
-  // Mínimo garantido por categoria no PRIMEIRO batch antes do round-robin distribuir
-  // o excedente. Mantém cada categoria com bloco visualmente completo (linha 4×2 do
-  // grid mobile, ou 4×2 do desktop).
-  const MIN_PER_CATEGORY = 8;
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
-
   const setSort = (next: SortKey) => {
     const params = new URLSearchParams(searchParams);
     if (next === "categoria") params.delete("ordenar");
@@ -104,11 +90,6 @@ export default function Catalog() {
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
-
-  // Reseta a paginação sempre que os critérios de listagem mudarem
-  useEffect(() => {
-    setVisibleCount(PAGE_SIZE);
-  }, [query, selectedCats, sort]);
 
   // Drawer de filtros: ESC fecha + trava scroll do body enquanto aberto.
   // Mesmo comportamento do CartDrawer para consistência de UX/A11y.
@@ -338,105 +319,10 @@ export default function Catalog() {
     return { promos, sections, showOnlyPromos };
   }, [categories, filtered, selectedCats, sortComparator, sort]);
 
-  // Paginação uniforme: PAGE_SIZE itens por batch, fluindo na ordem
-  // Promoções → Categoria 1 → Categoria 2 → … Mesma regra em mobile e desktop.
-  const paginated = useMemo(() => {
-    let remaining = visibleCount;
-    // Promoções: no PRIMEIRO batch (visibleCount === PAGE_SIZE) limita ao
-    // preview para dar espaço às categorias na 1ª impressão. A partir do
-    // 2º "Carregar mais" expande progressivamente — antes ficava preso em
-    // 4 mesmo havendo 13 promos disponíveis.
-    const isFirstBatch = visibleCount <= PAGE_SIZE;
-    const promoLimit = grouped.showOnlyPromos
-      ? remaining
-      : isFirstBatch
-        ? Math.min(PROMO_PREVIEW_LIMIT, remaining, grouped.promos.length)
-        : Math.min(remaining, grouped.promos.length);
-    const promos = grouped.promos.slice(0, promoLimit);
-    remaining -= promos.length;
-
-    // Round-robin: garante que TODAS as categorias apareçam (pelo menos 1
-    // item) antes de uma só monopolizar a paginação. Antes, Tirzepatida com
-    // 8+ produtos consumia tudo e categorias menores nunca apareciam até o
-    // usuário clicar "Carregar mais" várias vezes.
-    // Distribuição em DUAS fases:
-    // 1) Garante até MIN_PER_CATEGORY itens por categoria (bloco visual completo).
-    //    Categorias menores que isso aparecem por inteiro.
-    // 2) Se ainda há orçamento (remaining > 0), faz round-robin do excedente
-    //    para preencher categorias maiores sem nenhuma monopolizar.
-    const counts = new Map<string, number>();
-    grouped.sections.forEach((s) => counts.set(s.slug, 0));
-    // Fase 1 — bloco mínimo por categoria.
-    for (const s of grouped.sections) {
-      if (remaining <= 0) break;
-      const want = Math.min(MIN_PER_CATEGORY, s.items.length, remaining);
-      counts.set(s.slug, want);
-      remaining -= want;
-    }
-    // Fase 2 — round-robin do excedente.
-    let progress = true;
-    while (remaining > 0 && progress) {
-      progress = false;
-      for (const s of grouped.sections) {
-        if (remaining <= 0) break;
-        const taken = counts.get(s.slug) ?? 0;
-        if (taken < s.items.length) {
-          counts.set(s.slug, taken + 1);
-          remaining -= 1;
-          progress = true;
-        }
-      }
-    }
-    const sections = grouped.sections
-      .map((s) => ({
-        slug: s.slug,
-        name: s.name,
-        items: s.items.slice(0, counts.get(s.slug) ?? 0),
-      }))
-      .filter((s) => s.items.length > 0);
-    return { promos, sections };
-  }, [grouped, visibleCount]);
-
-  const totalAvailable = useMemo(
-    () =>
-      grouped.promos.length +
-      grouped.sections.reduce((acc, s) => acc + s.items.length, 0),
-    [grouped]
-  );
-
-  const hasMore = visibleCount < totalAvailable;
-
-  // IntersectionObserver para carregar mais ao se aproximar do fim da lista
-  useEffect(() => {
-    if (!hasMore || loading) return;
-    const el = sentinelRef.current;
-    if (!el) return;
-    // Throttle: evita disparos em rajada quando o sentinel fica
-    // continuamente dentro da margem após cada batch carregado.
-    let pending = false;
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (pending) return;
-        if (entries.some((e) => e.isIntersecting)) {
-          pending = true;
-          setVisibleCount((c) => c + PAGE_SIZE);
-          // Libera o próximo disparo só depois do próximo frame, dando
-          // tempo do React commitar e o sentinel reposicionar.
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => { pending = false; });
-          });
-        }
-      },
-      // 300px é suficiente pra começar a carregar antes do usuário ver o fim,
-      // sem manter o sentinel "permanentemente intersectando" e disparando loop.
-      { rootMargin: "300px 0px" }
-    );
-    io.observe(el);
-    return () => io.disconnect();
-    // Não dependemos de `paginated` aqui — ele é recriado a cada render
-    // e estava recriando o observer toda vez (vazamento + flicker).
-    // O updater de setVisibleCount já garante valor atual.
-  }, [hasMore, loading]);
+  // Sem paginação: mostra TODAS as promoções e TODOS os produtos de TODAS as
+  // categorias de uma vez. Performance é mantida via `content-visibility:auto`
+  // nas seções (ver componente <Section/>) e lazy-loading das imagens.
+  const paginated = grouped;
 
   // Contagem de produtos por categoria (para mostrar no filtro)
   const countByCat = useMemo(() => {
@@ -581,21 +467,15 @@ export default function Catalog() {
               </div>
             ) : (
               <>
-                {/* Layout uniforme: Promoções + Categorias com mesma ordenação
-                    e mesma paginação, independente do sort escolhido. */}
+                {/* Layout uniforme: Promoções + TODAS as categorias com TODOS
+                    os produtos visíveis de uma vez (sem paginação). */}
                 {paginated.promos.length > 0 && (
                   <Section
                     title="Promoções"
                     items={paginated.promos}
-                    total={grouped.promos.length}
                     onAdd={handleAdd}
                     onPrefetch={prefetchProduct}
                     onPrefetchFull={prefetchProductFull}
-                    onSeeAll={
-                      grouped.promos.length > paginated.promos.length
-                        ? () => setSelectedCats(new Set(["__promos__"]))
-                        : undefined
-                    }
                   />
                 )}
                 {paginated.sections.map((s) => (
@@ -603,46 +483,11 @@ export default function Catalog() {
                     key={s.name}
                     title={s.name}
                     items={s.items}
-                    total={grouped.sections.find((g) => g.slug === s.slug)?.items.length ?? s.items.length}
                     onAdd={handleAdd}
                     onPrefetch={prefetchProduct}
                     onPrefetchFull={prefetchProductFull}
-                    onSeeAll={
-                      ((grouped.sections.find((g) => g.slug === s.slug)?.items.length ?? s.items.length) > s.items.length)
-                        ? () => {
-                            setSelectedCats(new Set([s.slug]));
-                            window.scrollTo({ top: 0, behavior: "smooth" });
-                          }
-                        : undefined
-                    }
                   />
                 ))}
-                {hasMore && (
-                  <div ref={sentinelRef} className="flex flex-col items-center gap-3 py-8">
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5 w-full">
-                      {Array.from({ length: 4 }).map((_, i) => (
-                        <div key={i} className="rounded-2xl bg-card overflow-hidden">
-                          <div className="aspect-square skeleton-shimmer rounded-2xl" />
-                          <div className="pt-3 px-1 space-y-2">
-                            <div className="h-3 w-4/5 skeleton-shimmer rounded" />
-                            <div className="h-3 w-2/5 skeleton-shimmer rounded" />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <button
-                      onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-                      className="mt-2 inline-flex items-center justify-center h-10 px-5 rounded-full border border-input bg-background text-sm font-semibold hover:bg-accent transition-colors"
-                    >
-                      Carregar mais
-                    </button>
-                  </div>
-                )}
-                {!hasMore && totalAvailable > PAGE_SIZE && (
-                  <p className="text-center text-xs text-muted-foreground py-6">
-                    Você viu todos os {totalAvailable} produtos.
-                  </p>
-                )}
               </>
             )}
           </div>
@@ -793,24 +638,18 @@ export default function Catalog() {
 const Section = memo(function Section({
   title,
   items,
-  total,
   onAdd,
   onPrefetch,
   onPrefetchFull,
-  onSeeAll,
 }: {
   title: string;
   items: Product[];
-  total?: number;
   onAdd: (p: Product, finalPrice: number) => void;
   onPrefetch?: (slug: string) => void;
   onPrefetchFull?: (p: Product) => void;
-  onSeeAll?: () => void;
 }) {
   if (items.length === 0) return null;
   const shown = items.length;
-  const totalCount = total ?? shown;
-  const showingPartial = totalCount > shown;
   return (
     <div style={{ contentVisibility: "auto", containIntrinsicSize: "1px 600px" }}>
       <div className="mb-4 md:mb-6 flex items-baseline justify-between gap-3">
@@ -819,19 +658,8 @@ const Section = memo(function Section({
         </h2>
         <div className="flex items-baseline gap-3 shrink-0">
           <span className="text-[11px] md:text-xs text-muted-foreground tabular-nums">
-            {showingPartial
-              ? `${shown} de ${totalCount}`
-              : `${shown} ${shown === 1 ? "item" : "itens"}`}
+            {`${shown} ${shown === 1 ? "item" : "itens"}`}
           </span>
-          {onSeeAll && showingPartial && (
-            <button
-              type="button"
-              onClick={onSeeAll}
-              className="text-[11px] md:text-xs font-semibold text-primary hover:underline whitespace-nowrap"
-            >
-              Ver todas →
-            </button>
-          )}
         </div>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
