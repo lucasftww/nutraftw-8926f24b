@@ -254,10 +254,26 @@ export default function Catalog() {
   // Agrupamento estável: Promoções no topo (todas as promos, sem teto fixo)
   // e cada Categoria abaixo. Mesmo comparator em todas as seções.
   const grouped = useMemo(() => {
-    const promos = filtered
-      .filter((p) => discountPctOf(p) > 0)
-      .sort(sortComparator);
-    const showOnlyPromos = selectedCats.size === 1 && selectedCats.has("__promos__");
+    // Quando o usuário ordena por "A-Z" ou "Recentes", a expectativa é
+    // ver TODOS os produtos numa única lista plana ordenada — não faz
+    // sentido manter agrupamento por categoria nesses sorts.
+    const flat = sort !== "categoria";
+    const promos = flat
+      ? []
+      : filtered.filter((p) => discountPctOf(p) > 0).sort(sortComparator);
+    const showOnlyPromos =
+      !flat && selectedCats.size === 1 && selectedCats.has("__promos__");
+
+    if (flat) {
+      const items = [...filtered].sort(sortComparator);
+      return {
+        promos,
+        sections: items.length
+          ? [{ slug: "__all__", name: "Todos os produtos", items }]
+          : [],
+        showOnlyPromos: false,
+      };
+    }
 
     const categoryIndex = new Map(categories.map((c, index) => [c.slug, index]));
     const byCat = new Map<string, { slug: string; name: string; items: Product[] }>();
@@ -278,7 +294,7 @@ export default function Catalog() {
     });
 
     return { promos, sections, showOnlyPromos };
-  }, [categories, filtered, selectedCats, sortComparator]);
+  }, [categories, filtered, selectedCats, sortComparator, sort]);
 
   // Paginação uniforme: PAGE_SIZE itens por batch, fluindo na ordem
   // Promoções → Categoria 1 → Categoria 2 → … Mesma regra em mobile e desktop.
