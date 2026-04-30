@@ -254,10 +254,26 @@ export default function Catalog() {
   // Agrupamento estável: Promoções no topo (todas as promos, sem teto fixo)
   // e cada Categoria abaixo. Mesmo comparator em todas as seções.
   const grouped = useMemo(() => {
-    const promos = filtered
-      .filter((p) => discountPctOf(p) > 0)
-      .sort(sortComparator);
-    const showOnlyPromos = selectedCats.size === 1 && selectedCats.has("__promos__");
+    // Quando o usuário ordena por "A-Z" ou "Recentes", a expectativa é
+    // ver TODOS os produtos numa única lista plana ordenada — não faz
+    // sentido manter agrupamento por categoria nesses sorts.
+    const flat = sort !== "categoria";
+    const promos = flat
+      ? []
+      : filtered.filter((p) => discountPctOf(p) > 0).sort(sortComparator);
+    const showOnlyPromos =
+      !flat && selectedCats.size === 1 && selectedCats.has("__promos__");
+
+    if (flat) {
+      const items = [...filtered].sort(sortComparator);
+      return {
+        promos,
+        sections: items.length
+          ? [{ slug: "__all__", name: "Todos os produtos", items }]
+          : [],
+        showOnlyPromos: false,
+      };
+    }
 
     const categoryIndex = new Map(categories.map((c, index) => [c.slug, index]));
     const byCat = new Map<string, { slug: string; name: string; items: Product[] }>();
@@ -278,7 +294,7 @@ export default function Catalog() {
     });
 
     return { promos, sections, showOnlyPromos };
-  }, [categories, filtered, selectedCats, sortComparator]);
+  }, [categories, filtered, selectedCats, sortComparator, sort]);
 
   // Paginação uniforme: PAGE_SIZE itens por batch, fluindo na ordem
   // Promoções → Categoria 1 → Categoria 2 → … Mesma regra em mobile e desktop.
@@ -487,6 +503,7 @@ export default function Catalog() {
                   <Section
                     title="Promoções"
                     items={paginated.promos}
+                    total={grouped.promos.length}
                     onAdd={handleAdd}
                     onPrefetch={prefetchProduct}
                     onPrefetchFull={prefetchProductFull}
@@ -497,6 +514,7 @@ export default function Catalog() {
                     key={s.name}
                     title={s.name}
                     items={s.items}
+                    total={grouped.sections.find((g) => g.slug === s.slug)?.items.length ?? s.items.length}
                     onAdd={handleAdd}
                     onPrefetch={prefetchProduct}
                     onPrefetchFull={prefetchProductFull}
@@ -678,18 +696,22 @@ export default function Catalog() {
 const Section = memo(function Section({
   title,
   items,
+  total,
   onAdd,
   onPrefetch,
   onPrefetchFull,
 }: {
   title: string;
   items: Product[];
+  total?: number;
   onAdd: (p: Product, finalPrice: number) => void;
   onPrefetch?: (slug: string) => void;
   onPrefetchFull?: (p: Product) => void;
 }) {
   if (items.length === 0) return null;
-  const isPromo = /promo/i.test(title);
+  const shown = items.length;
+  const totalCount = total ?? shown;
+  const showingPartial = totalCount > shown;
   return (
     <div style={{ contentVisibility: "auto", containIntrinsicSize: "1px 600px" }}>
       <div className="mb-4 md:mb-6 flex items-baseline justify-between gap-3">
@@ -697,7 +719,9 @@ const Section = memo(function Section({
           {title}
         </h2>
         <span className="text-[11px] md:text-xs text-muted-foreground tabular-nums">
-          {items.length} {items.length === 1 ? "item" : "itens"}
+          {showingPartial
+            ? `${shown} de ${totalCount}`
+            : `${shown} ${shown === 1 ? "item" : "itens"}`}
         </span>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
