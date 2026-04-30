@@ -600,9 +600,15 @@ function AdminOrders() {
   const [items, setItems] = useState<any[]>([]);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<string>("all");
+  const [paymentFilter, setPaymentFilter] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState<string>("");
+  const [dateTo, setDateTo] = useState<string>("");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [error, setError] = useState<AdminErrorInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const { confirm, promptText } = useConfirm();
   // Paginação server-side: evita carregar milhares de pedidos de uma vez.
   const PAGE_SIZE = 50;
   const [page, setPage] = useState(0);
@@ -611,6 +617,7 @@ function AdminOrders() {
   async function load() {
     setLoading(true);
     setError(null);
+    setSelected(new Set());
     const from = page * PAGE_SIZE;
     const to = from + PAGE_SIZE - 1;
     let q = supabase
@@ -623,6 +630,9 @@ function AdminOrders() {
       .order("created_at", { ascending: false })
       .range(from, to);
     if (filter !== "all") q = q.eq("status", filter as any);
+    if (paymentFilter !== "all") q = q.eq("payment_method", paymentFilter as any);
+    if (dateFrom) q = q.gte("created_at", new Date(dateFrom + "T00:00:00").toISOString());
+    if (dateTo) q = q.lte("created_at", new Date(dateTo + "T23:59:59").toISOString());
     const { data, error: err, count } = await q;
     if (err) {
       const info = logSupabaseError("Carregar pedidos", err, { table: "orders", page, filter });
@@ -638,10 +648,11 @@ function AdminOrders() {
   // Reseta para a primeira página quando o filtro muda — fazer ANTES do
   // efeito de load() para não disparar duas requisições (page atual + page=0)
   // que poderiam causar race condition (resposta antiga sobrescreve nova).
-  const filterRef = useRef(filter);
+  const filterRef = useRef(`${filter}|${paymentFilter}|${dateFrom}|${dateTo}`);
   useEffect(() => {
-    if (filterRef.current !== filter) {
-      filterRef.current = filter;
+    const key = `${filter}|${paymentFilter}|${dateFrom}|${dateTo}`;
+    if (filterRef.current !== key) {
+      filterRef.current = key;
       if (page !== 0) {
         setPage(0);
         return; // load() dispara no próximo render via dep [page]
@@ -649,7 +660,7 @@ function AdminOrders() {
     }
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, filter]);
+  }, [page, filter, paymentFilter, dateFrom, dateTo]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -668,10 +679,17 @@ function AdminOrders() {
     const before = items.find((o) => o.id === id);
     let reason: string | null = null;
     if (status === "cancelled" || status === "refunded") {
-      const r = window.prompt(
-        `Motivo do ${status === "cancelled" ? "cancelamento" : "reembolso"} (opcional, será registrado na comissão):`
-      );
-      reason = r?.trim() ? r.trim() : null;
+      const label = status === "cancelled" ? "cancelamento" : "reembolso";
+      const r = await promptText({
+        title: `Motivo do ${label}`,
+        description: "Será registrado no histórico e na comissão (opcional).",
+        prompt: { label: "Motivo", placeholder: "Ex.: cliente solicitou…" },
+        confirmLabel: "Confirmar",
+        variant: "destructive",
+      });
+      // null = cancelou o diálogo; string vazia = confirmou sem motivo.
+      if (r === null) return;
+      reason = r.trim() ? r.trim() : null;
     }
     const { error: err } = await supabase.rpc("admin_set_order_status", {
       p_order_id: id,
@@ -686,6 +704,44 @@ function AdminOrders() {
       // O audit log já é gravado pelo admin_set_order_status no servidor.
       setItems((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
     }
+  }
+
+  async function bulkSetStatus(status: string) {
+    if (selected.size === 0) return;
+    const isDestructive = status === "cancelled" || status === "refunded";
+    const ok = await confirm({
+      title: `Marcar ${selected.size} pedido${selected.size === 1 ? "" : "s"} como "${status}"?`,
+      description: isDestructive
+        ? "Esta ação cancelará/reembolsará vários pedidos de uma vez."
+        : "Os pedidos selecionados terão o estado atualizado.",
+      variant: isDestructive ? "destructive" : "default",
+      confirmLabel: "Aplicar",
+    });
+    if (!ok) return;
+    setBulkBusy(true);
+    let okCount = 0, failCount = 0;
+    for (const id of selected) {
+      const { error: err } = await supabase.rpc("admin_set_order_status", {
+        p_order_id: id, p_status: status, p_reason: null,
+      });
+      if (err) failCount++; else okCount++;
+    }
+    setBulkBusy(false);
+    if (okCount) toast.success(`${okCount} pedido${okCount === 1 ? "" : "s"} atualizado${okCount === 1 ? "" : "s"}`);
+    if (failCount) toast.error(`${failCount} falharam`);
+    setSelected(new Set());
+    load();
+  }
+
+  function toggleSel(id: string) {
+    setSelected((s) => {
+      const next = new Set(s);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+  function toggleAll() {
+    setSelected((s) => s.size === filtered.length ? new Set() : new Set(filtered.map((o: any) => o.id)));
   }
 
   if (error) {
@@ -742,19 +798,82 @@ function AdminOrders() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input className="pl-9" placeholder="Buscar por ID, nome ou CPF…" value={query} onChange={(e) => setQuery(e.target.value)} />
         </div>
-        <select className="h-11 rounded-xl border border-input bg-background px-3 text-sm" value={filter} onChange={(e) => setFilter(e.target.value)}>
-          <option value="all">Todos</option>
+        <select className="h-11 rounded-xl border border-input bg-background px-3 text-sm" value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="Filtrar por estado">
+          <option value="all">Todos estados</option>
           {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
+        <select className="h-11 rounded-xl border border-input bg-background px-3 text-sm" value={paymentFilter} onChange={(e) => setPaymentFilter(e.target.value)} aria-label="Filtrar por pagamento">
+          <option value="all">Todos pagamentos</option>
+          <option value="pix">PIX</option>
+          <option value="card">Cartão</option>
+        </select>
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Calendar className="h-4 w-4" />
+          <Input type="date" className="h-11 w-[140px]" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} aria-label="Data inicial" />
+          <span>até</span>
+          <Input type="date" className="h-11 w-[140px]" value={dateTo} onChange={(e) => setDateTo(e.target.value)} aria-label="Data final" />
+          {(dateFrom || dateTo) && (
+            <button onClick={() => { setDateFrom(""); setDateTo(""); }} className="text-xs underline text-muted-foreground hover:text-foreground">limpar</button>
+          )}
+        </div>
         <Button variant="outline" onClick={exportCSV} disabled={loading}>
           <Download className="h-4 w-4" /> Exportar CSV
         </Button>
       </div>
 
-      <div className="bg-card rounded-2xl border border-border overflow-hidden">
+      {selected.size > 0 && (
+        <div className="mb-3 flex items-center justify-between gap-3 px-4 py-2.5 bg-primary/10 border border-primary/30 rounded-xl text-sm">
+          <span className="font-semibold text-primary">{selected.size} selecionado{selected.size === 1 ? "" : "s"}</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <select disabled={bulkBusy} onChange={(e) => { if (e.target.value) { bulkSetStatus(e.target.value); e.currentTarget.selectedIndex = 0; } }} className="h-9 rounded-lg border border-input bg-background px-2 text-xs">
+              <option value="">Alterar status para…</option>
+              {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <Button variant="outline" size="sm" onClick={() => setSelected(new Set())}>Limpar</Button>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile: cards. Desktop (md+): tabela. */}
+      <ul className="md:hidden space-y-2">
+        {loading && Array.from({ length: 5 }).map((_, i) => <li key={i} className="h-24 bg-muted/50 rounded-2xl animate-pulse" />)}
+        {!loading && filtered.map((o) => (
+          <li key={o.id} className={`bg-card rounded-2xl border p-3 ${selected.has(o.id) ? "border-primary ring-2 ring-primary/20" : "border-border"}`}>
+            <div className="flex items-start gap-2">
+              <label className="shrink-0 mt-0.5 inline-flex items-center justify-center w-5 h-5 rounded border border-input cursor-pointer">
+                <input type="checkbox" checked={selected.has(o.id)} onChange={() => toggleSel(o.id)} className="sr-only" />
+                {selected.has(o.id) && <Check className="h-3.5 w-3.5 text-primary" />}
+              </label>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${STATUS_COLORS[o.status] || "bg-muted"}`}>{o.status}</span>
+                </div>
+                <p className="font-semibold text-sm leading-tight truncate mt-1">{o.shipping_full_name || "—"}</p>
+                <div className="flex items-center justify-between mt-1.5">
+                  <span className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("pt-BR")} · {o.payment_method || "—"}</span>
+                  <span className="font-bold text-primary text-sm">{formatBRL(o.total)}</span>
+                </div>
+              </div>
+              <button onClick={() => setDetailId(o.id)} aria-label="Ver detalhes" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted shrink-0"><Eye className="h-4 w-4" /></button>
+            </div>
+          </li>
+        ))}
+        {!loading && filtered.length === 0 && <li className="text-center py-12 text-muted-foreground bg-card rounded-2xl border border-border">Nenhum pedido.</li>}
+      </ul>
+
+      <div className="hidden md:block bg-card rounded-2xl border border-border overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-muted/50 text-xs uppercase tracking-wide">
             <tr>
+              <th className="px-3 py-3 w-8">
+                <input
+                  type="checkbox"
+                  aria-label="Selecionar todos"
+                  checked={filtered.length > 0 && selected.size === filtered.length}
+                  onChange={toggleAll}
+                />
+              </th>
               <th className="text-left px-4 py-3">Pedido</th>
               <th className="text-left px-4 py-3 hidden md:table-cell">Cliente</th>
               <th className="text-left px-4 py-3 hidden lg:table-cell">Data</th>
@@ -765,7 +884,10 @@ function AdminOrders() {
           </thead>
           <tbody>
             {filtered.map((o) => (
-              <tr key={o.id} className="border-t border-border">
+              <tr key={o.id} className={`border-t border-border ${selected.has(o.id) ? "bg-primary/5" : ""}`}>
+                <td className="px-3 py-3">
+                  <input type="checkbox" aria-label={`Selecionar pedido ${o.id.slice(0, 8)}`} checked={selected.has(o.id)} onChange={() => toggleSel(o.id)} />
+                </td>
                 <td className="px-4 py-3 font-mono text-xs">#{o.id.slice(0, 8)}</td>
                 <td className="px-4 py-3 hidden md:table-cell">{o.shipping_full_name || "—"}</td>
                 <td className="px-4 py-3 hidden lg:table-cell text-muted-foreground text-xs">
@@ -790,7 +912,7 @@ function AdminOrders() {
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="text-center py-12 text-muted-foreground">
+                <td colSpan={7} className="text-center py-12 text-muted-foreground">
                   {loading ? "Carregando pedidos…" : "Nenhum pedido."}
                 </td>
               </tr>
