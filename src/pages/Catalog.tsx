@@ -945,16 +945,23 @@ const ProductCard = memo(function ProductCard({
                 />
               </div>
 
-              {/* Conteúdo — hierarquia clara para conversão */}
+              {/* Conteúdo — hierarquia clara para conversão.
+                  - `min-h` no título e no bloco de preço reserva o espaço da linha
+                    "de R$X" (riscado) mesmo quando não há promoção: assim os botões
+                    "Comprar" alinham perfeitamente entre cards lado-a-lado.
+                  - `mt-auto` no botão garante que ele cole na base do card
+                    independentemente do tamanho do título. */}
               <div className="pt-3 pb-3 px-2.5 flex-1 flex flex-col">
                 <h3 className="font-medium text-[13px] sm:text-sm leading-snug line-clamp-2 min-h-[2.4rem] text-foreground">
                   {p.name}
                 </h3>
-                <div className="mt-2 flex flex-col gap-0.5">
-                  {hasRealSale && (
-                    <span className="text-caption text-muted-foreground line-through tabular-nums">
+                <div className="mt-2 flex flex-col gap-0.5 min-h-[2.75rem] sm:min-h-[3rem] justify-end">
+                  {hasRealSale ? (
+                    <span className="text-[11px] text-muted-foreground line-through tabular-nums leading-none">
                       de {formatBRL(priceNum)}
                     </span>
+                  ) : (
+                    <span aria-hidden className="text-[11px] leading-none invisible">.</span>
                   )}
                   <span className="text-base md:text-lg font-extrabold text-primary tabular-nums leading-tight">
                     {formatBRL(finalPrice)}
@@ -969,7 +976,7 @@ const ProductCard = memo(function ProductCard({
                   }}
                   disabled={isOut}
                   aria-label={isOut ? "Esgotado" : `Comprar ${p.name}`}
-                  className="mt-2.5 inline-flex items-center justify-center gap-1.5 whitespace-nowrap font-bold bg-secondary text-secondary-foreground hover:bg-secondary/90 active:scale-[0.98] transition-all rounded-full w-full text-xs h-10 shadow-sm shadow-secondary/20 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
+                  className="mt-auto pt-2.5 mt-2.5 inline-flex items-center justify-center gap-1.5 whitespace-nowrap font-bold bg-secondary text-secondary-foreground hover:bg-secondary/90 active:scale-[0.98] transition-all rounded-full w-full text-xs h-10 shadow-sm shadow-secondary/20 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
                 >
                   {isOut ? (
                     "Esgotado"
