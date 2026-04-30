@@ -384,7 +384,7 @@ export default function Catalog() {
       {/* Linha 2 (full-width): chips horizontais de categoria.
           Caminho principal de filtragem — substitui o select e o painel
           de filtros para o uso do dia-a-dia. */}
-      <div className="container mx-auto px-4 mt-3 md:mt-4">
+      <div className="container mx-auto px-4 mt-3 md:mt-5">
         <div
           role="tablist"
           aria-label="Categorias"
@@ -445,12 +445,12 @@ export default function Catalog() {
       </div>
 
       {/* Sections */}
-      <section className="py-2">
+      <section className="pt-5 md:pt-7 pb-2">
         <div className="container mx-auto px-4">
           {/* overflow-anchor:none impede o navegador de "puxar" o scroll
               quando novos cards são inseridos pelo infinite scroll —
               evita a sensação de a página subir sozinha no mobile. */}
-          <div className="space-y-12 pb-16 [overflow-anchor:none]">
+          <div className="space-y-8 md:space-y-12 pb-16 [overflow-anchor:none]">
             {loading ? (
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
                 {Array.from({ length: 8 }).map((_, i) => (
