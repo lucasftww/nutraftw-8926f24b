@@ -345,7 +345,7 @@ export default function Catalog() {
             o espaço vazio entre header e conteúdo.
           - Chips logo abaixo da busca formam a "barra de filtros"
             principal, sempre visível durante o scroll. */}
-      <div className="sticky top-12 md:top-14 z-20 bg-background border-b border-border/40 pt-2 md:pt-2.5 pb-2 md:pb-2.5">
+      <div className="sticky top-12 md:top-14 z-20 bg-background border-b border-border/40 pt-1.5 md:pt-2 pb-1.5 md:pb-2">
         <div className="container mx-auto px-4">
           <div className="w-full max-w-3xl mx-auto space-y-2">
           {/* Linha 1: busca + ícone de filtros (drawer com ordenação e
@@ -445,7 +445,7 @@ export default function Catalog() {
       </div>
 
       {/* Sections */}
-      <section className="relative z-10 pt-5 md:pt-6 pb-2 scroll-mt-32">
+      <section className="relative pt-3 md:pt-4 pb-2 scroll-mt-32">
         <div className="container mx-auto px-4">
           {/* overflow-anchor:none impede o navegador de "puxar" o scroll
               quando novos cards são inseridos pelo infinite scroll —
@@ -707,18 +707,15 @@ const Section = memo(function Section({
       }, 0)
     : 0;
   return (
-    <div className="scroll-mt-36 md:scroll-mt-40">
-      <div className="mb-3 md:mb-5">
-        <h2
-          className="font-bold tracking-tight leading-tight"
-          style={{ color: "hsl(var(--primary))", fontSize: "1.25rem" }}
-        >
+      <div className="scroll-mt-36 md:scroll-mt-40">
+      <div className="mb-3 md:mb-4 flex items-baseline gap-2 flex-wrap">
+        <h2 className="text-lg md:text-2xl font-bold tracking-tight leading-tight text-primary">
           {title}
         </h2>
         {isPromos && maxDiscount > 0 && (
-          <p className="mt-1 text-xs md:text-sm text-muted-foreground">
-            Ofertas com até <span className="font-semibold text-secondary">{maxDiscount}% off</span>
-          </p>
+          <span className="text-xs md:text-sm text-muted-foreground">
+            até <span className="font-semibold text-secondary">{maxDiscount}% off</span>
+          </span>
         )}
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
