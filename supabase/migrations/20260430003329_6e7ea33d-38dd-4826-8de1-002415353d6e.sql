@@ -1,0 +1,1 @@
+UPDATE public.products SET stock = 1, updated_at = now();
