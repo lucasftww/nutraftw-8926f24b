@@ -200,8 +200,13 @@ export default function Catalog() {
       const qCompact = query ? compact(query) : "";
 
       return products.filter((p) => {
-        if (selectedCats.size > 0 && (!p.category || !selectedCats.has(p.category.slug)))
-          return false;
+        if (selectedCats.size > 0) {
+          // "__promos__" é uma pseudo-categoria: produtos com desconto real.
+          const wantsPromos = selectedCats.has("__promos__");
+          const matchesCat = p.category ? selectedCats.has(p.category.slug) : false;
+          const matchesPromo = wantsPromos && discountPctOf(p) > 0;
+          if (!matchesCat && !matchesPromo) return false;
+        }
         if (!qNorm) return true;
         const nameNorm = normalize(p.name);
         const descNorm = p.description ? normalize(p.description) : "";
