@@ -806,9 +806,9 @@ const ProductCard = memo(function ProductCard({
               onTouchStart={() => onPrefetch?.(p.slug)}
               className={`group relative flex flex-col h-full rounded-2xl bg-card overflow-hidden border border-border/50 hover:border-primary/30 hover:shadow-[var(--shadow-card)] transition-all ${isOut ? "opacity-70" : ""}`}
             >
-              {/* Imagem — aspect quadrado dá mais presença ao produto
-                  (formato de marketplace, igual ao card de referência). */}
-              <div className="relative aspect-square overflow-hidden bg-white">
+              {/* Imagem — aspect quadrado + padding interno para uniformizar
+                  produtos com recortes/proporções diferentes nos assets. */}
+              <div className="relative aspect-square overflow-hidden bg-white p-3 sm:p-4">
                 {(() => {
                   const r = responsiveImage(
                     p.image_url,
@@ -839,17 +839,17 @@ const ProductCard = memo(function ProductCard({
                       width={400}
                       height={400}
                       onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
-                      className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
+                      className="w-full h-full object-contain group-hover:scale-[1.03] transition-transform duration-300"
                     />
                   );
                 })()}
                 {isOut && (
-                  <span className="absolute top-2 left-2 inline-flex items-center rounded-full text-[10px] font-semibold px-2 py-0.5 bg-foreground/85 text-background">
+                  <span className="absolute top-2 left-2 z-[1] inline-flex items-center rounded-full text-[10px] font-semibold px-2 py-0.5 bg-foreground/85 text-background">
                     Esgotado
                   </span>
                 )}
                 {hasRealSale && !isOut && (
-                  <span className="badge-pill absolute top-2 left-2 bg-secondary text-secondary-foreground font-bold shadow-sm">
+                  <span className="badge-pill absolute top-2 left-2 z-[1] bg-secondary text-secondary-foreground font-bold shadow-sm">
                     -{discountPct}%
                   </span>
                 )}
@@ -857,35 +857,40 @@ const ProductCard = memo(function ProductCard({
                 <WishlistButton
                   productId={p.id}
                   size="sm"
-                  className="absolute bottom-2 right-2 bg-white/90 hover:bg-white shadow-sm rounded-full"
+                  className="absolute bottom-2 right-2 z-[1] bg-white/90 hover:bg-white shadow-sm rounded-full"
                 />
               </div>
 
-              {/* Conteúdo: título em até 2 linhas, preço com strikethrough quando há
-                  promo, e botão "Comprar" laranja em pill (formato KA Imports). */}
-              <div className="flex flex-col flex-1 p-3 sm:p-3.5">
-                {isNew && !hasRealSale && !isOut && (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                    <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-primary/60" />
-                    Novo
-                  </span>
-                )}
+              {/* Conteúdo: slot de badge fixo + título + bloco de preço com
+                  altura reservada — garante que CTA fica na MESMA linha entre
+                  cards vizinhos do grid, mesmo sem promoção. */}
+              <div className="flex flex-col flex-1 px-3 pt-2.5 pb-3 sm:px-3.5 sm:pt-3 sm:pb-4">
+                {/* Slot fixo de "etiqueta superior" — reserva 16px sempre,
+                    de modo que o título inicie na mesma altura em todos os cards. */}
+                <div className="min-h-[16px] mb-1 flex items-center">
+                  {isNew && !hasRealSale && !isOut && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-primary/60" />
+                      Novo
+                    </span>
+                  )}
+                </div>
                 <h3 className="font-medium text-[13px] sm:text-sm leading-snug text-foreground line-clamp-3 min-h-[3.9em]">
                   {p.name}
                 </h3>
-                <div className="mt-2 leading-tight">
-                  {hasRealSale && (
-                    <div className="text-xs text-muted-foreground line-through tabular-nums">
-                      de {formatBRL(priceNum)}
-                    </div>
-                  )}
+                {/* Bloco de preço com altura mínima reservada para a linha
+                    "de R$" — alinha cards com e sem desconto na mesma altura. */}
+                <div className="mt-2 leading-tight min-h-[64px] flex flex-col justify-end">
+                  <div className="min-h-[16px] text-xs text-muted-foreground line-through tabular-nums">
+                    {hasRealSale ? <>de {formatBRL(priceNum)}</> : <>&nbsp;</>}
+                  </div>
                   <div className="text-base md:text-lg font-extrabold text-primary tabular-nums">
                     {formatBRL(finalPrice)}
                   </div>
                   {/* Parcelamento — gatilho clássico de conversão.
-                      Cinza pequeno para não competir com o preço principal. */}
-                  <div className="text-[11px] text-muted-foreground tabular-nums mt-0.5">
-                    3x {formatBRL(finalPrice / 3)}
+                      Levemente mais legível que antes, ainda subordinado ao preço. */}
+                  <div className="text-xs font-medium text-foreground/65 tabular-nums mt-0.5">
+                    ou 3x de {formatBRL(finalPrice / 3)}
                   </div>
                 </div>
                 <button
@@ -897,9 +902,9 @@ const ProductCard = memo(function ProductCard({
                   }}
                   disabled={isOut}
                   aria-label={isOut ? "Esgotado" : `Adicionar ${p.name} ao carrinho`}
-                  className="mt-3 inline-flex items-center justify-center gap-1.5 h-9 sm:h-10 w-full rounded-full bg-secondary text-secondary-foreground text-sm font-semibold hover:bg-secondary/90 active:scale-[0.98] transition-all shadow-sm shadow-secondary/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
+                  className="mt-3 inline-flex items-center justify-center gap-1 h-9 sm:h-10 w-full rounded-full bg-secondary text-secondary-foreground text-sm font-semibold hover:bg-secondary/90 active:scale-[0.98] transition-all shadow-sm shadow-secondary/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
                 >
-                  <ShoppingCart className="h-4 w-4" strokeWidth={2.2} />
+                  <ShoppingCart className="h-3.5 w-3.5" strokeWidth={2.2} />
                   Comprar
                 </button>
               </div>
