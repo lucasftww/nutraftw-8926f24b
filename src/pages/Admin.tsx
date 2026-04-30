@@ -376,20 +376,19 @@ function AdminProducts() {
   async function runBulk() {
     if (!bulkAction || selected.size === 0) return;
     const ids = Array.from(selected);
-    let payload: Record<string, any> = {};
-    let needsValue = false;
+    let payload: Partial<{ is_active: boolean; is_featured: boolean; stock: number }> = {};
+    let needsConfirm = false;
     let summary = "";
     if (bulkAction === "activate") { payload = { is_active: true }; summary = "ativados"; }
     else if (bulkAction === "deactivate") { payload = { is_active: false }; summary = "desativados"; }
     else if (bulkAction === "feature") { payload = { is_featured: true }; summary = "destacados"; }
     else if (bulkAction === "unfeature") { payload = { is_featured: false }; summary = "removidos do destaque"; }
     else if (bulkAction === "stock_set") {
-      needsValue = true;
+      needsConfirm = true;
       const v = parseInt(bulkValue, 10);
       if (Number.isNaN(v) || v < 0) { toast.error("Informe um stock válido (≥ 0)"); return; }
       payload = { stock: v }; summary = `stock = ${v}`;
     } else if (bulkAction === "stock_inc") {
-      needsValue = true;
       // Incremento aplicado um a um (Supabase não tem update relativo simples sem rpc).
       const delta = parseInt(bulkValue, 10);
       if (Number.isNaN(delta)) { toast.error("Informe um valor inteiro (positivo ou negativo)"); return; }
@@ -440,7 +439,7 @@ function AdminProducts() {
       return;
     }
 
-    if (needsValue && bulkAction !== "stock_inc") {
+    if (needsConfirm) {
       const ok = await confirm({
         title: `Aplicar a ${ids.length} produto${ids.length === 1 ? "" : "s"}?`,
         description: `Os produtos selecionados terão ${summary}.`,
