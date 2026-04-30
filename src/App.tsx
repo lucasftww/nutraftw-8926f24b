@@ -7,6 +7,7 @@ import { RequireAuth } from "@/components/auth/RequireAuth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider } from "@/hooks/useAuth";
 import { Suspense, lazy, type ReactNode } from "react";
+import ScrollToTop from "@/components/ScrollToTop";
 import Catalog from "@/pages/Catalog";
 import ProductDetail from "@/pages/ProductDetail";
 import Login from "@/pages/Login";
@@ -60,6 +61,7 @@ export default function App() {
           <Toaster />
           <BrowserRouter>
             <AuthProvider>
+              <ScrollToTop />
               <Routes>
                 <Route element={<MainLayout />}>
                   <Route path="/" element={<Catalog />} />
