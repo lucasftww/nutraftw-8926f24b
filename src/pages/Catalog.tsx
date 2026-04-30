@@ -691,19 +691,11 @@ const Section = memo(function Section({
   onPrefetchFull?: (p: Product) => void;
 }) {
   if (items.length === 0) return null;
-  const shown = items.length;
   return (
     <div style={{ contentVisibility: "auto", containIntrinsicSize: "1px 600px" }}>
-      <div className="mb-4 md:mb-6 flex items-baseline justify-between gap-3">
-        <h2 className="text-lg md:text-2xl font-bold tracking-tight text-foreground">
-          {title}
-        </h2>
-        <div className="flex items-baseline gap-3 shrink-0">
-          <span className="text-[11px] md:text-xs text-muted-foreground tabular-nums">
-            {`${shown} ${shown === 1 ? "item" : "itens"}`}
-          </span>
-        </div>
-      </div>
+      <h2 className="mb-4 md:mb-6 text-lg md:text-2xl font-bold tracking-tight text-foreground">
+        {title}
+      </h2>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
         {items.map((p, idx) => (
           <ProductCard
