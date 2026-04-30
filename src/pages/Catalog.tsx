@@ -707,7 +707,7 @@ const Section = memo(function Section({
       }, 0)
     : 0;
   return (
-    <div style={{ contentVisibility: "auto", containIntrinsicSize: "1px 600px" }}>
+    <div>
       <div className="mb-4 md:mb-6">
         <h2 className="text-lg md:text-2xl font-bold tracking-tight text-foreground">
           {title}
