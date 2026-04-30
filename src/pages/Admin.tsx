@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatBRL, slugify } from "@/lib/utils";
 import { toast } from "sonner";
-import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, Image as ImageIcon, RefreshCcw, Settings, BarChart3, Activity, History, TrendingUp, Users, Download } from "lucide-react";
+import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, Image as ImageIcon, RefreshCcw, Settings, BarChart3, Activity, History, TrendingUp, Users, Download, ChevronUp, ChevronDown, Check, Calendar } from "lucide-react";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { WeeklyReport } from "@/components/admin/WeeklyReport";
 import { ImageUpload } from "@/components/admin/ImageUpload";
@@ -22,11 +22,15 @@ import { AdminDiagnostics } from "@/components/admin/AdminDiagnostics";
 import { AdminAuditLog } from "@/components/admin/AdminAuditLog";
 import { AdminFunnel } from "@/components/admin/AdminFunnel";
 import { AdminUsers } from "@/components/admin/AdminUsers";
+import { AdminModal } from "@/components/admin/AdminModal";
+import { ConfirmProvider, useConfirm } from "@/components/admin/ConfirmDialog";
 import { queryKeys } from "@/lib/queryKeys";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 import { logAdminAction, shallowDiff } from "@/lib/auditLog";
 
 type Tab = "dashboard" | "funnel" | "reports" | "products" | "categories" | "orders" | "coupons" | "shipping" | "banners" | "users" | "resends" | "settings" | "diagnostics" | "audit";
+
+const TAB_IDS: Tab[] = ["dashboard","funnel","reports","products","categories","orders","coupons","shipping","banners","users","resends","settings","diagnostics","audit"];
 
 const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -46,9 +50,26 @@ const TABS: { id: Tab; label: string; icon: any }[] = [
 ];
 
 export default function Admin() {
+  return (
+    <ConfirmProvider>
+      <AdminInner />
+    </ConfirmProvider>
+  );
+}
+
+function AdminInner() {
   const { user } = useAuth();
   const nav = useNavigate();
-  const [tab, setTab] = useState<Tab>("dashboard");
+  // Persiste a aba ativa na URL — recarregar mantém o contexto e dá pra
+  // compartilhar link direto (?tab=pedidos).
+  const [params, setParams] = useSearchParams();
+  const urlTab = params.get("tab") as Tab | null;
+  const tab: Tab = urlTab && TAB_IDS.includes(urlTab) ? urlTab : "dashboard";
+  const setTab = (t: Tab) => {
+    const next = new URLSearchParams(params);
+    if (t === "dashboard") next.delete("tab"); else next.set("tab", t);
+    setParams(next, { replace: true });
+  };
 
   async function logout() {
     await supabase.auth.signOut();
@@ -56,28 +77,38 @@ export default function Admin() {
   }
 
   return (
-    <div className="container py-8">
-      <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
-        <div>
-          <h1 className="font-display text-3xl md:text-4xl font-extrabold text-primary">Painel administrativo</h1>
-          <p className="text-sm text-muted-foreground">{user?.email}</p>
+    <div className="container py-4 md:py-8">
+      {/* Header sticky — mantém título e Sair sempre acessíveis. */}
+      <div className="sticky top-0 z-30 -mx-4 md:-mx-6 px-4 md:px-6 pt-4 pb-3 mb-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border">
+        <div className="flex justify-between items-center gap-4 mb-3">
+          <div className="min-w-0">
+            <h1 className="font-display text-xl md:text-3xl font-extrabold text-primary truncate">Painel administrativo</h1>
+            <p className="text-xs md:text-sm text-muted-foreground truncate">{user?.email}</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={logout}>
+            <LogOut className="h-4 w-4" />
+            <span className="hidden sm:inline ml-1">Sair</span>
+          </Button>
         </div>
-        <Button variant="outline" onClick={logout}><LogOut className="h-4 w-4" /> Sair</Button>
-      </div>
-
-      <div className="flex gap-1 mb-6 border-b border-border overflow-x-auto">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
-              tab === t.id ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <t.icon className="h-4 w-4" />
-            {t.label}
-          </button>
-        ))}
+        {/* Tabs com scroll horizontal e fade lateral indicando que há mais. */}
+        <div className="relative">
+          <div className="flex gap-1 overflow-x-auto scrollbar-thin -mb-px snap-x snap-mandatory">
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                aria-current={tab === t.id ? "page" : undefined}
+                className={`px-3 md:px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap snap-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:rounded-t-md ${
+                  tab === t.id ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <t.icon className="h-4 w-4 shrink-0" />
+                {t.label}
+              </button>
+            ))}
+          </div>
+          <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background to-transparent md:hidden" />
+        </div>
       </div>
 
       {tab === "dashboard" && <AdminDashboard />}
