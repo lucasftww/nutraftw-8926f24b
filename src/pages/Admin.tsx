@@ -49,6 +49,22 @@ const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "audit", label: "Histórico", icon: History },
 ];
 
+// Agrupamento das abas em 5 categorias — reduz cognitive load no mobile e dá
+// uma "navegação principal + sub-navegação" mais clara que 13 abas planas.
+type Group = { id: string; label: string; icon: any; tabs: Tab[] };
+const GROUPS: Group[] = [
+  { id: "overview", label: "Visão geral", icon: LayoutDashboard, tabs: ["dashboard", "funnel", "reports"] },
+  { id: "catalog",  label: "Catálogo",    icon: Package,         tabs: ["products", "categories"] },
+  { id: "sales",    label: "Vendas",      icon: ShoppingBag,     tabs: ["orders", "coupons", "shipping"] },
+  { id: "people",   label: "Pessoas",     icon: Users,           tabs: ["users", "resends"] },
+  { id: "system",   label: "Sistema",     icon: Settings,        tabs: ["settings", "diagnostics", "audit"] },
+];
+const TAB_TO_GROUP: Record<Tab, string> = (() => {
+  const m = {} as Record<Tab, string>;
+  for (const g of GROUPS) for (const t of g.tabs) m[t] = g.id;
+  return m;
+})();
+
 export default function Admin() {
   return (
     <div className="dark min-h-screen bg-background text-foreground">
