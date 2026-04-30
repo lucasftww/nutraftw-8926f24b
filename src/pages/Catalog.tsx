@@ -448,14 +448,13 @@ export default function Catalog() {
               evita a sensação de a página subir sozinha no mobile. */}
           <div className="space-y-12 pb-16 [overflow-anchor:none]">
             {loading ? (
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div key={i} className="rounded-2xl bg-card overflow-hidden">
-                    <div className="aspect-square skeleton-shimmer rounded-2xl" />
-                    <div className="pt-3 px-1 space-y-2">
+                    <div className="aspect-[4/3] skeleton-shimmer" />
+                    <div className="pt-3 pb-3 px-3 space-y-2">
                       <div className="h-3 w-4/5 skeleton-shimmer rounded" />
-                      <div className="h-3 w-2/5 skeleton-shimmer rounded" />
-                      <div className="h-9 w-full skeleton-shimmer rounded-full mt-3" />
+                      <div className="h-4 w-2/5 skeleton-shimmer rounded mt-1" />
                     </div>
                   </div>
                 ))}
