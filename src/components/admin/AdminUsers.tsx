@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { logAdminAction } from "@/lib/auditLog";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
+import { useConfirm } from "@/components/admin/ConfirmDialog";
 
 interface UserRow {
   user_id: string;
@@ -28,6 +29,7 @@ export function AdminUsers() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<AdminErrorInfo | null>(null);
+  const { confirm } = useConfirm();
 
   async function load() {
     setLoading(true);
@@ -73,7 +75,13 @@ export function AdminUsers() {
       return;
     }
     const action = u.is_admin ? "Remover privilégios de admin" : "Promover a admin";
-    if (!confirm(`${action} de ${u.email}?`)) return;
+    const ok = await confirm({
+      title: `${action}?`,
+      description: `Conta: ${u.email}`,
+      variant: u.is_admin ? "destructive" : "default",
+      confirmLabel: u.is_admin ? "Remover admin" : "Promover",
+    });
+    if (!ok) return;
     setBusy(u.user_id);
     if (u.is_admin) {
       const { error } = await supabase
