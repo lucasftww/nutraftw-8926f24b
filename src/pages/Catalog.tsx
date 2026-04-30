@@ -6,7 +6,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { responsiveImage, imageUrl } from "@/lib/image";
 import { prefetchImage, shouldPrefetch } from "@/lib/prefetch";
 import { WishlistButton } from "@/components/wishlist/WishlistButton";
-import { Search, SlidersHorizontal, X, ArrowUpDown, Plus } from "lucide-react";
+import { Search, SlidersHorizontal, X, ArrowUpDown, ShoppingCart } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { useCart } from "@/hooks/useCart";
 import { useSEO } from "@/hooks/useSEO";
@@ -784,9 +784,9 @@ const ProductCard = memo(function ProductCard({
               onTouchStart={() => onPrefetch?.(p.slug)}
               className={`group relative flex flex-col h-full rounded-2xl bg-card overflow-hidden border border-border/50 hover:border-primary/30 hover:shadow-[var(--shadow-card)] transition-all ${isOut ? "opacity-70" : ""}`}
             >
-              {/* Imagem — aspect 4:3 deixa o card mais baixo e respira mais
-                  na vertical (mais cards visíveis por scroll). */}
-              <div className="relative aspect-[4/3] overflow-hidden bg-white">
+              {/* Imagem — aspect quadrado dá mais presença ao produto
+                  (formato de marketplace, igual ao card de referência). */}
+              <div className="relative aspect-square overflow-hidden bg-white">
                 {(() => {
                   const r = responsiveImage(
                     p.image_url,
@@ -815,7 +815,7 @@ const ProductCard = memo(function ProductCard({
                       decoding="async"
                       {...(isAboveFold ? { fetchPriority: "high" } as Record<string, string> : {})}
                       width={400}
-                      height={300}
+                      height={400}
                       onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
                       className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
                     />
@@ -831,31 +831,35 @@ const ProductCard = memo(function ProductCard({
                     -{discountPct}%
                   </span>
                 )}
-                {/* Wishlist: discreto sempre, levemente realçado em hover (desktop) */}
+                {/* Wishlist: sempre visível, em pill branca no canto inferior direito da imagem */}
                 <WishlistButton
                   productId={p.id}
                   size="sm"
-                  className="absolute top-2 right-2 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                  className="absolute bottom-2 right-2 bg-white/90 hover:bg-white shadow-sm rounded-full"
                 />
               </div>
 
-              {/* Conteúdo: título 1 linha + preço grande. Botão "Comprar" virou
-                  um ícone "+" flutuante (canto inferior direito), sobreposto ao
-                  conteúdo, para reduzir o "muro de botões" ao percorrer o catálogo. */}
-              <div className="relative pt-3 pb-3 pl-3 pr-12 sm:pl-3.5 sm:pr-14">
+              {/* Conteúdo: título em até 2 linhas, preço com strikethrough quando há
+                  promo, e botão "Comprar" laranja em pill (formato KA Imports). */}
+              <div className="flex flex-col flex-1 p-3 sm:p-3.5">
                 {isNew && !hasRealSale && !isOut && (
                   <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
                     <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-primary/60" />
                     Novo
                   </span>
                 )}
-                <h3 className="font-medium text-[13px] sm:text-sm leading-snug truncate text-foreground">
+                <h3 className="font-medium text-[13px] sm:text-sm leading-snug text-foreground line-clamp-2 min-h-[2.6em]">
                   {p.name}
                 </h3>
-                <div className="mt-1.5">
-                  <span className="text-base md:text-lg font-extrabold text-primary tabular-nums leading-tight">
+                <div className="mt-2 leading-tight">
+                  {hasRealSale && (
+                    <div className="text-xs text-muted-foreground line-through tabular-nums">
+                      de {formatBRL(priceNum)}
+                    </div>
+                  )}
+                  <div className="text-base md:text-lg font-extrabold text-primary tabular-nums">
                     {formatBRL(finalPrice)}
-                  </span>
+                  </div>
                 </div>
                 <button
                   onClick={(e) => {
@@ -866,9 +870,10 @@ const ProductCard = memo(function ProductCard({
                   }}
                   disabled={isOut}
                   aria-label={isOut ? "Esgotado" : `Adicionar ${p.name} ao carrinho`}
-                  className="absolute bottom-3 right-3 inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/90 active:scale-95 transition-all shadow-md shadow-secondary/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
+                  className="mt-3 inline-flex items-center justify-center gap-1.5 h-9 sm:h-10 w-full rounded-full bg-secondary text-secondary-foreground text-sm font-semibold hover:bg-secondary/90 active:scale-[0.98] transition-all shadow-sm shadow-secondary/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
                 >
-                  <Plus className="h-[18px] w-[18px]" strokeWidth={2.5} />
+                  <ShoppingCart className="h-4 w-4" strokeWidth={2.2} />
+                  Comprar
                 </button>
               </div>
             </Link>
