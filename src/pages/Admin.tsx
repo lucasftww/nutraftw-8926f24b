@@ -134,41 +134,63 @@ function AdminProducts() {
   const [cats, setCats] = useState<any[]>([]);
   const [editing, setEditing] = useState<any | null>(null);
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [page, setPage] = useState(0);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<AdminErrorInfo | null>(null);
+  const PAGE_SIZE = 30;
   const qc = useQueryClient();
+  const { confirm } = useConfirm();
+
+  // Debounce da busca p/ não bater no servidor a cada tecla.
+  useEffect(() => {
+    const t = window.setTimeout(() => setDebouncedQuery(query.trim()), 300);
+    return () => window.clearTimeout(t);
+  }, [query]);
+
+  // Reset de página quando o termo de busca muda.
+  useEffect(() => { setPage(0); }, [debouncedQuery]);
 
   async function load() {
+    setLoading(true);
     setError(null);
+    const from = page * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+    let q = supabase
+      .from("products")
+      .select("*, category:categories(name)", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(from, to);
+    if (debouncedQuery) {
+      // Busca server-side por nome OU princípio ativo (case-insensitive).
+      const safe = debouncedQuery.replace(/[%_,]/g, " ");
+      q = q.or(`name.ilike.%${safe}%,active_principle.ilike.%${safe}%`);
+    }
     const [pr, cr] = await Promise.all([
-      supabase.from("products").select("*, category:categories(name)").order("created_at", { ascending: false }),
+      q,
       supabase.from("categories").select("*").order("display_order"),
     ]);
     if (pr.error) {
       const info = logSupabaseError("Carregar produtos", pr.error, { table: "products" });
       setError(info);
       toast.error(`Produtos: ${info.message}`);
+      setLoading(false);
       return;
     }
     if (cr.error) {
       const info = logSupabaseError("Carregar categorias", cr.error, { table: "categories" });
       setError(info);
       toast.error(`Categorias: ${info.message}`);
+      setLoading(false);
       return;
     }
     setItems(pr.data || []);
+    setTotalCount(pr.count ?? null);
     setCats(cr.data || []);
+    setLoading(false);
   }
-  useEffect(() => { load(); }, []);
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return items;
-    return items.filter((p) =>
-      p.name.toLowerCase().includes(q) ||
-      (p.active_principle || "").toLowerCase().includes(q) ||
-      (p.category?.name || "").toLowerCase().includes(q),
-    );
-  }, [items, query]);
+  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [page, debouncedQuery]);
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -215,8 +237,14 @@ function AdminProducts() {
   }
 
   async function del(id: string) {
-    if (!confirm("Remover produto?")) return;
     const before = items.find((p) => p.id === id);
+    const ok = await confirm({
+      title: "Remover produto?",
+      description: `O produto "${before?.name ?? "selecionado"}" será removido permanentemente. Esta ação não pode ser desfeita.`,
+      variant: "destructive",
+      confirmLabel: "Remover",
+    });
+    if (!ok) return;
     const { error } = await supabase.from("products").delete().eq("id", id);
     if (error) {
       logSupabaseError("Remover produto", error, { id });
@@ -236,18 +264,53 @@ function AdminProducts() {
   }
 
   if (error) return <AdminErrorBanner error={error} onRetry={load} />;
+  const totalPages = totalCount != null ? Math.max(1, Math.ceil(totalCount / PAGE_SIZE)) : null;
 
   return (
     <>
       <div className="flex justify-between items-center mb-4 gap-3 flex-wrap">
         <div className="relative flex-1 min-w-[200px] max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input className="pl-9" placeholder="Buscar produto, princípio ativo…" value={query} onChange={(e) => setQuery(e.target.value)} />
+          <Input className="pl-9" placeholder="Buscar produto ou princípio ativo…" value={query} onChange={(e) => setQuery(e.target.value)} />
         </div>
+        {totalCount != null && (
+          <span className="text-xs text-muted-foreground">
+            {totalCount} {totalCount === 1 ? "produto" : "produtos"}
+          </span>
+        )}
         <Button onClick={() => setEditing({ is_active: true })}><Plus className="h-4 w-4" /> Novo produto</Button>
       </div>
 
-      <div className="bg-card rounded-2xl border border-border overflow-hidden">
+      {/* Mobile: cards. Desktop (md+): tabela. */}
+      <ul className="md:hidden space-y-2">
+        {loading && Array.from({ length: 6 }).map((_, i) => (
+          <li key={i} className="h-20 bg-muted/50 rounded-2xl animate-pulse" />
+        ))}
+        {!loading && items.map((p) => (
+          <li key={p.id} className="bg-card rounded-2xl border border-border p-3 flex gap-3">
+            <img src={p.image_url || "/assets/no-image.svg"} alt="" className="w-14 h-14 rounded-lg object-cover bg-muted shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm leading-snug line-clamp-2">{p.name}</p>
+              <p className="text-xs text-muted-foreground truncate">{p.category?.name || "Sem categoria"}</p>
+              <div className="flex items-center justify-between mt-1.5">
+                <span className="font-bold text-primary text-sm">{formatBRL(p.price)}</span>
+                <span className={`text-[11px] tabular-nums ${p.stock < 5 ? "text-destructive font-bold" : "text-muted-foreground"}`}>
+                  Stock: {p.stock}
+                </span>
+              </div>
+            </div>
+            <div className="flex flex-col gap-1 shrink-0">
+              <button onClick={() => setEditing(p)} aria-label="Editar" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted"><Pencil className="h-4 w-4" /></button>
+              <button onClick={() => del(p.id)} aria-label="Remover" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="h-4 w-4" /></button>
+            </div>
+          </li>
+        ))}
+        {!loading && items.length === 0 && (
+          <li className="text-center py-12 text-muted-foreground bg-card rounded-2xl border border-border">Nenhum produto.</li>
+        )}
+      </ul>
+
+      <div className="hidden md:block bg-card rounded-2xl border border-border overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-muted/50 text-xs uppercase tracking-wide">
             <tr>
@@ -259,7 +322,12 @@ function AdminProducts() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((p) => (
+            {loading && Array.from({ length: 6 }).map((_, i) => (
+              <tr key={i} className="border-t border-border">
+                <td className="px-4 py-3" colSpan={5}><div className="h-10 bg-muted/50 rounded animate-pulse" /></td>
+              </tr>
+            ))}
+            {!loading && items.map((p) => (
               <tr key={p.id} className="border-t border-border">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
@@ -281,17 +349,26 @@ function AdminProducts() {
                 </td>
               </tr>
             ))}
-            {filtered.length === 0 && (
+            {!loading && items.length === 0 && (
               <tr><td colSpan={5} className="text-center py-12 text-muted-foreground">Nenhum produto.</td></tr>
             )}
           </tbody>
         </table>
       </div>
 
-      {editing && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setEditing(null)}>
-          <form onSubmit={save} onClick={(e) => e.stopPropagation()} className="bg-card rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto space-y-4">
-            <h2 className="font-bold text-xl">{editing.id ? "Editar produto" : "Novo produto"}</h2>
+      {totalPages && totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4 text-sm">
+          <p className="text-muted-foreground">Página {page + 1} de {totalPages}</p>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" disabled={page === 0 || loading} onClick={() => setPage((p) => Math.max(0, p - 1))}>← Anterior</Button>
+            <Button variant="outline" size="sm" disabled={page >= totalPages - 1 || loading} onClick={() => setPage((p) => p + 1)}>Próxima →</Button>
+          </div>
+        </div>
+      )}
+
+      <AdminModal open={!!editing} onClose={() => setEditing(null)} title={editing?.id ? "Editar produto" : "Novo produto"} size="lg">
+        {editing && (
+          <form onSubmit={save} className="space-y-4">
             <div className="grid sm:grid-cols-2 gap-3">
               <div className="space-y-2 sm:col-span-2"><Label>Nome</Label><Input required value={editing.name || ""} onChange={(e) => setEditing({ ...editing, name: e.target.value })} /></div>
               <div className="space-y-2"><Label>Slug</Label><Input value={editing.slug || ""} placeholder="auto" onChange={(e) => setEditing({ ...editing, slug: e.target.value })} /></div>
@@ -314,13 +391,13 @@ function AdminProducts() {
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!editing.is_featured} onChange={(e) => setEditing({ ...editing, is_featured: e.target.checked })} /> Em destaque</label>
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={editing.is_active !== false} onChange={(e) => setEditing({ ...editing, is_active: e.target.checked })} /> Ativo</label>
             </div>
-            <div className="flex justify-end gap-2 pt-4 border-t border-border">
+            <div className="flex justify-end gap-2 pt-4 border-t border-border sticky bottom-0 bg-card">
               <Button type="button" variant="outline" onClick={() => setEditing(null)}>Cancelar</Button>
               <Button type="submit">Salvar</Button>
             </div>
           </form>
-        </div>
-      )}
+        )}
+      </AdminModal>
     </>
   );
 }
