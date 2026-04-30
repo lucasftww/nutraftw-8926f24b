@@ -445,7 +445,7 @@ export default function Catalog() {
       </div>
 
       {/* Sections */}
-      <section className="relative z-10 pt-3 md:pt-5 pb-2 scroll-mt-32">
+      <section className="relative z-10 pt-6 md:pt-8 pb-2 scroll-mt-32">
         <div className="container mx-auto px-4">
           {/* overflow-anchor:none impede o navegador de "puxar" o scroll
               quando novos cards são inseridos pelo infinite scroll —
@@ -708,8 +708,8 @@ const Section = memo(function Section({
     : 0;
   return (
     <div className="scroll-mt-36 md:scroll-mt-40">
-      <div className="mb-4 md:mb-6">
-        <h2 className="text-lg md:text-2xl font-bold tracking-tight text-foreground leading-tight">
+      <div className="mb-4 md:mb-6 relative z-[1]">
+        <h2 className="text-xl md:text-2xl font-bold tracking-tight text-primary leading-tight">
           {title}
         </h2>
         {isPromos && maxDiscount > 0 && (
