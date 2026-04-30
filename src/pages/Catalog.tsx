@@ -62,8 +62,16 @@ export default function Catalog() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const sort: SortKey = SORT_KEYS.includes(urlSort) ? urlSort : "categoria";
 
-  // Infinite scroll — carrega incrementalmente para reduzir tempo inicial de render
-  const PAGE_SIZE = 12;
+  // Infinite scroll — carrega incrementalmente para reduzir tempo inicial de render.
+  // PAGE_SIZE controla a "primeira dose" de produtos visíveis e o incremento de cada
+  // "Carregar mais". Foi ampliado para 24 para evitar a sensação de "só 4 por categoria"
+  // — com muitas categorias o round-robin antigo distribuía 1-2 itens em cada e dava
+  // a impressão de catálogo vazio.
+  const PAGE_SIZE = 24;
+  // Mínimo garantido por categoria no PRIMEIRO batch antes do round-robin distribuir
+  // o excedente. Mantém cada categoria com bloco visualmente completo (linha 4×2 do
+  // grid mobile, ou 4×2 do desktop).
+  const MIN_PER_CATEGORY = 8;
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
@@ -344,8 +352,21 @@ export default function Catalog() {
     // item) antes de uma só monopolizar a paginação. Antes, Tirzepatida com
     // 8+ produtos consumia tudo e categorias menores nunca apareciam até o
     // usuário clicar "Carregar mais" várias vezes.
+    // Distribuição em DUAS fases:
+    // 1) Garante até MIN_PER_CATEGORY itens por categoria (bloco visual completo).
+    //    Categorias menores que isso aparecem por inteiro.
+    // 2) Se ainda há orçamento (remaining > 0), faz round-robin do excedente
+    //    para preencher categorias maiores sem nenhuma monopolizar.
     const counts = new Map<string, number>();
     grouped.sections.forEach((s) => counts.set(s.slug, 0));
+    // Fase 1 — bloco mínimo por categoria.
+    for (const s of grouped.sections) {
+      if (remaining <= 0) break;
+      const want = Math.min(MIN_PER_CATEGORY, s.items.length, remaining);
+      counts.set(s.slug, want);
+      remaining -= want;
+    }
+    // Fase 2 — round-robin do excedente.
     let progress = true;
     while (remaining > 0 && progress) {
       progress = false;
