@@ -21,7 +21,6 @@
     -webkit-tap-highlight-color: transparent;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-    overflow-x: hidden;
     /* Evita que o navegador "puxe" o scroll quando elementos acima da
        viewport mudam de altura (lazy images, banners, etc.) — principal
        causa do efeito de kicking no mobile durante o carregamento. */
