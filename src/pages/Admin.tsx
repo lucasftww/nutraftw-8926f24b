@@ -147,7 +147,6 @@ function AdminInner() {
             principalmente no mobile. Mantém URL `?tab=` intacta. */}
         {(() => {
           const activeGroupId = TAB_TO_GROUP[tab] ?? "overview";
-          const ordersInGroup = GROUPS.find((g) => g.id === activeGroupId)?.tabs.includes("orders");
           return (
             <div className="space-y-2">
               {/* Grupos — chips horizontais com scroll suave no mobile */}
