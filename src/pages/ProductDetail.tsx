@@ -6,7 +6,6 @@ import { responsiveImage } from "@/lib/image";
 import { Button } from "@/components/ui/button";
 import { WishlistButton } from "@/components/wishlist/WishlistButton";
 import { ShippingCalculator } from "@/components/product/ShippingCalculator";
-import { PaymentMethods } from "@/components/product/PaymentMethods";
 import { useCart } from "@/hooks/useCart";
 import { useSEO } from "@/hooks/useSEO";
 import { useRegisterCurrentProduct } from "@/contexts/CurrentProductContext";
@@ -287,29 +286,24 @@ export default function ProductDetail() {
             )}
           </div>
 
-          {/* Selos de confiança — provas concretas, não promessas */}
-          <ul className="grid grid-cols-2 gap-2">
+          {/* Selos de confiança — clean, 3 colunas, prova concreta */}
+          <ul className="grid grid-cols-3 gap-2">
             {[
-              { icon: Truck, label: "Envio para todo Brasil", sub: "Rastreado" },
-              { icon: ShieldCheck, label: "Produto Original", sub: "Direto da fábrica" },
-              { icon: RefreshCw, label: "Reembolso garantido", sub: "Em até 7 dias" },
-              { icon: CreditCard, label: "Pix e Cartão", sub: "Em até 3x sem juros" },
+              { icon: Truck, label: "Envio Brasil" },
+              { icon: ShieldCheck, label: "Original" },
+              { icon: RefreshCw, label: "Reembolso 7d" },
             ].map((b) => (
               <li
                 key={b.label}
-                className="flex items-start gap-2.5 rounded-xl border border-border/60 bg-card py-2.5 px-3"
+                className="flex flex-col items-center gap-1 rounded-xl border border-border/60 bg-muted/30 py-3 px-1 text-center"
               >
-                <b.icon className="h-4 w-4 text-primary shrink-0 mt-0.5" strokeWidth={2.25} />
-                <div className="flex flex-col leading-tight min-w-0">
-                  <span className="text-[12px] font-bold text-foreground truncate">{b.label}</span>
-                  <span className="text-[10px] text-muted-foreground truncate">{b.sub}</span>
-                </div>
+                <b.icon className="h-4 w-4 text-primary" />
+                <span className="text-[11px] font-semibold text-foreground leading-tight">
+                  {b.label}
+                </span>
               </li>
             ))}
           </ul>
-
-          {/* Bandeiras de pagamento reais — prova visual, máxima conversão */}
-          <PaymentMethods className="pt-1" />
 
           {/* Calculadora de frete — reduz abandono no checkout */}
           <ShippingCalculator />
