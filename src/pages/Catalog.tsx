@@ -562,9 +562,14 @@ export default function Catalog() {
                 )}
               </div>
               <ul className="flex flex-col gap-1.5">
-                {categories.map((c) => {
+                {[
+                  { id: "__promos__", slug: "__promos__", name: "Promoções" } as { id: string; slug: string; name: string },
+                  ...categories,
+                ].map((c) => {
                   const checked = selectedCats.has(c.slug);
                   const count = countByCat.get(c.slug) ?? 0;
+                  const isPromo = c.slug === "__promos__";
+                  if (isPromo && count === 0) return null;
                   return (
                     <li key={c.id}>
                       <label
