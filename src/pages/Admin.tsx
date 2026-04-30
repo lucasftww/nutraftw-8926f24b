@@ -405,8 +405,11 @@ function AdminProducts() {
 function AdminCategories() {
   const [items, setItems] = useState<any[]>([]);
   const [name, setName] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
   const [error, setError] = useState<AdminErrorInfo | null>(null);
   const qc = useQueryClient();
+  const { confirm } = useConfirm();
 
   async function load() {
     setError(null);
@@ -423,7 +426,8 @@ function AdminCategories() {
 
   async function add() {
     if (!name.trim()) return;
-    const payload = { name, slug: slugify(name) };
+    const maxOrder = items.reduce((m, c) => Math.max(m, c.display_order ?? 0), 0);
+    const payload = { name: name.trim(), slug: slugify(name), display_order: maxOrder + 1 };
     const { data, error } = await supabase.from("categories").insert(payload).select().maybeSingle();
     if (error) {
       logSupabaseError("Adicionar categoria", error, { name });
@@ -441,9 +445,66 @@ function AdminCategories() {
       load();
     }
   }
-  async function del(id: string) {
-    if (!confirm("Remover categoria?")) return;
+
+  async function rename(id: string) {
+    const v = editName.trim();
+    if (!v) { setEditingId(null); return; }
     const before = items.find((c) => c.id === id);
+    if (!before || before.name === v) { setEditingId(null); return; }
+    const payload = { name: v, slug: slugify(v) };
+    const { data, error } = await supabase.from("categories").update(payload).eq("id", id).select().maybeSingle();
+    if (error) {
+      logSupabaseError("Renomear categoria", error, { id });
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Categoria renomeada");
+    logAdminAction({
+      action: "update",
+      entity: "categories",
+      entityId: id,
+      summary: `Categoria renomeada: ${before.name} → ${v}`,
+      diff: shallowDiff(before, data),
+    });
+    setEditingId(null);
+    qc.invalidateQueries({ queryKey: queryKeys.categories.all });
+    load();
+  }
+
+  async function move(id: string, dir: -1 | 1) {
+    const sorted = [...items].sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
+    const idx = sorted.findIndex((c) => c.id === id);
+    const swapIdx = idx + dir;
+    if (idx < 0 || swapIdx < 0 || swapIdx >= sorted.length) return;
+    const a = sorted[idx];
+    const b = sorted[swapIdx];
+    // Atualização otimista + rollback se falhar.
+    const prev = items;
+    setItems((curr) => curr.map((c) => {
+      if (c.id === a.id) return { ...c, display_order: b.display_order };
+      if (c.id === b.id) return { ...c, display_order: a.display_order };
+      return c;
+    }));
+    const [r1, r2] = await Promise.all([
+      supabase.from("categories").update({ display_order: b.display_order }).eq("id", a.id),
+      supabase.from("categories").update({ display_order: a.display_order }).eq("id", b.id),
+    ]);
+    if (r1.error || r2.error) {
+      setItems(prev);
+      toast.error("Falha ao reordenar");
+      return;
+    }
+    qc.invalidateQueries({ queryKey: queryKeys.categories.all });
+  }
+
+  async function del(id: string) {
+    const before = items.find((c) => c.id === id);
+    const ok = await confirm({
+      title: "Remover categoria?",
+      description: `Os produtos vinculados a "${before?.name ?? "esta categoria"}" ficarão sem categoria.`,
+      variant: "destructive",
+    });
+    if (!ok) return;
     const { error: err } = await supabase.from("categories").delete().eq("id", id);
     if (err) {
       logSupabaseError("Remover categoria", err, { id });
@@ -462,6 +523,7 @@ function AdminCategories() {
   }
 
   if (error) return <AdminErrorBanner error={error} onRetry={load} />;
+  const sorted = [...items].sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
 
   return (
     <div className="bg-card rounded-2xl border border-border p-6">
@@ -470,14 +532,55 @@ function AdminCategories() {
         <Button onClick={add}><Plus className="h-4 w-4" /> Adicionar</Button>
       </div>
       <ul className="divide-y divide-border">
-        {items.map((c) => (
-          <li key={c.id} className="flex justify-between items-center py-3">
-            <div><p className="font-medium">{c.name}</p><p className="text-xs text-muted-foreground">{c.slug}</p></div>
-            <button onClick={() => del(c.id)} className="p-2 hover:bg-destructive/10 text-destructive rounded"><Trash2 className="h-4 w-4" /></button>
+        {sorted.map((c, idx) => (
+          <li key={c.id} className="flex items-center gap-2 py-3">
+            <div className="flex flex-col">
+              <button
+                onClick={() => move(c.id, -1)}
+                disabled={idx === 0}
+                aria-label={`Mover ${c.name} para cima`}
+                className="h-5 w-6 inline-flex items-center justify-center rounded hover:bg-muted disabled:opacity-30 disabled:hover:bg-transparent"
+              >
+                <ChevronUp className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={() => move(c.id, 1)}
+                disabled={idx === sorted.length - 1}
+                aria-label={`Mover ${c.name} para baixo`}
+                className="h-5 w-6 inline-flex items-center justify-center rounded hover:bg-muted disabled:opacity-30 disabled:hover:bg-transparent"
+              >
+                <ChevronDown className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            <div className="flex-1 min-w-0">
+              {editingId === c.id ? (
+                <Input
+                  autoFocus
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  onBlur={() => rename(c.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") { e.preventDefault(); rename(c.id); }
+                    if (e.key === "Escape") setEditingId(null);
+                  }}
+                />
+              ) : (
+                <button
+                  type="button"
+                  className="text-left w-full"
+                  onClick={() => { setEditingId(c.id); setEditName(c.name); }}
+                >
+                  <p className="font-medium hover:text-primary transition-colors">{c.name}</p>
+                  <p className="text-xs text-muted-foreground">{c.slug}</p>
+                </button>
+              )}
+            </div>
+            <button onClick={() => del(c.id)} aria-label={`Remover ${c.name}`} className="p-2 hover:bg-destructive/10 text-destructive rounded shrink-0"><Trash2 className="h-4 w-4" /></button>
           </li>
         ))}
         {items.length === 0 && <p className="text-center py-8 text-muted-foreground">Nenhuma categoria.</p>}
       </ul>
+      <p className="mt-4 text-xs text-muted-foreground">Toque no nome para renomear · use as setas para reordenar.</p>
     </div>
   );
 }
