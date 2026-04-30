@@ -628,45 +628,6 @@ export type Database = {
         }
         Relationships: []
       }
-      site_banners: {
-        Row: {
-          active: boolean
-          created_at: string
-          cta_label: string | null
-          cta_url: string | null
-          display_order: number
-          id: string
-          image_url: string | null
-          subtitle: string | null
-          title: string | null
-          updated_at: string
-        }
-        Insert: {
-          active?: boolean
-          created_at?: string
-          cta_label?: string | null
-          cta_url?: string | null
-          display_order?: number
-          id?: string
-          image_url?: string | null
-          subtitle?: string | null
-          title?: string | null
-          updated_at?: string
-        }
-        Update: {
-          active?: boolean
-          created_at?: string
-          cta_label?: string | null
-          cta_url?: string | null
-          display_order?: number
-          id?: string
-          image_url?: string | null
-          subtitle?: string | null
-          title?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
       site_settings: {
         Row: {
           key: string
