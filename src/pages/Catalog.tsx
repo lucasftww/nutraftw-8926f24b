@@ -877,7 +877,7 @@ const ProductCard = memo(function ProductCard({
                       alt={p.name}
                       loading={isAboveFold ? "eager" : "lazy"}
                       decoding="async"
-                      {...(isAboveFold ? { fetchPriority: "high" as const } : {})}
+                      {...(isAboveFold ? { fetchpriority: "high" } as Record<string, string> : {})}
                       width={400}
                       height={400}
                       onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
