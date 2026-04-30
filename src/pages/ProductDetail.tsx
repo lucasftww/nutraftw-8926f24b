@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { ShoppingCart, ShieldCheck, Truck, Package, CreditCard, Sparkles } from "lucide-react";
+import { ShoppingCart, ShieldCheck, Truck, Package, CreditCard } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { responsiveImage } from "@/lib/image";
 import { Button } from "@/components/ui/button";
@@ -286,12 +286,11 @@ export default function ProductDetail() {
             )}
           </div>
 
-          {/* Selos de confiança — clean, 3 colunas, prova concreta */}
-          <ul className="grid grid-cols-3 gap-2">
+          {/* Selos de confiança — clean, 2 colunas */}
+          <ul className="grid grid-cols-2 gap-2">
             {[
               { icon: Truck, label: "Envio Brasil" },
               { icon: ShieldCheck, label: "Original" },
-              { icon: Sparkles, label: "Lacrado" },
             ].map((b) => (
               <li
                 key={b.label}
