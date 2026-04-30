@@ -27,7 +27,7 @@ export function ProductFooter() {
 
   return (
     <footer className="mt-16 border-t border-border/60 bg-background">
-      <div className="max-w-5xl mx-auto px-5 py-10">
+      <div className="max-w-5xl mx-auto px-5 py-10 pb-[calc(env(safe-area-inset-bottom,0px)+7.5rem)] sm:pb-10">
         <div className="flex flex-col items-center text-center gap-5">
           <a
             href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(ctaText)}`}
