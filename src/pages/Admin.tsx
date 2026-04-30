@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatBRL, slugify } from "@/lib/utils";
 import { toast } from "sonner";
-import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, Image as ImageIcon, RefreshCcw, Settings, BarChart3, Activity, History, TrendingUp, Users, Download, ChevronUp, ChevronDown, Check, Calendar } from "lucide-react";
+import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, Image as ImageIcon, RefreshCcw, Settings, BarChart3, Activity, History, TrendingUp, Users, Download, ChevronUp, ChevronDown, Check, Calendar, Copy, Command } from "lucide-react";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { WeeklyReport } from "@/components/admin/WeeklyReport";
 import { ImageUpload } from "@/components/admin/ImageUpload";
@@ -27,6 +27,8 @@ import { ConfirmProvider, useConfirm } from "@/components/admin/ConfirmDialog";
 import { queryKeys } from "@/lib/queryKeys";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 import { logAdminAction, shallowDiff } from "@/lib/auditLog";
+import { useNewOrdersNotifier } from "@/hooks/useNewOrdersNotifier";
+import { CommandPalette } from "@/components/admin/CommandPalette";
 
 type Tab = "dashboard" | "funnel" | "reports" | "products" | "categories" | "orders" | "coupons" | "shipping" | "banners" | "users" | "resends" | "settings" | "diagnostics" | "audit";
 
@@ -71,6 +73,24 @@ function AdminInner() {
     setParams(next, { replace: true });
   };
 
+  // Cmd/Ctrl+K abre a paleta de comandos global.
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [globalOrderId, setGlobalOrderId] = useState<string | null>(null);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // Notificador realtime de novos pedidos. Limpa o badge ao entrar na aba Pedidos.
+  const { unseenCount, clear } = useNewOrdersNotifier();
+  useEffect(() => { if (tab === "orders") clear(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [tab]);
+
   async function logout() {
     await supabase.auth.signOut();
     nav("/", { replace: true });
@@ -85,10 +105,23 @@ function AdminInner() {
             <h1 className="font-display text-xl md:text-3xl font-extrabold text-primary truncate">Painel administrativo</h1>
             <p className="text-xs md:text-sm text-muted-foreground truncate">{user?.email}</p>
           </div>
-          <Button variant="outline" size="sm" onClick={logout}>
-            <LogOut className="h-4 w-4" />
-            <span className="hidden sm:inline ml-1">Sair</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPaletteOpen(true)}
+              aria-label="Abrir busca global (Ctrl+K)"
+              title="Busca global (Ctrl+K)"
+            >
+              <Search className="h-4 w-4" />
+              <span className="hidden md:inline ml-1.5 text-xs text-muted-foreground">Buscar…</span>
+              <kbd className="hidden md:inline ml-2 text-[10px] font-mono px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border">⌘K</kbd>
+            </Button>
+            <Button variant="outline" size="sm" onClick={logout}>
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline ml-1">Sair</span>
+            </Button>
+          </div>
         </div>
         {/* Tabs com scroll horizontal e fade lateral indicando que há mais. */}
         <div className="relative">
@@ -98,12 +131,20 @@ function AdminInner() {
                 key={t.id}
                 onClick={() => setTab(t.id)}
                 aria-current={tab === t.id ? "page" : undefined}
-                className={`px-3 md:px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap snap-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:rounded-t-md ${
+                className={`relative px-3 md:px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap snap-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:rounded-t-md ${
                   tab === t.id ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}
               >
                 <t.icon className="h-4 w-4 shrink-0" />
                 {t.label}
+                {t.id === "orders" && unseenCount > 0 && (
+                  <span
+                    aria-label={`${unseenCount} novos pedidos`}
+                    className="ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-secondary text-secondary-foreground text-[10px] font-extrabold leading-none animate-pulse"
+                  >
+                    {unseenCount > 9 ? "9+" : unseenCount}
+                  </span>
+                )}
               </button>
             ))}
           </div>
@@ -125,6 +166,16 @@ function AdminInner() {
       {tab === "settings" && <AdminSettings />}
       {tab === "diagnostics" && <AdminDiagnostics />}
       {tab === "audit" && <AdminAuditLog />}
+
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        onNavigate={(t) => setTab(t as Tab)}
+        onOpenOrder={(id) => { setTab("orders"); setGlobalOrderId(id); }}
+      />
+      {globalOrderId && (
+        <OrderDetailModal orderId={globalOrderId} onClose={() => setGlobalOrderId(null)} />
+      )}
     </div>
   );
 }
@@ -139,6 +190,10 @@ function AdminProducts() {
   const [totalCount, setTotalCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<AdminErrorInfo | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkAction, setBulkAction] = useState<"" | "activate" | "deactivate" | "feature" | "unfeature" | "stock_set" | "stock_inc" | "delete">("");
+  const [bulkValue, setBulkValue] = useState<string>("");
   const PAGE_SIZE = 30;
   const qc = useQueryClient();
   const { confirm } = useConfirm();
@@ -191,6 +246,8 @@ function AdminProducts() {
     setLoading(false);
   }
   useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [page, debouncedQuery]);
+  // Limpa seleção ao trocar página/filtro.
+  useEffect(() => { setSelected(new Set()); }, [page, debouncedQuery]);
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -263,6 +320,150 @@ function AdminProducts() {
     }
   }
 
+  async function duplicate(p: any) {
+    // Slug único: tenta `slug-copia`, depois `slug-copia-2`, etc.
+    const baseSlug = `${p.slug}-copia`;
+    let finalSlug = baseSlug;
+    for (let i = 2; i < 50; i++) {
+      const { data: existing } = await supabase.from("products").select("id").eq("slug", finalSlug).maybeSingle();
+      if (!existing) break;
+      finalSlug = `${baseSlug}-${i}`;
+    }
+    const payload = {
+      name: `${p.name} (cópia)`,
+      slug: finalSlug,
+      description: p.description,
+      active_principle: p.active_principle,
+      composition: p.composition,
+      price: p.price,
+      sale_price: p.sale_price,
+      stock: 0,
+      image_url: p.image_url,
+      category_id: p.category_id,
+      is_featured: false,
+      is_active: false, // cópia inativa por padrão para revisão
+    };
+    const { data, error } = await supabase.from("products").insert(payload).select().maybeSingle();
+    if (error) {
+      logSupabaseError("Duplicar produto", error, { source_id: p.id });
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Produto duplicado (rascunho inativo)");
+    logAdminAction({
+      action: "create",
+      entity: "products",
+      entityId: (data as any)?.id ?? null,
+      summary: `Produto duplicado de "${p.name}"`,
+      diff: { after: data, source_id: p.id },
+    });
+    qc.invalidateQueries({ queryKey: queryKeys.products.all });
+    setEditing(data); // já abre para o admin revisar/ajustar
+    load();
+  }
+
+  function toggleSel(id: string) {
+    setSelected((s) => {
+      const n = new Set(s);
+      if (n.has(id)) n.delete(id); else n.add(id);
+      return n;
+    });
+  }
+  function toggleAllVisible() {
+    setSelected((s) => s.size === items.length ? new Set() : new Set(items.map((p) => p.id)));
+  }
+
+  async function runBulk() {
+    if (!bulkAction || selected.size === 0) return;
+    const ids = Array.from(selected);
+    let payload: Partial<{ is_active: boolean; is_featured: boolean; stock: number }> = {};
+    let needsConfirm = false;
+    let summary = "";
+    if (bulkAction === "activate") { payload = { is_active: true }; summary = "ativados"; }
+    else if (bulkAction === "deactivate") { payload = { is_active: false }; summary = "desativados"; }
+    else if (bulkAction === "feature") { payload = { is_featured: true }; summary = "destacados"; }
+    else if (bulkAction === "unfeature") { payload = { is_featured: false }; summary = "removidos do destaque"; }
+    else if (bulkAction === "stock_set") {
+      needsConfirm = true;
+      const v = parseInt(bulkValue, 10);
+      if (Number.isNaN(v) || v < 0) { toast.error("Informe um stock válido (≥ 0)"); return; }
+      payload = { stock: v }; summary = `stock = ${v}`;
+    } else if (bulkAction === "stock_inc") {
+      // Incremento aplicado um a um (Supabase não tem update relativo simples sem rpc).
+      const delta = parseInt(bulkValue, 10);
+      if (Number.isNaN(delta)) { toast.error("Informe um valor inteiro (positivo ou negativo)"); return; }
+      const ok = await confirm({
+        title: `Ajustar stock de ${ids.length} produto${ids.length === 1 ? "" : "s"}?`,
+        description: `Será somado ${delta >= 0 ? "+" : ""}${delta} ao stock atual de cada produto.`,
+      });
+      if (!ok) return;
+      setBulkBusy(true);
+      let okC = 0, fail = 0;
+      for (const id of ids) {
+        const cur = items.find((p) => p.id === id)?.stock ?? 0;
+        const next = Math.max(0, cur + delta);
+        const { error } = await supabase.from("products").update({ stock: next }).eq("id", id);
+        if (error) fail++; else okC++;
+      }
+      setBulkBusy(false);
+      logAdminAction({
+        action: "update",
+        entity: "products",
+        entityId: null,
+        summary: `Stock ajustado em ${okC} produtos (${delta >= 0 ? "+" : ""}${delta})`,
+        diff: { ids, delta },
+      });
+      if (okC) toast.success(`${okC} produto${okC === 1 ? "" : "s"} atualizado${okC === 1 ? "" : "s"}`);
+      if (fail) toast.error(`${fail} falharam`);
+      setSelected(new Set()); setBulkAction(""); setBulkValue("");
+      qc.invalidateQueries({ queryKey: queryKeys.products.all });
+      load();
+      return;
+    } else if (bulkAction === "delete") {
+      const ok = await confirm({
+        title: `Remover ${ids.length} produto${ids.length === 1 ? "" : "s"}?`,
+        description: "Esta ação não pode ser desfeita.",
+        variant: "destructive",
+        confirmLabel: "Remover",
+      });
+      if (!ok) return;
+      setBulkBusy(true);
+      const { error } = await supabase.from("products").delete().in("id", ids);
+      setBulkBusy(false);
+      if (error) { toast.error(error.message); return; }
+      logAdminAction({ action: "delete", entity: "products", entityId: null, summary: `${ids.length} produtos removidos`, diff: { ids } });
+      toast.success(`${ids.length} removido${ids.length === 1 ? "" : "s"}`);
+      setSelected(new Set()); setBulkAction(""); setBulkValue("");
+      qc.invalidateQueries({ queryKey: queryKeys.products.all });
+      load();
+      return;
+    }
+
+    if (needsConfirm) {
+      const ok = await confirm({
+        title: `Aplicar a ${ids.length} produto${ids.length === 1 ? "" : "s"}?`,
+        description: `Os produtos selecionados terão ${summary}.`,
+      });
+      if (!ok) return;
+    }
+
+    setBulkBusy(true);
+    const { error } = await supabase.from("products").update(payload).in("id", ids);
+    setBulkBusy(false);
+    if (error) { toast.error(error.message); return; }
+    logAdminAction({
+      action: "update",
+      entity: "products",
+      entityId: null,
+      summary: `${ids.length} produtos ${summary}`,
+      diff: { ids, payload },
+    });
+    toast.success(`${ids.length} atualizado${ids.length === 1 ? "" : "s"}`);
+    setSelected(new Set()); setBulkAction(""); setBulkValue("");
+    qc.invalidateQueries({ queryKey: queryKeys.products.all });
+    load();
+  }
+
   if (error) return <AdminErrorBanner error={error} onRetry={load} />;
   const totalPages = totalCount != null ? Math.max(1, Math.ceil(totalCount / PAGE_SIZE)) : null;
 
@@ -281,13 +482,52 @@ function AdminProducts() {
         <Button onClick={() => setEditing({ is_active: true })}><Plus className="h-4 w-4" /> Novo produto</Button>
       </div>
 
+      {selected.size > 0 && (
+        <div className="mb-3 flex items-center justify-between gap-3 px-4 py-2.5 bg-primary/10 border border-primary/30 rounded-xl text-sm flex-wrap">
+          <span className="font-semibold text-primary">{selected.size} selecionado{selected.size === 1 ? "" : "s"}</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <select
+              disabled={bulkBusy}
+              value={bulkAction}
+              onChange={(e) => { setBulkAction(e.target.value as any); setBulkValue(""); }}
+              className="h-9 rounded-lg border border-input bg-background px-2 text-xs"
+            >
+              <option value="">Ação em massa…</option>
+              <option value="activate">Ativar</option>
+              <option value="deactivate">Desativar</option>
+              <option value="feature">Destacar</option>
+              <option value="unfeature">Remover destaque</option>
+              <option value="stock_set">Definir stock</option>
+              <option value="stock_inc">Somar ao stock (±)</option>
+              <option value="delete">Remover</option>
+            </select>
+            {(bulkAction === "stock_set" || bulkAction === "stock_inc") && (
+              <Input
+                type="number"
+                inputMode="numeric"
+                value={bulkValue}
+                onChange={(e) => setBulkValue(e.target.value)}
+                placeholder={bulkAction === "stock_set" ? "Novo stock" : "+/− qtd"}
+                className="h-9 w-28"
+              />
+            )}
+            <Button size="sm" disabled={!bulkAction || bulkBusy} onClick={runBulk}>Aplicar</Button>
+            <Button variant="outline" size="sm" onClick={() => { setSelected(new Set()); setBulkAction(""); setBulkValue(""); }}>Limpar</Button>
+          </div>
+        </div>
+      )}
+
       {/* Mobile: cards. Desktop (md+): tabela. */}
       <ul className="md:hidden space-y-2">
         {loading && Array.from({ length: 6 }).map((_, i) => (
           <li key={i} className="h-20 bg-muted/50 rounded-2xl animate-pulse" />
         ))}
         {!loading && items.map((p) => (
-          <li key={p.id} className="bg-card rounded-2xl border border-border p-3 flex gap-3">
+          <li key={p.id} className={`bg-card rounded-2xl border p-3 flex gap-3 ${selected.has(p.id) ? "border-primary ring-2 ring-primary/20" : "border-border"}`}>
+            <label className="shrink-0 mt-1 inline-flex items-center justify-center w-5 h-5 rounded border border-input cursor-pointer">
+              <input type="checkbox" checked={selected.has(p.id)} onChange={() => toggleSel(p.id)} className="sr-only" aria-label={`Selecionar ${p.name}`} />
+              {selected.has(p.id) && <Check className="h-3.5 w-3.5 text-primary" />}
+            </label>
             <img src={p.image_url || "/assets/no-image.svg"} alt="" className="w-14 h-14 rounded-lg object-cover bg-muted shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm leading-snug line-clamp-2">{p.name}</p>
@@ -301,6 +541,7 @@ function AdminProducts() {
             </div>
             <div className="flex flex-col gap-1 shrink-0">
               <button onClick={() => setEditing(p)} aria-label="Editar" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted"><Pencil className="h-4 w-4" /></button>
+              <button onClick={() => duplicate(p)} aria-label="Duplicar" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted"><Copy className="h-4 w-4" /></button>
               <button onClick={() => del(p.id)} aria-label="Remover" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="h-4 w-4" /></button>
             </div>
           </li>
@@ -314,6 +555,14 @@ function AdminProducts() {
         <table className="w-full text-sm">
           <thead className="bg-muted/50 text-xs uppercase tracking-wide">
             <tr>
+              <th className="px-3 py-3 w-8">
+                <input
+                  type="checkbox"
+                  aria-label="Selecionar todos"
+                  checked={items.length > 0 && selected.size === items.length}
+                  onChange={toggleAllVisible}
+                />
+              </th>
               <th className="text-left px-4 py-3">Produto</th>
               <th className="text-left px-4 py-3 hidden md:table-cell">Categoria</th>
               <th className="text-right px-4 py-3">Preço</th>
@@ -324,11 +573,14 @@ function AdminProducts() {
           <tbody>
             {loading && Array.from({ length: 6 }).map((_, i) => (
               <tr key={i} className="border-t border-border">
-                <td className="px-4 py-3" colSpan={5}><div className="h-10 bg-muted/50 rounded animate-pulse" /></td>
+                <td className="px-4 py-3" colSpan={6}><div className="h-10 bg-muted/50 rounded animate-pulse" /></td>
               </tr>
             ))}
             {!loading && items.map((p) => (
-              <tr key={p.id} className="border-t border-border">
+              <tr key={p.id} className={`border-t border-border ${selected.has(p.id) ? "bg-primary/5" : ""}`}>
+                <td className="px-3 py-3">
+                  <input type="checkbox" aria-label={`Selecionar ${p.name}`} checked={selected.has(p.id)} onChange={() => toggleSel(p.id)} />
+                </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
                     <img src={p.image_url || "/assets/no-image.svg"} alt="" className="w-10 h-10 rounded object-cover bg-muted" />
@@ -345,12 +597,13 @@ function AdminProducts() {
                 </td>
                 <td className="px-4 py-3 text-right whitespace-nowrap">
                   <button onClick={() => setEditing(p)} className="p-1.5 hover:bg-muted rounded mr-1"><Pencil className="h-4 w-4" /></button>
+                  <button onClick={() => duplicate(p)} aria-label="Duplicar" title="Duplicar" className="p-1.5 hover:bg-muted rounded mr-1"><Copy className="h-4 w-4" /></button>
                   <button onClick={() => del(p.id)} className="p-1.5 hover:bg-destructive/10 text-destructive rounded"><Trash2 className="h-4 w-4" /></button>
                 </td>
               </tr>
             ))}
             {!loading && items.length === 0 && (
-              <tr><td colSpan={5} className="text-center py-12 text-muted-foreground">Nenhum produto.</td></tr>
+              <tr><td colSpan={6} className="text-center py-12 text-muted-foreground">Nenhum produto.</td></tr>
             )}
           </tbody>
         </table>
