@@ -653,7 +653,7 @@ export default function Catalog() {
                           checked
                             ? "bg-primary/5 border-primary/40 shadow-sm"
                             : "bg-background border-border hover:bg-muted/60 hover:border-border"
-                        }`}
+                        } focus-within:ring-2 focus-within:ring-primary/40 focus-within:border-primary/50`}
                       >
                         <input
                           type="checkbox"
