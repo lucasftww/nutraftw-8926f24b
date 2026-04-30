@@ -607,6 +607,14 @@ export default function Catalog() {
                     onAdd={handleAdd}
                     onPrefetch={prefetchProduct}
                     onPrefetchFull={prefetchProductFull}
+                    onSeeAll={
+                      ((grouped.sections.find((g) => g.slug === s.slug)?.items.length ?? s.items.length) > s.items.length)
+                        ? () => {
+                            setSelectedCats(new Set([s.slug]));
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                          }
+                        : undefined
+                    }
                   />
                 ))}
                 {hasMore && (
