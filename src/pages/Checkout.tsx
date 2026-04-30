@@ -591,8 +591,8 @@ export default function Checkout() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 md:py-10">
-      <div className="flex items-center mb-3 sm:mb-6">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 md:py-10 pb-24 lg:pb-10">
+      <div className="flex items-center mb-3 sm:mb-4">
         <button
           onClick={() => nav(-1)}
           aria-label="Voltar"
@@ -600,7 +600,47 @@ export default function Checkout() {
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
+        <h1 className="ml-1 text-base sm:text-lg font-bold text-foreground">Finalizar pedido</h1>
       </div>
+
+      {/* Stepper — guia visual de progresso. Não troca de tela: apenas
+          espelha o estado das seções (`buyerDone` / `addressDone+shippingDone` /
+          `paymentDone`). Reduz ansiedade do usuário em formulários longos. */}
+      {(() => {
+        const steps = [
+          { n: 1, label: "Seus dados", done: buyerDone },
+          { n: 2, label: "Entrega", done: addressDone && shippingDone },
+          { n: 3, label: "Pagamento", done: paymentDone },
+        ];
+        return (
+          <ol className="mb-5 sm:mb-6 flex items-center gap-1.5 sm:gap-3" aria-label="Progresso do checkout">
+            {steps.map((s, i) => (
+              <li key={s.n} className="flex items-center gap-1.5 sm:gap-3 flex-1 min-w-0">
+                <div
+                  className={`flex items-center gap-2 min-w-0 flex-1 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-full border transition-colors ${
+                    s.done
+                      ? "bg-success/10 border-success/30 text-success"
+                      : "bg-muted/40 border-border text-muted-foreground"
+                  }`}
+                >
+                  <span
+                    className={`inline-flex items-center justify-center h-5 w-5 rounded-full text-[11px] font-bold shrink-0 ${
+                      s.done ? "bg-success text-success-foreground" : "bg-background border border-border text-foreground"
+                    }`}
+                    aria-hidden
+                  >
+                    {s.done ? <Check className="h-3 w-3" strokeWidth={3} /> : s.n}
+                  </span>
+                  <span className="text-[11px] sm:text-xs font-semibold truncate">{s.label}</span>
+                </div>
+                {i < steps.length - 1 && (
+                  <span aria-hidden className={`hidden sm:block h-px flex-1 ${s.done ? "bg-success/40" : "bg-border"}`} />
+                )}
+              </li>
+            ))}
+          </ol>
+        );
+      })()}
 
       <form onSubmit={submit} className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-5 lg:gap-8">
         <div className="space-y-4 sm:space-y-6 min-w-0">
