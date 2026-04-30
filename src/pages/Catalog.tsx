@@ -503,6 +503,7 @@ export default function Catalog() {
                   <Section
                     title="Promoções"
                     items={paginated.promos}
+                    total={grouped.promos.length}
                     onAdd={handleAdd}
                     onPrefetch={prefetchProduct}
                     onPrefetchFull={prefetchProductFull}
@@ -513,6 +514,7 @@ export default function Catalog() {
                     key={s.name}
                     title={s.name}
                     items={s.items}
+                    total={grouped.sections.find((g) => g.slug === s.slug)?.items.length ?? s.items.length}
                     onAdd={handleAdd}
                     onPrefetch={prefetchProduct}
                     onPrefetchFull={prefetchProductFull}
