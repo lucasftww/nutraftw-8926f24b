@@ -340,11 +340,14 @@ export default function Catalog() {
 
   return (
     <>
-      {/* Busca sticky — fica logo abaixo do header (h-12 mobile = top-12).
-          Mantém acessível ao rolar a lista, reduz “voltar ao topo”. */}
-      <div className="sticky top-12 md:top-14 z-20 bg-background/95 backdrop-blur-md border-b border-border/40 pt-3 md:pt-4 pb-2 md:pb-3">
+      {/* Barra sticky única: busca + chips de categoria juntos.
+          - Cola direto no header (sem padding top extra) para eliminar
+            o espaço vazio entre header e conteúdo.
+          - Chips logo abaixo da busca formam a "barra de filtros"
+            principal, sempre visível durante o scroll. */}
+      <div className="sticky top-12 md:top-14 z-20 bg-background border-b border-border/40 pt-1.5 md:pt-2 pb-2 md:pb-2.5">
         <div className="container mx-auto px-4">
-          <div className="w-full max-w-3xl mx-auto space-y-3">
+          <div className="w-full max-w-3xl mx-auto space-y-2.5">
           {/* Linha 1: busca + ícone de filtros (drawer com ordenação e
               multi-seleção avançada). Mais limpa: 1 input grande + 1 ícone. */}
           <div className="flex gap-2">
@@ -377,75 +380,72 @@ export default function Catalog() {
               )}
             </button>
           </div>
+
+          {/* Linha 2: chips horizontais de categoria — pill ativo sólido
+              azul-marinho, inativos com borda discreta (estilo da referência). */}
+          <div
+            role="tablist"
+            aria-label="Categorias"
+            className="-mx-4 px-4 flex gap-2 overflow-x-auto scroll-smooth snap-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          >
+            {(() => {
+              const promoCount = countByCat.get("__promos__") ?? 0;
+              const allActive = selectedCats.size === 0;
+              const chips: { key: string; label: string; active: boolean; onClick: () => void }[] = [
+                {
+                  key: "__all__",
+                  label: "Todas",
+                  active: allActive,
+                  onClick: () => setSelectedCats(new Set()),
+                },
+                ...(promoCount > 0
+                  ? [
+                      {
+                        key: "__promos__",
+                        label: "Promoções",
+                        active: selectedCats.size === 1 && selectedCats.has("__promos__"),
+                        onClick: () => setSelectedCats(new Set(["__promos__"])),
+                      },
+                    ]
+                  : []),
+                ...[...categories]
+                  .sort((a, b) => {
+                    const aTirz = isTirzepatidaCategory(a) ? 0 : 1;
+                    const bTirz = isTirzepatidaCategory(b) ? 0 : 1;
+                    if (aTirz !== bTirz) return aTirz - bTirz;
+                    return 0;
+                  })
+                  .map((c) => ({
+                    key: c.slug,
+                    label: c.name,
+                    active: selectedCats.size === 1 && selectedCats.has(c.slug),
+                    onClick: () => setSelectedCats(new Set([c.slug])),
+                  })),
+              ];
+              return chips.map((chip) => (
+                <button
+                  key={chip.key}
+                  type="button"
+                  role="tab"
+                  aria-pressed={chip.active}
+                  onClick={chip.onClick}
+                  className={`shrink-0 snap-start inline-flex items-center justify-center h-8 px-3.5 rounded-full text-[13px] font-semibold whitespace-nowrap transition-all ${
+                    chip.active
+                      ? "bg-primary text-primary-foreground shadow-sm shadow-primary/25"
+                      : "bg-background text-foreground/70 border border-border hover:border-primary/40 hover:text-foreground"
+                  }`}
+                >
+                  {chip.label}
+                </button>
+              ));
+            })()}
+          </div>
           </div>
         </div>
       </div>
 
-      {/* Linha 2 (full-width): chips horizontais de categoria.
-          Caminho principal de filtragem — substitui o select e o painel
-          de filtros para o uso do dia-a-dia. */}
-      <div className="container mx-auto px-4 mt-3 md:mt-5">
-        <div
-          role="tablist"
-          aria-label="Categorias"
-          className="-mx-4 px-4 flex gap-2 overflow-x-auto scroll-smooth snap-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-        >
-          {(() => {
-            const promoCount = countByCat.get("__promos__") ?? 0;
-            const allActive = selectedCats.size === 0;
-            const chips: { key: string; label: string; active: boolean; onClick: () => void }[] = [
-              {
-                key: "__all__",
-                label: "Tudo",
-                active: allActive,
-                onClick: () => setSelectedCats(new Set()),
-              },
-              ...(promoCount > 0
-                ? [
-                    {
-                      key: "__promos__",
-                      label: "Promoções",
-                      active: selectedCats.size === 1 && selectedCats.has("__promos__"),
-                      onClick: () => setSelectedCats(new Set(["__promos__"])),
-                    },
-                  ]
-                : []),
-              ...[...categories]
-                .sort((a, b) => {
-                  const aTirz = isTirzepatidaCategory(a) ? 0 : 1;
-                  const bTirz = isTirzepatidaCategory(b) ? 0 : 1;
-                  if (aTirz !== bTirz) return aTirz - bTirz;
-                  return 0;
-                })
-                .map((c) => ({
-                  key: c.slug,
-                  label: c.name,
-                  active: selectedCats.size === 1 && selectedCats.has(c.slug),
-                  onClick: () => setSelectedCats(new Set([c.slug])),
-                })),
-            ];
-            return chips.map((chip) => (
-              <button
-                key={chip.key}
-                type="button"
-                role="tab"
-                aria-pressed={chip.active}
-                onClick={chip.onClick}
-                className={`shrink-0 snap-start inline-flex items-center justify-center h-9 px-4 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                  chip.active
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "bg-muted/60 text-foreground hover:bg-muted"
-                }`}
-              >
-                {chip.label}
-              </button>
-            ));
-          })()}
-        </div>
-      </div>
-
       {/* Sections */}
-      <section className="pt-5 md:pt-7 pb-2">
+      <section className="relative z-10 pt-3 md:pt-5 pb-2 scroll-mt-32">
         <div className="container mx-auto px-4">
           {/* overflow-anchor:none impede o navegador de "puxar" o scroll
               quando novos cards são inseridos pelo infinite scroll —
@@ -707,17 +707,23 @@ const Section = memo(function Section({
       }, 0)
     : 0;
   return (
-    <div style={{ contentVisibility: "auto", containIntrinsicSize: "1px 600px" }}>
-      <div className="mb-4 md:mb-6">
-        <h2 className="text-lg md:text-2xl font-bold tracking-tight text-foreground">
+    <div>
+      {/* Em "Promoções", o chip da barra sticky + o subtítulo já comunicam
+          tudo — esconder o h2 evita redundância e o problema de overlap
+          com a barra sticky. */}
+      {isPromos ? (
+        maxDiscount > 0 && (
+          <div className="mb-3 md:mb-4">
+            <p className="text-xs md:text-sm text-muted-foreground">
+              Ofertas com até <span className="font-semibold text-secondary">{maxDiscount}% off</span>
+            </p>
+          </div>
+        )
+      ) : (
+        <h2 className="mb-4 md:mb-6 text-lg md:text-2xl font-bold tracking-tight text-foreground leading-tight">
           {title}
         </h2>
-        {isPromos && maxDiscount > 0 && (
-          <p className="mt-0.5 text-xs md:text-sm text-muted-foreground">
-            Ofertas com até <span className="font-semibold text-secondary">{maxDiscount}% off</span>
-          </p>
-        )}
-      </div>
+      )}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
         {items.map((p, idx) => (
           <ProductCard
