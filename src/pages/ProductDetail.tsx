@@ -2,7 +2,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { ShoppingCart, ShieldCheck, Truck, Package, CreditCard, MessageCircle, QrCode, ChevronDown } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
-import { responsiveImage } from "@/lib/image";
+import { responsiveImage, imageUrl } from "@/lib/image";
 import { Button } from "@/components/ui/button";
 import { WishlistButton } from "@/components/wishlist/WishlistButton";
 import { ShippingCalculator } from "@/components/product/ShippingCalculator";
