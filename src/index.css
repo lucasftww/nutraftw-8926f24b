@@ -13,13 +13,19 @@
   html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
-    scroll-behavior: smooth;
+    /* scroll-behavior: smooth removido — causava efeito "kicking" no mobile
+       quando imagens lazy/conteúdo acima carregavam após F5 e o navegador
+       animava o reajuste do scroll. Mantemos smooth só em âncoras (:target). */
   }
   body {
     -webkit-tap-highlight-color: transparent;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     overflow-x: hidden;
+    /* Evita que o navegador "puxe" o scroll quando elementos acima da
+       viewport mudam de altura (lazy images, banners, etc.) — principal
+       causa do efeito de kicking no mobile durante o carregamento. */
+    overflow-anchor: none;
   }
   /* Evita zoom indesejado em iOS quando o usuário toca em inputs (font-size < 16px) */
   @media (max-width: 640px) {
