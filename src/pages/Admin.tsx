@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatBRL, slugify } from "@/lib/utils";
 import { toast } from "sonner";
-import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, Image as ImageIcon, RefreshCcw, Settings, BarChart3, Activity, History, TrendingUp, Users, Download } from "lucide-react";
+import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, Image as ImageIcon, RefreshCcw, Settings, BarChart3, Activity, History, TrendingUp, Users, Download, ChevronUp, ChevronDown, Check, Calendar } from "lucide-react";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { WeeklyReport } from "@/components/admin/WeeklyReport";
 import { ImageUpload } from "@/components/admin/ImageUpload";
@@ -22,11 +22,15 @@ import { AdminDiagnostics } from "@/components/admin/AdminDiagnostics";
 import { AdminAuditLog } from "@/components/admin/AdminAuditLog";
 import { AdminFunnel } from "@/components/admin/AdminFunnel";
 import { AdminUsers } from "@/components/admin/AdminUsers";
+import { AdminModal } from "@/components/admin/AdminModal";
+import { ConfirmProvider, useConfirm } from "@/components/admin/ConfirmDialog";
 import { queryKeys } from "@/lib/queryKeys";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 import { logAdminAction, shallowDiff } from "@/lib/auditLog";
 
 type Tab = "dashboard" | "funnel" | "reports" | "products" | "categories" | "orders" | "coupons" | "shipping" | "banners" | "users" | "resends" | "settings" | "diagnostics" | "audit";
+
+const TAB_IDS: Tab[] = ["dashboard","funnel","reports","products","categories","orders","coupons","shipping","banners","users","resends","settings","diagnostics","audit"];
 
 const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -46,9 +50,26 @@ const TABS: { id: Tab; label: string; icon: any }[] = [
 ];
 
 export default function Admin() {
+  return (
+    <ConfirmProvider>
+      <AdminInner />
+    </ConfirmProvider>
+  );
+}
+
+function AdminInner() {
   const { user } = useAuth();
   const nav = useNavigate();
-  const [tab, setTab] = useState<Tab>("dashboard");
+  // Persiste a aba ativa na URL — recarregar mantém o contexto e dá pra
+  // compartilhar link direto (?tab=pedidos).
+  const [params, setParams] = useSearchParams();
+  const urlTab = params.get("tab") as Tab | null;
+  const tab: Tab = urlTab && TAB_IDS.includes(urlTab) ? urlTab : "dashboard";
+  const setTab = (t: Tab) => {
+    const next = new URLSearchParams(params);
+    if (t === "dashboard") next.delete("tab"); else next.set("tab", t);
+    setParams(next, { replace: true });
+  };
 
   async function logout() {
     await supabase.auth.signOut();
@@ -56,28 +77,38 @@ export default function Admin() {
   }
 
   return (
-    <div className="container py-8">
-      <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
-        <div>
-          <h1 className="font-display text-3xl md:text-4xl font-extrabold text-primary">Painel administrativo</h1>
-          <p className="text-sm text-muted-foreground">{user?.email}</p>
+    <div className="container py-4 md:py-8">
+      {/* Header sticky — mantém título e Sair sempre acessíveis. */}
+      <div className="sticky top-0 z-30 -mx-4 md:-mx-6 px-4 md:px-6 pt-4 pb-3 mb-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border">
+        <div className="flex justify-between items-center gap-4 mb-3">
+          <div className="min-w-0">
+            <h1 className="font-display text-xl md:text-3xl font-extrabold text-primary truncate">Painel administrativo</h1>
+            <p className="text-xs md:text-sm text-muted-foreground truncate">{user?.email}</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={logout}>
+            <LogOut className="h-4 w-4" />
+            <span className="hidden sm:inline ml-1">Sair</span>
+          </Button>
         </div>
-        <Button variant="outline" onClick={logout}><LogOut className="h-4 w-4" /> Sair</Button>
-      </div>
-
-      <div className="flex gap-1 mb-6 border-b border-border overflow-x-auto">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
-              tab === t.id ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <t.icon className="h-4 w-4" />
-            {t.label}
-          </button>
-        ))}
+        {/* Tabs com scroll horizontal e fade lateral indicando que há mais. */}
+        <div className="relative">
+          <div className="flex gap-1 overflow-x-auto scrollbar-thin -mb-px snap-x snap-mandatory">
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                aria-current={tab === t.id ? "page" : undefined}
+                className={`px-3 md:px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap snap-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:rounded-t-md ${
+                  tab === t.id ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <t.icon className="h-4 w-4 shrink-0" />
+                {t.label}
+              </button>
+            ))}
+          </div>
+          <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background to-transparent md:hidden" />
+        </div>
       </div>
 
       {tab === "dashboard" && <AdminDashboard />}
@@ -103,41 +134,63 @@ function AdminProducts() {
   const [cats, setCats] = useState<any[]>([]);
   const [editing, setEditing] = useState<any | null>(null);
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [page, setPage] = useState(0);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<AdminErrorInfo | null>(null);
+  const PAGE_SIZE = 30;
   const qc = useQueryClient();
+  const { confirm } = useConfirm();
+
+  // Debounce da busca p/ não bater no servidor a cada tecla.
+  useEffect(() => {
+    const t = window.setTimeout(() => setDebouncedQuery(query.trim()), 300);
+    return () => window.clearTimeout(t);
+  }, [query]);
+
+  // Reset de página quando o termo de busca muda.
+  useEffect(() => { setPage(0); }, [debouncedQuery]);
 
   async function load() {
+    setLoading(true);
     setError(null);
+    const from = page * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+    let q = supabase
+      .from("products")
+      .select("*, category:categories(name)", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(from, to);
+    if (debouncedQuery) {
+      // Busca server-side por nome OU princípio ativo (case-insensitive).
+      const safe = debouncedQuery.replace(/[%_,]/g, " ");
+      q = q.or(`name.ilike.%${safe}%,active_principle.ilike.%${safe}%`);
+    }
     const [pr, cr] = await Promise.all([
-      supabase.from("products").select("*, category:categories(name)").order("created_at", { ascending: false }),
+      q,
       supabase.from("categories").select("*").order("display_order"),
     ]);
     if (pr.error) {
       const info = logSupabaseError("Carregar produtos", pr.error, { table: "products" });
       setError(info);
       toast.error(`Produtos: ${info.message}`);
+      setLoading(false);
       return;
     }
     if (cr.error) {
       const info = logSupabaseError("Carregar categorias", cr.error, { table: "categories" });
       setError(info);
       toast.error(`Categorias: ${info.message}`);
+      setLoading(false);
       return;
     }
     setItems(pr.data || []);
+    setTotalCount(pr.count ?? null);
     setCats(cr.data || []);
+    setLoading(false);
   }
-  useEffect(() => { load(); }, []);
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return items;
-    return items.filter((p) =>
-      p.name.toLowerCase().includes(q) ||
-      (p.active_principle || "").toLowerCase().includes(q) ||
-      (p.category?.name || "").toLowerCase().includes(q),
-    );
-  }, [items, query]);
+  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [page, debouncedQuery]);
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -184,8 +237,14 @@ function AdminProducts() {
   }
 
   async function del(id: string) {
-    if (!confirm("Remover produto?")) return;
     const before = items.find((p) => p.id === id);
+    const ok = await confirm({
+      title: "Remover produto?",
+      description: `O produto "${before?.name ?? "selecionado"}" será removido permanentemente. Esta ação não pode ser desfeita.`,
+      variant: "destructive",
+      confirmLabel: "Remover",
+    });
+    if (!ok) return;
     const { error } = await supabase.from("products").delete().eq("id", id);
     if (error) {
       logSupabaseError("Remover produto", error, { id });
@@ -205,18 +264,53 @@ function AdminProducts() {
   }
 
   if (error) return <AdminErrorBanner error={error} onRetry={load} />;
+  const totalPages = totalCount != null ? Math.max(1, Math.ceil(totalCount / PAGE_SIZE)) : null;
 
   return (
     <>
       <div className="flex justify-between items-center mb-4 gap-3 flex-wrap">
         <div className="relative flex-1 min-w-[200px] max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input className="pl-9" placeholder="Buscar produto, princípio ativo…" value={query} onChange={(e) => setQuery(e.target.value)} />
+          <Input className="pl-9" placeholder="Buscar produto ou princípio ativo…" value={query} onChange={(e) => setQuery(e.target.value)} />
         </div>
+        {totalCount != null && (
+          <span className="text-xs text-muted-foreground">
+            {totalCount} {totalCount === 1 ? "produto" : "produtos"}
+          </span>
+        )}
         <Button onClick={() => setEditing({ is_active: true })}><Plus className="h-4 w-4" /> Novo produto</Button>
       </div>
 
-      <div className="bg-card rounded-2xl border border-border overflow-hidden">
+      {/* Mobile: cards. Desktop (md+): tabela. */}
+      <ul className="md:hidden space-y-2">
+        {loading && Array.from({ length: 6 }).map((_, i) => (
+          <li key={i} className="h-20 bg-muted/50 rounded-2xl animate-pulse" />
+        ))}
+        {!loading && items.map((p) => (
+          <li key={p.id} className="bg-card rounded-2xl border border-border p-3 flex gap-3">
+            <img src={p.image_url || "/assets/no-image.svg"} alt="" className="w-14 h-14 rounded-lg object-cover bg-muted shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm leading-snug line-clamp-2">{p.name}</p>
+              <p className="text-xs text-muted-foreground truncate">{p.category?.name || "Sem categoria"}</p>
+              <div className="flex items-center justify-between mt-1.5">
+                <span className="font-bold text-primary text-sm">{formatBRL(p.price)}</span>
+                <span className={`text-[11px] tabular-nums ${p.stock < 5 ? "text-destructive font-bold" : "text-muted-foreground"}`}>
+                  Stock: {p.stock}
+                </span>
+              </div>
+            </div>
+            <div className="flex flex-col gap-1 shrink-0">
+              <button onClick={() => setEditing(p)} aria-label="Editar" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted"><Pencil className="h-4 w-4" /></button>
+              <button onClick={() => del(p.id)} aria-label="Remover" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="h-4 w-4" /></button>
+            </div>
+          </li>
+        ))}
+        {!loading && items.length === 0 && (
+          <li className="text-center py-12 text-muted-foreground bg-card rounded-2xl border border-border">Nenhum produto.</li>
+        )}
+      </ul>
+
+      <div className="hidden md:block bg-card rounded-2xl border border-border overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-muted/50 text-xs uppercase tracking-wide">
             <tr>
@@ -228,7 +322,12 @@ function AdminProducts() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((p) => (
+            {loading && Array.from({ length: 6 }).map((_, i) => (
+              <tr key={i} className="border-t border-border">
+                <td className="px-4 py-3" colSpan={5}><div className="h-10 bg-muted/50 rounded animate-pulse" /></td>
+              </tr>
+            ))}
+            {!loading && items.map((p) => (
               <tr key={p.id} className="border-t border-border">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
@@ -250,17 +349,26 @@ function AdminProducts() {
                 </td>
               </tr>
             ))}
-            {filtered.length === 0 && (
+            {!loading && items.length === 0 && (
               <tr><td colSpan={5} className="text-center py-12 text-muted-foreground">Nenhum produto.</td></tr>
             )}
           </tbody>
         </table>
       </div>
 
-      {editing && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setEditing(null)}>
-          <form onSubmit={save} onClick={(e) => e.stopPropagation()} className="bg-card rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto space-y-4">
-            <h2 className="font-bold text-xl">{editing.id ? "Editar produto" : "Novo produto"}</h2>
+      {totalPages && totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4 text-sm">
+          <p className="text-muted-foreground">Página {page + 1} de {totalPages}</p>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" disabled={page === 0 || loading} onClick={() => setPage((p) => Math.max(0, p - 1))}>← Anterior</Button>
+            <Button variant="outline" size="sm" disabled={page >= totalPages - 1 || loading} onClick={() => setPage((p) => p + 1)}>Próxima →</Button>
+          </div>
+        </div>
+      )}
+
+      <AdminModal open={!!editing} onClose={() => setEditing(null)} title={editing?.id ? "Editar produto" : "Novo produto"} size="lg">
+        {editing && (
+          <form onSubmit={save} className="space-y-4">
             <div className="grid sm:grid-cols-2 gap-3">
               <div className="space-y-2 sm:col-span-2"><Label>Nome</Label><Input required value={editing.name || ""} onChange={(e) => setEditing({ ...editing, name: e.target.value })} /></div>
               <div className="space-y-2"><Label>Slug</Label><Input value={editing.slug || ""} placeholder="auto" onChange={(e) => setEditing({ ...editing, slug: e.target.value })} /></div>
@@ -283,13 +391,13 @@ function AdminProducts() {
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!editing.is_featured} onChange={(e) => setEditing({ ...editing, is_featured: e.target.checked })} /> Em destaque</label>
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={editing.is_active !== false} onChange={(e) => setEditing({ ...editing, is_active: e.target.checked })} /> Ativo</label>
             </div>
-            <div className="flex justify-end gap-2 pt-4 border-t border-border">
+            <div className="flex justify-end gap-2 pt-4 border-t border-border sticky bottom-0 bg-card">
               <Button type="button" variant="outline" onClick={() => setEditing(null)}>Cancelar</Button>
               <Button type="submit">Salvar</Button>
             </div>
           </form>
-        </div>
-      )}
+        )}
+      </AdminModal>
     </>
   );
 }
@@ -297,8 +405,11 @@ function AdminProducts() {
 function AdminCategories() {
   const [items, setItems] = useState<any[]>([]);
   const [name, setName] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
   const [error, setError] = useState<AdminErrorInfo | null>(null);
   const qc = useQueryClient();
+  const { confirm } = useConfirm();
 
   async function load() {
     setError(null);
@@ -315,7 +426,8 @@ function AdminCategories() {
 
   async function add() {
     if (!name.trim()) return;
-    const payload = { name, slug: slugify(name) };
+    const maxOrder = items.reduce((m, c) => Math.max(m, c.display_order ?? 0), 0);
+    const payload = { name: name.trim(), slug: slugify(name), display_order: maxOrder + 1 };
     const { data, error } = await supabase.from("categories").insert(payload).select().maybeSingle();
     if (error) {
       logSupabaseError("Adicionar categoria", error, { name });
@@ -333,9 +445,66 @@ function AdminCategories() {
       load();
     }
   }
-  async function del(id: string) {
-    if (!confirm("Remover categoria?")) return;
+
+  async function rename(id: string) {
+    const v = editName.trim();
+    if (!v) { setEditingId(null); return; }
     const before = items.find((c) => c.id === id);
+    if (!before || before.name === v) { setEditingId(null); return; }
+    const payload = { name: v, slug: slugify(v) };
+    const { data, error } = await supabase.from("categories").update(payload).eq("id", id).select().maybeSingle();
+    if (error) {
+      logSupabaseError("Renomear categoria", error, { id });
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Categoria renomeada");
+    logAdminAction({
+      action: "update",
+      entity: "categories",
+      entityId: id,
+      summary: `Categoria renomeada: ${before.name} → ${v}`,
+      diff: shallowDiff(before, data),
+    });
+    setEditingId(null);
+    qc.invalidateQueries({ queryKey: queryKeys.categories.all });
+    load();
+  }
+
+  async function move(id: string, dir: -1 | 1) {
+    const sorted = [...items].sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
+    const idx = sorted.findIndex((c) => c.id === id);
+    const swapIdx = idx + dir;
+    if (idx < 0 || swapIdx < 0 || swapIdx >= sorted.length) return;
+    const a = sorted[idx];
+    const b = sorted[swapIdx];
+    // Atualização otimista + rollback se falhar.
+    const prev = items;
+    setItems((curr) => curr.map((c) => {
+      if (c.id === a.id) return { ...c, display_order: b.display_order };
+      if (c.id === b.id) return { ...c, display_order: a.display_order };
+      return c;
+    }));
+    const [r1, r2] = await Promise.all([
+      supabase.from("categories").update({ display_order: b.display_order }).eq("id", a.id),
+      supabase.from("categories").update({ display_order: a.display_order }).eq("id", b.id),
+    ]);
+    if (r1.error || r2.error) {
+      setItems(prev);
+      toast.error("Falha ao reordenar");
+      return;
+    }
+    qc.invalidateQueries({ queryKey: queryKeys.categories.all });
+  }
+
+  async function del(id: string) {
+    const before = items.find((c) => c.id === id);
+    const ok = await confirm({
+      title: "Remover categoria?",
+      description: `Os produtos vinculados a "${before?.name ?? "esta categoria"}" ficarão sem categoria.`,
+      variant: "destructive",
+    });
+    if (!ok) return;
     const { error: err } = await supabase.from("categories").delete().eq("id", id);
     if (err) {
       logSupabaseError("Remover categoria", err, { id });
@@ -354,6 +523,7 @@ function AdminCategories() {
   }
 
   if (error) return <AdminErrorBanner error={error} onRetry={load} />;
+  const sorted = [...items].sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
 
   return (
     <div className="bg-card rounded-2xl border border-border p-6">
@@ -362,14 +532,55 @@ function AdminCategories() {
         <Button onClick={add}><Plus className="h-4 w-4" /> Adicionar</Button>
       </div>
       <ul className="divide-y divide-border">
-        {items.map((c) => (
-          <li key={c.id} className="flex justify-between items-center py-3">
-            <div><p className="font-medium">{c.name}</p><p className="text-xs text-muted-foreground">{c.slug}</p></div>
-            <button onClick={() => del(c.id)} className="p-2 hover:bg-destructive/10 text-destructive rounded"><Trash2 className="h-4 w-4" /></button>
+        {sorted.map((c, idx) => (
+          <li key={c.id} className="flex items-center gap-2 py-3">
+            <div className="flex flex-col">
+              <button
+                onClick={() => move(c.id, -1)}
+                disabled={idx === 0}
+                aria-label={`Mover ${c.name} para cima`}
+                className="h-5 w-6 inline-flex items-center justify-center rounded hover:bg-muted disabled:opacity-30 disabled:hover:bg-transparent"
+              >
+                <ChevronUp className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={() => move(c.id, 1)}
+                disabled={idx === sorted.length - 1}
+                aria-label={`Mover ${c.name} para baixo`}
+                className="h-5 w-6 inline-flex items-center justify-center rounded hover:bg-muted disabled:opacity-30 disabled:hover:bg-transparent"
+              >
+                <ChevronDown className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            <div className="flex-1 min-w-0">
+              {editingId === c.id ? (
+                <Input
+                  autoFocus
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  onBlur={() => rename(c.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") { e.preventDefault(); rename(c.id); }
+                    if (e.key === "Escape") setEditingId(null);
+                  }}
+                />
+              ) : (
+                <button
+                  type="button"
+                  className="text-left w-full"
+                  onClick={() => { setEditingId(c.id); setEditName(c.name); }}
+                >
+                  <p className="font-medium hover:text-primary transition-colors">{c.name}</p>
+                  <p className="text-xs text-muted-foreground">{c.slug}</p>
+                </button>
+              )}
+            </div>
+            <button onClick={() => del(c.id)} aria-label={`Remover ${c.name}`} className="p-2 hover:bg-destructive/10 text-destructive rounded shrink-0"><Trash2 className="h-4 w-4" /></button>
           </li>
         ))}
         {items.length === 0 && <p className="text-center py-8 text-muted-foreground">Nenhuma categoria.</p>}
       </ul>
+      <p className="mt-4 text-xs text-muted-foreground">Toque no nome para renomear · use as setas para reordenar.</p>
     </div>
   );
 }
@@ -389,9 +600,15 @@ function AdminOrders() {
   const [items, setItems] = useState<any[]>([]);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<string>("all");
+  const [paymentFilter, setPaymentFilter] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState<string>("");
+  const [dateTo, setDateTo] = useState<string>("");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [error, setError] = useState<AdminErrorInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const { confirm, promptText } = useConfirm();
   // Paginação server-side: evita carregar milhares de pedidos de uma vez.
   const PAGE_SIZE = 50;
   const [page, setPage] = useState(0);
@@ -400,6 +617,7 @@ function AdminOrders() {
   async function load() {
     setLoading(true);
     setError(null);
+    setSelected(new Set());
     const from = page * PAGE_SIZE;
     const to = from + PAGE_SIZE - 1;
     let q = supabase
@@ -412,6 +630,9 @@ function AdminOrders() {
       .order("created_at", { ascending: false })
       .range(from, to);
     if (filter !== "all") q = q.eq("status", filter as any);
+    if (paymentFilter !== "all") q = q.eq("payment_method", paymentFilter as any);
+    if (dateFrom) q = q.gte("created_at", new Date(dateFrom + "T00:00:00").toISOString());
+    if (dateTo) q = q.lte("created_at", new Date(dateTo + "T23:59:59").toISOString());
     const { data, error: err, count } = await q;
     if (err) {
       const info = logSupabaseError("Carregar pedidos", err, { table: "orders", page, filter });
@@ -427,10 +648,11 @@ function AdminOrders() {
   // Reseta para a primeira página quando o filtro muda — fazer ANTES do
   // efeito de load() para não disparar duas requisições (page atual + page=0)
   // que poderiam causar race condition (resposta antiga sobrescreve nova).
-  const filterRef = useRef(filter);
+  const filterRef = useRef(`${filter}|${paymentFilter}|${dateFrom}|${dateTo}`);
   useEffect(() => {
-    if (filterRef.current !== filter) {
-      filterRef.current = filter;
+    const key = `${filter}|${paymentFilter}|${dateFrom}|${dateTo}`;
+    if (filterRef.current !== key) {
+      filterRef.current = key;
       if (page !== 0) {
         setPage(0);
         return; // load() dispara no próximo render via dep [page]
@@ -438,7 +660,7 @@ function AdminOrders() {
     }
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, filter]);
+  }, [page, filter, paymentFilter, dateFrom, dateTo]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -457,10 +679,17 @@ function AdminOrders() {
     const before = items.find((o) => o.id === id);
     let reason: string | null = null;
     if (status === "cancelled" || status === "refunded") {
-      const r = window.prompt(
-        `Motivo do ${status === "cancelled" ? "cancelamento" : "reembolso"} (opcional, será registrado na comissão):`
-      );
-      reason = r?.trim() ? r.trim() : null;
+      const label = status === "cancelled" ? "cancelamento" : "reembolso";
+      const r = await promptText({
+        title: `Motivo do ${label}`,
+        description: "Será registrado no histórico e na comissão (opcional).",
+        prompt: { label: "Motivo", placeholder: "Ex.: cliente solicitou…" },
+        confirmLabel: "Confirmar",
+        variant: "destructive",
+      });
+      // null = cancelou o diálogo; string vazia = confirmou sem motivo.
+      if (r === null) return;
+      reason = r.trim() ? r.trim() : null;
     }
     const { error: err } = await supabase.rpc("admin_set_order_status", {
       p_order_id: id,
@@ -475,6 +704,44 @@ function AdminOrders() {
       // O audit log já é gravado pelo admin_set_order_status no servidor.
       setItems((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
     }
+  }
+
+  async function bulkSetStatus(status: string) {
+    if (selected.size === 0) return;
+    const isDestructive = status === "cancelled" || status === "refunded";
+    const ok = await confirm({
+      title: `Marcar ${selected.size} pedido${selected.size === 1 ? "" : "s"} como "${status}"?`,
+      description: isDestructive
+        ? "Esta ação cancelará/reembolsará vários pedidos de uma vez."
+        : "Os pedidos selecionados terão o estado atualizado.",
+      variant: isDestructive ? "destructive" : "default",
+      confirmLabel: "Aplicar",
+    });
+    if (!ok) return;
+    setBulkBusy(true);
+    let okCount = 0, failCount = 0;
+    for (const id of selected) {
+      const { error: err } = await supabase.rpc("admin_set_order_status", {
+        p_order_id: id, p_status: status, p_reason: null,
+      });
+      if (err) failCount++; else okCount++;
+    }
+    setBulkBusy(false);
+    if (okCount) toast.success(`${okCount} pedido${okCount === 1 ? "" : "s"} atualizado${okCount === 1 ? "" : "s"}`);
+    if (failCount) toast.error(`${failCount} falharam`);
+    setSelected(new Set());
+    load();
+  }
+
+  function toggleSel(id: string) {
+    setSelected((s) => {
+      const next = new Set(s);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+  function toggleAll() {
+    setSelected((s) => s.size === filtered.length ? new Set() : new Set(filtered.map((o: any) => o.id)));
   }
 
   if (error) {
@@ -493,6 +760,9 @@ function AdminOrders() {
       .order("created_at", { ascending: false })
       .limit(5000);
     if (filter !== "all") q = q.eq("status", filter as any);
+    if (paymentFilter !== "all") q = q.eq("payment_method", paymentFilter as any);
+    if (dateFrom) q = q.gte("created_at", new Date(dateFrom + "T00:00:00").toISOString());
+    if (dateTo) q = q.lte("created_at", new Date(dateTo + "T23:59:59").toISOString());
     const { data, error: err } = await q;
     if (err || !data) {
       toast.error(`Falha ao exportar: ${err?.message ?? "sem dados"}`);
@@ -531,19 +801,82 @@ function AdminOrders() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input className="pl-9" placeholder="Buscar por ID, nome ou CPF…" value={query} onChange={(e) => setQuery(e.target.value)} />
         </div>
-        <select className="h-11 rounded-xl border border-input bg-background px-3 text-sm" value={filter} onChange={(e) => setFilter(e.target.value)}>
-          <option value="all">Todos</option>
+        <select className="h-11 rounded-xl border border-input bg-background px-3 text-sm" value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="Filtrar por estado">
+          <option value="all">Todos estados</option>
           {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
+        <select className="h-11 rounded-xl border border-input bg-background px-3 text-sm" value={paymentFilter} onChange={(e) => setPaymentFilter(e.target.value)} aria-label="Filtrar por pagamento">
+          <option value="all">Todos pagamentos</option>
+          <option value="pix">PIX</option>
+          <option value="card">Cartão</option>
+        </select>
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Calendar className="h-4 w-4" />
+          <Input type="date" className="h-11 w-[140px]" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} aria-label="Data inicial" />
+          <span>até</span>
+          <Input type="date" className="h-11 w-[140px]" value={dateTo} onChange={(e) => setDateTo(e.target.value)} aria-label="Data final" />
+          {(dateFrom || dateTo) && (
+            <button onClick={() => { setDateFrom(""); setDateTo(""); }} className="text-xs underline text-muted-foreground hover:text-foreground">limpar</button>
+          )}
+        </div>
         <Button variant="outline" onClick={exportCSV} disabled={loading}>
           <Download className="h-4 w-4" /> Exportar CSV
         </Button>
       </div>
 
-      <div className="bg-card rounded-2xl border border-border overflow-hidden">
+      {selected.size > 0 && (
+        <div className="mb-3 flex items-center justify-between gap-3 px-4 py-2.5 bg-primary/10 border border-primary/30 rounded-xl text-sm">
+          <span className="font-semibold text-primary">{selected.size} selecionado{selected.size === 1 ? "" : "s"}</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <select disabled={bulkBusy} onChange={(e) => { if (e.target.value) { bulkSetStatus(e.target.value); e.currentTarget.selectedIndex = 0; } }} className="h-9 rounded-lg border border-input bg-background px-2 text-xs">
+              <option value="">Alterar status para…</option>
+              {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <Button variant="outline" size="sm" onClick={() => setSelected(new Set())}>Limpar</Button>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile: cards. Desktop (md+): tabela. */}
+      <ul className="md:hidden space-y-2">
+        {loading && Array.from({ length: 5 }).map((_, i) => <li key={i} className="h-24 bg-muted/50 rounded-2xl animate-pulse" />)}
+        {!loading && filtered.map((o) => (
+          <li key={o.id} className={`bg-card rounded-2xl border p-3 ${selected.has(o.id) ? "border-primary ring-2 ring-primary/20" : "border-border"}`}>
+            <div className="flex items-start gap-2">
+              <label className="shrink-0 mt-0.5 inline-flex items-center justify-center w-5 h-5 rounded border border-input cursor-pointer">
+                <input type="checkbox" checked={selected.has(o.id)} onChange={() => toggleSel(o.id)} className="sr-only" />
+                {selected.has(o.id) && <Check className="h-3.5 w-3.5 text-primary" />}
+              </label>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${STATUS_COLORS[o.status] || "bg-muted"}`}>{o.status}</span>
+                </div>
+                <p className="font-semibold text-sm leading-tight truncate mt-1">{o.shipping_full_name || "—"}</p>
+                <div className="flex items-center justify-between mt-1.5">
+                  <span className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("pt-BR")} · {o.payment_method || "—"}</span>
+                  <span className="font-bold text-primary text-sm">{formatBRL(o.total)}</span>
+                </div>
+              </div>
+              <button onClick={() => setDetailId(o.id)} aria-label="Ver detalhes" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted shrink-0"><Eye className="h-4 w-4" /></button>
+            </div>
+          </li>
+        ))}
+        {!loading && filtered.length === 0 && <li className="text-center py-12 text-muted-foreground bg-card rounded-2xl border border-border">Nenhum pedido.</li>}
+      </ul>
+
+      <div className="hidden md:block bg-card rounded-2xl border border-border overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-muted/50 text-xs uppercase tracking-wide">
             <tr>
+              <th className="px-3 py-3 w-8">
+                <input
+                  type="checkbox"
+                  aria-label="Selecionar todos"
+                  checked={filtered.length > 0 && selected.size === filtered.length}
+                  onChange={toggleAll}
+                />
+              </th>
               <th className="text-left px-4 py-3">Pedido</th>
               <th className="text-left px-4 py-3 hidden md:table-cell">Cliente</th>
               <th className="text-left px-4 py-3 hidden lg:table-cell">Data</th>
@@ -554,7 +887,10 @@ function AdminOrders() {
           </thead>
           <tbody>
             {filtered.map((o) => (
-              <tr key={o.id} className="border-t border-border">
+              <tr key={o.id} className={`border-t border-border ${selected.has(o.id) ? "bg-primary/5" : ""}`}>
+                <td className="px-3 py-3">
+                  <input type="checkbox" aria-label={`Selecionar pedido ${o.id.slice(0, 8)}`} checked={selected.has(o.id)} onChange={() => toggleSel(o.id)} />
+                </td>
                 <td className="px-4 py-3 font-mono text-xs">#{o.id.slice(0, 8)}</td>
                 <td className="px-4 py-3 hidden md:table-cell">{o.shipping_full_name || "—"}</td>
                 <td className="px-4 py-3 hidden lg:table-cell text-muted-foreground text-xs">
@@ -579,7 +915,7 @@ function AdminOrders() {
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="text-center py-12 text-muted-foreground">
+                <td colSpan={7} className="text-center py-12 text-muted-foreground">
                   {loading ? "Carregando pedidos…" : "Nenhum pedido."}
                 </td>
               </tr>

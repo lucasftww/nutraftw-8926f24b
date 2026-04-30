@@ -2,9 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "./AdminErrorBanner";
 import { toast } from "sonner";
+import { AdminModal } from "./AdminModal";
 
 export function OrderDetailModal({ orderId, onClose }: { orderId: string; onClose: () => void }) {
   const [order, setOrder] = useState<any | null>(null);
@@ -42,21 +42,9 @@ export function OrderDetailModal({ orderId, onClose }: { orderId: string; onClos
     load();
   }, [load]);
 
-  // Fecha modal com tecla Esc — UX padrão de diálogos.
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="bg-card rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto space-y-4">
-        <div className="flex justify-between items-center">
-          <h2 className="font-bold text-xl">Pedido #{orderId.slice(0, 8)}</h2>
-          <button onClick={onClose} className="p-2 hover:bg-muted rounded-lg"><X className="h-4 w-4" /></button>
-        </div>
-
+    <AdminModal open onClose={onClose} title={`Pedido #${orderId.slice(0, 8)}`} size="lg">
+      <div className="space-y-4">
         {error ? (
           <AdminErrorBanner error={error} onRetry={load} />
         ) : loading || !order ? (
@@ -145,6 +133,6 @@ export function OrderDetailModal({ orderId, onClose }: { orderId: string; onClos
           </>
         )}
       </div>
-    </div>
+    </AdminModal>
   );
 }

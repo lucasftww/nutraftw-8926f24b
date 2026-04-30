@@ -9,12 +9,15 @@ import { toast } from "sonner";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 import { queryKeys } from "@/lib/queryKeys";
 import { logAdminAction, shallowDiff } from "@/lib/auditLog";
+import { AdminModal } from "@/components/admin/AdminModal";
+import { useConfirm } from "@/components/admin/ConfirmDialog";
 
 export function AdminCoupons() {
   const [items, setItems] = useState<any[]>([]);
   const [editing, setEditing] = useState<any | null>(null);
   const [error, setError] = useState<AdminErrorInfo | null>(null);
   const qc = useQueryClient();
+  const { confirm } = useConfirm();
 
   // Converte ISO UTC -> string "YYYY-MM-DDTHH:mm" no fuso local p/ datetime-local.
   function toLocalInput(iso: string | null | undefined) {
@@ -82,8 +85,13 @@ export function AdminCoupons() {
   }
 
   async function del(id: string) {
-    if (!confirm("Remover cupom?")) return;
     const before = items.find((c) => c.id === id);
+    const ok = await confirm({
+      title: "Remover cupom?",
+      description: `O cupom "${before?.code ?? "selecionado"}" será removido permanentemente.`,
+      variant: "destructive",
+    });
+    if (!ok) return;
     const { error } = await supabase.from("coupons" as any).delete().eq("id", id);
     if (error) {
       logSupabaseError("Remover cupom", error, { id });
@@ -147,10 +155,9 @@ export function AdminCoupons() {
         </table>
       </div>
 
-      {editing && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setEditing(null)}>
-          <form onSubmit={save} onClick={(e) => e.stopPropagation()} className="bg-card rounded-2xl p-6 w-full max-w-lg space-y-4">
-            <h2 className="font-bold text-xl">{editing.id ? "Editar cupom" : "Novo cupom"}</h2>
+      <AdminModal open={!!editing} onClose={() => setEditing(null)} title={editing?.id ? "Editar cupom" : "Novo cupom"} size="md">
+        {editing && (
+          <form onSubmit={save} className="space-y-4">
             <div className="grid sm:grid-cols-2 gap-3">
               <div className="space-y-2 sm:col-span-2"><Label>Código *</Label>
                 <Input required placeholder="BEMVINDO10" value={editing.code || ""} onChange={(e) => setEditing({ ...editing, code: e.target.value.toUpperCase() })} />
@@ -183,8 +190,8 @@ export function AdminCoupons() {
               <Button type="submit">Salvar</Button>
             </div>
           </form>
-        </div>
-      )}
+        )}
+      </AdminModal>
     </>
   );
 }

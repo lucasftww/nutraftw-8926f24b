@@ -10,12 +10,15 @@ import { toast } from "sonner";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 import { queryKeys } from "@/lib/queryKeys";
 import { logAdminAction, shallowDiff } from "@/lib/auditLog";
+import { AdminModal } from "@/components/admin/AdminModal";
+import { useConfirm } from "@/components/admin/ConfirmDialog";
 
 export function AdminBanners() {
   const [items, setItems] = useState<any[]>([]);
   const [editing, setEditing] = useState<any | null>(null);
   const [error, setError] = useState<AdminErrorInfo | null>(null);
   const qc = useQueryClient();
+  const { confirm } = useConfirm();
 
   async function load() {
     setError(null);
@@ -66,8 +69,13 @@ export function AdminBanners() {
   }
 
   async function del(id: string) {
-    if (!confirm("Remover banner?")) return;
     const before = items.find((b) => b.id === id);
+    const ok = await confirm({
+      title: "Remover banner?",
+      description: `O banner "${before?.title || "selecionado"}" será removido.`,
+      variant: "destructive",
+    });
+    if (!ok) return;
     const { error: err } = await supabase.from("site_banners" as any).delete().eq("id", id);
     if (err) {
       logSupabaseError("Remover banner", err, { id });
@@ -117,10 +125,9 @@ export function AdminBanners() {
         {items.length === 0 && <div className="col-span-full text-center py-12 text-muted-foreground bg-card rounded-2xl border border-border">Nenhum banner cadastrado.</div>}
       </div>
 
-      {editing && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setEditing(null)}>
-          <form onSubmit={save} onClick={(e) => e.stopPropagation()} className="bg-card rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto space-y-4">
-            <h2 className="font-bold text-xl">{editing.id ? "Editar banner" : "Novo banner"}</h2>
+      <AdminModal open={!!editing} onClose={() => setEditing(null)} title={editing?.id ? "Editar banner" : "Novo banner"} size="lg">
+        {editing && (
+          <form onSubmit={save} className="space-y-4">
             <div className="grid sm:grid-cols-2 gap-3">
               <div className="space-y-2 sm:col-span-2"><Label>Imagem</Label>
                 <ImageUpload value={editing.image_url || ""} onChange={(url) => setEditing({ ...editing, image_url: url })} />
@@ -147,8 +154,8 @@ export function AdminBanners() {
               <Button type="submit">Salvar</Button>
             </div>
           </form>
-        </div>
-      )}
+        )}
+      </AdminModal>
     </>
   );
 }
