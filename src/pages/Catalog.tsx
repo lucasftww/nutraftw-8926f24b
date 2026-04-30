@@ -583,9 +583,12 @@ export default function Catalog() {
               <ul className="flex flex-col gap-1.5">
                 {[
                   { id: "__promos__", slug: "__promos__", name: "Promoções" } as { id: string; slug: string; name: string },
-                  ...[...categories].sort(
-                    (a, b) => (countByCat.get(b.slug) ?? 0) - (countByCat.get(a.slug) ?? 0)
-                  ),
+                  ...[...categories].sort((a, b) => {
+                    const aTirz = isTirzepatidaCategory(a) ? 0 : 1;
+                    const bTirz = isTirzepatidaCategory(b) ? 0 : 1;
+                    if (aTirz !== bTirz) return aTirz - bTirz;
+                    return 0;
+                  }),
                 ].map((c) => {
                   const checked = selectedCats.has(c.slug);
                   const count = countByCat.get(c.slug) ?? 0;
