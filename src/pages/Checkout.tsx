@@ -366,15 +366,21 @@ export default function Checkout() {
 
   const summaryItems = useMemo(
     () =>
-      groupedLines.map((l) => (
+      groupedLines.map((l, idx) => {
+        // As 3 primeiras linhas do resumo são quase sempre o que o usuário
+        // vê de imediato no mobile (acima da dobra). `eager` + fetchpriority
+        // high garante que essas miniaturas apareçam sem flash, mesmo em 4G.
+        const aboveFold = idx < 3;
+        return (
         <li key={l.product_id} className="flex items-center gap-3 py-2">
           <div className="relative w-11 h-11 rounded-lg border border-border bg-muted/30 overflow-hidden shrink-0 flex items-center justify-center">
             <img
               src={imageUrl(l.image_url, { width: 88, quality: 75 })}
               srcSet={`${imageUrl(l.image_url, { width: 88, quality: 75 })} 1x, ${imageUrl(l.image_url, { width: 176, quality: 75 })} 2x`}
               alt={l.name}
-              loading="lazy"
+              loading={aboveFold ? "eager" : "lazy"}
               decoding="async"
+              {...(aboveFold ? { fetchpriority: "high" } as Record<string, string> : {})}
               width={44}
               height={44}
               className="w-full h-full object-contain"
@@ -391,7 +397,8 @@ export default function Checkout() {
           </div>
           <span className="text-sm font-bold shrink-0 tabular-nums text-foreground">{formatBRL(l.price * l.qty)}</span>
         </li>
-      )),
+        );
+      }),
     [groupedLines],
   );
 
