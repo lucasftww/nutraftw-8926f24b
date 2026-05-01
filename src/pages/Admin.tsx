@@ -718,6 +718,30 @@ function AdminProducts() {
               <div className="space-y-2 sm:col-span-2"><Label>Descrição</Label><textarea className="w-full rounded-xl border border-input bg-background p-3 text-sm min-h-[80px]" value={editing.description || ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} /></div>
               <div className="space-y-2"><Label>Princípio ativo</Label><Input value={editing.active_principle || ""} onChange={(e) => setEditing({ ...editing, active_principle: e.target.value })} /></div>
               <div className="space-y-2"><Label>Composição</Label><Input value={editing.composition || ""} onChange={(e) => setEditing({ ...editing, composition: e.target.value })} /></div>
+              <div className="space-y-2 sm:col-span-2 pt-3 mt-1 border-t border-border">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">SEO (opcional)</p>
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Meta título <span className="text-xs text-muted-foreground font-normal">(até 60 caracteres)</span></Label>
+                <Input
+                  maxLength={70}
+                  value={editing.meta_title || ""}
+                  placeholder={editing.name ? `${editing.name} | KA Imports` : "Use o nome do produto se vazio"}
+                  onChange={(e) => setEditing({ ...editing, meta_title: e.target.value })}
+                />
+                <p className="text-[11px] text-muted-foreground">{(editing.meta_title || "").length}/60</p>
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Meta descrição <span className="text-xs text-muted-foreground font-normal">(até 160 caracteres)</span></Label>
+                <textarea
+                  className="w-full rounded-xl border border-input bg-background p-3 text-sm min-h-[60px]"
+                  maxLength={180}
+                  value={editing.meta_description || ""}
+                  placeholder="Texto curto que aparece no Google/redes sociais"
+                  onChange={(e) => setEditing({ ...editing, meta_description: e.target.value })}
+                />
+                <p className="text-[11px] text-muted-foreground">{(editing.meta_description || "").length}/160</p>
+              </div>
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!editing.is_featured} onChange={(e) => setEditing({ ...editing, is_featured: e.target.checked })} /> Em destaque</label>
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={editing.is_active !== false} onChange={(e) => setEditing({ ...editing, is_active: e.target.checked })} /> Ativo</label>
             </div>
