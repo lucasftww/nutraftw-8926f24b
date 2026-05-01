@@ -568,13 +568,22 @@ export default function Checkout() {
           // Se confirmação de e-mail estiver habilitada, signUp não cria sessão.
           // Tentamos login imediato com a senha gerada para obter `auth.uid()`.
           if (!signUpData.session) {
-            const { data: signInData } = await supabase.auth.signInWithPassword({
+            const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
               email: emailTrim,
               password: autoPassword,
             });
-            if (signInData?.session?.user) {
-              activeUserId = signInData.session.user.id;
+            // Bug fix: sem sessão ativa o RPC create_order falha com
+            // "Usuário não autenticado" porque auth.uid() é null. Antes,
+            // seguíamos com activeUserId vindo do signUp e o erro só
+            // aparecia depois, confuso para o cliente.
+            if (signInErr || !signInData?.session?.user) {
+              toast.error(
+                "Conta criada, mas precisamos confirmar seu e-mail. Verifique sua caixa de entrada e tente novamente.",
+              );
+              setSubmitting(false);
+              return;
             }
+            activeUserId = signInData.session.user.id;
           }
         }
 
