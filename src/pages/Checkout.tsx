@@ -792,82 +792,24 @@ export default function Checkout() {
           setSubmitting(false);
           return;
         }
+      }
 
-        // === Atribuição de afiliado para guest ===
-        // Bug fix: o checkout-guest criava a conta mas IGNORAVA o ref salvo
-        // em localStorage. Resultado: clientes que vinham de /r/CODIGO e
-        // compravam direto (sem passar pelo /login) nunca geravam comissão
-        // para o afiliado. Replicamos aqui a mesma lógica do Login.tsx,
-        // respeitando first-touch (não sobrescreve atribuição prévia).
-        try {
-          const refData = getAffiliateRefData();
-          const refCode = refData?.code ?? null;
-          if (refCode) {
-            const { data: aff } = await supabase
-              .from("profiles")
-              .select("user_id, affiliate_code")
-              .eq("affiliate_code", refCode)
-              .maybeSingle();
-            if (aff?.user_id && aff.user_id !== activeUserId) {
-              const { data: existingProfile } = await supabase
-                .from("profiles")
-                .select("referred_by_code")
-                .eq("user_id", activeUserId)
-                .maybeSingle();
-              const alreadyAttributed = !!existingProfile?.referred_by_code?.trim();
-              if (!alreadyAttributed) {
-                await supabase.from("profiles")
-                  .update({ referred_by_code: aff.affiliate_code })
-                  .eq("user_id", activeUserId);
-                await supabase.from("affiliate_referrals").insert({
-                  affiliate_user_id: aff.user_id,
-                  referred_user_id: activeUserId,
-                  referred_email: form.email.trim().toLowerCase(),
-                  status: "inactive",
-                  utm_source: refData?.utm_source ?? null,
-                  utm_medium: refData?.utm_medium ?? null,
-                  utm_campaign: refData?.utm_campaign ?? null,
-                  utm_term: refData?.utm_term ?? null,
-                  utm_content: refData?.utm_content ?? null,
-                  landing_path: refData?.landing_path ?? null,
-                  referrer: refData?.referrer ?? null,
-                });
-              }
-            }
-            clearAffiliateRef();
+      // Fase 3: profile.upsert e affiliate attribution agora ocorrem
+      // dentro do RPC `create_order` (mesma transação do pedido).
+      // Isso elimina dados órfãos quando o RPC falha após gravar o profile.
+      const refData = getAffiliateRefData();
+      const affiliateCode = refData?.code ?? null;
+      const utmPayload = refData
+        ? {
+            utm_source: refData.utm_source ?? null,
+            utm_medium: refData.utm_medium ?? null,
+            utm_campaign: refData.utm_campaign ?? null,
+            utm_term: refData.utm_term ?? null,
+            utm_content: refData.utm_content ?? null,
+            landing_path: refData.landing_path ?? null,
+            referrer: refData.referrer ?? null,
           }
-        } catch (refErr) {
-          console.warn("[Checkout] affiliate attribution failed (non-blocking)", refErr);
-        }
-      }
-
-      // Bug fix: o RPC create_order não recebe e-mail. O e-mail digitado
-      // no checkout era jogado fora se o usuário não tinha profile com email.
-      // Persistimos no profile (best-effort, não bloqueia o pedido) para
-      // que notificações/relatórios admins tenham o contato correto.
-      try {
-        await (supabase as any)
-          .from("profiles")
-          .upsert(
-            {
-              user_id: activeUserId,
-              email: form.email.trim(),
-              full_name: form.full_name.trim(),
-              phone: onlyDigits(form.phone),
-              cpf: onlyDigits(form.cpf),
-              address_zip: onlyDigits(form.zip),
-              address_street: form.street.trim(),
-              address_number: form.number.trim(),
-              address_complement: form.complement.trim() || null,
-              address_district: form.district.trim(),
-              address_city: form.city.trim(),
-              address_state: form.state.trim().toUpperCase(),
-            },
-            { onConflict: "user_id" }
-          );
-      } catch (profileErr) {
-        console.warn("[Checkout] profile upsert failed (non-blocking)", profileErr);
-      }
+        : null;
 
       // Tudo é validado e calculado server-side via RPC (transação atômica).
       const { data: orderId, error: rpcErr } = await (supabase as any).rpc("create_order", {
@@ -888,6 +830,9 @@ export default function Checkout() {
         p_state: form.state,
         p_notes: form.notes || null,
         p_email: form.email.trim() || null,
+        p_save_profile: true,
+        p_affiliate_code: affiliateCode,
+        p_utm: utmPayload,
       });
       if (rpcErr) throw rpcErr;
       void orderId;
@@ -895,6 +840,8 @@ export default function Checkout() {
       // Bug fix: navegar ANTES de clear() evita um frame com a tela
       // "Seu carrinho está vazio" enquanto a transição acontece.
       toast.success("Pedido criado! Em breve entraremos em contato.");
+      // Limpa atribuição de afiliado — pedido criado, comissão registrada.
+      try { clearAffiliateRef(); } catch {}
       // Limpa o rascunho persistido — pedido já foi gravado.
       try { window.sessionStorage.removeItem(FORM_STORAGE_KEY); } catch {}
       nav("/minha-conta");
