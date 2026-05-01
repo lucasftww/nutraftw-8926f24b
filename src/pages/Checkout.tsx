@@ -1438,6 +1438,7 @@ export default function Checkout() {
           <button
             type="submit"
             disabled={submitting}
+            ref={summaryCtaRef}
             className="inline-flex w-full h-12 sm:h-13 rounded-xl bg-success text-success-foreground font-bold text-base hover:bg-success/90 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed transition-all items-center justify-center gap-2 shadow-md shadow-success/25"
           >
             {submitting ? (
