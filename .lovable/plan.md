@@ -1,50 +1,78 @@
-# Correções visuais no Checkout
+## Análise do Checkout — pontos de melhoria
 
-Análise feita no preview em mobile (390x844) e desktop (1536x864), com adição de produto real ao carrinho. Encontrei 5 problemas visuais reais.
+`src/pages/Checkout.tsx` tem **1.552 linhas** e concentra 100% da lógica (form, frete, cupom, pagamento, render, sticky bar, prefill, ViaCEP, criação de conta para guest, atribuição de afiliado, RPC). Funciona, mas está difícil de manter, tem alguns smells de UX e oportunidades reais de robustez. Os bugs críticos já foram corrigidos nos últimos turnos — esta é a **próxima camada**.
 
-## Bugs encontrados
+---
 
-### 1. Stepper marca "Pagamento" como concluído antes da hora (CRÍTICO)
-Logo ao abrir o checkout, o chip do passo 3 ("Pagamento") já aparece verde com check, mesmo sem o usuário ter preenchido nada. Causa: `paymentDone = !!form.payment_method && método_habilitado`. Como o PIX vem pré-selecionado, sempre dá `true`. Visualmente passa a ideia errada de que dois passos faltam mas o último já está pronto.
+### 1. Quebrar o arquivo em peças coesas
 
-### 2. Resumo mostra preço duplicado quando qty = 1 (MÉDIO)
-No card "Resumo", o nome do produto vem com:
-- linha pequena cinza: `R$ 999,00` (preço unitário)
-- linha grande à direita: `R$ 999,00` (subtotal)
+Sem mudar nada visual, dividir em:
 
-Quando qty=1 os dois valores são idênticos e ficam empilhados, dando impressão de promoção (preço "de/por") sem haver desconto. Quando qty=1 só o subtotal precisa aparecer.
+```text
+src/pages/Checkout.tsx           (orquestrador, ~300 linhas)
+src/checkout/
+  ├── useCheckoutForm.ts         (state + validação + máscaras)
+  ├── useShippingRates.ts        (fetch por UF + cache)
+  ├── useCouponValidation.ts     (apply/revalidate/recheck)
+  ├── useGuestSignup.ts          (auto-signUp + login + atribuição afiliado)
+  ├── checkoutTotals.ts          (cálculo puro: subtotal/frete/seguro/cupom/pix)
+  ├── BuyerSection.tsx
+  ├── AddressSection.tsx
+  ├── ShippingSection.tsx
+  ├── PaymentSection.tsx
+  ├── OrderSummary.tsx
+  └── MobileStickyCta.tsx
+```
 
-### 3. Footer é coberto pela sticky bar no mobile (MÉDIO)
-A barra fixa "TOTAL R$ X / Continuar" tem ~76px de altura; o container do form tem `pb-24`, mas o footer está fora desse container e fica parcialmente atrás da sticky.
+Benefício real: hoje qualquer keystroke num campo re-renderiza tudo; com componentes separados + memo, custo cai. Também fica testável.
 
-### 4. Labels do stepper truncadas no mobile (BAIXO)
-Em viewport de 390px, "Seus dados" vira "Seus dad..." e "Pagamento" vira "Pagamen...". Texto truncado fica feio. Em mobile devemos mostrar só o número do passo (sem o label) ou só o passo ativo expandido.
+### 2. Confiabilidade e UX
 
-### 5. Dois CTAs simultâneos no mobile (BAIXO)
-Quando o usuário rola até o resumo no mobile, vê o botão "Pagar com PIX" do resumo E a sticky bar "Continuar" embaixo, lado a lado. São dois CTAs concorrentes para a mesma ação. Ideal: ocultar o botão "Pagar com PIX" do resumo no mobile (deixar só a sticky), ou ocultar a sticky quando o botão real estiver visível.
+- **Persistir o form em `sessionStorage`**: hoje, se o usuário recarrega a página por engano, perde tudo. Salvar `form` (sem senha/dados sensíveis em plaintext seria só endereço/contato) e restaurar no mount.
+- **`autoComplete` faltando** em vários campos (`street`, `number`, `district`, `city`, `state`). Isso bloqueia o autofill nativo do browser/Google Pay → atrito alto no mobile.
+- **CEP inválido** no ViaCEP hoje cai silencioso (`if (d.erro) return`). Mostrar toast leve "CEP não encontrado, preencha manualmente".
+- **Sem retry no fetch de `shipping_rates`**: se a primeira chamada falha (offline momentâneo), a seção fica vazia até o usuário trocar UF e voltar. Adicionar 1 retry com backoff curto.
+- **Botão "Continuar" da sticky bar** scrolla até a primeira seção incompleta — bom — mas não destaca visualmente o erro (ex.: shake leve ou ring vermelho no campo). Adicionar feedback.
+- **Cupom**: o input não tem máscara/uppercase real no estado, só no display. Submeter "abc" e exibir "ABC" pode confundir colagem. Normalizar no `onChange`.
+- **Loading do submit é só um spinner no botão**: bloquear visualmente o card de pagamento (overlay leve) para evitar cliques em "trocar PIX/Cartão" durante o RPC, o que muda preço a meio da transação.
+- **Erro do RPC**: hoje strings são casadas com regex (`/cupom inválido/i`). Frágil se a mensagem mudar. Padronizar com SQLSTATE custom no servidor (ex.: `P0001` + hint estruturado) e ler `err.code/err.hint` no cliente.
 
-## Correções propostas
+### 3. Performance
 
-**Arquivo único: `src/pages/Checkout.tsx`**
+- **`crypto.getRandomValues` + 24 bytes só para senha de guest**: ok, mas roda em todo submit guest. Mover para função utilitária pura.
+- **`summaryItems` memoizado por `[groupedLines]`** — bom. Mas `groupedLines` recria array a cada render porque `lines` é referência nova vinda do hook a cada update do contexto. Conferir se `useCart` retorna `lines` estável (provavelmente não); senão, memoizar com hash de `id+qty`.
+- **ViaCEP debounce 350ms** + **shipping fetch sem debounce**: usuário que troca de UF rápido dispara N requests cancelados. Adicionar pequeno debounce (~150ms) na UF.
+- **Preload do `shipping_rates` mais comuns** (SP, RJ, MG) no mount em background → primeira interação parece instantânea.
 
-1. **Stepper** — recalcular `paymentDone` exigindo que `buyerDone`, `addressDone` e `shippingDone` sejam verdadeiros antes de dar o check no passo 3.
+### 4. Acessibilidade
 
-2. **Resumo (preço duplicado)** — esconder a linha pequena de preço unitário quando `l.qty === 1`. Manter só quando `qty > 1`, mostrando `R$ X · un` como já faz hoje.
+- **Stepper sem `aria-current="step"`** no passo ativo.
+- **Erros do form aparecem via toast**, mas não há `aria-describedby` ligando o input à mensagem `FieldHint`. Leitor de tela não anuncia o erro ao focar o campo.
+- **`<select>` de UF** funciona, mas para lista de 27 estados, um combobox com busca (digite "sa" → SP, SC) é mais rápido. Manter `<select>` como fallback.
+- **Botões de pagamento** usam `role="radio"` mas não estão dentro de um `role="radiogroup"` com gerenciamento de teclado (setas ↑↓ entre opções).
+- **Botão "Continuar" da sticky bar** não anuncia para qual campo vai pular. Adicionar `aria-label` dinâmico ("Continuar — preencher dados de entrega").
 
-3. **Footer coberto** — aumentar `pb-24` para `pb-32` no container do checkout no mobile, OU adicionar margin-bottom equivalente ao Footer global quando estamos em rota com sticky bar. Vou pelo `pb-32` (96 → 128px) que é simples e localizado.
+### 5. Segurança e dados
 
-4. **Stepper truncado** — no mobile mostrar apenas o número do passo dentro do círculo + texto "Etapa X de 3" ou esconder o label nos passos não ativos (`hidden sm:inline` no `<span>` do label, e mostrar inline só no passo atual).
+- **Email de guest é gravado em `auth.users` sem confirmação**: se alguém digita um e-mail alheio, cria-se uma conta zumbi vinculada a esse e-mail. O signUp dispara e-mail de confirmação (bom), mas se o owner do e-mail não confirma, ele recebe um pedido feito por outra pessoa. Mitigação: enviar OTP por e-mail antes de criar o pedido para guests, ou pelo menos exigir confirmação de telefone (CPF não basta).
+- **`profiles.upsert` server-side via cliente**: hoje o cliente faz upsert direto em `profiles` (linha ~700). RLS permite, mas significa que qualquer dado do form vai para `profiles` mesmo se o RPC falhar depois — endereço fantasma. Mover o upsert para dentro do RPC `create_order` (transacional).
+- **Atribuição de afiliado para guest** roda 4 chamadas seriais (select profile, select existing, update, insert). Pode virar 1 RPC `attach_affiliate_for_user` server-side.
 
-5. **Dois CTAs no mobile** — ocultar a sticky bar quando o botão "Pagar com PIX" do resumo estiver dentro do viewport (via IntersectionObserver), OU mais simples: deixar a sticky sempre visível e mudar o botão do resumo no mobile pra um secundário (variante outline) para não competir. Vou pelo IntersectionObserver — comportamento padrão de e-commerce.
+### 6. Pequenos polimentos visuais
 
-## Não vou alterar
-- Layout geral do grid (form + aside).
-- Ordem das seções.
-- Cores/tema (já está alinhado com a identidade azul/verde).
+- O botão "+ Adicionar complemento" some depois de aberto, sem opção de fechar/cancelar.
+- Quando `shippingOptions.length === 0` para uma UF, a CTA de WhatsApp (mencionada na mensagem) não é um link clicável — só texto.
+- Total no cartão mostra "12x de R$ X" mesmo se o método selecionado é PIX, no card do cartão. Ok intencional (comparativo), mas o "12x" some quando o cartão fica selecionado e a parcela vai para o total grande — a parcela some/aparece em dois lugares. Centralizar a regra.
 
-## Resultado esperado
-- Stepper só fica verde quando o passo realmente está OK.
-- Resumo mais limpo (sem ilusão de desconto).
-- Footer visível em mobile (sem ser coberto).
-- Stepper legível em telas pequenas.
-- Um único CTA primário visível por vez no mobile.
+---
+
+### Sugestão de execução em fases
+
+| Fase | Conteúdo | Risco |
+|---|---|---|
+| **1** | Acessibilidade (aria-current, aria-describedby, autoComplete) + máscara real do cupom + persistência em sessionStorage | baixo |
+| **2** | Quebrar em componentes/hooks (sem mudar visual nem comportamento) | médio |
+| **3** | Mover `profiles.upsert` e atribuição de afiliado para dentro do RPC; padronizar erros do RPC com SQLSTATE | médio |
+| **4** | OTP de e-mail para guest + combobox de UF + preload de shipping_rates | maior, opcional |
+
+Posso começar pela **Fase 1** (ganho imediato, baixo risco, sem mudança visual) — me diga "ok fase 1" ou escolha outra.
