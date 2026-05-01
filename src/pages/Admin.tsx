@@ -333,6 +333,8 @@ function AdminProducts() {
       description: f.description || null,
       active_principle: f.active_principle || null,
       composition: f.composition || null,
+      meta_title: f.meta_title?.trim() || null,
+      meta_description: f.meta_description?.trim() || null,
       price: Number(f.price) || 0,
       sale_price:
         f.sale_price === "" || f.sale_price == null
