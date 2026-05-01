@@ -261,6 +261,42 @@ export type Database = {
         }
         Relationships: []
       }
+      home_banners: {
+        Row: {
+          active: boolean
+          created_at: string
+          display_order: number
+          id: string
+          image_url: string | null
+          link_url: string | null
+          subtitle: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url?: string | null
+          link_url?: string | null
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url?: string | null
+          link_url?: string | null
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
