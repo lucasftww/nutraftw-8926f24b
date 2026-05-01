@@ -365,16 +365,18 @@ export default function Checkout() {
 
   // Mesmas fórmulas usadas no RPC `create_order` para garantir que o resumo
   // exibido aqui bate com o total que o servidor vai gravar.
-  // Bug fix: quando o RPC validate_coupon devolveu `discount_amount`, usamos
-  // ele direto pra não divergir por arredondamento (o RPC arredonda 1x; aqui
-  // recalculávamos e podia bater 1 centavo de diferença).
+  // Cupom: replicamos EXATAMENTE a fórmula do RPC create_order (server-side
+  // é a fonte da verdade). Antes priorizávamos `discount_amount` retornado
+  // por validate_coupon, mas esse valor é congelado no momento da validação
+  // — se o subtotal mudar depois (carrinho sincronizando entre abas), o
+  // resumo mostrava um desconto desalinhado do que o servidor cobraria.
+  // Recalcular client-side com a mesma fórmula garante paridade visual
+  // com o pedido criado.
   const couponDiscount = !coupon
     ? 0
-    : typeof coupon.discount_amount === "number" && coupon.discount_amount >= 0
-      ? Math.min(coupon.discount_amount, total)
-      : coupon.discount_type === "percent"
-        ? Math.round((total * Number(coupon.discount_value)) / 100 * 100) / 100
-        : Math.min(Number(coupon.discount_value), total);
+    : coupon.discount_type === "percent"
+      ? Math.round((total * Number(coupon.discount_value || 0)) / 100 * 100) / 100
+      : Math.min(Number(coupon.discount_value || 0), total);
   const baseTotal = total + shippingValue + insurance - couponDiscount;
   const pixDiscount = form.payment_method === "pix" ? Math.round(baseTotal * PIX_DISCOUNT * 100) / 100 : 0;
   const grandTotal = baseTotal - pixDiscount;
