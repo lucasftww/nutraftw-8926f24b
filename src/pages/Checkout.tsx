@@ -429,6 +429,23 @@ export default function Checkout() {
   // Resumo colapsável no mobile (aberto por padrão no desktop via CSS).
   const [itemsOpen, setItemsOpen] = useState(false);
 
+  // Bug visual: no mobile, ao rolar até o resumo, o botão "Pagar com PIX"
+  // do card e a sticky bar "Continuar" apareciam juntos, competindo pela
+  // mesma ação. Observamos o CTA do resumo e escondemos a sticky bar quando
+  // ele está visível na tela.
+  const summaryCtaRef = useRef<HTMLButtonElement | null>(null);
+  const [summaryCtaVisible, setSummaryCtaVisible] = useState(false);
+  useEffect(() => {
+    const el = summaryCtaRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const obs = new IntersectionObserver(
+      ([entry]) => setSummaryCtaVisible(entry.isIntersecting),
+      { threshold: 0.4 },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [grandTotal]);
+
   // === Validação em tempo real (debounced) — feedback inline ===
   const vName = useFieldValidation(form.full_name, validateFullName);
   const vEmail = useFieldValidation(form.email, validateEmail);
