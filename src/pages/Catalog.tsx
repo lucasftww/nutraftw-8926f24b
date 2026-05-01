@@ -751,7 +751,7 @@ const ProductCard = memo(function ProductCard({
             >
               {/* Imagem — aspect quadrado + padding interno para uniformizar
                   produtos com recortes/proporções diferentes nos assets. */}
-              <div className="relative aspect-square overflow-hidden bg-white p-1.5 sm:p-4">
+              <div className="relative aspect-square overflow-hidden bg-white p-1 sm:p-4">
                 {(() => {
                   const r = responsiveImage(
                     p.image_url,
