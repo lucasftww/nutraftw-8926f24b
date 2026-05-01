@@ -348,6 +348,9 @@ export default function Catalog() {
       <div className="sticky top-12 md:top-14 z-20 bg-background border-b border-border/40 py-2">
         <div className="container mx-auto px-4">
           <div className="w-full max-w-3xl mx-auto space-y-1.5">
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">
+            Catálogo
+          </h1>
           {/* Linha 1: busca + ícone de filtros (drawer com ordenação e
               multi-seleção avançada). Mais limpa: 1 input grande + 1 ícone. */}
           <div className="flex gap-2">
