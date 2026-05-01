@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Shield, ShieldOff, Loader2 } from "lucide-react";
+import { formatBRL } from "@/lib/utils";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { logAdminAction } from "@/lib/auditLog";
@@ -15,6 +16,9 @@ interface UserRow {
   full_name: string | null;
   created_at: string;
   is_admin: boolean;
+  orders_count: number;
+  ltv: number;
+  last_order_at: string | null;
 }
 
 /**
@@ -34,12 +38,16 @@ export function AdminUsers() {
   async function load() {
     setLoading(true);
     setError(null);
-    const [profilesRes, rolesRes] = await Promise.all([
+    const [profilesRes, rolesRes, ordersRes] = await Promise.all([
       supabase
         .from("profiles")
         .select("user_id, email, full_name, created_at")
         .order("created_at", { ascending: false }),
       supabase.from("user_roles").select("user_id, role").eq("role", "admin"),
+      supabase
+        .from("orders")
+        .select("user_id, total, status, created_at")
+        .in("status", ["paid", "processing", "shipped", "delivered"]),
     ]);
     if (profilesRes.error) {
       const info = logSupabaseError("Carregar usuários", profilesRes.error, { table: "profiles" });
@@ -56,11 +64,25 @@ export function AdminUsers() {
       return;
     }
     const adminIds = new Set((rolesRes.data || []).map((r: any) => r.user_id));
+    const stats = new Map<string, { count: number; ltv: number; last: string | null }>();
+    for (const o of ((ordersRes.data as any[]) || [])) {
+      const cur = stats.get(o.user_id) || { count: 0, ltv: 0, last: null };
+      cur.count += 1;
+      cur.ltv += Number(o.total || 0);
+      if (!cur.last || new Date(o.created_at) > new Date(cur.last)) cur.last = o.created_at;
+      stats.set(o.user_id, cur);
+    }
     setItems(
-      ((profilesRes.data as any[]) || []).map((p) => ({
-        ...p,
-        is_admin: adminIds.has(p.user_id),
-      })),
+      ((profilesRes.data as any[]) || []).map((p) => {
+        const s = stats.get(p.user_id);
+        return {
+          ...p,
+          is_admin: adminIds.has(p.user_id),
+          orders_count: s?.count ?? 0,
+          ltv: s?.ltv ?? 0,
+          last_order_at: s?.last ?? null,
+        };
+      }),
     );
     setLoading(false);
   }
@@ -130,6 +152,15 @@ export function AdminUsers() {
     );
   });
 
+  const totals = useMemo(() => {
+    const buyers = items.filter((u) => u.orders_count > 0);
+    const ltvSum = buyers.reduce((s, u) => s + u.ltv, 0);
+    return {
+      buyers: buyers.length,
+      avgLtv: buyers.length ? ltvSum / buyers.length : 0,
+    };
+  }, [items]);
+
   if (error) return <AdminErrorBanner error={error} onRetry={load} />;
 
   return (
@@ -146,17 +177,21 @@ export function AdminUsers() {
         </div>
         <p className="text-sm text-muted-foreground">
           {items.length} {items.length === 1 ? "usuário" : "usuários"} ·{" "}
-          {items.filter((u) => u.is_admin).length} admin
+          {items.filter((u) => u.is_admin).length} admin · {totals.buyers} compradores · LTV médio {formatBRL(totals.avgLtv)}
         </p>
       </div>
 
       <div className="bg-card rounded-2xl border border-border overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-muted/50 text-xs uppercase tracking-wide">
             <tr>
               <th className="text-left px-4 py-3">Nome</th>
               <th className="text-left px-4 py-3">E-mail</th>
               <th className="text-left px-4 py-3 hidden md:table-cell">Cadastro</th>
+              <th className="text-right px-4 py-3 hidden md:table-cell">Pedidos</th>
+              <th className="text-right px-4 py-3">LTV</th>
+              <th className="text-left px-4 py-3 hidden lg:table-cell">Último pedido</th>
               <th className="text-left px-4 py-3">Papel</th>
               <th className="px-4 py-3"></th>
             </tr>
@@ -164,7 +199,7 @@ export function AdminUsers() {
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={5} className="text-center py-12 text-muted-foreground">
+                <td colSpan={8} className="text-center py-12 text-muted-foreground">
                   <Loader2 className="h-5 w-5 animate-spin inline mr-2" />
                   Carregando…
                 </td>
@@ -176,6 +211,11 @@ export function AdminUsers() {
                 <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
                 <td className="px-4 py-3 hidden md:table-cell text-xs text-muted-foreground">
                   {new Date(u.created_at).toLocaleDateString("pt-BR")}
+                </td>
+                <td className="px-4 py-3 hidden md:table-cell text-right tabular-nums">{u.orders_count}</td>
+                <td className="px-4 py-3 text-right font-semibold tabular-nums">{formatBRL(u.ltv)}</td>
+                <td className="px-4 py-3 hidden lg:table-cell text-xs text-muted-foreground">
+                  {u.last_order_at ? new Date(u.last_order_at).toLocaleDateString("pt-BR") : "—"}
                 </td>
                 <td className="px-4 py-3">
                   {u.is_admin ? (
@@ -210,13 +250,14 @@ export function AdminUsers() {
             ))}
             {!loading && filtered.length === 0 && (
               <tr>
-                <td colSpan={5} className="text-center py-12 text-muted-foreground">
+                <td colSpan={8} className="text-center py-12 text-muted-foreground">
                   Nenhum usuário encontrado.
                 </td>
               </tr>
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

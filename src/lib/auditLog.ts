@@ -20,7 +20,9 @@ export type AdminAction =
   | "update"
   | "delete"
   | "settings_save"
-  | "status_change";
+  | "status_change"
+  | "affiliate.release_due"
+  | "affiliate.mark_paid";
 
 export type AdminEntity =
   | "products"
@@ -28,9 +30,11 @@ export type AdminEntity =
   | "coupons"
   | "shipping_rates"
   | "site_banners"
+  | "home_banners"
   | "site_settings"
   | "orders"
   | "resends"
+  | "affiliate_commissions"
   | "user_roles";
 
 export interface AdminLogInput {
