@@ -271,6 +271,10 @@ export default function Checkout() {
   }, [user]);
 
   // ViaCEP autocomplete — debounced + abortável (evita rate-limit e race conditions)
+  // Bug fix UX: antes, CEP inexistente caía em silêncio. Agora avisamos o
+  // usuário (toast leve) para preencher manualmente. Marcamos um ref para
+  // não repetir o mesmo aviso quando o useEffect re-roda no mesmo CEP.
+  const lastCepNotFoundRef = useRef<string | null>(null);
   useEffect(() => {
     const cep = onlyDigits(form.zip);
     if (cep.length !== 8) return;
@@ -282,7 +286,14 @@ export default function Checkout() {
         .then((r) => r.json())
         .then((d) => {
           if (cancelled) return;
-          if (d.erro) return;
+          if (d.erro) {
+            if (lastCepNotFoundRef.current !== cep) {
+              lastCepNotFoundRef.current = cep;
+              toast.warning("CEP não encontrado. Preencha o endereço manualmente.");
+            }
+            return;
+          }
+          lastCepNotFoundRef.current = null;
           setForm((f) => ({
             ...f,
             street: f.street || d.logradouro || "",
