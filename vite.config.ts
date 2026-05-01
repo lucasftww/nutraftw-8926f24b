@@ -67,6 +67,20 @@ export default defineConfig(({ mode }) => ({
         skipWaiting: true,
         runtimeCaching: [
           {
+            // CRÍTICO: HTML/navegação sempre tenta a rede primeiro.
+            // Sem isto, o navigateFallback cacheado serve a versão antiga
+            // do index.html mesmo após um deploy novo — usuário precisa
+            // limpar cache pra ver atualização.
+            urlPattern: ({ request }) => request.mode === "navigate",
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "gimports-html",
+              networkTimeoutSeconds: 3,
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
             urlPattern: ({ request }) => request.destination === "image",
             handler: "CacheFirst",
             options: {
