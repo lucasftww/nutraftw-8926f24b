@@ -957,7 +957,12 @@ export default function Checkout() {
             {steps.map((s, i) => {
               const isActive = s.n === activeN;
               return (
-              <li key={s.n} className={`flex items-center gap-1.5 sm:gap-3 min-w-0 ${isActive ? "flex-1" : "shrink-0"} sm:flex-1`}>
+              <li
+                key={s.n}
+                className={`flex items-center gap-1.5 sm:gap-3 min-w-0 ${isActive ? "flex-1" : "shrink-0"} sm:flex-1`}
+                aria-current={isActive ? "step" : undefined}
+                aria-label={`Passo ${s.n} de ${steps.length}: ${s.label}${s.done ? " — concluído" : isActive ? " — atual" : ""}`}
+              >
                 <div
                   className={`flex items-center gap-2 min-w-0 flex-1 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-full border transition-colors ${
                     s.done
