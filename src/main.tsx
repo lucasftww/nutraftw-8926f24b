@@ -34,7 +34,27 @@ if (isInIframe || isPreviewHost || import.meta.env.DEV) {
 } else {
   import("virtual:pwa-register")
     .then(({ registerSW }) => {
-      registerSW({ immediate: true });
+      // Atualização instantânea: assim que o novo SW assume o controle
+      // (`controllerchange`), recarregamos a aba para garantir que o
+      // usuário veja o build novo SEM precisar limpar cache nem fechar
+      // todas as abas. Combinado com `skipWaiting + clientsClaim` no
+      // workbox, o ciclo dura segundos após o publish.
+      let reloading = false;
+      navigator.serviceWorker?.addEventListener("controllerchange", () => {
+        if (reloading) return;
+        reloading = true;
+        window.location.reload();
+      });
+      registerSW({
+        immediate: true,
+        onNeedRefresh() {
+          // SW novo já está esperando — manda ativar imediatamente.
+          // O reload acontece via `controllerchange` acima.
+          navigator.serviceWorker?.getRegistration().then((reg) => {
+            reg?.waiting?.postMessage({ type: "SKIP_WAITING" });
+          });
+        },
+      });
     })
     .catch(() => {
       /* noop */
