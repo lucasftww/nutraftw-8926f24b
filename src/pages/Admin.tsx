@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatBRL, slugify } from "@/lib/utils";
 import { toast } from "sonner";
-import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, RefreshCcw, Settings, BarChart3, Activity, History, TrendingUp, Users, Download, ChevronUp, ChevronDown, Check, Calendar, Copy, Command, Image as ImageIcon, Handshake } from "lucide-react";
+import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, RefreshCcw, Settings, BarChart3, Activity, History, TrendingUp, Users, Download, ChevronUp, ChevronDown, Check, Calendar, Copy, Command, Handshake } from "lucide-react";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { WeeklyReport } from "@/components/admin/WeeklyReport";
 import { ImageUpload } from "@/components/admin/ImageUpload";
@@ -22,7 +22,6 @@ import { AdminAuditLog } from "@/components/admin/AdminAuditLog";
 import { AdminFunnel } from "@/components/admin/AdminFunnel";
 import { AdminUsers } from "@/components/admin/AdminUsers";
 import { AdminAffiliates } from "@/components/admin/AdminAffiliates";
-import { AdminBanners } from "@/components/admin/AdminBanners";
 import { AdminModal } from "@/components/admin/AdminModal";
 import { ConfirmProvider, useConfirm } from "@/components/admin/ConfirmDialog";
 import { queryKeys } from "@/lib/queryKeys";
@@ -31,9 +30,9 @@ import { logAdminAction, shallowDiff } from "@/lib/auditLog";
 import { useNewOrdersNotifier } from "@/hooks/useNewOrdersNotifier";
 import { CommandPalette } from "@/components/admin/CommandPalette";
 
-type Tab = "dashboard" | "funnel" | "reports" | "products" | "categories" | "banners" | "orders" | "coupons" | "shipping" | "users" | "affiliates" | "resends" | "settings" | "diagnostics" | "audit";
+type Tab = "dashboard" | "funnel" | "reports" | "products" | "categories" | "orders" | "coupons" | "shipping" | "users" | "affiliates" | "resends" | "settings" | "diagnostics" | "audit";
 
-const TAB_IDS: Tab[] = ["dashboard","funnel","reports","products","categories","banners","orders","coupons","shipping","users","affiliates","resends","settings","diagnostics","audit"];
+const TAB_IDS: Tab[] = ["dashboard","funnel","reports","products","categories","orders","coupons","shipping","users","affiliates","resends","settings","diagnostics","audit"];
 
 const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -41,7 +40,6 @@ const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "reports", label: "Relatórios", icon: BarChart3 },
   { id: "products", label: "Produtos", icon: Package },
   { id: "categories", label: "Categorias", icon: Tags },
-  { id: "banners", label: "Banners", icon: ImageIcon },
   { id: "orders", label: "Pedidos", icon: ShoppingBag },
   { id: "coupons", label: "Cupons", icon: Ticket },
   { id: "shipping", label: "Fretes", icon: Truck },
@@ -58,7 +56,7 @@ const TABS: { id: Tab; label: string; icon: any }[] = [
 type Group = { id: string; label: string; icon: any; tabs: Tab[] };
 const GROUPS: Group[] = [
   { id: "overview", label: "Visão geral", icon: LayoutDashboard, tabs: ["dashboard", "funnel", "reports"] },
-  { id: "catalog",  label: "Catálogo",    icon: Package,         tabs: ["products", "categories", "banners"] },
+  { id: "catalog",  label: "Catálogo",    icon: Package,         tabs: ["products", "categories"] },
   { id: "sales",    label: "Vendas",      icon: ShoppingBag,     tabs: ["orders", "coupons", "shipping"] },
   { id: "people",   label: "Pessoas",     icon: Users,           tabs: ["users", "affiliates", "resends"] },
   { id: "system",   label: "Sistema",     icon: Settings,        tabs: ["settings", "diagnostics", "audit"] },
@@ -234,7 +232,6 @@ function AdminInner() {
       {tab === "reports" && <WeeklyReport />}
       {tab === "products" && <AdminProducts />}
       {tab === "categories" && <AdminCategories />}
-      {tab === "banners" && <AdminBanners />}
       {tab === "orders" && <AdminOrders />}
       {tab === "coupons" && <AdminCoupons />}
       {tab === "shipping" && <AdminShipping />}
@@ -336,6 +333,8 @@ function AdminProducts() {
       description: f.description || null,
       active_principle: f.active_principle || null,
       composition: f.composition || null,
+      meta_title: f.meta_title?.trim() || null,
+      meta_description: f.meta_description?.trim() || null,
       price: Number(f.price) || 0,
       sale_price:
         f.sale_price === "" || f.sale_price == null
@@ -545,6 +544,42 @@ function AdminProducts() {
   if (error) return <AdminErrorBanner error={error} onRetry={load} />;
   const totalPages = totalCount != null ? Math.max(1, Math.ceil(totalCount / PAGE_SIZE)) : null;
 
+  async function exportCsv() {
+    toast.info("Gerando CSV…");
+    // Exporta todos os produtos (até 5000) com os campos editáveis principais.
+    const { data, error } = await supabase
+      .from("products")
+      .select("id, name, slug, price, sale_price, stock, is_active, is_featured, active_principle, composition, description, meta_title, meta_description, category:categories(name)")
+      .order("created_at", { ascending: false })
+      .limit(5000);
+    if (error) { toast.error(error.message); return; }
+    const rows = data || [];
+    const esc = (v: any) => {
+      if (v == null) return "";
+      const s = String(v).replace(/"/g, '""');
+      return /[",\n;]/.test(s) ? `"${s}"` : s;
+    };
+    const headers = ["id","name","slug","category","price","sale_price","stock","is_active","is_featured","active_principle","composition","description","meta_title","meta_description"];
+    const lines = [headers.join(",")];
+    for (const r of rows as any[]) {
+      lines.push([
+        r.id, r.name, r.slug, r.category?.name ?? "",
+        r.price, r.sale_price ?? "", r.stock,
+        r.is_active, r.is_featured,
+        r.active_principle ?? "", r.composition ?? "", r.description ?? "",
+        r.meta_title ?? "", r.meta_description ?? "",
+      ].map(esc).join(","));
+    }
+    const blob = new Blob(["\ufeff" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `produtos-${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    toast.success(`${rows.length} produtos exportados`);
+  }
+
   return (
     <>
       <div className="flex justify-between items-center mb-4 gap-3 flex-wrap">
@@ -557,7 +592,10 @@ function AdminProducts() {
             {totalCount} {totalCount === 1 ? "produto" : "produtos"}
           </span>
         )}
-        <Button onClick={() => setEditing({ is_active: true })}><Plus className="h-4 w-4" /> Novo produto</Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={exportCsv} title="Exportar todos os produtos para CSV"><Download className="h-4 w-4" /> CSV</Button>
+          <Button onClick={() => setEditing({ is_active: true })}><Plus className="h-4 w-4" /> Novo produto</Button>
+        </div>
       </div>
 
       {selected.size > 0 && (
@@ -719,6 +757,30 @@ function AdminProducts() {
               <div className="space-y-2 sm:col-span-2"><Label>Descrição</Label><textarea className="w-full rounded-xl border border-input bg-background p-3 text-sm min-h-[80px]" value={editing.description || ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} /></div>
               <div className="space-y-2"><Label>Princípio ativo</Label><Input value={editing.active_principle || ""} onChange={(e) => setEditing({ ...editing, active_principle: e.target.value })} /></div>
               <div className="space-y-2"><Label>Composição</Label><Input value={editing.composition || ""} onChange={(e) => setEditing({ ...editing, composition: e.target.value })} /></div>
+              <div className="space-y-2 sm:col-span-2 pt-3 mt-1 border-t border-border">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">SEO (opcional)</p>
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Meta título <span className="text-xs text-muted-foreground font-normal">(até 60 caracteres)</span></Label>
+                <Input
+                  maxLength={70}
+                  value={editing.meta_title || ""}
+                  placeholder={editing.name ? `${editing.name} | KA Imports` : "Use o nome do produto se vazio"}
+                  onChange={(e) => setEditing({ ...editing, meta_title: e.target.value })}
+                />
+                <p className="text-[11px] text-muted-foreground">{(editing.meta_title || "").length}/60</p>
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Meta descrição <span className="text-xs text-muted-foreground font-normal">(até 160 caracteres)</span></Label>
+                <textarea
+                  className="w-full rounded-xl border border-input bg-background p-3 text-sm min-h-[60px]"
+                  maxLength={180}
+                  value={editing.meta_description || ""}
+                  placeholder="Texto curto que aparece no Google/redes sociais"
+                  onChange={(e) => setEditing({ ...editing, meta_description: e.target.value })}
+                />
+                <p className="text-[11px] text-muted-foreground">{(editing.meta_description || "").length}/160</p>
+              </div>
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!editing.is_featured} onChange={(e) => setEditing({ ...editing, is_featured: e.target.checked })} /> Em destaque</label>
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={editing.is_active !== false} onChange={(e) => setEditing({ ...editing, is_active: e.target.checked })} /> Ativo</label>
             </div>
