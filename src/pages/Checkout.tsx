@@ -523,10 +523,20 @@ export default function Checkout() {
       let activeUserId = user?.id;
       if (!activeUserId) {
         const emailTrim = form.email.trim().toLowerCase();
-        const cpfDigits = onlyDigits(form.cpf);
-        // Senha determinística baseada em CPF — permite "re-login" silencioso
-        // se o cliente voltar e digitar o mesmo CPF/e-mail. Mínimo 8 chars.
-        const autoPassword = `gi#${cpfDigits}A1`;
+        // ⚠️ SEGURANÇA: senha do guest precisa ser aleatória e descartável.
+        // Versões anteriores usavam `gi#${cpf}A1` (determinística), o que
+        // permitia a qualquer pessoa que soubesse o e-mail + CPF logar na
+        // conta e ver todos os pedidos/endereço — CPF não é segredo no BR.
+        // Agora geramos 24 bytes de aleatoriedade via Web Crypto. Se o
+        // e-mail já existir, mandamos o cliente fazer login normal.
+        const autoPassword = (() => {
+          const bytes = new Uint8Array(24);
+          crypto.getRandomValues(bytes);
+          return (
+            "Gi!" +
+            Array.from(bytes, (b) => b.toString(36).padStart(2, "0")).join("")
+          );
+        })();
 
         const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
           email: emailTrim,
@@ -538,23 +548,17 @@ export default function Checkout() {
         });
 
         if (signUpErr) {
-          // Conta já existe → tenta login silencioso com a senha determinística.
+          // Conta já existe → não há como tentar "login silencioso" com a
+          // nova senha aleatória. Pedimos para o cliente fazer login normal
+          // (ou recuperar senha) e voltar ao checkout.
           const looksRegistered = /registered|already|exists/i.test(signUpErr.message);
           if (looksRegistered) {
-            const { data: signInData, error: signInErr } =
-              await supabase.auth.signInWithPassword({
-                email: emailTrim,
-                password: autoPassword,
-              });
-            if (signInErr || !signInData.session?.user) {
-              toast.error(
-                "Já existe uma conta com este e-mail. Faça login para continuar.",
-              );
-              nav(`/login?next=/checkout&email=${encodeURIComponent(emailTrim)}`);
-              setSubmitting(false);
-              return;
-            }
-            activeUserId = signInData.session.user.id;
+            toast.error(
+              "Já existe uma conta com este e-mail. Faça login para continuar.",
+            );
+            nav(`/login?next=/checkout&email=${encodeURIComponent(emailTrim)}`);
+            setSubmitting(false);
+            return;
           } else {
             throw signUpErr;
           }

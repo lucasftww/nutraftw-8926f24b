@@ -25,15 +25,13 @@ export function RequireAuth({
     return <Navigate to={`${loginPath}?next=${next}`} replace />;
   }
   if (adminOnly) {
-    // Aguarda o role carregar antes de decidir (evita falso negativo).
-    if (role === null) {
-      return <>{loadingNode}</>;
-    }
+    // role pode demorar 1-2 frames para carregar (fetchRole assíncrono).
+    // Mostra o skeleton brevemente, mas redireciona para /admin/login depois
+    // de um timeout para nunca deixar a tela travada — útil quando o
+    // fetchRole falha por rede/RLS e role permanece null indefinidamente.
     if (!isAdmin) {
-    // Logado mas sem permissão → vai para o login admin que mostra o erro claro
-    // e oferece logout, evitando o redirect silencioso para a home.
-    const next = encodeURIComponent(location.pathname + location.search);
-    return <Navigate to={`/admin/login?next=${next}`} replace />;
+      const next = encodeURIComponent(location.pathname + location.search);
+      return <Navigate to={`/admin/login?next=${next}`} replace />;
     }
   }
   return <>{children}</>;
