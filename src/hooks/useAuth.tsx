@@ -57,7 +57,8 @@ type AuthValue = {
   loading: boolean;
   /** True só enquanto a sessão inicial é restaurada. NÃO bloqueia em role. */
   authLoading: boolean;
-  /** True enquanto o role está sendo buscado (sem cache). */
+  /** True enquanto o role está sendo buscado pela primeira vez (sem cache). */
+  roleLoading: boolean;
   isAdmin: boolean;
 };
 
@@ -175,6 +176,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // `loading` (mantido p/ compat) só reflete a sessão — não trava UI por causa de role.
     loading,
     authLoading: loading,
+    roleLoading,
     isAdmin: role === "admin",
   };
 
@@ -191,6 +193,7 @@ export function useAuth(): AuthValue {
       role: null,
       loading: true,
       authLoading: true,
+      roleLoading: false,
       isAdmin: false,
     };
   }

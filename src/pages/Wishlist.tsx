@@ -45,7 +45,11 @@ export default function Wishlist() {
         setItems(((data as any) || []) as FavProduct[]);
         setLoading(false);
       });
-  }, [isAuthed, ids.size]);
+    // Bug fix: depender só de `ids.size` não detecta troca de itens com
+    // o mesmo total (ex.: remover A e adicionar B). Usamos uma chave
+    // ordenada e estável dos IDs — re-busca SOMENTE quando o conjunto muda.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthed, Array.from(ids).sort().join(",")]);
 
   if (!isAuthed) {
     return (
