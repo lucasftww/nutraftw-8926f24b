@@ -1082,9 +1082,10 @@ export default function Checkout() {
             <h2 className="checkout-section-title">Endereço</h2>
             <div className="space-y-4">
               <div className="checkout-field">
-                <label className="checkout-label">CEP *</label>
+                <label htmlFor="co-zip" className="checkout-label">CEP *</label>
                 <div className="relative">
                   <input
+                    id="co-zip"
                     required
                     value={form.zip}
                     onChange={(e) => setForm({ ...form, zip: maskCEP(e.target.value) })}
@@ -1095,6 +1096,7 @@ export default function Checkout() {
                     className="checkout-input pr-10"
                     data-status={vCEP.status === "idle" ? undefined : vCEP.status}
                     aria-invalid={vCEP.status === "invalid"}
+                    aria-describedby={vCEP.status === "invalid" ? "co-zip-hint" : "co-zip-help"}
                     autoComplete="postal-code"
                   />
                   {cepLoading && (
@@ -1102,43 +1104,53 @@ export default function Checkout() {
                   )}
                 </div>
                 {vCEP.status === "invalid" ? (
-                  <FieldHint status="invalid" message={vCEP.message} />
+                  <FieldHint id="co-zip-hint" status="invalid" message={vCEP.message} />
                 ) : (
-                  <p className="text-xs text-muted-foreground ml-1 mt-1.5">
+                  <p id="co-zip-help" className="text-xs text-muted-foreground ml-1 mt-1.5">
                     Digite o CEP para preenchimento automático do endereço
                   </p>
                 )}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="sm:col-span-2 checkout-field">
-                  <label className="checkout-label">Rua / Logradouro *</label>
+                  <label htmlFor="co-street" className="checkout-label">Rua / Logradouro *</label>
                   <input
+                    id="co-street"
                     required
                     value={form.street}
                     onChange={(e) => setForm({ ...form, street: e.target.value })}
                     placeholder="Rua das Flores"
                     className="checkout-input"
+                    autoComplete="address-line1"
+                    maxLength={120}
                   />
                 </div>
                 <div className="checkout-field">
-                  <label className="checkout-label">Número *</label>
+                  <label htmlFor="co-number" className="checkout-label">Número *</label>
                   <input
+                    id="co-number"
                     required
                     value={form.number}
                     onChange={(e) => setForm({ ...form, number: e.target.value })}
                     placeholder="123"
                     className="checkout-input"
+                    autoComplete="address-line2"
+                    inputMode="numeric"
+                    maxLength={20}
                   />
                 </div>
               </div>
               <div className="checkout-field">
-                <label className="checkout-label">Bairro *</label>
+                <label htmlFor="co-district" className="checkout-label">Bairro *</label>
                 <input
+                  id="co-district"
                   required
                   value={form.district}
                   onChange={(e) => setForm({ ...form, district: e.target.value })}
                   placeholder="Centro"
                   className="checkout-input"
+                  autoComplete="address-level3"
+                  maxLength={80}
                 />
               </div>
               {!complementOpen ? (
@@ -1151,34 +1163,52 @@ export default function Checkout() {
                 </button>
               ) : (
                 <div className="checkout-field">
-                  <label className="checkout-label">Complemento</label>
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="co-complement" className="checkout-label">Complemento</label>
+                    {/* Antes não dava pra fechar o campo depois de aberto. */}
+                    <button
+                      type="button"
+                      onClick={() => { setForm((f) => ({ ...f, complement: "" })); setComplementOpen(false); }}
+                      className="text-[11px] font-semibold text-muted-foreground hover:text-destructive"
+                    >
+                      remover
+                    </button>
+                  </div>
                   <input
+                    id="co-complement"
                     value={form.complement}
                     onChange={(e) => setForm({ ...form, complement: e.target.value })}
                     placeholder="Apto 12, Bloco B"
                     className="checkout-input"
+                    autoComplete="address-line3"
+                    maxLength={80}
                     autoFocus
                   />
                 </div>
               )}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="sm:col-span-2 checkout-field">
-                  <label className="checkout-label">Cidade *</label>
+                  <label htmlFor="co-city" className="checkout-label">Cidade *</label>
                   <input
+                    id="co-city"
                     required
                     value={form.city}
                     onChange={(e) => setForm({ ...form, city: e.target.value })}
                     placeholder="São Paulo"
                     className="checkout-input"
+                    autoComplete="address-level2"
+                    maxLength={80}
                   />
                 </div>
                 <div className="checkout-field">
-                  <label className="checkout-label">Estado *</label>
+                  <label htmlFor="co-state" className="checkout-label">Estado *</label>
                   <select
+                    id="co-state"
                     required
                     value={form.state}
                     onChange={(e) => setForm({ ...form, state: e.target.value })}
                     className="checkout-input bg-white appearance-none cursor-pointer"
+                    autoComplete="address-level1"
                   >
                     <option value="">UF</option>
                     {[
