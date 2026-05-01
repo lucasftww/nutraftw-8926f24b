@@ -72,7 +72,7 @@ export default function MyAccount() {
     (async () => {
       const [{ data: comm }, { data: refs }] = await Promise.all([
         supabase.from("affiliate_commissions").select("amount, status").eq("affiliate_user_id", user.id),
-        supabase.from("affiliate_referrals").select("status").eq("affiliate_user_id", user.id),
+        (supabase as any).from("affiliate_referrals_masked").select("status").eq("affiliate_user_id", user.id),
       ]);
       if (cancelled) return;
       const sumBy = (st: string) => (comm || []).filter((c: any) => c.status === st).reduce((s: number, c: any) => s + Number(c.amount || 0), 0);

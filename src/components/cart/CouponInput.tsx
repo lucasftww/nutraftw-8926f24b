@@ -29,22 +29,19 @@ export function CouponInput() {
     if (!coupon) return;
     let cancel = false;
     (async () => {
-      const { data } = await (supabase as any)
-        .from("coupons")
-        .select("code, discount_type, discount_value, min_subtotal, expires_at, active, max_uses, uses")
-        .eq("code", coupon)
-        .maybeSingle();
+      const { data } = await (supabase as any).rpc("validate_coupon", {
+        p_code: coupon,
+        p_subtotal: total,
+      });
       if (cancel) return;
-      const c = data as any;
-      const reason = explainInvalid(c, total);
-      if (reason) {
-        setValid(false); setDiscount(0); setWarning(reason); return;
+      const row = Array.isArray(data) ? data[0] : data;
+      if (!row || !row.valid) {
+        setValid(false); setDiscount(0);
+        setWarning(row?.message || "Cupom indisponível.");
+        return;
       }
-      const d = c.discount_type === "percent"
-        ? Math.round(total * Number(c.discount_value) / 100 * 100) / 100
-        : Math.min(Number(c.discount_value), total);
       setValid(true);
-      setDiscount(d);
+      setDiscount(Number(row.discount_amount || 0));
       setWarning(null);
     })();
     return () => { cancel = true; };
@@ -66,15 +63,14 @@ export function CouponInput() {
     if (!v) { setError("Digite um código."); return; }
     setLoading(true);
     setError(null);
-    const { data } = await (supabase as any)
-      .from("coupons")
-      .select("code, discount_type, discount_value, min_subtotal, expires_at, active, max_uses, uses")
-      .eq("code", v)
-      .maybeSingle();
+    const { data } = await (supabase as any).rpc("validate_coupon", {
+      p_code: v,
+      p_subtotal: total,
+    });
     setLoading(false);
-    const reason = explainInvalid(data, total);
-    if (reason) {
-      setError(reason);
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row || !row.valid) {
+      setError(row?.message || "Cupom inválido.");
       return;
     }
     setCoupon(v);

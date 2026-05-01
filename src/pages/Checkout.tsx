@@ -266,28 +266,37 @@ export default function Checkout() {
     if (!code) return { ok: false, error: "Informe um cupom." };
     setCouponLoading(true);
     try {
-      const { data, error } = await (supabase as any)
-        .from("coupons")
-        .select("*")
-        .eq("code", code)
-        .maybeSingle();
+      const { data, error } = await (supabase as any).rpc("validate_coupon", {
+        p_code: code,
+        p_subtotal: total,
+      });
       if (error) {
         const msg = "Erro ao validar cupom. Tente novamente.";
         setCouponError(msg);
         if (!opts.silent) toast.error(msg);
         return { ok: false, error: msg };
       }
-      const errMsg = checkCouponClientSide(data, total);
-      if (errMsg) {
+      const row = Array.isArray(data) ? data[0] : data;
+      if (!row || !row.valid) {
+        const errMsg = row?.message || "Cupom inválido.";
         setCoupon(null);
         setCouponError(errMsg);
         if (!opts.silent) toast.error(errMsg);
         return { ok: false, error: errMsg };
       }
-      setCoupon(data);
+      // Mantém o mesmo shape do antigo SELECT * (campos consumidos no resto do checkout).
+      const couponData = {
+        code: row.code,
+        description: row.description,
+        discount_type: row.discount_type,
+        discount_value: Number(row.discount_value || 0),
+        discount_amount: Number(row.discount_amount || 0),
+        active: true,
+      };
+      setCoupon(couponData);
       setCouponError(null);
       if (!opts.silent) toast.success("Cupom aplicado!");
-      return { ok: true, data };
+      return { ok: true, data: couponData };
     } catch {
       const msg = "Erro ao validar cupom. Tente novamente.";
       setCouponError(msg);
