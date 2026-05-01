@@ -345,9 +345,9 @@ export default function Catalog() {
             o espaço vazio entre header e conteúdo.
           - Chips logo abaixo da busca formam a "barra de filtros"
             principal, sempre visível durante o scroll. */}
-      <div className="sticky top-12 md:top-14 z-20 bg-background border-b border-border/40 pt-1.5 md:pt-2 pb-1.5 md:pb-2">
+      <div className="sticky top-12 md:top-14 z-20 bg-background border-b border-border/40 py-2">
         <div className="container mx-auto px-4">
-          <div className="w-full max-w-3xl mx-auto space-y-2">
+          <div className="w-full max-w-3xl mx-auto space-y-1.5">
           {/* Linha 1: busca + ícone de filtros (drawer com ordenação e
               multi-seleção avançada). Mais limpa: 1 input grande + 1 ícone. */}
           <div className="flex gap-2">
@@ -435,7 +435,7 @@ export default function Catalog() {
       </div>
 
       {/* Sections */}
-      <section className="relative pt-3 md:pt-4 pb-2 scroll-mt-32">
+      <section className="relative pt-2 md:pt-3 pb-2 scroll-mt-32">
         <div className="container mx-auto px-4">
           {/* overflow-anchor:none impede o navegador de "puxar" o scroll
               quando novos cards são inseridos pelo infinite scroll —
