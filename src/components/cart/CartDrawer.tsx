@@ -9,6 +9,7 @@ import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { CouponInput } from "@/components/cart/CouponInput";
 import { prefetchCheckout } from "@/App";
+import { prefetchImage } from "@/lib/prefetch";
 
 export function CartDrawer() {
   const { lines, total, open, closeCart, setQty, remove } = useCart();
@@ -25,6 +26,13 @@ export function CartDrawer() {
   useEffect(() => {
     if (open && lines.length > 0) {
       prefetchCheckout().catch(() => {});
+      // Aquece o cache HTTP/SW com as imagens que serão exibidas no resumo
+      // do checkout (44px @1x/2x). Quando o usuário entrar, elas já estarão
+      // prontas — elimina o "pop-in" visual no mobile.
+      for (const l of lines) {
+        prefetchImage(imageUrl(l.image_url, { width: 88, quality: 75 }));
+        prefetchImage(imageUrl(l.image_url, { width: 176, quality: 75 }));
+      }
     }
   }, [open, lines.length]);
 
