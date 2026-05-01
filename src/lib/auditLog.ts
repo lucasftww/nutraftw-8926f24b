@@ -29,8 +29,6 @@ export type AdminEntity =
   | "categories"
   | "coupons"
   | "shipping_rates"
-  | "site_banners"
-  | "home_banners"
   | "site_settings"
   | "orders"
   | "resends"

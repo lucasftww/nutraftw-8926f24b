@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatBRL, slugify } from "@/lib/utils";
 import { toast } from "sonner";
-import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, RefreshCcw, Settings, BarChart3, Activity, History, TrendingUp, Users, Download, ChevronUp, ChevronDown, Check, Calendar, Copy, Command, Image as ImageIcon, Handshake } from "lucide-react";
+import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, RefreshCcw, Settings, BarChart3, Activity, History, TrendingUp, Users, Download, ChevronUp, ChevronDown, Check, Calendar, Copy, Command, Handshake } from "lucide-react";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { WeeklyReport } from "@/components/admin/WeeklyReport";
 import { ImageUpload } from "@/components/admin/ImageUpload";
@@ -22,7 +22,6 @@ import { AdminAuditLog } from "@/components/admin/AdminAuditLog";
 import { AdminFunnel } from "@/components/admin/AdminFunnel";
 import { AdminUsers } from "@/components/admin/AdminUsers";
 import { AdminAffiliates } from "@/components/admin/AdminAffiliates";
-import { AdminBanners } from "@/components/admin/AdminBanners";
 import { AdminModal } from "@/components/admin/AdminModal";
 import { ConfirmProvider, useConfirm } from "@/components/admin/ConfirmDialog";
 import { queryKeys } from "@/lib/queryKeys";
@@ -31,9 +30,9 @@ import { logAdminAction, shallowDiff } from "@/lib/auditLog";
 import { useNewOrdersNotifier } from "@/hooks/useNewOrdersNotifier";
 import { CommandPalette } from "@/components/admin/CommandPalette";
 
-type Tab = "dashboard" | "funnel" | "reports" | "products" | "categories" | "banners" | "orders" | "coupons" | "shipping" | "users" | "affiliates" | "resends" | "settings" | "diagnostics" | "audit";
+type Tab = "dashboard" | "funnel" | "reports" | "products" | "categories" | "orders" | "coupons" | "shipping" | "users" | "affiliates" | "resends" | "settings" | "diagnostics" | "audit";
 
-const TAB_IDS: Tab[] = ["dashboard","funnel","reports","products","categories","banners","orders","coupons","shipping","users","affiliates","resends","settings","diagnostics","audit"];
+const TAB_IDS: Tab[] = ["dashboard","funnel","reports","products","categories","orders","coupons","shipping","users","affiliates","resends","settings","diagnostics","audit"];
 
 const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -41,7 +40,6 @@ const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "reports", label: "Relatórios", icon: BarChart3 },
   { id: "products", label: "Produtos", icon: Package },
   { id: "categories", label: "Categorias", icon: Tags },
-  { id: "banners", label: "Banners", icon: ImageIcon },
   { id: "orders", label: "Pedidos", icon: ShoppingBag },
   { id: "coupons", label: "Cupons", icon: Ticket },
   { id: "shipping", label: "Fretes", icon: Truck },
@@ -58,7 +56,7 @@ const TABS: { id: Tab; label: string; icon: any }[] = [
 type Group = { id: string; label: string; icon: any; tabs: Tab[] };
 const GROUPS: Group[] = [
   { id: "overview", label: "Visão geral", icon: LayoutDashboard, tabs: ["dashboard", "funnel", "reports"] },
-  { id: "catalog",  label: "Catálogo",    icon: Package,         tabs: ["products", "categories", "banners"] },
+  { id: "catalog",  label: "Catálogo",    icon: Package,         tabs: ["products", "categories"] },
   { id: "sales",    label: "Vendas",      icon: ShoppingBag,     tabs: ["orders", "coupons", "shipping"] },
   { id: "people",   label: "Pessoas",     icon: Users,           tabs: ["users", "affiliates", "resends"] },
   { id: "system",   label: "Sistema",     icon: Settings,        tabs: ["settings", "diagnostics", "audit"] },
@@ -234,7 +232,6 @@ function AdminInner() {
       {tab === "reports" && <WeeklyReport />}
       {tab === "products" && <AdminProducts />}
       {tab === "categories" && <AdminCategories />}
-      {tab === "banners" && <AdminBanners />}
       {tab === "orders" && <AdminOrders />}
       {tab === "coupons" && <AdminCoupons />}
       {tab === "shipping" && <AdminShipping />}
