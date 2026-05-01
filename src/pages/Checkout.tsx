@@ -17,6 +17,7 @@ import { validateFullName, validateEmail, validatePhoneBR, validateCPF, validate
 import { isValidCPF } from "@/lib/validators";
 import type { FieldStatus } from "@/lib/validators";
 import { getAffiliateRefData, clearAffiliateRef } from "@/lib/affiliateRef";
+import { CheckoutStepper } from "@/components/checkout/CheckoutStepper";
 
 const SHIPPING_FALLBACK = 80;
 const INSURANCE_RATE = 0.1;
@@ -916,54 +917,12 @@ export default function Checkout() {
       {/* Stepper — guia visual de progresso. Não troca de tela: apenas
           espelha o estado das seções (`buyerDone` / `addressDone+shippingDone` /
           `paymentDone`). Reduz ansiedade do usuário em formulários longos. */}
-      {(() => {
-        const steps = [
-          { n: 1, label: "Seus dados", done: buyerDone },
-          { n: 2, label: "Entrega", done: addressDone && shippingDone },
-          { n: 3, label: "Pagamento", done: paymentDone },
-        ];
-        // Etapa "ativa" no mobile = primeira não-concluída (ou a última se tudo ok).
-        const activeIdx = steps.findIndex((s) => !s.done);
-        const activeN = activeIdx === -1 ? steps.length : steps[activeIdx].n;
-        return (
-          <ol className="mb-5 sm:mb-6 flex items-center gap-1.5 sm:gap-3" aria-label="Progresso do checkout">
-            {steps.map((s, i) => {
-              const isActive = s.n === activeN;
-              return (
-              <li
-                key={s.n}
-                className={`flex items-center gap-1.5 sm:gap-3 min-w-0 ${isActive ? "flex-1" : "shrink-0"} sm:flex-1`}
-                aria-current={isActive ? "step" : undefined}
-                aria-label={`Passo ${s.n} de ${steps.length}: ${s.label}${s.done ? " — concluído" : isActive ? " — atual" : ""}`}
-              >
-                <div
-                  className={`flex items-center gap-2 min-w-0 flex-1 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-full border transition-colors ${
-                    s.done
-                      ? "bg-success/10 border-success/30 text-success"
-                      : "bg-muted/40 border-border text-muted-foreground"
-                  }`}
-                >
-                  <span
-                    className={`inline-flex items-center justify-center h-5 w-5 rounded-full text-[11px] font-bold shrink-0 ${
-                      s.done ? "bg-success text-success-foreground" : "bg-background border border-border text-foreground"
-                    }`}
-                    aria-hidden
-                  >
-                    {s.done ? <Check className="h-3 w-3" strokeWidth={3} /> : s.n}
-                  </span>
-                  {/* Mobile: só mostra label do passo ativo (evita truncamento feio).
-                      Desktop (sm+): sempre mostra todos. */}
-                  <span className={`text-[11px] sm:text-xs font-semibold truncate ${isActive ? "inline" : "hidden"} sm:inline`}>{s.label}</span>
-                </div>
-                {i < steps.length - 1 && (
-                  <span aria-hidden className={`hidden sm:block h-px flex-1 ${s.done ? "bg-success/40" : "bg-border"}`} />
-                )}
-              </li>
-              );
-            })}
-          </ol>
-        );
-      })()}
+      <CheckoutStepper
+        buyerDone={buyerDone}
+        addressDone={addressDone}
+        shippingDone={shippingDone}
+        paymentDone={paymentDone}
+      />
 
       <form onSubmit={submit} className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-5 lg:gap-8">
         <div className="space-y-4 sm:space-y-6 min-w-0">
