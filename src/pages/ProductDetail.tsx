@@ -187,7 +187,7 @@ export default function ProductDetail() {
                 alt={p.name}
                 loading="eager"
                 decoding="async"
-                fetchPriority="high"
+                {...({ fetchpriority: "high" } as Record<string, string>)}
                 width={800}
                 height={800}
                 onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
