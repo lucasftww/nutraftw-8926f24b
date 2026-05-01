@@ -23,6 +23,37 @@ const INSURANCE_RATE = 0.1;
 const PIX_DISCOUNT = 0.05;
 
 /**
+ * Persistência leve do form em sessionStorage. Evita perder o que o usuário
+ * digitou se ele recarregar a página por engano (acidente comum em mobile
+ * com pull-to-refresh). Sessão limpa sozinha ao fechar a aba — sem rastros.
+ * Só dados de contato/endereço — nunca senha. Senhas nem passam por aqui.
+ */
+const FORM_STORAGE_KEY = "checkout:form:v1";
+type CheckoutFormState = {
+  full_name: string; email: string; cpf: string; phone: string;
+  zip: string; street: string; number: string; complement: string;
+  district: string; city: string; state: string; notes: string;
+  payment_method: "pix" | "credit_card";
+};
+const EMPTY_FORM: CheckoutFormState = {
+  full_name: "", email: "", cpf: "", phone: "",
+  zip: "", street: "", number: "", complement: "",
+  district: "", city: "", state: "", notes: "",
+  payment_method: "pix",
+};
+function loadPersistedForm(): CheckoutFormState {
+  if (typeof window === "undefined") return EMPTY_FORM;
+  try {
+    const raw = window.sessionStorage.getItem(FORM_STORAGE_KEY);
+    if (!raw) return EMPTY_FORM;
+    const parsed = JSON.parse(raw) as Partial<CheckoutFormState>;
+    return { ...EMPTY_FORM, ...parsed };
+  } catch {
+    return EMPTY_FORM;
+  }
+}
+
+/**
  * Cartão de método de pagamento (PIX / Cartão).
  * Bug fix: antes era declarado DENTRO de `Checkout`. Resultado: a cada
  * keystroke nos campos do form, React via uma "função-componente nova"
@@ -119,19 +150,20 @@ function PaymentOption({
   );
 }
 
-/** Mensagem inline de validação — verde "ok" / vermelho "erro" / nada quando idle. */
-function FieldHint({ status, message }: { status: FieldStatus; message?: string }) {
+/** Mensagem inline de validação — verde "ok" / vermelho "erro" / nada quando idle.
+ *  `id` permite vincular ao input via aria-describedby (acessibilidade). */
+function FieldHint({ status, message, id }: { status: FieldStatus; message?: string; id?: string }) {
   if (status === "idle") return null;
   if (status === "valid") {
     return (
-      <p className="field-hint field-hint-ok" aria-live="polite">
+      <p id={id} className="field-hint field-hint-ok" aria-live="polite">
         <CheckCircle2 className="h-3.5 w-3.5 mt-0.5 shrink-0" />
         <span>Tudo certo</span>
       </p>
     );
   }
   return (
-    <p role="alert" className="field-hint field-hint-error">
+    <p id={id} role="alert" className="field-hint field-hint-error">
       <AlertCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
       <span>{message}</span>
     </p>
@@ -188,21 +220,20 @@ export default function Checkout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [coupon?.code]);
 
-  const [form, setForm] = useState({
-    full_name: "",
-    email: "",
-    cpf: "",
-    phone: "",
-    zip: "",
-    street: "",
-    number: "",
-    complement: "",
-    district: "",
-    city: "",
-    state: "",
-    notes: "",
-    payment_method: "pix" as "pix" | "credit_card",
-  });
+  // Hidrata do sessionStorage no mount (lazy initializer — só roda 1x).
+  const [form, setForm] = useState<CheckoutFormState>(loadPersistedForm);
+
+  // Persiste em sessionStorage a cada mudança. Debounce-light: salvar a
+  // cada keystroke é barato (sessionStorage é síncrono mas ~µs aqui).
+  // Não persistimos `notes` se vazio para manter o blob menor — opcional.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.sessionStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(form));
+    } catch {
+      // Quota cheia / modo privado: silencioso, não é crítico.
+    }
+  }, [form]);
 
   // Pre-fill from profile
   useEffect(() => {
@@ -241,6 +272,10 @@ export default function Checkout() {
   }, [user]);
 
   // ViaCEP autocomplete — debounced + abortável (evita rate-limit e race conditions)
+  // Bug fix UX: antes, CEP inexistente caía em silêncio. Agora avisamos o
+  // usuário (toast leve) para preencher manualmente. Marcamos um ref para
+  // não repetir o mesmo aviso quando o useEffect re-roda no mesmo CEP.
+  const lastCepNotFoundRef = useRef<string | null>(null);
   useEffect(() => {
     const cep = onlyDigits(form.zip);
     if (cep.length !== 8) return;
@@ -252,7 +287,14 @@ export default function Checkout() {
         .then((r) => r.json())
         .then((d) => {
           if (cancelled) return;
-          if (d.erro) return;
+          if (d.erro) {
+            if (lastCepNotFoundRef.current !== cep) {
+              lastCepNotFoundRef.current = cep;
+              toast.warning("CEP não encontrado. Preencha o endereço manualmente.");
+            }
+            return;
+          }
+          lastCepNotFoundRef.current = null;
           setForm((f) => ({
             ...f,
             street: f.street || d.logradouro || "",
@@ -294,20 +336,35 @@ export default function Checkout() {
     }
     let cancelled = false;
     setShippingLoading(true);
-    (supabase as any)
-      .from("shipping_rates")
-      .select("*")
-      .eq("state", ufNormalized)
-      .eq("active", true)
-      .order("price")
-      .then(({ data }: any) => {
-        if (cancelled) return; // evita race quando o usuário troca UF rápido
-        const arr = (data as any[]) || [];
+    // Bug fix UX: antes, falha de rede deixava a seção vazia até o usuário
+    // trocar UF e voltar. Agora tentamos 1 retry com backoff curto antes
+    // de desistir — comum em conexões mobile flutuando.
+    const fetchRates = async (attempt: number): Promise<any[]> => {
+      const { data, error } = await (supabase as any)
+        .from("shipping_rates")
+        .select("*")
+        .eq("state", ufNormalized)
+        .eq("active", true)
+        .order("price");
+      if (error && attempt < 1) {
+        await new Promise((r) => setTimeout(r, 400));
+        return fetchRates(attempt + 1);
+      }
+      if (error) throw error;
+      return (data as any[]) || [];
+    };
+    fetchRates(0)
+      .then((arr) => {
+        if (cancelled) return;
         shippingCacheRef.current.set(ufNormalized, arr);
         setShippingOptions(arr);
         setShippingId((cur) => arr.find((o) => o.id === cur)?.id || arr[0]?.id || null);
       })
-      .catch(() => {})
+      .catch((err) => {
+        if (cancelled) return;
+        console.error("[Checkout] shipping_rates fetch failed", err);
+        setShippingOptions([]);
+      })
       .finally(() => { if (!cancelled) setShippingLoading(false); });
     return () => { cancelled = true; };
   }, [ufNormalized]);
@@ -838,6 +895,8 @@ export default function Checkout() {
       // Bug fix: navegar ANTES de clear() evita um frame com a tela
       // "Seu carrinho está vazio" enquanto a transição acontece.
       toast.success("Pedido criado! Em breve entraremos em contato.");
+      // Limpa o rascunho persistido — pedido já foi gravado.
+      try { window.sessionStorage.removeItem(FORM_STORAGE_KEY); } catch {}
       nav("/minha-conta");
       clear();
     } catch (err: any) {
@@ -898,7 +957,12 @@ export default function Checkout() {
             {steps.map((s, i) => {
               const isActive = s.n === activeN;
               return (
-              <li key={s.n} className={`flex items-center gap-1.5 sm:gap-3 min-w-0 ${isActive ? "flex-1" : "shrink-0"} sm:flex-1`}>
+              <li
+                key={s.n}
+                className={`flex items-center gap-1.5 sm:gap-3 min-w-0 ${isActive ? "flex-1" : "shrink-0"} sm:flex-1`}
+                aria-current={isActive ? "step" : undefined}
+                aria-label={`Passo ${s.n} de ${steps.length}: ${s.label}${s.done ? " — concluído" : isActive ? " — atual" : ""}`}
+              >
                 <div
                   className={`flex items-center gap-2 min-w-0 flex-1 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-full border transition-colors ${
                     s.done
@@ -935,8 +999,9 @@ export default function Checkout() {
             <h2 className="checkout-section-title">Seus dados</h2>
             <div className="space-y-4">
               <div className="checkout-field">
-                <label className="checkout-label">Nome Completo *</label>
+                <label htmlFor="co-name" className="checkout-label">Nome Completo *</label>
                 <input
+                  id="co-name"
                   required
                   value={form.full_name}
                   onChange={(e) => setForm({ ...form, full_name: e.target.value })}
@@ -945,17 +1010,20 @@ export default function Checkout() {
                   className="checkout-input"
                   data-status={vName.status === "idle" ? undefined : vName.status}
                   aria-invalid={vName.status === "invalid"}
+                  aria-describedby={vName.status !== "idle" ? "co-name-hint" : undefined}
                   autoComplete="name"
                   maxLength={100}
                 />
-                <FieldHint status={vName.status} message={vName.message} />
+                <FieldHint id="co-name-hint" status={vName.status} message={vName.message} />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="checkout-field sm:col-span-2">
-                  <label className="checkout-label">E-mail *</label>
+                  <label htmlFor="co-email" className="checkout-label">E-mail *</label>
                   <input
+                    id="co-email"
                     required
                     type="email"
+                    inputMode="email"
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                     onBlur={vEmail.touch}
@@ -963,14 +1031,18 @@ export default function Checkout() {
                     className="checkout-input"
                     data-status={vEmail.status === "idle" ? undefined : vEmail.status}
                     aria-invalid={vEmail.status === "invalid"}
+                    aria-describedby={vEmail.status !== "idle" ? "co-email-hint" : undefined}
                     autoComplete="email"
+                    autoCapitalize="off"
+                    spellCheck={false}
                     maxLength={255}
                   />
-                  <FieldHint status={vEmail.status} message={vEmail.message} />
+                  <FieldHint id="co-email-hint" status={vEmail.status} message={vEmail.message} />
                 </div>
                 <div className="checkout-field">
-                  <label className="checkout-label">Telefone (WhatsApp) *</label>
+                  <label htmlFor="co-phone" className="checkout-label">Telefone (WhatsApp) *</label>
                   <input
+                    id="co-phone"
                     required
                     type="tel"
                     value={form.phone}
@@ -981,14 +1053,16 @@ export default function Checkout() {
                     className="checkout-input"
                     data-status={vPhone.status === "idle" ? undefined : vPhone.status}
                     aria-invalid={vPhone.status === "invalid"}
+                    aria-describedby={vPhone.status !== "idle" ? "co-phone-hint" : undefined}
                     autoComplete="tel"
                     maxLength={15}
                   />
-                  <FieldHint status={vPhone.status} message={vPhone.message} />
+                  <FieldHint id="co-phone-hint" status={vPhone.status} message={vPhone.message} />
                 </div>
                 <div className="checkout-field">
-                <label className="checkout-label">CPF *</label>
+                <label htmlFor="co-cpf" className="checkout-label">CPF *</label>
                 <input
+                  id="co-cpf"
                   required
                   value={form.cpf}
                   onChange={(e) => setForm({ ...form, cpf: maskCPF(e.target.value) })}
@@ -998,9 +1072,11 @@ export default function Checkout() {
                   className="checkout-input"
                   data-status={vCPF.status === "idle" ? undefined : vCPF.status}
                   aria-invalid={vCPF.status === "invalid"}
+                  aria-describedby={vCPF.status !== "idle" ? "co-cpf-hint" : undefined}
+                  autoComplete="off"
                   maxLength={14}
                 />
-                <FieldHint status={vCPF.status} message={vCPF.message} />
+                <FieldHint id="co-cpf-hint" status={vCPF.status} message={vCPF.message} />
                 </div>
               </div>
             </div>
@@ -1011,9 +1087,10 @@ export default function Checkout() {
             <h2 className="checkout-section-title">Endereço</h2>
             <div className="space-y-4">
               <div className="checkout-field">
-                <label className="checkout-label">CEP *</label>
+                <label htmlFor="co-zip" className="checkout-label">CEP *</label>
                 <div className="relative">
                   <input
+                    id="co-zip"
                     required
                     value={form.zip}
                     onChange={(e) => setForm({ ...form, zip: maskCEP(e.target.value) })}
@@ -1024,6 +1101,7 @@ export default function Checkout() {
                     className="checkout-input pr-10"
                     data-status={vCEP.status === "idle" ? undefined : vCEP.status}
                     aria-invalid={vCEP.status === "invalid"}
+                    aria-describedby={vCEP.status === "invalid" ? "co-zip-hint" : "co-zip-help"}
                     autoComplete="postal-code"
                   />
                   {cepLoading && (
@@ -1031,43 +1109,53 @@ export default function Checkout() {
                   )}
                 </div>
                 {vCEP.status === "invalid" ? (
-                  <FieldHint status="invalid" message={vCEP.message} />
+                  <FieldHint id="co-zip-hint" status="invalid" message={vCEP.message} />
                 ) : (
-                  <p className="text-xs text-muted-foreground ml-1 mt-1.5">
+                  <p id="co-zip-help" className="text-xs text-muted-foreground ml-1 mt-1.5">
                     Digite o CEP para preenchimento automático do endereço
                   </p>
                 )}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="sm:col-span-2 checkout-field">
-                  <label className="checkout-label">Rua / Logradouro *</label>
+                  <label htmlFor="co-street" className="checkout-label">Rua / Logradouro *</label>
                   <input
+                    id="co-street"
                     required
                     value={form.street}
                     onChange={(e) => setForm({ ...form, street: e.target.value })}
                     placeholder="Rua das Flores"
                     className="checkout-input"
+                    autoComplete="address-line1"
+                    maxLength={120}
                   />
                 </div>
                 <div className="checkout-field">
-                  <label className="checkout-label">Número *</label>
+                  <label htmlFor="co-number" className="checkout-label">Número *</label>
                   <input
+                    id="co-number"
                     required
                     value={form.number}
                     onChange={(e) => setForm({ ...form, number: e.target.value })}
                     placeholder="123"
                     className="checkout-input"
+                    autoComplete="address-line2"
+                    inputMode="numeric"
+                    maxLength={20}
                   />
                 </div>
               </div>
               <div className="checkout-field">
-                <label className="checkout-label">Bairro *</label>
+                <label htmlFor="co-district" className="checkout-label">Bairro *</label>
                 <input
+                  id="co-district"
                   required
                   value={form.district}
                   onChange={(e) => setForm({ ...form, district: e.target.value })}
                   placeholder="Centro"
                   className="checkout-input"
+                  autoComplete="address-level3"
+                  maxLength={80}
                 />
               </div>
               {!complementOpen ? (
@@ -1080,34 +1168,52 @@ export default function Checkout() {
                 </button>
               ) : (
                 <div className="checkout-field">
-                  <label className="checkout-label">Complemento</label>
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="co-complement" className="checkout-label">Complemento</label>
+                    {/* Antes não dava pra fechar o campo depois de aberto. */}
+                    <button
+                      type="button"
+                      onClick={() => { setForm((f) => ({ ...f, complement: "" })); setComplementOpen(false); }}
+                      className="text-[11px] font-semibold text-muted-foreground hover:text-destructive"
+                    >
+                      remover
+                    </button>
+                  </div>
                   <input
+                    id="co-complement"
                     value={form.complement}
                     onChange={(e) => setForm({ ...form, complement: e.target.value })}
                     placeholder="Apto 12, Bloco B"
                     className="checkout-input"
+                    autoComplete="address-line3"
+                    maxLength={80}
                     autoFocus
                   />
                 </div>
               )}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="sm:col-span-2 checkout-field">
-                  <label className="checkout-label">Cidade *</label>
+                  <label htmlFor="co-city" className="checkout-label">Cidade *</label>
                   <input
+                    id="co-city"
                     required
                     value={form.city}
                     onChange={(e) => setForm({ ...form, city: e.target.value })}
                     placeholder="São Paulo"
                     className="checkout-input"
+                    autoComplete="address-level2"
+                    maxLength={80}
                   />
                 </div>
                 <div className="checkout-field">
-                  <label className="checkout-label">Estado *</label>
+                  <label htmlFor="co-state" className="checkout-label">Estado *</label>
                   <select
+                    id="co-state"
                     required
                     value={form.state}
                     onChange={(e) => setForm({ ...form, state: e.target.value })}
                     className="checkout-input bg-white appearance-none cursor-pointer"
+                    autoComplete="address-level1"
                   >
                     <option value="">UF</option>
                     {[
@@ -1416,12 +1522,23 @@ export default function Checkout() {
                   <div className="relative flex-1">
                     <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <input
-                      className="checkout-input pl-9 uppercase"
+                      className="checkout-input pl-9 uppercase tracking-wider"
                       placeholder="Cupom de desconto"
                       value={couponInput}
                       autoFocus
+                      autoComplete="off"
+                      autoCapitalize="characters"
+                      spellCheck={false}
+                      maxLength={32}
                       onChange={(e) => {
-                        setCouponInput(e.target.value.toUpperCase());
+                        // Normaliza no estado, não só no display: remove
+                        // espaços (paste com espaço extra é comum) e força
+                        // alfanumérico maiúsculo. Garante que o que o
+                        // servidor recebe = o que o usuário vê.
+                        const cleaned = e.target.value
+                          .toUpperCase()
+                          .replace(/[^A-Z0-9_-]/g, "");
+                        setCouponInput(cleaned);
                         if (couponError) setCouponError(null);
                       }}
                     />
@@ -1517,6 +1634,19 @@ export default function Checkout() {
             <button
               type="button"
               disabled={submitting}
+              aria-label={
+                submitting
+                  ? "Processando pedido"
+                  : !buyerDone
+                    ? "Continuar — preencher seus dados"
+                    : !addressDone
+                      ? "Continuar — preencher endereço"
+                      : !shippingDone
+                        ? "Continuar — escolher frete"
+                        : !paymentDone
+                          ? "Continuar — escolher pagamento"
+                          : "Finalizar pedido"
+              }
               onClick={() => {
                 // Foca a primeira seção incompleta para guiar o usuário.
                 const target = !buyerDone
