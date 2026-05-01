@@ -219,21 +219,20 @@ export default function Checkout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [coupon?.code]);
 
-  const [form, setForm] = useState({
-    full_name: "",
-    email: "",
-    cpf: "",
-    phone: "",
-    zip: "",
-    street: "",
-    number: "",
-    complement: "",
-    district: "",
-    city: "",
-    state: "",
-    notes: "",
-    payment_method: "pix" as "pix" | "credit_card",
-  });
+  // Hidrata do sessionStorage no mount (lazy initializer — só roda 1x).
+  const [form, setForm] = useState<CheckoutFormState>(loadPersistedForm);
+
+  // Persiste em sessionStorage a cada mudança. Debounce-light: salvar a
+  // cada keystroke é barato (sessionStorage é síncrono mas ~µs aqui).
+  // Não persistimos `notes` se vazio para manter o blob menor — opcional.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.sessionStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(form));
+    } catch {
+      // Quota cheia / modo privado: silencioso, não é crítico.
+    }
+  }, [form]);
 
   // Pre-fill from profile
   useEffect(() => {
