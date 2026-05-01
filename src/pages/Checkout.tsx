@@ -16,6 +16,7 @@ import { useFieldValidation } from "@/hooks/useFieldValidation";
 import { validateFullName, validateEmail, validatePhoneBR, validateCPF, validateCEP } from "@/lib/validators";
 import { isValidCPF } from "@/lib/validators";
 import type { FieldStatus } from "@/lib/validators";
+import { getAffiliateRefData, clearAffiliateRef } from "@/lib/affiliateRef";
 
 const SHIPPING_FALLBACK = 80;
 const INSURANCE_RATE = 0.1;
