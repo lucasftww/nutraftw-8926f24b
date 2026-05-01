@@ -585,6 +585,53 @@ export default function Checkout() {
           setSubmitting(false);
           return;
         }
+
+        // === Atribuição de afiliado para guest ===
+        // Bug fix: o checkout-guest criava a conta mas IGNORAVA o ref salvo
+        // em localStorage. Resultado: clientes que vinham de /r/CODIGO e
+        // compravam direto (sem passar pelo /login) nunca geravam comissão
+        // para o afiliado. Replicamos aqui a mesma lógica do Login.tsx,
+        // respeitando first-touch (não sobrescreve atribuição prévia).
+        try {
+          const refData = getAffiliateRefData();
+          const refCode = refData?.code ?? null;
+          if (refCode) {
+            const { data: aff } = await supabase
+              .from("profiles")
+              .select("user_id, affiliate_code")
+              .eq("affiliate_code", refCode)
+              .maybeSingle();
+            if (aff?.user_id && aff.user_id !== activeUserId) {
+              const { data: existingProfile } = await supabase
+                .from("profiles")
+                .select("referred_by_code")
+                .eq("user_id", activeUserId)
+                .maybeSingle();
+              const alreadyAttributed = !!existingProfile?.referred_by_code?.trim();
+              if (!alreadyAttributed) {
+                await supabase.from("profiles")
+                  .update({ referred_by_code: aff.affiliate_code })
+                  .eq("user_id", activeUserId);
+                await supabase.from("affiliate_referrals").insert({
+                  affiliate_user_id: aff.user_id,
+                  referred_user_id: activeUserId,
+                  referred_email: form.email.trim().toLowerCase(),
+                  status: "inactive",
+                  utm_source: refData?.utm_source ?? null,
+                  utm_medium: refData?.utm_medium ?? null,
+                  utm_campaign: refData?.utm_campaign ?? null,
+                  utm_term: refData?.utm_term ?? null,
+                  utm_content: refData?.utm_content ?? null,
+                  landing_path: refData?.landing_path ?? null,
+                  referrer: refData?.referrer ?? null,
+                });
+              }
+            }
+            clearAffiliateRef();
+          }
+        } catch (refErr) {
+          console.warn("[Checkout] affiliate attribution failed (non-blocking)", refErr);
+        }
       }
 
       // Bug fix: o RPC create_order não recebe e-mail. O e-mail digitado
