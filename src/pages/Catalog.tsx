@@ -345,7 +345,7 @@ export default function Catalog() {
             o espaço vazio entre header e conteúdo.
           - Chips logo abaixo da busca formam a "barra de filtros"
             principal, sempre visível durante o scroll. */}
-      <div className="sticky top-12 md:top-14 z-20 bg-background border-b border-border/40 pt-2 pb-2">
+      <div className="sticky top-0 z-20 bg-background border-b border-border/40 py-2">
         <div className="container mx-auto px-4">
           <div className="w-full max-w-3xl mx-auto space-y-1.5">
           <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">
