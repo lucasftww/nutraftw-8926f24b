@@ -5,6 +5,109 @@ import { Button } from "@/components/ui/button";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "./AdminErrorBanner";
 import { toast } from "sonner";
 import { AdminModal } from "./AdminModal";
+import { Printer, FileText } from "lucide-react";
+
+/**
+ * Abre uma janela com layout pronto-para-imprimir (etiqueta + declaração).
+ * Não persiste nada — apenas formata os dados do pedido para impressão A4 ou
+ * etiqueta 10x15 (depende do CSS @page abaixo).
+ */
+function openPrintWindow(html: string) {
+  const w = window.open("", "_blank", "width=820,height=900");
+  if (!w) { toast.error("Permita pop-ups para imprimir"); return; }
+  w.document.write(html);
+  w.document.close();
+  // Aguarda renderizar para acionar print sem cortar conteúdo
+  setTimeout(() => { try { w.focus(); w.print(); } catch {} }, 250);
+}
+
+function escapeHtml(s: any) {
+  return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c] as string));
+}
+
+function buildShippingLabelHtml(order: any) {
+  const e = escapeHtml;
+  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Etiqueta #${e(order.id.slice(0,8))}</title>
+<style>
+  @page { size: 100mm 150mm; margin: 4mm; }
+  body { font-family: Arial, sans-serif; margin: 0; padding: 8px; color:#000; }
+  .box { border: 2px solid #000; padding: 10px; }
+  h2 { margin: 0 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .5px; }
+  .sm { font-size: 11px; color:#444; }
+  .row { font-size: 13px; line-height: 1.35; }
+  .row strong { font-size: 14px; }
+  hr { border: 0; border-top: 1px dashed #aaa; margin: 8px 0; }
+  .id { font-family: 'Courier New', monospace; font-size: 12px; }
+  @media print { body { padding: 0; } }
+</style></head><body>
+  <div class="box">
+    <h2>Destinatário</h2>
+    <div class="row"><strong>${e(order.shipping_full_name || "—")}</strong></div>
+    <div class="row">${e(order.shipping_street)}, ${e(order.shipping_number)}${order.shipping_complement ? " — " + e(order.shipping_complement) : ""}</div>
+    <div class="row">${e(order.shipping_district)} — ${e(order.shipping_city)}/${e(order.shipping_state)}</div>
+    <div class="row"><strong>CEP: ${e(order.shipping_zip)}</strong></div>
+    <div class="sm">Tel.: ${e(order.shipping_phone || "—")}</div>
+    <hr>
+    <div class="sm">Pedido <span class="id">#${e(order.id)}</span></div>
+    <div class="sm">Emitido em ${e(new Date().toLocaleDateString("pt-BR"))}</div>
+  </div>
+  <script>window.onafterprint = () => window.close();</script>
+</body></html>`;
+}
+
+function buildDeclarationHtml(order: any, items: any[]) {
+  const e = escapeHtml;
+  const total = items.reduce((s, it) => s + Number(it.subtotal || 0), 0);
+  const rows = items.map((it) => `
+    <tr>
+      <td>${e(it.product_name)}</td>
+      <td style="text-align:center;">${e(it.quantity)}</td>
+      <td style="text-align:right;">${e(formatBRL(it.unit_price))}</td>
+      <td style="text-align:right;">${e(formatBRL(it.subtotal))}</td>
+    </tr>`).join("");
+  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Declaração #${e(order.id.slice(0,8))}</title>
+<style>
+  @page { size: A4; margin: 18mm; }
+  body { font-family: Arial, sans-serif; color:#000; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  .sub { color:#555; font-size: 12px; margin-bottom: 18px; }
+  .grid { display:flex; gap: 24px; margin-bottom: 18px; font-size: 13px; }
+  .grid > div { flex: 1; }
+  .grid h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; margin: 0 0 4px; color:#444; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { border-bottom: 1px solid #ddd; padding: 8px 6px; text-align: left; }
+  th { background:#f5f5f5; font-size: 11px; text-transform: uppercase; }
+  tfoot td { font-weight: bold; border-top: 2px solid #000; border-bottom: 0; }
+  .foot { margin-top: 32px; font-size: 11px; color:#555; }
+  .id { font-family: 'Courier New', monospace; }
+  @media print { .noprint { display: none; } }
+</style></head><body>
+  <h1>Declaração de conteúdo</h1>
+  <div class="sub">Pedido <span class="id">#${e(order.id)}</span> · ${e(new Date(order.created_at).toLocaleString("pt-BR"))}</div>
+  <div class="grid">
+    <div>
+      <h3>Remetente</h3>
+      <div>KA Imports</div>
+      <div>contato@kaimports.com.br</div>
+    </div>
+    <div>
+      <h3>Destinatário</h3>
+      <div>${e(order.shipping_full_name || "—")}</div>
+      <div>CPF: ${e(order.shipping_cpf || "—")}</div>
+      <div>${e(order.shipping_street)}, ${e(order.shipping_number)}${order.shipping_complement ? " — " + e(order.shipping_complement) : ""}</div>
+      <div>${e(order.shipping_district)} — ${e(order.shipping_city)}/${e(order.shipping_state)}</div>
+      <div>CEP: ${e(order.shipping_zip)}</div>
+    </div>
+  </div>
+  <table>
+    <thead><tr><th>Produto</th><th style="text-align:center;">Qtd</th><th style="text-align:right;">Unit.</th><th style="text-align:right;">Subtotal</th></tr></thead>
+    <tbody>${rows}</tbody>
+    <tfoot><tr><td colspan="3" style="text-align:right;">Total dos itens</td><td style="text-align:right;">${e(formatBRL(total))}</td></tr></tfoot>
+  </table>
+  <p class="foot">Documento meramente declaratório do conteúdo da remessa, sem valor fiscal.</p>
+  <script>window.onafterprint = () => window.close();</script>
+</body></html>`;
+}
 
 export function OrderDetailModal({ orderId, onClose }: { orderId: string; onClose: () => void }) {
   const [order, setOrder] = useState<any | null>(null);
@@ -127,7 +230,13 @@ export function OrderDetailModal({ orderId, onClose }: { orderId: string; onClos
               </section>
             )}
 
-            <div className="flex justify-end pt-2">
+            <div className="flex justify-end gap-2 pt-2 flex-wrap">
+              <Button variant="outline" onClick={() => openPrintWindow(buildShippingLabelHtml(order))}>
+                <Printer className="h-4 w-4" /> Etiqueta
+              </Button>
+              <Button variant="outline" onClick={() => openPrintWindow(buildDeclarationHtml(order, items))}>
+                <FileText className="h-4 w-4" /> Declaração
+              </Button>
               <Button variant="outline" onClick={onClose}>Fechar</Button>
             </div>
           </>
