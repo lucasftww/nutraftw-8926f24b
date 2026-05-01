@@ -544,6 +544,42 @@ function AdminProducts() {
   if (error) return <AdminErrorBanner error={error} onRetry={load} />;
   const totalPages = totalCount != null ? Math.max(1, Math.ceil(totalCount / PAGE_SIZE)) : null;
 
+  async function exportCsv() {
+    toast.info("Gerando CSV…");
+    // Exporta todos os produtos (até 5000) com os campos editáveis principais.
+    const { data, error } = await supabase
+      .from("products")
+      .select("id, name, slug, price, sale_price, stock, is_active, is_featured, active_principle, composition, description, meta_title, meta_description, category:categories(name)")
+      .order("created_at", { ascending: false })
+      .limit(5000);
+    if (error) { toast.error(error.message); return; }
+    const rows = data || [];
+    const esc = (v: any) => {
+      if (v == null) return "";
+      const s = String(v).replace(/"/g, '""');
+      return /[",\n;]/.test(s) ? `"${s}"` : s;
+    };
+    const headers = ["id","name","slug","category","price","sale_price","stock","is_active","is_featured","active_principle","composition","description","meta_title","meta_description"];
+    const lines = [headers.join(",")];
+    for (const r of rows as any[]) {
+      lines.push([
+        r.id, r.name, r.slug, r.category?.name ?? "",
+        r.price, r.sale_price ?? "", r.stock,
+        r.is_active, r.is_featured,
+        r.active_principle ?? "", r.composition ?? "", r.description ?? "",
+        r.meta_title ?? "", r.meta_description ?? "",
+      ].map(esc).join(","));
+    }
+    const blob = new Blob(["\ufeff" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `produtos-${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    toast.success(`${rows.length} produtos exportados`);
+  }
+
   return (
     <>
       <div className="flex justify-between items-center mb-4 gap-3 flex-wrap">
@@ -556,7 +592,10 @@ function AdminProducts() {
             {totalCount} {totalCount === 1 ? "produto" : "produtos"}
           </span>
         )}
-        <Button onClick={() => setEditing({ is_active: true })}><Plus className="h-4 w-4" /> Novo produto</Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={exportCsv} title="Exportar todos os produtos para CSV"><Download className="h-4 w-4" /> CSV</Button>
+          <Button onClick={() => setEditing({ is_active: true })}><Plus className="h-4 w-4" /> Novo produto</Button>
+        </div>
       </div>
 
       {selected.size > 0 && (
