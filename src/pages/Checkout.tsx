@@ -325,7 +325,18 @@ export default function Checkout() {
   }, [total, coupon]);
 
   const selectedShipping = shippingOptions.find((o) => o.id === shippingId);
-  const shippingValue = selectedShipping ? Number(selectedShipping.price) : SHIPPING_FALLBACK;
+  // Bug fix: antes usávamos SHIPPING_FALLBACK (R$ 80) sempre que não havia frete
+  // selecionado — incluindo o estado inicial, sem CEP. Resultado: o resumo mostrava
+  // "Frete R$ 80,00" e somava no total mesmo sem o usuário ter informado endereço.
+  // Agora só caímos no fallback se o CEP estiver completo mas não conseguimos
+  // carregar uma tarifa; sem CEP, o frete fica zerado e a UI mostra "—".
+  const cepFilled = onlyDigits(form.zip).length === 8 && form.state.trim().length === 2;
+  const shippingValue = selectedShipping
+    ? Number(selectedShipping.price)
+    : cepFilled
+      ? SHIPPING_FALLBACK
+      : 0;
+  const shippingKnown = !!selectedShipping || cepFilled;
   const insurance = insuranceOn ? Math.round(total * INSURANCE_RATE * 100) / 100 : 0;
   const cepReady = onlyDigits(form.zip).length === 8 && form.state.trim().length === 2;
 
@@ -1316,7 +1327,7 @@ export default function Checkout() {
                 )}
               </span>
               <span className={`font-semibold tabular-nums transition-opacity ${shippingLoading ? "opacity-50" : ""}`}>
-                {formatBRL(shippingValue)}
+                {shippingKnown ? formatBRL(shippingValue) : <span className="text-muted-foreground font-normal">Informe o CEP</span>}
               </span>
             </div>
             {insurance > 0 && (
