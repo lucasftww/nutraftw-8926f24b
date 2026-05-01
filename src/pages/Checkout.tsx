@@ -1471,10 +1471,12 @@ export default function Checkout() {
       </form>
 
       {/* Sticky bottom bar mobile — total + CTA sempre visível.
-          Mesmo padrão da página de produto. Só aparece quando há total. */}
-      {grandTotal > 0 && (
+          Mesmo padrão da página de produto. Só aparece quando há total e
+          o CTA do resumo NÃO está visível na tela (evita dois botões
+          concorrentes lado a lado). */}
+      {grandTotal > 0 && !summaryCtaVisible && (
         <div
-          className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border px-4 py-3 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.15)]"
+          className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border px-4 py-3 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.15)] animate-in slide-in-from-bottom-2 duration-200"
           style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.75rem)" }}
         >
           <div className="flex items-center gap-3">
