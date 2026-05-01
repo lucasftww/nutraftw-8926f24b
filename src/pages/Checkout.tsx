@@ -868,6 +868,8 @@ export default function Checkout() {
       // Bug fix: navegar ANTES de clear() evita um frame com a tela
       // "Seu carrinho está vazio" enquanto a transição acontece.
       toast.success("Pedido criado! Em breve entraremos em contato.");
+      // Limpa o rascunho persistido — pedido já foi gravado.
+      try { window.sessionStorage.removeItem(FORM_STORAGE_KEY); } catch {}
       nav("/minha-conta");
       clear();
     } catch (err: any) {
