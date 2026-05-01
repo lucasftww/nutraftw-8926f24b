@@ -23,6 +23,37 @@ const INSURANCE_RATE = 0.1;
 const PIX_DISCOUNT = 0.05;
 
 /**
+ * Persistência leve do form em sessionStorage. Evita perder o que o usuário
+ * digitou se ele recarregar a página por engano (acidente comum em mobile
+ * com pull-to-refresh). Sessão limpa sozinha ao fechar a aba — sem rastros.
+ * Só dados de contato/endereço — nunca senha. Senhas nem passam por aqui.
+ */
+const FORM_STORAGE_KEY = "checkout:form:v1";
+type CheckoutFormState = {
+  full_name: string; email: string; cpf: string; phone: string;
+  zip: string; street: string; number: string; complement: string;
+  district: string; city: string; state: string; notes: string;
+  payment_method: "pix" | "credit_card";
+};
+const EMPTY_FORM: CheckoutFormState = {
+  full_name: "", email: "", cpf: "", phone: "",
+  zip: "", street: "", number: "", complement: "",
+  district: "", city: "", state: "", notes: "",
+  payment_method: "pix",
+};
+function loadPersistedForm(): CheckoutFormState {
+  if (typeof window === "undefined") return EMPTY_FORM;
+  try {
+    const raw = window.sessionStorage.getItem(FORM_STORAGE_KEY);
+    if (!raw) return EMPTY_FORM;
+    const parsed = JSON.parse(raw) as Partial<CheckoutFormState>;
+    return { ...EMPTY_FORM, ...parsed };
+  } catch {
+    return EMPTY_FORM;
+  }
+}
+
+/**
  * Cartão de método de pagamento (PIX / Cartão).
  * Bug fix: antes era declarado DENTRO de `Checkout`. Resultado: a cada
  * keystroke nos campos do form, React via uma "função-componente nova"
