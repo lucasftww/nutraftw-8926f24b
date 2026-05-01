@@ -763,10 +763,15 @@ export default function Checkout() {
           { n: 2, label: "Entrega", done: addressDone && shippingDone },
           { n: 3, label: "Pagamento", done: paymentDone },
         ];
+        // Etapa "ativa" no mobile = primeira não-concluída (ou a última se tudo ok).
+        const activeIdx = steps.findIndex((s) => !s.done);
+        const activeN = activeIdx === -1 ? steps.length : steps[activeIdx].n;
         return (
           <ol className="mb-5 sm:mb-6 flex items-center gap-1.5 sm:gap-3" aria-label="Progresso do checkout">
-            {steps.map((s, i) => (
-              <li key={s.n} className="flex items-center gap-1.5 sm:gap-3 flex-1 min-w-0">
+            {steps.map((s, i) => {
+              const isActive = s.n === activeN;
+              return (
+              <li key={s.n} className={`flex items-center gap-1.5 sm:gap-3 min-w-0 ${isActive ? "flex-1" : "shrink-0"} sm:flex-1`}>
                 <div
                   className={`flex items-center gap-2 min-w-0 flex-1 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-full border transition-colors ${
                     s.done
@@ -782,13 +787,16 @@ export default function Checkout() {
                   >
                     {s.done ? <Check className="h-3 w-3" strokeWidth={3} /> : s.n}
                   </span>
-                  <span className="text-[11px] sm:text-xs font-semibold truncate">{s.label}</span>
+                  {/* Mobile: só mostra label do passo ativo (evita truncamento feio).
+                      Desktop (sm+): sempre mostra todos. */}
+                  <span className={`text-[11px] sm:text-xs font-semibold truncate ${isActive ? "inline" : "hidden"} sm:inline`}>{s.label}</span>
                 </div>
                 {i < steps.length - 1 && (
                   <span aria-hidden className={`hidden sm:block h-px flex-1 ${s.done ? "bg-success/40" : "bg-border"}`} />
                 )}
               </li>
-            ))}
+              );
+            })}
           </ol>
         );
       })()}
