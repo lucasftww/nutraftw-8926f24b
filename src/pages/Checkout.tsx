@@ -335,20 +335,35 @@ export default function Checkout() {
     }
     let cancelled = false;
     setShippingLoading(true);
-    (supabase as any)
-      .from("shipping_rates")
-      .select("*")
-      .eq("state", ufNormalized)
-      .eq("active", true)
-      .order("price")
-      .then(({ data }: any) => {
-        if (cancelled) return; // evita race quando o usuário troca UF rápido
-        const arr = (data as any[]) || [];
+    // Bug fix UX: antes, falha de rede deixava a seção vazia até o usuário
+    // trocar UF e voltar. Agora tentamos 1 retry com backoff curto antes
+    // de desistir — comum em conexões mobile flutuando.
+    const fetchRates = async (attempt: number): Promise<any[]> => {
+      const { data, error } = await (supabase as any)
+        .from("shipping_rates")
+        .select("*")
+        .eq("state", ufNormalized)
+        .eq("active", true)
+        .order("price");
+      if (error && attempt < 1) {
+        await new Promise((r) => setTimeout(r, 400));
+        return fetchRates(attempt + 1);
+      }
+      if (error) throw error;
+      return (data as any[]) || [];
+    };
+    fetchRates(0)
+      .then((arr) => {
+        if (cancelled) return;
         shippingCacheRef.current.set(ufNormalized, arr);
         setShippingOptions(arr);
         setShippingId((cur) => arr.find((o) => o.id === cur)?.id || arr[0]?.id || null);
       })
-      .catch(() => {})
+      .catch((err) => {
+        if (cancelled) return;
+        console.error("[Checkout] shipping_rates fetch failed", err);
+        setShippingOptions([]);
+      })
       .finally(() => { if (!cancelled) setShippingLoading(false); });
     return () => { cancelled = true; };
   }, [ufNormalized]);
