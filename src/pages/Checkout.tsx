@@ -994,8 +994,9 @@ export default function Checkout() {
             <h2 className="checkout-section-title">Seus dados</h2>
             <div className="space-y-4">
               <div className="checkout-field">
-                <label className="checkout-label">Nome Completo *</label>
+                <label htmlFor="co-name" className="checkout-label">Nome Completo *</label>
                 <input
+                  id="co-name"
                   required
                   value={form.full_name}
                   onChange={(e) => setForm({ ...form, full_name: e.target.value })}
@@ -1004,17 +1005,20 @@ export default function Checkout() {
                   className="checkout-input"
                   data-status={vName.status === "idle" ? undefined : vName.status}
                   aria-invalid={vName.status === "invalid"}
+                  aria-describedby={vName.status !== "idle" ? "co-name-hint" : undefined}
                   autoComplete="name"
                   maxLength={100}
                 />
-                <FieldHint status={vName.status} message={vName.message} />
+                <FieldHint id="co-name-hint" status={vName.status} message={vName.message} />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="checkout-field sm:col-span-2">
-                  <label className="checkout-label">E-mail *</label>
+                  <label htmlFor="co-email" className="checkout-label">E-mail *</label>
                   <input
+                    id="co-email"
                     required
                     type="email"
+                    inputMode="email"
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                     onBlur={vEmail.touch}
@@ -1022,14 +1026,18 @@ export default function Checkout() {
                     className="checkout-input"
                     data-status={vEmail.status === "idle" ? undefined : vEmail.status}
                     aria-invalid={vEmail.status === "invalid"}
+                    aria-describedby={vEmail.status !== "idle" ? "co-email-hint" : undefined}
                     autoComplete="email"
+                    autoCapitalize="off"
+                    spellCheck={false}
                     maxLength={255}
                   />
-                  <FieldHint status={vEmail.status} message={vEmail.message} />
+                  <FieldHint id="co-email-hint" status={vEmail.status} message={vEmail.message} />
                 </div>
                 <div className="checkout-field">
-                  <label className="checkout-label">Telefone (WhatsApp) *</label>
+                  <label htmlFor="co-phone" className="checkout-label">Telefone (WhatsApp) *</label>
                   <input
+                    id="co-phone"
                     required
                     type="tel"
                     value={form.phone}
@@ -1040,14 +1048,16 @@ export default function Checkout() {
                     className="checkout-input"
                     data-status={vPhone.status === "idle" ? undefined : vPhone.status}
                     aria-invalid={vPhone.status === "invalid"}
+                    aria-describedby={vPhone.status !== "idle" ? "co-phone-hint" : undefined}
                     autoComplete="tel"
                     maxLength={15}
                   />
-                  <FieldHint status={vPhone.status} message={vPhone.message} />
+                  <FieldHint id="co-phone-hint" status={vPhone.status} message={vPhone.message} />
                 </div>
                 <div className="checkout-field">
-                <label className="checkout-label">CPF *</label>
+                <label htmlFor="co-cpf" className="checkout-label">CPF *</label>
                 <input
+                  id="co-cpf"
                   required
                   value={form.cpf}
                   onChange={(e) => setForm({ ...form, cpf: maskCPF(e.target.value) })}
@@ -1057,9 +1067,11 @@ export default function Checkout() {
                   className="checkout-input"
                   data-status={vCPF.status === "idle" ? undefined : vCPF.status}
                   aria-invalid={vCPF.status === "invalid"}
+                  aria-describedby={vCPF.status !== "idle" ? "co-cpf-hint" : undefined}
+                  autoComplete="off"
                   maxLength={14}
                 />
-                <FieldHint status={vCPF.status} message={vCPF.message} />
+                <FieldHint id="co-cpf-hint" status={vCPF.status} message={vCPF.message} />
                 </div>
               </div>
             </div>
