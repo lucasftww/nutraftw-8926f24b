@@ -344,7 +344,13 @@ export default function Checkout() {
     !!form.city.trim() &&
     form.state.trim().length === 2;
   const shippingDone = !!shippingId;
-  const paymentDone = !!form.payment_method && (settings.checkout_enable_pix !== "0" || settings.checkout_enable_card !== "0");
+  // Bug visual: o passo 3 ficava verde de cara porque o PIX é pré-selecionado.
+  // Usuário via "Pagamento ✓" antes de preencher nada. Agora só conta como
+  // concluído quando os passos anteriores também estão prontos.
+  const paymentMethodAvailable =
+    settings.checkout_enable_pix !== "0" || settings.checkout_enable_card !== "0";
+  const paymentDone =
+    !!form.payment_method && paymentMethodAvailable && buyerDone && addressDone && shippingDone;
 
   // Mesmas fórmulas usadas no RPC `create_order` para garantir que o resumo
   // exibido aqui bate com o total que o servidor vai gravar.
@@ -407,9 +413,11 @@ export default function Checkout() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-semibold text-foreground leading-tight line-clamp-2">{l.name}</p>
-            <p className="text-[11px] text-muted-foreground tabular-nums leading-tight mt-0.5">
-              {formatBRL(l.price)} {l.qty > 1 ? `· un` : ""}
-            </p>
+            {l.qty > 1 && (
+              <p className="text-[11px] text-muted-foreground tabular-nums leading-tight mt-0.5">
+                {formatBRL(l.price)} · un
+              </p>
+            )}
           </div>
           <span className="text-sm font-bold shrink-0 tabular-nums text-foreground">{formatBRL(l.price * l.qty)}</span>
         </li>
@@ -420,6 +428,23 @@ export default function Checkout() {
 
   // Resumo colapsável no mobile (aberto por padrão no desktop via CSS).
   const [itemsOpen, setItemsOpen] = useState(false);
+
+  // Bug visual: no mobile, ao rolar até o resumo, o botão "Pagar com PIX"
+  // do card e a sticky bar "Continuar" apareciam juntos, competindo pela
+  // mesma ação. Observamos o CTA do resumo e escondemos a sticky bar quando
+  // ele está visível na tela.
+  const summaryCtaRef = useRef<HTMLButtonElement | null>(null);
+  const [summaryCtaVisible, setSummaryCtaVisible] = useState(false);
+  useEffect(() => {
+    const el = summaryCtaRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const obs = new IntersectionObserver(
+      ([entry]) => setSummaryCtaVisible(entry.isIntersecting),
+      { threshold: 0.4 },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [grandTotal]);
 
   // === Validação em tempo real (debounced) — feedback inline ===
   const vName = useFieldValidation(form.full_name, validateFullName);
@@ -734,7 +759,7 @@ export default function Checkout() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 md:py-10 pb-24 lg:pb-10">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 md:py-10 pb-32 lg:pb-10">
       <div className="flex items-center mb-3 sm:mb-4">
         <button
           onClick={() => nav(-1)}
@@ -755,10 +780,15 @@ export default function Checkout() {
           { n: 2, label: "Entrega", done: addressDone && shippingDone },
           { n: 3, label: "Pagamento", done: paymentDone },
         ];
+        // Etapa "ativa" no mobile = primeira não-concluída (ou a última se tudo ok).
+        const activeIdx = steps.findIndex((s) => !s.done);
+        const activeN = activeIdx === -1 ? steps.length : steps[activeIdx].n;
         return (
           <ol className="mb-5 sm:mb-6 flex items-center gap-1.5 sm:gap-3" aria-label="Progresso do checkout">
-            {steps.map((s, i) => (
-              <li key={s.n} className="flex items-center gap-1.5 sm:gap-3 flex-1 min-w-0">
+            {steps.map((s, i) => {
+              const isActive = s.n === activeN;
+              return (
+              <li key={s.n} className={`flex items-center gap-1.5 sm:gap-3 min-w-0 ${isActive ? "flex-1" : "shrink-0"} sm:flex-1`}>
                 <div
                   className={`flex items-center gap-2 min-w-0 flex-1 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-full border transition-colors ${
                     s.done
@@ -774,13 +804,16 @@ export default function Checkout() {
                   >
                     {s.done ? <Check className="h-3 w-3" strokeWidth={3} /> : s.n}
                   </span>
-                  <span className="text-[11px] sm:text-xs font-semibold truncate">{s.label}</span>
+                  {/* Mobile: só mostra label do passo ativo (evita truncamento feio).
+                      Desktop (sm+): sempre mostra todos. */}
+                  <span className={`text-[11px] sm:text-xs font-semibold truncate ${isActive ? "inline" : "hidden"} sm:inline`}>{s.label}</span>
                 </div>
                 {i < steps.length - 1 && (
                   <span aria-hidden className={`hidden sm:block h-px flex-1 ${s.done ? "bg-success/40" : "bg-border"}`} />
                 )}
               </li>
-            ))}
+              );
+            })}
           </ol>
         );
       })()}
@@ -1405,6 +1438,7 @@ export default function Checkout() {
           <button
             type="submit"
             disabled={submitting}
+            ref={summaryCtaRef}
             className="inline-flex w-full h-12 sm:h-13 rounded-xl bg-success text-success-foreground font-bold text-base hover:bg-success/90 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed transition-all items-center justify-center gap-2 shadow-md shadow-success/25"
           >
             {submitting ? (
@@ -1437,10 +1471,12 @@ export default function Checkout() {
       </form>
 
       {/* Sticky bottom bar mobile — total + CTA sempre visível.
-          Mesmo padrão da página de produto. Só aparece quando há total. */}
-      {grandTotal > 0 && (
+          Mesmo padrão da página de produto. Só aparece quando há total e
+          o CTA do resumo NÃO está visível na tela (evita dois botões
+          concorrentes lado a lado). */}
+      {grandTotal > 0 && !summaryCtaVisible && (
         <div
-          className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border px-4 py-3 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.15)]"
+          className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border px-4 py-3 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.15)] animate-in slide-in-from-bottom-2 duration-200"
           style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.75rem)" }}
         >
           <div className="flex items-center gap-3">
