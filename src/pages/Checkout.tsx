@@ -1320,7 +1320,6 @@ export default function Checkout() {
                       icon={CreditCard}
                       totalLabel="Total no cartão"
                       totalValue={cardTotal}
-                      installment={`12x de ${formatBRL(cardTotal / 12)}`}
                     />
                   )}
                 </div>
