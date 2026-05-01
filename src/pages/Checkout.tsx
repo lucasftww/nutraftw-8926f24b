@@ -413,9 +413,11 @@ export default function Checkout() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-semibold text-foreground leading-tight line-clamp-2">{l.name}</p>
-            <p className="text-[11px] text-muted-foreground tabular-nums leading-tight mt-0.5">
-              {formatBRL(l.price)} {l.qty > 1 ? `· un` : ""}
-            </p>
+            {l.qty > 1 && (
+              <p className="text-[11px] text-muted-foreground tabular-nums leading-tight mt-0.5">
+                {formatBRL(l.price)} · un
+              </p>
+            )}
           </div>
           <span className="text-sm font-bold shrink-0 tabular-nums text-foreground">{formatBRL(l.price * l.qty)}</span>
         </li>
