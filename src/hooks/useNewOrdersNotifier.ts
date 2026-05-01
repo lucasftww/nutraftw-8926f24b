@@ -40,7 +40,14 @@ export function useNewOrdersNotifier(opts: { enabled?: boolean; onNew?: () => vo
 
   useEffect(() => {
     if (!enabled) return;
-    const lastSeen = sessionStorage.getItem(LAST_SEEN_KEY);
+    // Baseline: na primeira sessão do navegador, marca AGORA como último visto
+    // para evitar que reconexões do canal Realtime entreguem eventos antigos
+    // como "novos pedidos". Comparação estrita (`>`) evita re-toast do mesmo.
+    let lastSeen = sessionStorage.getItem(LAST_SEEN_KEY);
+    if (!lastSeen) {
+      lastSeen = new Date().toISOString();
+      sessionStorage.setItem(LAST_SEEN_KEY, lastSeen);
+    }
     const channel = supabase
       .channel("admin-new-orders")
       .on(
@@ -48,7 +55,7 @@ export function useNewOrdersNotifier(opts: { enabled?: boolean; onNew?: () => vo
         { event: "INSERT", schema: "public", table: "orders" },
         (payload) => {
           const o: any = payload.new;
-          if (lastSeen && o.created_at && o.created_at <= lastSeen) return;
+          if (o.created_at && o.created_at <= lastSeen!) return;
           sessionStorage.setItem(LAST_SEEN_KEY, o.created_at || new Date().toISOString());
           setUnseenCount((n) => n + 1);
           playBeep();

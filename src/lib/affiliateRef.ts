@@ -1,6 +1,13 @@
 /**
  * Captura e persistência do código de afiliado (?ref=XXXX ou /r/XXXX).
- * Janela de atribuição: 30 dias (last-click wins).
+ * Janela de atribuição: 30 dias (FIRST-TOUCH wins).
+ *
+ * Política unificada com o trigger Postgres `protect_referred_by_code`:
+ * o primeiro afiliado que trouxe o usuário leva o crédito. Cliques
+ * subsequentes de outros afiliados NÃO sobrescrevem o ref já salvo
+ * (apenas renovam o TTL do mesmo código). Isso evita divergência entre
+ * `profiles.referred_by_code` (gravado no DB) e `affiliate_referrals`
+ * (gravado a partir do localStorage).
  */
 const KEY = "gimports.affiliate.ref.v1";
 const TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -42,6 +49,19 @@ export function setAffiliateRef(
   const code = rawCode.trim().toUpperCase();
   if (!/^[A-Z0-9]{4,16}$/.test(code)) return null;
   try {
+    // FIRST-TOUCH: se já existe um código ainda válido, não sobrescreve.
+    // Apenas renova o `at` para estender a janela de 30 dias do mesmo
+    // afiliado (mantém UTMs originais — primeira atribuição é a verdade).
+    const existing = getAffiliateRefData();
+    if (existing?.code) {
+      const sameCode = existing.code === code;
+      const renewed: Stored = {
+        ...existing,
+        at: Date.now(),
+      };
+      localStorage.setItem(KEY, JSON.stringify(renewed));
+      return sameCode ? code : existing.code;
+    }
     const payload: Stored = { code, at: Date.now(), ...(attribution || {}) };
     localStorage.setItem(KEY, JSON.stringify(payload));
   } catch {

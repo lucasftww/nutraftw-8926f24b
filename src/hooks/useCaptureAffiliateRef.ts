@@ -4,8 +4,9 @@ import { readAttributionFromUrl, setAffiliateRef } from "@/lib/affiliateRef";
 
 /**
  * Captura `?ref=CODIGO` em QUALQUER rota e persiste o código (30 dias).
- * Last-click wins: se o usuário chega por outro link de afiliado depois,
- * o código mais recente substitui o anterior.
+ * FIRST-TOUCH: se o usuário já tem um código salvo, novos `?ref=` apenas
+ * renovam o TTL do código original (não sobrescrevem). Alinhado com o
+ * trigger Postgres `protect_referred_by_code`.
  */
 export function useCaptureAffiliateRef() {
   const { search } = useLocation();
