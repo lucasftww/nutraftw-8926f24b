@@ -348,10 +348,16 @@ export default function Checkout() {
 
   // Mesmas fórmulas usadas no RPC `create_order` para garantir que o resumo
   // exibido aqui bate com o total que o servidor vai gravar.
-  const couponDiscount = !coupon ? 0 :
-    coupon.discount_type === "percent"
-      ? Math.round(total * Number(coupon.discount_value) / 100 * 100) / 100
-      : Math.min(Number(coupon.discount_value), total);
+  // Bug fix: quando o RPC validate_coupon devolveu `discount_amount`, usamos
+  // ele direto pra não divergir por arredondamento (o RPC arredonda 1x; aqui
+  // recalculávamos e podia bater 1 centavo de diferença).
+  const couponDiscount = !coupon
+    ? 0
+    : typeof coupon.discount_amount === "number" && coupon.discount_amount >= 0
+      ? Math.min(coupon.discount_amount, total)
+      : coupon.discount_type === "percent"
+        ? Math.round((total * Number(coupon.discount_value)) / 100 * 100) / 100
+        : Math.min(Number(coupon.discount_value), total);
   const baseTotal = total + shippingValue + insurance - couponDiscount;
   const pixDiscount = form.payment_method === "pix" ? Math.round(baseTotal * PIX_DISCOUNT * 100) / 100 : 0;
   const grandTotal = baseTotal - pixDiscount;
@@ -568,13 +574,22 @@ export default function Checkout() {
           // Se confirmação de e-mail estiver habilitada, signUp não cria sessão.
           // Tentamos login imediato com a senha gerada para obter `auth.uid()`.
           if (!signUpData.session) {
-            const { data: signInData } = await supabase.auth.signInWithPassword({
+            const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
               email: emailTrim,
               password: autoPassword,
             });
-            if (signInData?.session?.user) {
-              activeUserId = signInData.session.user.id;
+            // Bug fix: sem sessão ativa o RPC create_order falha com
+            // "Usuário não autenticado" porque auth.uid() é null. Antes,
+            // seguíamos com activeUserId vindo do signUp e o erro só
+            // aparecia depois, confuso para o cliente.
+            if (signInErr || !signInData?.session?.user) {
+              toast.error(
+                "Conta criada, mas precisamos confirmar seu e-mail. Verifique sua caixa de entrada e tente novamente.",
+              );
+              setSubmitting(false);
+              return;
             }
+            activeUserId = signInData.session.user.id;
           }
         }
 
