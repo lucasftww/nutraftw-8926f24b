@@ -429,14 +429,6 @@ export default function Checkout() {
       </div>
     );
 
-  if (!user)
-    return (
-      <div className="max-w-7xl mx-auto px-4 py-20 text-center">
-        <p className="text-muted-foreground mb-4">Faça login para finalizar o pedido.</p>
-        <Button onClick={() => nav("/login?next=/checkout")}>Entrar</Button>
-      </div>
-    );
-
   function validate() {
     // Bug fix: nome agora exige nome+sobrenome (alinhado ao validador inline).
     if (!form.full_name.trim() || form.full_name.trim().split(/\s+/).filter(p => p.length >= 2).length < 2) {
