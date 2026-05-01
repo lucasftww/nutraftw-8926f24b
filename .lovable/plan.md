@@ -1,97 +1,50 @@
-## Análise profunda — bugs encontrados
+# Correções visuais no Checkout
 
-Após varrer rotas, hooks, RPCs (`create_order`, `handle_new_user`, `protect_referred_by_code`), realtime, RequireAuth e fluxo de afiliados, encontrei **6 problemas reais** que devem ser corrigidos.
+Análise feita no preview em mobile (390x844) e desktop (1536x864), com adição de produto real ao carrinho. Encontrei 5 problemas visuais reais.
 
----
+## Bugs encontrados
 
-### 🐛 Bug #1 — Atribuição de afiliado em **last-click** no front, mas **first-touch** no banco (inconsistência grave)
+### 1. Stepper marca "Pagamento" como concluído antes da hora (CRÍTICO)
+Logo ao abrir o checkout, o chip do passo 3 ("Pagamento") já aparece verde com check, mesmo sem o usuário ter preenchido nada. Causa: `paymentDone = !!form.payment_method && método_habilitado`. Como o PIX vem pré-selecionado, sempre dá `true`. Visualmente passa a ideia errada de que dois passos faltam mas o último já está pronto.
 
-- `src/lib/affiliateRef.ts` e `useCaptureAffiliateRef.ts`: comentários dizem "last-click wins" e o código sobrescreve o localStorage a cada `?ref=`.
-- `protect_referred_by_code` no Postgres: **first-touch wins** (preserva o `OLD.referred_by_code`).
-- `Login.tsx` no signup: usa o último ref do localStorage para gravar `referred_by_code` e inserir em `affiliate_referrals`.
+### 2. Resumo mostra preço duplicado quando qty = 1 (MÉDIO)
+No card "Resumo", o nome do produto vem com:
+- linha pequena cinza: `R$ 999,00` (preço unitário)
+- linha grande à direita: `R$ 999,00` (subtotal)
 
-**Resultado**: o afiliado que aparece em `affiliate_referrals` pode ser diferente do que fica em `profiles.referred_by_code` (o trigger só protege em UPDATE; no signup ainda é o "último click"). Comissões podem ser pagas para o afiliado errado em casos de visitas múltiplas.
+Quando qty=1 os dois valores são idênticos e ficam empilhados, dando impressão de promoção (preço "de/por") sem haver desconto. Quando qty=1 só o subtotal precisa aparecer.
 
-**Fix**: padronizar em **first-touch** no front: `setAffiliateRef` só grava se ainda não houver código não-expirado salvo. Atualizar comentários.
+### 3. Footer é coberto pela sticky bar no mobile (MÉDIO)
+A barra fixa "TOTAL R$ X / Continuar" tem ~76px de altura; o container do form tem `pb-24`, mas o footer está fora desse container e fica parcialmente atrás da sticky.
 
----
+### 4. Labels do stepper truncadas no mobile (BAIXO)
+Em viewport de 390px, "Seus dados" vira "Seus dad..." e "Pagamento" vira "Pagamen...". Texto truncado fica feio. Em mobile devemos mostrar só o número do passo (sem o label) ou só o passo ativo expandido.
 
-### 🐛 Bug #2 — Checkout guest **NUNCA** registra atribuição de afiliado
+### 5. Dois CTAs simultâneos no mobile (BAIXO)
+Quando o usuário rola até o resumo no mobile, vê o botão "Pagar com PIX" do resumo E a sticky bar "Continuar" embaixo, lado a lado. São dois CTAs concorrentes para a mesma ação. Ideal: ocultar o botão "Pagar com PIX" do resumo no mobile (deixar só a sticky), ou ocultar a sticky quando o botão real estiver visível.
 
-`Checkout.tsx` (linhas 524-578): cria conta via `supabase.auth.signUp` para guests, mas **não** lê `getAffiliateRefData()` nem grava `referred_by_code` / insere em `affiliate_referrals`. Só o `Login.tsx` faz isso. Resultado: todo cliente que compra como guest pelo link de afiliado **não gera comissão**.
+## Correções propostas
 
-**Fix**: replicar no `Checkout.tsx` o mesmo bloco de atribuição usado no `Login.tsx` (resolver `affiliate_code` → escrever `referred_by_code` + insert em `affiliate_referrals` com status `inactive`, respeitando first-touch).
+**Arquivo único: `src/pages/Checkout.tsx`**
 
----
+1. **Stepper** — recalcular `paymentDone` exigindo que `buyerDone`, `addressDone` e `shippingDone` sejam verdadeiros antes de dar o check no passo 3.
 
-### 🐛 Bug #3 — `create_order` não decrementa estoque quando `stock IS NULL`
+2. **Resumo (preço duplicado)** — esconder a linha pequena de preço unitário quando `l.qty === 1`. Manter só quando `qty > 1`, mostrando `R$ X · un` como já faz hoje.
 
-No final do RPC (linhas 125-128): `update products set stock = greatest(0, pr.stock - qty)`. Se `stock IS NULL`, `pr.stock - qty` retorna NULL e `greatest(0, NULL) = NULL` — fica "estoque infinito" silenciosamente. Pior: a verificação `if v_product.stock is not null and v_product.stock < v_qty` permite a venda mesmo com NULL, mas depois nem decrementa. Inconsistência.
+3. **Footer coberto** — aumentar `pb-24` para `pb-32` no container do checkout no mobile, OU adicionar margin-bottom equivalente ao Footer global quando estamos em rota com sticky bar. Vou pelo `pb-32` (96 → 128px) que é simples e localizado.
 
-**Fix**: na cláusula UPDATE, ignorar produtos com `stock IS NULL` (ou tratar NULL como "não controla estoque" explicitamente). Migration:
+4. **Stepper truncado** — no mobile mostrar apenas o número do passo dentro do círculo + texto "Etapa X de 3" ou esconder o label nos passos não ativos (`hidden sm:inline` no `<span>` do label, e mostrar inline só no passo atual).
 
-```sql
-update public.products pr
-   set stock = greatest(0, pr.stock - (it->>'qty')::int)
-  from jsonb_array_elements(p_items) as it
- where pr.id = (it->>'product_id')::uuid
-   and pr.stock is not null;
-```
+5. **Dois CTAs no mobile** — ocultar a sticky bar quando o botão "Pagar com PIX" do resumo estiver dentro do viewport (via IntersectionObserver), OU mais simples: deixar a sticky sempre visível e mudar o botão do resumo no mobile pra um secundário (variante outline) para não competir. Vou pelo IntersectionObserver — comportamento padrão de e-commerce.
 
----
+## Não vou alterar
+- Layout geral do grid (form + aside).
+- Ordem das seções.
+- Cores/tema (já está alinhado com a identidade azul/verde).
 
-### 🐛 Bug #4 — `create_order` aceita `payment_method = 'boleto'` mas tabela `orders` não tem esse enum garantido + checkout não oferece
-
-O RPC permite `boleto` no `if p_payment_method not in ('pix','credit_card','boleto')`, mas o cast `p_payment_method::payment_method` falhará se `boleto` não estiver no enum. Front só envia `pix`/`credit_card`. Manter `boleto` permitido cria erro confuso (`invalid input value for enum`) caso alguém chame o RPC direto.
-
-**Fix**: remover `'boleto'` do whitelist no RPC para alinhar com o enum/UI atuais (até que boleto seja realmente implementado).
-
----
-
-### 🐛 Bug #5 — `RequireAuth` redireciona admin legítimo durante `roleLoading`
-
-`RequireAuth.tsx` (linha 32): se `adminOnly && !isAdmin` → redirect imediato para `/admin/login`. Mas no primeiro render após login, `role` ainda é `null` enquanto `roleLoading=true`. Resultado: admin que clica em `/admin` direto após login é jogado de volta para `/admin/login` por 1-2 frames; em conexões lentas pode redirecionar de fato e nunca entrar.
-
-`useAuth` já expõe `roleLoading`. Basta mostrar o skeleton enquanto carrega.
-
-**Fix**:
-```tsx
-const { user, loading, isAdmin, roleLoading } = useAuth();
-...
-if (adminOnly) {
-  if (roleLoading) return <>{loadingNode}</>;
-  if (!isAdmin) return <Navigate to={`/admin/login?next=${next}`} replace />;
-}
-```
-
----
-
-### 🐛 Bug #6 — `useNewOrdersNotifier` notifica admin de **TODOS** os pedidos antigos ao primeiro carregamento se `lastSeen` estiver vazio
-
-Na linha 51: `if (lastSeen && o.created_at && o.created_at <= lastSeen) return;` — se `lastSeen` é null (primeira sessão do navegador), o filtro é ignorado e qualquer INSERT realtime recebido entre a inscrição e a navegação dispara toast (ok), mas se o canal entregar eventos antigos durante reconexão também dispara. Mais importante: ao montar pela primeira vez, **`lastSeen` deveria ser inicializado com `now()`** para não criar a possibilidade de re-toast em reconnects.
-
-**Fix menor**: na montagem, se `!lastSeen`, gravar `new Date().toISOString()` como baseline; e considerar `o.created_at` apenas estritamente maior.
-
----
-
-## Arquivos a editar
-
-- `src/lib/affiliateRef.ts` — política first-touch + comentários
-- `src/hooks/useCaptureAffiliateRef.ts` — comentário
-- `src/pages/Checkout.tsx` — bloco de atribuição de afiliado para guests
-- `src/components/auth/RequireAuth.tsx` — esperar `roleLoading`
-- `src/hooks/useNewOrdersNotifier.ts` — baseline de `lastSeen` + comparação estrita
-- **Migration** — atualizar RPC `create_order`: filtrar `stock IS NULL` no decremento e remover `boleto` do whitelist
-
-## Itens verificados e ok
-
-- RLS de `products`, `orders`, `order_items`, `cart_items`, `wishlists`, `profiles`, `user_roles` — todas corretas
-- `has_role` SECURITY DEFINER ✓
-- View `affiliate_referrals_masked` em uso ✓
-- `useAuth` com cache de role + revalidação assíncrona ✓
-- Sem `service_role` no front ✓
-- `.maybeSingle()` em todas as queries ✓
-- Realtime de `orders` habilitado ✓
-- Senha aleatória cripto-forte para guest ✓
-
-Posso aplicar?
+## Resultado esperado
+- Stepper só fica verde quando o passo realmente está OK.
+- Resumo mais limpo (sem ilusão de desconto).
+- Footer visível em mobile (sem ser coberto).
+- Stepper legível em telas pequenas.
+- Um único CTA primário visível por vez no mobile.

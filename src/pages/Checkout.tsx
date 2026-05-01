@@ -344,7 +344,13 @@ export default function Checkout() {
     !!form.city.trim() &&
     form.state.trim().length === 2;
   const shippingDone = !!shippingId;
-  const paymentDone = !!form.payment_method && (settings.checkout_enable_pix !== "0" || settings.checkout_enable_card !== "0");
+  // Bug visual: o passo 3 ficava verde de cara porque o PIX é pré-selecionado.
+  // Usuário via "Pagamento ✓" antes de preencher nada. Agora só conta como
+  // concluído quando os passos anteriores também estão prontos.
+  const paymentMethodAvailable =
+    settings.checkout_enable_pix !== "0" || settings.checkout_enable_card !== "0";
+  const paymentDone =
+    !!form.payment_method && paymentMethodAvailable && buyerDone && addressDone && shippingDone;
 
   // Mesmas fórmulas usadas no RPC `create_order` para garantir que o resumo
   // exibido aqui bate com o total que o servidor vai gravar.
