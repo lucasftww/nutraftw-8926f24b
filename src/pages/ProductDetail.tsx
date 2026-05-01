@@ -308,7 +308,6 @@ export default function ProductDetail() {
             {[
               { icon: Truck, label: "Envio nacional" },
               { icon: ShieldCheck, label: "100% original" },
-              { icon: MessageCircle, label: "Suporte WhatsApp" },
             ].map((b) => (
               <li key={b.label} className="inline-flex items-center gap-1.5">
                 <b.icon className="h-3.5 w-3.5 text-primary/80" strokeWidth={1.75} />
