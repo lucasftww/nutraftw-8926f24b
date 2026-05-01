@@ -429,14 +429,6 @@ export default function Checkout() {
       </div>
     );
 
-  if (!user)
-    return (
-      <div className="max-w-7xl mx-auto px-4 py-20 text-center">
-        <p className="text-muted-foreground mb-4">Faça login para finalizar o pedido.</p>
-        <Button onClick={() => nav("/login?next=/checkout")}>Entrar</Button>
-      </div>
-    );
-
   function validate() {
     // Bug fix: nome agora exige nome+sobrenome (alinhado ao validador inline).
     if (!form.full_name.trim() || form.full_name.trim().split(/\s+/).filter(p => p.length >= 2).length < 2) {
@@ -513,6 +505,74 @@ export default function Checkout() {
       }
     }
     try {
+      // === Auto-criar conta para guests ===
+      // Se o usuário não está logado, criamos uma conta silenciosamente com o
+      // e-mail digitado e uma senha gerada (CPF + sufixo). Caso o e-mail já
+      // exista, tentamos login com a mesma senha — se falhar, orientamos a
+      // usar outro e-mail ou recuperar a senha. Isso mantém `auth.uid()`
+      // válido para o RPC `create_order` e RLS, sem mudar a arquitetura.
+      let activeUserId = user?.id;
+      if (!activeUserId) {
+        const emailTrim = form.email.trim().toLowerCase();
+        const cpfDigits = onlyDigits(form.cpf);
+        // Senha determinística baseada em CPF — permite "re-login" silencioso
+        // se o cliente voltar e digitar o mesmo CPF/e-mail. Mínimo 8 chars.
+        const autoPassword = `gi#${cpfDigits}A1`;
+
+        const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+          email: emailTrim,
+          password: autoPassword,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+            data: { full_name: form.full_name.trim() },
+          },
+        });
+
+        if (signUpErr) {
+          // Conta já existe → tenta login silencioso com a senha determinística.
+          const looksRegistered = /registered|already|exists/i.test(signUpErr.message);
+          if (looksRegistered) {
+            const { data: signInData, error: signInErr } =
+              await supabase.auth.signInWithPassword({
+                email: emailTrim,
+                password: autoPassword,
+              });
+            if (signInErr || !signInData.session?.user) {
+              toast.error(
+                "Já existe uma conta com este e-mail. Faça login para continuar.",
+              );
+              nav(`/login?next=/checkout&email=${encodeURIComponent(emailTrim)}`);
+              setSubmitting(false);
+              return;
+            }
+            activeUserId = signInData.session.user.id;
+          } else {
+            throw signUpErr;
+          }
+        } else {
+          activeUserId = signUpData.user?.id ?? signUpData.session?.user?.id;
+          // Se confirmação de e-mail estiver habilitada, signUp não cria sessão.
+          // Tentamos login imediato com a senha gerada para obter `auth.uid()`.
+          if (!signUpData.session) {
+            const { data: signInData } = await supabase.auth.signInWithPassword({
+              email: emailTrim,
+              password: autoPassword,
+            });
+            if (signInData?.session?.user) {
+              activeUserId = signInData.session.user.id;
+            }
+          }
+        }
+
+        if (!activeUserId) {
+          toast.error(
+            "Não conseguimos criar sua conta automaticamente. Verifique o e-mail e tente novamente.",
+          );
+          setSubmitting(false);
+          return;
+        }
+      }
+
       // Bug fix: o RPC create_order não recebe e-mail. O e-mail digitado
       // no checkout era jogado fora se o usuário não tinha profile com email.
       // Persistimos no profile (best-effort, não bloqueia o pedido) para
@@ -522,7 +582,7 @@ export default function Checkout() {
           .from("profiles")
           .upsert(
             {
-              user_id: user!.id,
+              user_id: activeUserId,
               email: form.email.trim(),
               full_name: form.full_name.trim(),
               phone: onlyDigits(form.phone),
