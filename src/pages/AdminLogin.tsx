@@ -20,7 +20,7 @@ import { ShieldCheck, Loader2, AlertTriangle, LogOut } from "lucide-react";
 export default function AdminLogin() {
   const [params] = useSearchParams();
   const nav = useNavigate();
-  const { user, loading, isAdmin } = useAuth();
+  const { user, loading, isAdmin, role, roleLoading } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,13 +32,17 @@ export default function AdminLogin() {
   const next = /^\/admin(\/|$)/.test(rawNext) ? rawNext : "/admin";
 
   // Se logou em outra aba como cliente comum, avisa e oferece logout.
+  // Bug fix: aguarda `role` ser resolvido (não-null E !roleLoading) antes
+  // de declarar "sem permissão" — antes, no primeiro render `role` é null
+  // e o usuário admin via "sem permissão" momentaneamente.
   useEffect(() => {
-    if (!loading && user && !isAdmin && !denied) {
+    if (loading || roleLoading) return;
+    if (user && role !== null && !isAdmin && !denied) {
       setDenied(
         `A conta ${user.email ?? ""} não tem permissão de administrador.`,
       );
     }
-  }, [loading, user, isAdmin, denied]);
+  }, [loading, roleLoading, user, role, isAdmin, denied]);
 
   // Se já está logado E confirmado como admin → redireciona.
   // ⚠️ Esse early return DEVE vir DEPOIS de todos os hooks (Rules of Hooks),
