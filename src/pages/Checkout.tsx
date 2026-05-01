@@ -1634,6 +1634,19 @@ export default function Checkout() {
             <button
               type="button"
               disabled={submitting}
+              aria-label={
+                submitting
+                  ? "Processando pedido"
+                  : !buyerDone
+                    ? "Continuar — preencher seus dados"
+                    : !addressDone
+                      ? "Continuar — preencher endereço"
+                      : !shippingDone
+                        ? "Continuar — escolher frete"
+                        : !paymentDone
+                          ? "Continuar — escolher pagamento"
+                          : "Finalizar pedido"
+              }
               onClick={() => {
                 // Foca a primeira seção incompleta para guiar o usuário.
                 const target = !buyerDone
