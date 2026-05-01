@@ -696,7 +696,57 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      affiliate_referrals_masked: {
+        Row: {
+          affiliate_user_id: string | null
+          created_at: string | null
+          id: string | null
+          landing_path: string | null
+          referred_email_masked: string | null
+          referred_user_id: string | null
+          referrer: string | null
+          status: string | null
+          updated_at: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+        }
+        Insert: {
+          affiliate_user_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          landing_path?: string | null
+          referred_email_masked?: never
+          referred_user_id?: string | null
+          referrer?: string | null
+          status?: string | null
+          updated_at?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Update: {
+          affiliate_user_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          landing_path?: string | null
+          referred_email_masked?: never
+          referred_user_id?: string | null
+          referrer?: string | null
+          status?: string | null
+          updated_at?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       admin_set_order_status: {
@@ -767,6 +817,18 @@ export type Database = {
         Returns: undefined
       }
       release_due_affiliate_commissions: { Args: never; Returns: number }
+      validate_coupon: {
+        Args: { p_code: string; p_subtotal: number }
+        Returns: {
+          code: string
+          description: string
+          discount_amount: number
+          discount_type: string
+          discount_value: number
+          message: string
+          valid: boolean
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "customer"
