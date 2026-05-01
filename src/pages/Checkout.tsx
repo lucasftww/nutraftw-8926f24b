@@ -1474,12 +1474,23 @@ export default function Checkout() {
                   <div className="relative flex-1">
                     <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <input
-                      className="checkout-input pl-9 uppercase"
+                      className="checkout-input pl-9 uppercase tracking-wider"
                       placeholder="Cupom de desconto"
                       value={couponInput}
                       autoFocus
+                      autoComplete="off"
+                      autoCapitalize="characters"
+                      spellCheck={false}
+                      maxLength={32}
                       onChange={(e) => {
-                        setCouponInput(e.target.value.toUpperCase());
+                        // Normaliza no estado, não só no display: remove
+                        // espaços (paste com espaço extra é comum) e força
+                        // alfanumérico maiúsculo. Garante que o que o
+                        // servidor recebe = o que o usuário vê.
+                        const cleaned = e.target.value
+                          .toUpperCase()
+                          .replace(/[^A-Z0-9_-]/g, "");
+                        setCouponInput(cleaned);
                         if (couponError) setCouponError(null);
                       }}
                     />
