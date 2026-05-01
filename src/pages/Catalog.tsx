@@ -381,55 +381,6 @@ export default function Catalog() {
             </button>
           </div>
 
-          {/* Linha 2: chips horizontais de categoria — pill ativo sólido
-              azul-marinho, inativos com borda discreta (estilo da referência). */}
-          <div
-            role="tablist"
-            aria-label="Categorias"
-            className="-mx-4 px-4 flex gap-2 overflow-x-auto scroll-smooth snap-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-          >
-            {(() => {
-              const promoCount = countByCat.get("__promos__") ?? 0;
-              const allActive = selectedCats.size === 0;
-              const chips: { key: string; label: string; active: boolean; onClick: () => void }[] = [
-                {
-                  key: "__all__",
-                  label: "Todas",
-                  active: allActive,
-                  onClick: () => setSelectedCats(new Set()),
-                },
-                ...[...categories]
-                  .sort((a, b) => {
-                    const aTirz = isTirzepatidaCategory(a) ? 0 : 1;
-                    const bTirz = isTirzepatidaCategory(b) ? 0 : 1;
-                    if (aTirz !== bTirz) return aTirz - bTirz;
-                    return 0;
-                  })
-                  .map((c) => ({
-                    key: c.slug,
-                    label: c.name,
-                    active: selectedCats.size === 1 && selectedCats.has(c.slug),
-                    onClick: () => setSelectedCats(new Set([c.slug])),
-                  })),
-              ];
-              return chips.map((chip) => (
-                <button
-                  key={chip.key}
-                  type="button"
-                  role="tab"
-                  aria-pressed={chip.active}
-                  onClick={chip.onClick}
-                  className={`shrink-0 snap-start inline-flex items-center justify-center h-8 px-3.5 rounded-full text-[13px] font-semibold whitespace-nowrap transition-all ${
-                    chip.active
-                      ? "bg-primary text-primary-foreground shadow-sm shadow-primary/25"
-                      : "bg-background text-foreground/70 border border-border hover:border-primary/40 hover:text-foreground"
-                  }`}
-                >
-                  {chip.label}
-                </button>
-              ));
-            })()}
-          </div>
           </div>
         </div>
       </div>
