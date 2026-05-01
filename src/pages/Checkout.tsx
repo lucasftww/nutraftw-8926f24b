@@ -374,6 +374,32 @@ export default function Checkout() {
     if (settings.insurance_optional === "0") setInsuranceOn(true);
   }, [settings.insurance_optional]);
 
+  // Fase 4: pré-carrega tabelas de frete dos UFs mais comuns em background.
+  // Quando o usuário digitar a UF, exibimos instantaneamente (cache hit).
+  // Não bloqueia render; falhas são silenciosas (apenas perde o pré-cache).
+  useEffect(() => {
+    const COMMON_UFS = ["SP", "RJ", "MG", "RS", "PR"];
+    let cancelled = false;
+    const id = setTimeout(() => {
+      void Promise.all(
+        COMMON_UFS.map(async (uf) => {
+          if (shippingCacheRef.current.has(uf)) return;
+          try {
+            const { data, error } = await (supabase as any)
+              .from("shipping_rates")
+              .select("*")
+              .eq("state", uf)
+              .eq("active", true)
+              .order("price");
+            if (error || cancelled) return;
+            shippingCacheRef.current.set(uf, (data as any[]) || []);
+          } catch { /* silencioso */ }
+        }),
+      );
+    }, 250); // pequeno delay para não competir com o render inicial
+    return () => { cancelled = true; clearTimeout(id); };
+  }, []);
+
   // Garante método de pagamento válido conforme settings.
   // Inclui form.payment_method nas deps para reagir imediatamente quando
   // o usuário troca o método manualmente para um que está desabilitado
