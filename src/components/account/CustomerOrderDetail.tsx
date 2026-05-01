@@ -64,7 +64,7 @@ export function CustomerOrderDetail({ orderId, onClose }: { orderId: string; onC
               <ul className="divide-y divide-border border border-border rounded-xl overflow-hidden">
                 {items.map((it) => (
                   <li key={it.id} className="flex items-center gap-3 p-3 text-sm">
-                    <img src={it.product_image_url || "/assets/no-image.svg"} alt={it.product_name} className="w-14 h-14 rounded object-cover bg-muted" />
+                    <img src={it.product_image_url || "/assets/no-image.svg"} alt={it.product_name} loading="lazy" decoding="async" width={56} height={56} className="w-14 h-14 rounded object-cover bg-muted" />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium line-clamp-2 leading-snug">{it.product_name}</p>
                       <p className="text-xs text-muted-foreground">{it.quantity}x {formatBRL(it.unit_price)}</p>
