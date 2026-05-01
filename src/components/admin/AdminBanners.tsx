@@ -156,11 +156,13 @@ export function AdminBanners() {
               </label>
             </div>
 
-            <ImageUpload
-              value={b.image_url || ""}
-              onChange={(url) => patch(b.id, { image_url: url })}
-              label="Imagem (recomendado 1920x600)"
-            />
+            <div>
+              <Label className="mb-2 block">Imagem (recomendado 1920×600)</Label>
+              <ImageUpload
+                value={b.image_url || ""}
+                onChange={(url) => patch(b.id, { image_url: url })}
+              />
+            </div>
 
             <div>
               <Label>Título</Label>
