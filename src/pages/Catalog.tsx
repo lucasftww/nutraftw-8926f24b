@@ -350,7 +350,7 @@ export default function Catalog() {
       <div className="sticky top-12 md:top-14 z-20 bg-background border-b border-border/40 py-2 md:py-3">
         <div className="container mx-auto px-4">
           <div className="w-full space-y-1.5 md:space-y-2">
-          <h1 className="text-lg md:text-2xl font-bold tracking-tight text-foreground leading-none">
+          <h1 className="text-lg md:text-2xl font-extrabold tracking-tight text-foreground leading-none">
             Catálogo
           </h1>
           {/* Linha 1: busca + ícone de filtros (drawer com ordenação e
