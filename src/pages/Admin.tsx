@@ -25,6 +25,8 @@ import { AdminAffiliates } from "@/components/admin/AdminAffiliates";
 import { AdminPromotions } from "@/components/admin/AdminPromotions";
 import { AdminModal } from "@/components/admin/AdminModal";
 import { ConfirmProvider, useConfirm } from "@/components/admin/ConfirmDialog";
+import { ProductThumb } from "@/components/admin/ProductThumb";
+import { EmptyState } from "@/components/admin/EmptyState";
 import { queryKeys } from "@/lib/queryKeys";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 import { logAdminAction, shallowDiff } from "@/lib/auditLog";
@@ -124,17 +126,17 @@ function AdminInner() {
   return (
     <div className="flex min-h-screen w-full bg-background text-foreground">
       {/* ========== Sidebar fixa (desktop) ========== */}
-      <aside className="hidden lg:flex w-64 shrink-0 flex-col border-r border-border bg-card/30 sticky top-0 h-screen overflow-y-auto">
-        <div className="px-6 pt-7 pb-8">
+      <aside className="hidden lg:flex w-56 shrink-0 flex-col border-r border-border bg-card/30 sticky top-0 h-screen overflow-y-auto scrollbar-thin">
+        <div className="px-5 pt-6 pb-7">
           <div className="text-lg font-medium tracking-tight text-foreground">
             GIMPORTS<span className="text-primary">.</span>
           </div>
           <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mt-1">Painel admin</p>
         </div>
-        <nav className="flex-1 px-4 pb-4 space-y-7">
+        <nav className="flex-1 px-3 pb-4 space-y-5">
           {GROUPS.map((g) => (
-            <div key={g.id} className="space-y-1.5">
-              <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground px-3 mb-2 flex items-center gap-2">
+            <div key={g.id} className="space-y-1">
+              <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground/80 px-3 mb-1.5 flex items-center gap-2">
                 <g.icon className="h-3 w-3" />
                 {g.label}
               </div>
@@ -148,14 +150,14 @@ function AdminInner() {
                     key={t.id}
                     onClick={() => setTab(t.id)}
                     aria-current={active ? "page" : undefined}
-                    className={`group w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all relative ${
+                    className={`group w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-[13px] transition-all relative ${
                       active
                         ? "bg-primary/10 text-primary font-medium"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
                     }`}
                   >
-                    {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary rounded-r" style={{ boxShadow: "0 0 12px hsl(var(--primary) / 0.6)" }} />}
-                    <t.icon className={`h-4 w-4 shrink-0 ${active ? "text-primary" : ""}`} />
+                    {active && <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-[2px] h-4 bg-primary rounded-r" style={{ boxShadow: "0 0 12px hsl(var(--primary) / 0.6)" }} />}
+                    <t.icon className={`h-3.5 w-3.5 shrink-0 ${active ? "text-primary" : ""}`} />
                     <span className="flex-1 text-left">{t.label}</span>
                     {showBadge && (
                       <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-secondary text-secondary-foreground text-[10px] font-bold leading-none">
@@ -237,7 +239,7 @@ function AdminInner() {
       {/* ========== Conteúdo principal ========== */}
       <main className="flex-1 min-w-0 flex flex-col">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 flex items-center gap-3 px-4 md:px-8 h-16 border-b border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+        <header className="sticky top-0 z-30 flex items-center gap-3 px-4 md:px-8 h-14 border-b border-border bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/40">
           <button
             onClick={() => setMobileNavOpen(true)}
             className="lg:hidden p-2 -ml-2 text-muted-foreground"
@@ -258,7 +260,7 @@ function AdminInner() {
           {/* Busca global */}
           <button
             onClick={() => setPaletteOpen(true)}
-            className="flex items-center gap-2 h-9 px-3 rounded-full bg-card border border-border text-sm text-muted-foreground hover:border-primary/40 transition-colors"
+            className="flex items-center gap-2 h-9 px-3 rounded-full bg-background/60 border border-border text-sm text-muted-foreground hover:border-primary/50 hover:text-foreground hover:shadow-[0_0_18px_-4px_hsl(var(--primary)/0.45)] transition-all"
             aria-label="Buscar (Ctrl+K)"
           >
             <Search className="h-4 w-4" />
@@ -268,12 +270,12 @@ function AdminInner() {
         </header>
 
         {/* Page content */}
-        <div className="flex-1 px-4 md:px-8 py-6 md:py-10">
+        <div className="flex-1 px-4 md:px-8 py-6 md:py-8">
           {/* Page title */}
-          <div className="mb-6 md:mb-8">
+          <div className="mb-5 md:mb-7">
             <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-1.5">{currentGroup?.label}</p>
-            <h1 className="text-2xl md:text-3xl font-light tracking-tight text-foreground flex items-center gap-3">
-              {currentTab?.icon && <currentTab.icon className="h-6 w-6 text-primary" />}
+            <h1 className="text-xl md:text-2xl font-medium tracking-tight text-foreground flex items-center gap-2.5">
+              {currentTab?.icon && <currentTab.icon className="h-5 w-5 text-primary" />}
               {currentTab?.label ?? "Dashboard"}
             </h1>
           </div>
