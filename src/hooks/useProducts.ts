@@ -13,6 +13,7 @@ export interface ProductRow {
   is_featured: boolean;
   is_new_release: boolean;
   is_on_offer: boolean;
+  offer_order?: number;
   stock: number;
   created_at: string;
   category: { id: string; name: string; slug: string } | null;
@@ -25,7 +26,7 @@ export interface CategoryRow {
 }
 
 const PRODUCT_COLUMNS =
-  "id, slug, name, description, price, sale_price, image_url, is_featured, is_new_release, is_on_offer, stock, created_at, category:categories(id, name, slug)";
+  "id, slug, name, description, price, sale_price, image_url, is_featured, is_new_release, is_on_offer, offer_order, stock, created_at, category:categories(id, name, slug)";
 
 export function useCategories() {
   return useQuery<CategoryRow[]>({
@@ -49,6 +50,8 @@ export function useProducts() {
         .from("products")
         .select(PRODUCT_COLUMNS)
         .eq("is_active", true)
+        .order("is_on_offer", { ascending: false })
+        .order("offer_order", { ascending: true })
         .order("is_featured", { ascending: false })
         .order("created_at", { ascending: false });
       if (error) throw error;
