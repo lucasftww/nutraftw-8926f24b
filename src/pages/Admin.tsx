@@ -1056,30 +1056,35 @@ function AdminCategories() {
   const sorted = [...items].sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
 
   return (
-    <div className="bg-card rounded-2xl border border-border p-6">
-      <div className="flex gap-2 mb-6">
-        <Input placeholder="Nova categoria" value={name} onChange={(e) => setName(e.target.value)} />
+    <div className="bg-card rounded-2xl border border-border p-5 max-w-2xl">
+      <div className="flex gap-2 mb-4">
+        <Input
+          placeholder="Nova categoria (use acentos: Ergogênicos)"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }}
+        />
         <Button onClick={add}><Plus className="h-4 w-4" /> Adicionar</Button>
       </div>
-      <ul className="divide-y divide-border">
+      <ul className="divide-y divide-border/60">
         {sorted.map((c, idx) => (
-          <li key={c.id} className="flex items-center gap-2 py-3">
-            <div className="flex flex-col">
+          <li key={c.id} className="flex items-center gap-2 py-2 group">
+            <div className="flex flex-col -space-y-px">
               <button
                 onClick={() => move(c.id, -1)}
                 disabled={idx === 0}
                 aria-label={`Mover ${c.name} para cima`}
-                className="h-5 w-6 inline-flex items-center justify-center rounded hover:bg-muted disabled:opacity-30 disabled:hover:bg-transparent"
+                className="h-7 w-7 inline-flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:hover:bg-transparent"
               >
-                <ChevronUp className="h-3.5 w-3.5" />
+                <ChevronUp className="h-4 w-4" />
               </button>
               <button
                 onClick={() => move(c.id, 1)}
                 disabled={idx === sorted.length - 1}
                 aria-label={`Mover ${c.name} para baixo`}
-                className="h-5 w-6 inline-flex items-center justify-center rounded hover:bg-muted disabled:opacity-30 disabled:hover:bg-transparent"
+                className="h-7 w-7 inline-flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:hover:bg-transparent"
               >
-                <ChevronDown className="h-3.5 w-3.5" />
+                <ChevronDown className="h-4 w-4" />
               </button>
             </div>
             <div className="flex-1 min-w-0">
@@ -1100,17 +1105,26 @@ function AdminCategories() {
                   className="text-left w-full"
                   onClick={() => { setEditingId(c.id); setEditName(c.name); }}
                 >
-                  <p className="font-medium hover:text-primary transition-colors">{c.name}</p>
-                  <p className="text-xs text-muted-foreground">{c.slug}</p>
+                  <p className="font-medium text-sm hover:text-primary transition-colors">{c.name}</p>
+                  <p className="text-[11px] text-muted-foreground/70 font-mono">{c.slug}</p>
                 </button>
               )}
             </div>
-            <button onClick={() => del(c.id)} aria-label={`Remover ${c.name}`} className="p-2 hover:bg-destructive/10 text-destructive rounded shrink-0"><Trash2 className="h-4 w-4" /></button>
+            <button onClick={() => del(c.id)} aria-label={`Remover ${c.name}`} title="Remover" className="h-8 w-8 inline-flex items-center justify-center rounded-md opacity-60 group-hover:opacity-100 hover:bg-destructive/10 text-destructive shrink-0 transition-opacity"><Trash2 className="h-4 w-4" /></button>
           </li>
         ))}
-        {items.length === 0 && <p className="text-center py-8 text-muted-foreground">Nenhuma categoria.</p>}
+        {items.length === 0 && (
+          <li>
+            <EmptyState
+              icon={Tags}
+              title="Nenhuma categoria criada"
+              description="Crie categorias para organizar o catálogo (ex.: Tirzepatida, Retatrutide, Ergogênicos)."
+              compact
+            />
+          </li>
+        )}
       </ul>
-      <p className="mt-4 text-xs text-muted-foreground">Toque no nome para renomear · use as setas para reordenar.</p>
+      <p className="mt-4 text-[11px] text-muted-foreground/80">Clique no nome para renomear · use as setas para reordenar.</p>
     </div>
   );
 }
