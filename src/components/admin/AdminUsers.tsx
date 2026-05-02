@@ -38,6 +38,11 @@ export function AdminUsers() {
   async function load() {
     setLoading(true);
     setError(null);
+    // Bug fix: sem .range/.limit explícito, o Supabase corta em 1000 linhas
+    // silenciosamente. Em loja com volume, isso quebra LTV e contagem de
+    // pedidos. Aumentamos para 5000 (suficiente para 99% dos casos) e
+    // alertamos se for atingido — sinal de que precisamos paginar.
+    const ORDERS_LIMIT = 5000;
     const [profilesRes, rolesRes, ordersRes] = await Promise.all([
       supabase
         .from("profiles")
@@ -47,7 +52,9 @@ export function AdminUsers() {
       supabase
         .from("orders")
         .select("user_id, total, status, created_at")
-        .in("status", ["paid", "processing", "shipped", "delivered"]),
+        .in("status", ["paid", "processing", "shipped", "delivered"])
+        .order("created_at", { ascending: false })
+        .limit(ORDERS_LIMIT),
     ]);
     if (profilesRes.error) {
       const info = logSupabaseError("Carregar usuários", profilesRes.error, { table: "profiles" });
@@ -62,6 +69,13 @@ export function AdminUsers() {
       toast.error(`Papéis: ${info.message}`);
       setLoading(false);
       return;
+    }
+    if ((ordersRes.data?.length ?? 0) === ORDERS_LIMIT) {
+      // Avisa em console — usuário admin saberá que números podem subestimar.
+      console.warn(
+        `[AdminUsers] LTV calculado sobre os ${ORDERS_LIMIT} pedidos mais recentes. ` +
+        "Considere implementar paginação/agregação server-side.",
+      );
     }
     const adminIds = new Set((rolesRes.data || []).map((r: any) => r.user_id));
     const stats = new Map<string, { count: number; ltv: number; last: string | null }>();

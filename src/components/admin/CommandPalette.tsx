@@ -34,12 +34,15 @@ const SHORTCUT_TABS: { id: Tab; label: string }[] = [
   { id: "products", label: "Ir para Produtos" },
   { id: "orders", label: "Ir para Pedidos" },
   { id: "categories", label: "Ir para Categorias" },
+  { id: "promotions" as Tab, label: "Ir para Promoções" },
   { id: "coupons", label: "Ir para Cupons" },
   { id: "shipping", label: "Ir para Fretes" },
   { id: "users", label: "Ir para Usuários" },
+  { id: "affiliates" as Tab, label: "Ir para Afiliados" },
   { id: "funnel", label: "Ir para Funil" },
   { id: "reports", label: "Ir para Relatórios" },
   { id: "settings", label: "Ir para Configurações" },
+  { id: "audit" as Tab, label: "Ir para Histórico" },
 ];
 
 export function CommandPalette({
@@ -103,7 +106,13 @@ export function CommandPalette({
         setProducts([]); setOrders([]); return;
       }
       setLoading(true);
-      const safe = debounced.replace(/[%_,]/g, " ");
+      // Sanitiza para evitar injeção de filtros PostgREST via .or() — vírgula
+      // separa filtros, parênteses agrupam, etc. Mesmo que o admin tenha
+      // permissão, deixar o usuário compor filtros arbitrários é frágil.
+      const safe = debounced.replace(/[%_,()*:"'\\]/g, " ").trim();
+      if (!safe) {
+        setProducts([]); setOrders([]); setLoading(false); return;
+      }
       const [pr, or] = await Promise.all([
         supabase
           .from("products")

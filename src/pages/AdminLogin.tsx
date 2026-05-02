@@ -101,7 +101,7 @@ export default function AdminLogin() {
   }
 
   return (
-    <main className="min-h-[calc(100vh-200px)] flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary/5 px-4 py-12">
+    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary/5 px-4 py-12">
       <div className="w-full max-w-md">
         <div className="bg-card border border-border rounded-2xl shadow-xl p-8 space-y-6">
           <div className="flex flex-col items-center text-center space-y-2">

@@ -375,7 +375,11 @@ function AdminProducts() {
       .range(from, to);
     if (debouncedQuery) {
       // Busca server-side por nome OU princípio ativo (case-insensitive).
-      const safe = debouncedQuery.replace(/[%_,]/g, " ");
+      // Sanitiza para evitar injeção de filtros PostgREST via .or() — remove
+      // qualquer caractere com significado especial (vírgula separa filtros,
+      // parênteses agrupam, dois-pontos delimita operadores, aspas/barras
+      // permitem escape, asterisco é wildcard alternativo).
+      const safe = debouncedQuery.replace(/[%_,()*:"'\\]/g, " ").trim();
       q = q.or(`name.ilike.%${safe}%,active_principle.ilike.%${safe}%`);
     }
     const [pr, cr] = await Promise.all([
