@@ -1395,7 +1395,7 @@ function AdminOrders() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</span>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${STATUS_COLORS[o.status] || "bg-muted"}`}>{o.status}</span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${STATUS_COLORS[o.status] || "bg-muted text-muted-foreground"}`}>{o.status}</span>
                 </div>
                 <p className="font-semibold text-sm leading-tight truncate mt-1">{o.shipping_full_name || "—"}</p>
                 <div className="flex items-center justify-between mt-1.5">
@@ -1407,7 +1407,15 @@ function AdminOrders() {
             </div>
           </li>
         ))}
-        {!loading && filtered.length === 0 && <li className="text-center py-12 text-muted-foreground bg-card rounded-2xl border border-border">Nenhum pedido.</li>}
+        {!loading && filtered.length === 0 && (
+          <li className="bg-card rounded-2xl border border-border">
+            <EmptyState
+              icon={ShoppingBag}
+              title="Nenhum pedido encontrado"
+              description="Quando uma compra for feita, ela aparecerá aqui."
+            />
+          </li>
+        )}
       </ul>
 
       <div className="hidden md:block bg-card rounded-2xl border border-border overflow-hidden">
@@ -1465,8 +1473,16 @@ function AdminOrders() {
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={7} className="text-center py-12 text-muted-foreground">
-                  {loading ? "Carregando pedidos…" : "Nenhum pedido."}
+                <td colSpan={7}>
+                  {loading ? (
+                    <div className="text-center py-12 text-muted-foreground">Carregando pedidos…</div>
+                  ) : (
+                    <EmptyState
+                      icon={ShoppingBag}
+                      title="Nenhum pedido encontrado"
+                      description="Quando uma compra for feita, ela aparecerá aqui."
+                    />
+                  )}
                 </td>
               </tr>
             )}
