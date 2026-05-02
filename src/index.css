@@ -66,9 +66,12 @@
     --muted: 220 25% 96%;
     --muted-foreground: 220 12% 44%;
 
-    /* Accent — azul ciano para links e destaques secundários */
-    --accent: 199 89% 48%;
-    --accent-foreground: 0 0% 100%;
+    /* Accent — usado primariamente como hover sutil em botões outline
+       (hover:bg-accent). Mantido como cinza-azulado neutro para não
+       brigar com a paleta primary/secondary. Antes era ciano vibrante,
+       o que destoava em hovers de botões neutros. */
+    --accent: 220 25% 94%;
+    --accent-foreground: 222 39% 14%;
 
     --destructive: 0 78% 55%;
     --destructive-foreground: 0 0% 100%;
