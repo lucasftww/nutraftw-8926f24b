@@ -553,7 +553,7 @@ function AdminProducts() {
     // Exporta todos os produtos (até 5000) com os campos editáveis principais.
     const { data, error } = await supabase
       .from("products")
-      .select("id, name, slug, price, sale_price, stock, is_active, is_featured, active_principle, composition, description, meta_title, meta_description, category:categories(name)")
+      .select("id, name, slug, price, sale_price, stock, is_active, is_featured, is_new_release, is_on_offer, active_principle, composition, description, meta_title, meta_description, category:categories(name)")
       .order("created_at", { ascending: false })
       .limit(5000);
     if (error) { toast.error(error.message); return; }
@@ -563,13 +563,13 @@ function AdminProducts() {
       const s = String(v).replace(/"/g, '""');
       return /[",\n;]/.test(s) ? `"${s}"` : s;
     };
-    const headers = ["id","name","slug","category","price","sale_price","stock","is_active","is_featured","active_principle","composition","description","meta_title","meta_description"];
+    const headers = ["id","name","slug","category","price","sale_price","stock","is_active","is_featured","is_new_release","is_on_offer","active_principle","composition","description","meta_title","meta_description"];
     const lines = [headers.join(",")];
     for (const r of rows as any[]) {
       lines.push([
         r.id, r.name, r.slug, r.category?.name ?? "",
         r.price, r.sale_price ?? "", r.stock,
-        r.is_active, r.is_featured,
+        r.is_active, r.is_featured, r.is_new_release, r.is_on_offer,
         r.active_principle ?? "", r.composition ?? "", r.description ?? "",
         r.meta_title ?? "", r.meta_description ?? "",
       ].map(esc).join(","));
