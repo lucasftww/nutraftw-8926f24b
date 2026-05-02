@@ -34,15 +34,15 @@ const SHORTCUT_TABS: { id: Tab; label: string }[] = [
   { id: "products", label: "Ir para Produtos" },
   { id: "orders", label: "Ir para Pedidos" },
   { id: "categories", label: "Ir para Categorias" },
-  { id: "promotions" as Tab, label: "Ir para Promoções" },
+  { id: "promotions", label: "Ir para Promoções" },
   { id: "coupons", label: "Ir para Cupons" },
   { id: "shipping", label: "Ir para Fretes" },
   { id: "users", label: "Ir para Usuários" },
-  { id: "affiliates" as Tab, label: "Ir para Afiliados" },
+  { id: "affiliates", label: "Ir para Afiliados" },
   { id: "funnel", label: "Ir para Funil" },
   { id: "reports", label: "Ir para Relatórios" },
   { id: "settings", label: "Ir para Configurações" },
-  { id: "audit" as Tab, label: "Ir para Histórico" },
+  { id: "audit", label: "Ir para Histórico" },
 ];
 
 export function CommandPalette({
