@@ -26,16 +26,16 @@ export function ProductFooter() {
     : "Olá! Preciso de suporte.";
 
   return (
-    <footer className="mt-16 border-t border-border/60 bg-background">
-      <div className="max-w-5xl mx-auto px-5 py-10 pb-[calc(env(safe-area-inset-bottom,0px)+7.5rem)] sm:pb-10">
-        <div className="flex flex-col items-center text-center gap-5">
+    <footer className="mt-12 sm:mt-16 border-t border-border/60 bg-muted/30">
+      <div className="max-w-5xl mx-auto px-5 py-8 sm:py-10 pb-[calc(env(safe-area-inset-bottom,0px)+7.5rem)] sm:pb-10">
+        <div className="flex flex-col items-center text-center gap-4 sm:gap-5">
           <a
             href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(ctaText)}`}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center justify-center gap-2 px-6 h-11 rounded-full border border-border text-foreground font-medium text-sm hover:bg-foreground hover:text-background transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-6 h-11 rounded-full bg-whatsapp text-whatsapp-foreground font-semibold text-sm shadow-sm hover:bg-whatsapp-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-whatsapp focus-visible:ring-offset-2"
           >
-            <MessageCircle className="w-4 h-4" />
+            <MessageCircle className="w-4 h-4" aria-hidden />
             {ctaLabel}
           </a>
 
