@@ -198,11 +198,9 @@ export default function ProductDetail() {
               />
             );
           })()}
-          {hasSale && (
-            <span className="absolute top-3 right-3 inline-flex items-center rounded-full bg-secondary text-secondary-foreground text-sm font-extrabold px-3 py-1 shadow-lg">
-              -{discountPct}% OFF
-            </span>
-          )}
+          {/* Badge "-X% OFF" removido da imagem — informação já é comunicada
+              pela pílula verde "Economize R$X (-X%)" acima do preço, evitando
+              redundância visual e poluição da imagem do produto. */}
         </div>
 
         {/* Info */}

@@ -1,107 +1,82 @@
-## Plano: Fases 2, 3 e 4 do Checkout
+## Análise de cores do site (foco em conversão)
 
-Hoje `src/pages/Checkout.tsx` tem 1.682 linhas, mistura form, frete, cupom, signup de convidado, atribuição de afiliado e UI. Vamos quebrar em pedaços, mover lógica sensível pro servidor e polir UX.
-
----
-
-### Fase 2 — Refatoração (sem mudança visual)
-
-**Novos hooks (`src/hooks/checkout/`)**
-- `useCheckoutForm.ts` — estado do formulário (contato + endereço + notas), validação com `zod`, persistência em `sessionStorage` (chave `checkout:form:v1` já existente).
-- `useShippingRates.ts` — fetch por UF, cache em memória por estado, retry 400ms (já existe), seleção atual + reset quando UF muda.
-- `useCouponValidation.ts` — debounce 350ms, sanitização (já feita), chama `validate_coupon`, expõe `{ status, discount, message }`.
-- `useGuestSignup.ts` — encapsula criação de conta para convidado com senha aleatória + sign-in subsequente.
-- `useViaCep.ts` — lookup de CEP com warning toast (já feito) e cancelamento se CEP mudar durante request.
-
-**Novos componentes (`src/components/checkout/`)**
-- `BuyerSection.tsx` — nome, email, CPF, telefone.
-- `AddressSection.tsx` — CEP, rua, número, complemento, bairro, cidade, UF.
-- `ShippingSection.tsx` — lista de `shipping_rates` da UF selecionada com radiogroup acessível.
-- `PaymentSection.tsx` — PIX/Cartão com `role="radiogroup"` e navegação por setas.
-- `CouponBox.tsx` — input + botão aplicar/remover, feedback inline.
-- `OrderSummary.tsx` — itens, subtotal, frete, seguro, desconto, PIX 5%, total. Memoizado.
-- `Stepper.tsx` — indicador 1→2→3 com `aria-current`.
-- `MobileFooterCTA.tsx` — barra fixa mobile com "Continuar" / "Pagar".
-
-**`Checkout.tsx`** vira orquestrador: ~250 linhas, monta hooks e renderiza seções. Sem mudança de layout/estilo.
-
-**Performance**: cada seção memoiza com `React.memo`; digitar em "nome" não re-renderiza `OrderSummary` nem `ShippingSection`.
+Auditei o `index.css` (design tokens), botões, badges, CTAs em **Catálogo, Detalhe do Produto, Carrinho, Checkout, Header, Wishlist e Admin**.
 
 ---
 
-### Fase 3 — Atomicidade no servidor (migração SQL)
+### 1. Paleta atual (resumo)
 
-Hoje, antes de chamar `create_order`, o cliente faz:
-1. `profiles.upsert` (dados de cobrança/endereço)
-2. `affiliate_referrals.insert` (atribuição first-touch)
+| Token | Cor | Uso |
+|---|---|---|
+| `--primary` | Azul marinho `222 65% 20%` | Marca, links, header, ícones, preço no catálogo |
+| `--secondary` | Laranja `18 95% 54%` | CTA "Comprar agora", "Comprar", badges de desconto |
+| `--success` | Verde `145 75% 38%` | PIX, "economize", botão final do checkout, frete grátis |
+| `--accent` | Ciano `199 89% 48%` | Não usado (morto) |
+| `--destructive` | Vermelho `0 78% 55%` | Erros, "última unidade" |
 
-Se o RPC falhar, ficam dados órfãos. Vamos mover ambos pra dentro do `create_order`:
-
-**Nova migração** altera `public.create_order(...)` adicionando parâmetros opcionais:
-- `p_save_profile boolean default true` — se `true`, faz `UPDATE public.profiles SET full_name, cpf, phone, address_* WHERE user_id = v_user`.
-- `p_affiliate_code text default null` — se informado e o profile ainda não tem `referred_by_code`, grava (respeitando trigger `protect_referred_by_code` que já garante first-touch).
-- `p_utm jsonb default null` — opcional: cria/atualiza `affiliate_referrals` para o `referred_user_id = v_user`.
-
-Tudo em uma única transação. Erros retornam `RAISE EXCEPTION` com mensagens já padronizadas em PT-BR. Sem `SQLSTATE` customizado (manter consistência com o resto do projeto).
-
-Frontend: remover os dois `await` que fazem upsert/insert antes do RPC; passar os campos como parâmetros.
+**Veredito geral:** A paleta é **boa e adequada para farma/saúde** — azul marinho passa confiança (estilo KA Imports / farmácia), laranja é o padrão Amazon/ML para conversão, verde reforça PIX/economia. **Não precisa trocar a paleta base.**
 
 ---
 
-### Fase 4 — UX avançada
+### 2. Pontos fortes ✅
 
-1. **Combobox de UF** — substitui `<select>` por `Command` do shadcn (busca por nome ou sigla, ex.: "São Paulo" → SP). Componente `UFCombobox.tsx`.
-2. **Pré-carregamento de fretes** — ao montar o checkout, dispara fetch dos UFs mais comuns (SP, RJ, MG, RS, PR) em background; quando usuário seleciona UF, exibe instantâneo se já cacheado.
-3. **Email OTP para convidado** (opcional, atrás de feature flag em `site_settings.checkout_guest_otp = 'true'`):
-   - Após preencher email, botão "Enviar código" → `supabase.auth.signInWithOtp({ email })`.
-   - Campo de 6 dígitos para validar antes de prosseguir ao pagamento.
-   - Se flag desligada, mantém fluxo atual (senha aleatória).
-4. **Máscara em tempo real** para CPF (`000.000.000-00`), telefone (`(00) 00000-0000`) e CEP (`00000-000`) usando funções puras (sem libs externas).
-5. **Botão "Aplicar" do cupom desabilitado** enquanto vazio + spinner enquanto valida.
-6. **Resumo sticky no desktop** (`lg:sticky lg:top-24`) — já existe parcialmente; revisar.
+- **Hierarquia clara de CTAs:** azul (marca) ≠ laranja (comprar) ≠ verde (finalizar/PIX). O olho sabe pra onde ir.
+- **Botão "Comprar agora" laranja** com `shadow-secondary/30` + `h-14` — alta conversão, segue padrão de marketplace.
+- **Badge "Economize -X%"** verde sobre o preço — gatilho psicológico forte, bem posicionado.
+- **Pílula "No PIX 5% off"** em verde no card de preço — antecipa benefício antes do checkout (excelente).
+- **Botão final do checkout em verde** (`bg-success`) — separa visualmente do "comprar" laranja, sinaliza "ação concluída".
 
 ---
 
-### Detalhes técnicos
+### 3. Problemas que prejudicam conversão ⚠️
 
-**Estrutura de arquivos resultante**
-```text
-src/
-  hooks/checkout/
-    useCheckoutForm.ts
-    useShippingRates.ts
-    useCouponValidation.ts
-    useGuestSignup.ts
-    useViaCep.ts
-  components/checkout/
-    BuyerSection.tsx
-    AddressSection.tsx
-    ShippingSection.tsx
-    PaymentSection.tsx
-    CouponBox.tsx
-    OrderSummary.tsx
-    Stepper.tsx
-    MobileFooterCTA.tsx
-    UFCombobox.tsx
-  pages/Checkout.tsx  (orquestrador, ~250 linhas)
-supabase/migrations/<timestamp>_create_order_atomic.sql
-```
+#### 3.1 Inconsistência: dois "verdes" diferentes para PIX
+- `bg-success/8` no detalhe do produto (linha 251 de `ProductDetail.tsx`) — `/8` é uma opacidade não-padrão do Tailwind, pode renderizar inconsistente. Trocar por `bg-success/10`.
 
-**Migração SQL** — `CREATE OR REPLACE FUNCTION public.create_order(...)` com a assinatura nova. Como adicionamos parâmetros com `DEFAULT`, chamadas antigas continuam funcionando enquanto migramos o frontend.
+#### 3.2 Cupom usa `bg-secondary/10` em vez de `bg-success/10` (Checkout linha 1411)
+- Quando o cupom é **válido**, o feedback aparece em **laranja**, não verde. Isso quebra a convenção mental "verde = sucesso" que o resto do site usa. **Trocar para success.**
 
-**Validação Zod** centralizada em `src/lib/checkout/schema.ts` (CPF, CEP, telefone, email, UF de 2 letras).
+#### 3.3 Texto "até X% off" no catálogo em laranja sobre fundo claro (linha 660)
+- `text-secondary` (laranja `54% lightness`) sobre branco tem contraste **WCAG ~3.1:1** — abaixo do AA (4.5:1). Difícil de ler para alguns usuários, especialmente no celular sob luz.
+- Solução: usar `text-secondary` com `font-extrabold` já ajuda, mas idealmente trocar por uma versão mais escura (`hsl(18 95% 44%)`) ou usar `text-success` (combina com "economia").
 
-**Riscos e mitigação**
-- Refator grande → fazer em commits semânticos por seção; testar fluxo completo (guest + logged + cupom + PIX + cartão) antes de finalizar.
-- Mudança de assinatura RPC → manter compatibilidade via `DEFAULT` nos novos params.
-- OTP com flag desligada por padrão → zero impacto se não habilitado.
+#### 3.4 Badge laranja "-X% OFF" no detalhe muito grande (px-3 py-1, text-sm)
+- OK, mas quando combinado com o badge verde "Economize..." logo abaixo, há **duas vezes a mesma mensagem em duas cores diferentes**. Isso polui. Manter apenas o verde "Economize" (que é mais informativo) e deixar o laranja apenas no card do catálogo.
 
-**Checklist final de QA manual**
-- [ ] Convidado completa pedido sem perder foco ao digitar
-- [ ] Refresh no meio mantém dados (sessionStorage)
-- [ ] CEP inválido mostra warning, não trava
-- [ ] Mudar UF reseta opção de frete e recarrega taxas
-- [ ] Cupom percentual e fixo batem com cálculo do servidor
-- [ ] PIX aplica 5% sobre total já com desconto
-- [ ] Pedido criado com afiliado correto (first-touch preservado)
-- [ ] Mobile (390px): stepper, CTA fixo, seções legíveis
+#### 3.5 `--accent` (ciano) está definido mas nunca usado
+- Token morto. Pode-se remover ou aproveitar para destacar o link "Ver tudo →" e breadcrumbs (atualmente usam `text-primary`, que se mistura com tudo).
+
+#### 3.6 Botão "Adicionar ao carrinho" no detalhe é só texto cinza sublinhado
+- `text-muted-foreground` (cinza) é muito apagado. Quem prefere o carrinho (para juntar mais itens) pode não ver o link. Sugestão: deixar como **outline azul** (`btn-outline` style), mantendo o laranja "Comprar agora" como dominante.
+
+#### 3.7 Selo "Esgotado" no catálogo usa `bg-foreground/85`
+- Funciona, mas um cinza neutro (`bg-muted-foreground`) ou vermelho sutil seria mais convencional para "indisponível".
+
+---
+
+### 4. Mudanças propostas (curtas, alta prioridade)
+
+| # | Arquivo | Mudança | Impacto |
+|---|---|---|---|
+| 1 | `Checkout.tsx:1411-1415` | Cupom válido: `bg-secondary/10` → `bg-success/10`, ícone `text-secondary` → `text-success` | Consistência verde=sucesso |
+| 2 | `ProductDetail.tsx:251` | `bg-success/8` → `bg-success/10` | Opacidade Tailwind padrão |
+| 3 | `ProductDetail.tsx:285-299` | "ou adicionar ao carrinho" vira botão outline azul `border-2 border-primary/30 text-primary` | CTA secundário visível |
+| 4 | `ProductDetail.tsx:201-205` | Remover badge laranja "-X% OFF" da imagem **OU** remover o "Economize" verde de cima do preço — manter apenas um | Reduz redundância visual |
+| 5 | `Catalog.tsx:660` | `text-secondary` → `text-success font-extrabold` no "até X% off" | Melhor contraste + reforça economia |
+| 6 | `Catalog.tsx:790` | Selo "Esgotado": `bg-foreground/85` → `bg-muted-foreground/90` | Visual mais convencional |
+| 7 | `index.css` | `--accent` ciano → reaproveitar para links secundários OU remover | Limpeza do design system |
+
+---
+
+### 5. O que **NÃO** mudar
+
+- ❌ Não trocar laranja do CTA principal — é o padrão de conversão de e-commerce no Brasil.
+- ❌ Não trocar verde do botão final do checkout — separação visual correta entre "comprar" e "finalizar pagamento".
+- ❌ Não mexer no azul marinho — é a identidade da marca farmacêutica.
+- ❌ Não adicionar mais cores — 3 cores (azul/laranja/verde) já é o limite ideal pra não dispersar atenção.
+
+---
+
+### Próximo passo
+
+Confirma que faço as **7 mudanças acima**? Ou prefere selecionar só algumas (ex.: só as de consistência — itens 1, 2, 5 — e deixar os ajustes de hierarquia para depois)?
