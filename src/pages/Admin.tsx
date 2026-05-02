@@ -698,8 +698,8 @@ function AdminProducts() {
               <option value="deactivate">Desativar</option>
               <option value="feature">Destacar</option>
               <option value="unfeature">Remover destaque</option>
-              <option value="stock_set">Definir stock</option>
-              <option value="stock_inc">Somar ao stock (±)</option>
+              <option value="stock_set">Definir estoque</option>
+              <option value="stock_inc">Somar ao estoque (±)</option>
               <option value="delete">Remover</option>
             </select>
             {(bulkAction === "stock_set" || bulkAction === "stock_inc") && (
@@ -780,7 +780,7 @@ function AdminProducts() {
               <th className="text-left px-4 py-3">Produto</th>
               <th className="text-left px-4 py-3 hidden md:table-cell">Categoria</th>
               <th className="text-right px-4 py-3">Preço</th>
-              <th className="text-right px-4 py-3 hidden md:table-cell">Stock</th>
+              <th className="text-right px-4 py-3 hidden md:table-cell">Estoque</th>
               <th className="px-4 py-3"></th>
             </tr>
           </thead>
