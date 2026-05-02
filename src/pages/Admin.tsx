@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatBRL, slugify } from "@/lib/utils";
 import { toast } from "sonner";
-import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, RefreshCcw, Settings, BarChart3, Activity, History, TrendingUp, Users, Download, ChevronUp, ChevronDown, Check, Calendar, Copy, Command, Handshake, Tag } from "lucide-react";
+import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, RefreshCcw, Settings, BarChart3, Activity, History, TrendingUp, Users, Download, ChevronUp, ChevronDown, Check, Calendar, Copy, Command, Handshake, Tag, Menu, X, ChevronRight } from "lucide-react";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { WeeklyReport } from "@/components/admin/WeeklyReport";
 import { ImageUpload } from "@/components/admin/ImageUpload";
@@ -71,7 +71,7 @@ const TAB_TO_GROUP: Record<Tab, string> = (() => {
 
 export default function Admin() {
   return (
-    <div className="dark min-h-screen bg-background text-foreground">
+    <div className="dark min-h-screen bg-background text-foreground" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
       <ConfirmProvider>
         <AdminInner />
       </ConfirmProvider>
@@ -116,134 +116,185 @@ function AdminInner() {
     nav("/", { replace: true });
   }
 
+  const activeGroupId = TAB_TO_GROUP[tab] ?? "overview";
+  const currentTab = TABS.find((t) => t.id === tab);
+  const currentGroup = GROUPS.find((g) => g.id === activeGroupId);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
   return (
-    <div className="container py-4 md:py-8">
-      {/* Header sticky — mantém título e Sair sempre acessíveis. */}
-      <div className="sticky top-0 z-30 -mx-4 md:-mx-6 px-4 md:px-6 pt-4 pb-3 mb-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border">
-        <div className="flex justify-between items-center gap-4 mb-3">
-          <div className="min-w-0">
-            <h1 className="font-display text-xl md:text-3xl font-extrabold text-foreground truncate">Painel administrativo</h1>
-            <p className="text-xs md:text-sm text-muted-foreground truncate">{user?.email}</p>
+    <div className="flex min-h-screen w-full bg-background text-foreground">
+      {/* ========== Sidebar fixa (desktop) ========== */}
+      <aside className="hidden lg:flex w-64 shrink-0 flex-col border-r border-border bg-card/30 sticky top-0 h-screen overflow-y-auto">
+        <div className="px-6 pt-7 pb-8">
+          <div className="text-lg font-medium tracking-tight text-foreground">
+            GIMPORTS<span className="text-primary">.</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPaletteOpen(true)}
-              aria-label="Abrir busca global (Ctrl+K)"
-              title="Busca global (Ctrl+K)"
-            >
-              <Search className="h-4 w-4" />
-              <span className="hidden md:inline ml-1.5 text-xs text-muted-foreground">Buscar…</span>
-              <kbd className="hidden md:inline ml-2 text-[10px] font-mono px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border">⌘K</kbd>
-            </Button>
-            <Button variant="outline" size="sm" onClick={logout}>
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline ml-1">Sair</span>
-            </Button>
-          </div>
+          <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mt-1">Painel admin</p>
         </div>
-        {/* Tabs com scroll horizontal e fade lateral indicando que há mais. */}
-        {/* Navegação em 2 níveis:
-            - Linha 1: 5 grupos (chips) — caminho principal
-            - Linha 2: sub-abas do grupo ativo
-            Reduz a fricção de 13 abas planas e dá uma hierarquia clara,
-            principalmente no mobile. Mantém URL `?tab=` intacta. */}
-        {(() => {
-          const activeGroupId = TAB_TO_GROUP[tab] ?? "overview";
-          return (
-            <div className="space-y-2">
-              {/* Grupos — chips horizontais com scroll suave no mobile */}
-              <div className="relative">
-                <div className="flex gap-1.5 overflow-x-auto scrollbar-thin snap-x snap-mandatory -mx-1 px-1">
-                  {GROUPS.map((g) => {
-                    const active = activeGroupId === g.id;
-                    const groupHasUnseen = !active && g.tabs.includes("orders") && unseenCount > 0;
+        <nav className="flex-1 px-4 pb-4 space-y-7">
+          {GROUPS.map((g) => (
+            <div key={g.id} className="space-y-1.5">
+              <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground px-3 mb-2 flex items-center gap-2">
+                <g.icon className="h-3 w-3" />
+                {g.label}
+              </div>
+              {g.tabs.map((tabId) => {
+                const t = TABS.find((x) => x.id === tabId);
+                if (!t) return null;
+                const active = tab === t.id;
+                const showBadge = t.id === "orders" && unseenCount > 0;
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => setTab(t.id)}
+                    aria-current={active ? "page" : undefined}
+                    className={`group w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all relative ${
+                      active
+                        ? "bg-primary/10 text-primary font-medium"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                    }`}
+                  >
+                    {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary rounded-r" style={{ boxShadow: "0 0 12px hsl(var(--primary) / 0.6)" }} />}
+                    <t.icon className={`h-4 w-4 shrink-0 ${active ? "text-primary" : ""}`} />
+                    <span className="flex-1 text-left">{t.label}</span>
+                    {showBadge && (
+                      <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-secondary text-secondary-foreground text-[10px] font-bold leading-none">
+                        {unseenCount > 9 ? "9+" : unseenCount}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </nav>
+        <div className="border-t border-border p-4">
+          <div className="flex items-center gap-3 px-2 mb-3">
+            <div className="w-9 h-9 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xs font-semibold">
+              {(user?.email ?? "?").slice(0, 2).toUpperCase()}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-xs font-medium text-foreground truncate">Administrador</div>
+              <div className="text-[11px] text-muted-foreground truncate">{user?.email}</div>
+            </div>
+          </div>
+          <button
+            onClick={logout}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            Sair da conta
+          </button>
+        </div>
+      </aside>
+
+      {/* ========== Mobile drawer ========== */}
+      {mobileNavOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 flex">
+          <button
+            aria-label="Fechar menu"
+            onClick={() => setMobileNavOpen(false)}
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+          />
+          <aside className="relative w-72 max-w-[85vw] bg-card border-r border-border flex flex-col overflow-y-auto">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+              <div className="text-lg font-medium tracking-tight">
+                GIMPORTS<span className="text-primary">.</span>
+              </div>
+              <button onClick={() => setMobileNavOpen(false)} className="p-2 text-muted-foreground">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <nav className="flex-1 px-4 py-4 space-y-6">
+              {GROUPS.map((g) => (
+                <div key={g.id} className="space-y-1">
+                  <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground px-3 mb-2">{g.label}</div>
+                  {g.tabs.map((tabId) => {
+                    const t = TABS.find((x) => x.id === tabId);
+                    if (!t) return null;
+                    const active = tab === t.id;
                     return (
                       <button
-                        key={g.id}
-                        onClick={() => setTab(g.tabs[0])}
-                        aria-current={active ? "page" : undefined}
-                        className={`relative shrink-0 snap-start inline-flex items-center gap-2 h-9 px-3.5 rounded-full text-sm font-semibold whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
-                          active
-                            ? "bg-primary text-primary-foreground shadow-sm"
-                            : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
-                        }`}
+                        key={t.id}
+                        onClick={() => { setTab(t.id); setMobileNavOpen(false); }}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm ${active ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground"}`}
                       >
-                        <g.icon className="h-4 w-4 shrink-0" />
-                        {g.label}
-                        {groupHasUnseen && (
-                          <span
-                            aria-label={`${unseenCount} novos pedidos`}
-                            className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-secondary text-secondary-foreground text-[10px] font-extrabold leading-none animate-pulse"
-                          >
-                            {unseenCount > 9 ? "9+" : unseenCount}
-                          </span>
-                        )}
+                        <t.icon className="h-4 w-4" />
+                        {t.label}
                       </button>
                     );
                   })}
                 </div>
-              </div>
+              ))}
+            </nav>
+            <button onClick={logout} className="m-4 flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs text-muted-foreground hover:text-destructive border border-border">
+              <LogOut className="h-3.5 w-3.5" /> Sair
+            </button>
+          </aside>
+        </div>
+      )}
 
-              {/* Sub-abas do grupo ativo — só aparece se o grupo tem mais de 1 aba */}
-              {(() => {
-                const group = GROUPS.find((g) => g.id === activeGroupId);
-                if (!group || group.tabs.length <= 1) return null;
-                return (
-                  <div className="relative">
-                    <div className="flex gap-1 overflow-x-auto scrollbar-thin -mb-px snap-x snap-mandatory">
-                      {group.tabs.map((tabId) => {
-                        const t = TABS.find((x) => x.id === tabId);
-                        if (!t) return null;
-                        const active = tab === t.id;
-                        return (
-                          <button
-                            key={t.id}
-                            onClick={() => setTab(t.id)}
-                            aria-current={active ? "page" : undefined}
-                            className={`relative px-3 md:px-4 py-2 text-[13px] font-semibold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap snap-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:rounded-t-md ${
-                              active ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
-                            }`}
-                          >
-                            <t.icon className="h-3.5 w-3.5 shrink-0" />
-                            {t.label}
-                            {t.id === "orders" && unseenCount > 0 && (
-                              <span
-                                aria-label={`${unseenCount} novos pedidos`}
-                                className="ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-secondary text-secondary-foreground text-[10px] font-extrabold leading-none animate-pulse"
-                              >
-                                {unseenCount > 9 ? "9+" : unseenCount}
-                              </span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                    <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background to-transparent md:hidden" />
-                  </div>
-                );
-              })()}
-            </div>
-          );
-        })()}
-      </div>
+      {/* ========== Conteúdo principal ========== */}
+      <main className="flex-1 min-w-0 flex flex-col">
+        {/* Top bar */}
+        <header className="sticky top-0 z-30 flex items-center gap-3 px-4 md:px-8 h-16 border-b border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+          <button
+            onClick={() => setMobileNavOpen(true)}
+            className="lg:hidden p-2 -ml-2 text-muted-foreground"
+            aria-label="Abrir menu"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
 
-      {tab === "dashboard" && <AdminDashboard />}
-      {tab === "funnel" && <AdminFunnel />}
-      {tab === "reports" && <WeeklyReport />}
-      {tab === "products" && <AdminProducts />}
-      {tab === "categories" && <AdminCategories />}
-      {tab === "promotions" && <AdminPromotions />}
-      {tab === "orders" && <AdminOrders />}
-      {tab === "coupons" && <AdminCoupons />}
-      {tab === "shipping" && <AdminShipping />}
-      {tab === "users" && <AdminUsers />}
-      {tab === "affiliates" && <AdminAffiliates />}
-      {tab === "resends" && <AdminResends />}
-      {tab === "settings" && <AdminSettings />}
-      {tab === "diagnostics" && <AdminDiagnostics />}
-      {tab === "audit" && <AdminAuditLog />}
+          {/* Breadcrumb */}
+          <div className="hidden sm:flex items-center gap-2 text-sm min-w-0">
+            <span className="text-muted-foreground truncate">{currentGroup?.label ?? "Admin"}</span>
+            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
+            <span className="text-foreground font-medium truncate">{currentTab?.label ?? "Dashboard"}</span>
+          </div>
+
+          <div className="flex-1" />
+
+          {/* Busca global */}
+          <button
+            onClick={() => setPaletteOpen(true)}
+            className="flex items-center gap-2 h-9 px-3 rounded-full bg-card border border-border text-sm text-muted-foreground hover:border-primary/40 transition-colors"
+            aria-label="Buscar (Ctrl+K)"
+          >
+            <Search className="h-4 w-4" />
+            <span className="hidden md:inline">Buscar pedidos, produtos…</span>
+            <kbd className="hidden md:inline text-[10px] font-mono px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground border border-border">⌘K</kbd>
+          </button>
+        </header>
+
+        {/* Page content */}
+        <div className="flex-1 px-4 md:px-8 py-6 md:py-10">
+          {/* Page title */}
+          <div className="mb-6 md:mb-8">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-1.5">{currentGroup?.label}</p>
+            <h1 className="text-2xl md:text-3xl font-light tracking-tight text-foreground flex items-center gap-3">
+              {currentTab?.icon && <currentTab.icon className="h-6 w-6 text-primary" />}
+              {currentTab?.label ?? "Dashboard"}
+            </h1>
+          </div>
+
+          {tab === "dashboard" && <AdminDashboard />}
+          {tab === "funnel" && <AdminFunnel />}
+          {tab === "reports" && <WeeklyReport />}
+          {tab === "products" && <AdminProducts />}
+          {tab === "categories" && <AdminCategories />}
+          {tab === "promotions" && <AdminPromotions />}
+          {tab === "orders" && <AdminOrders />}
+          {tab === "coupons" && <AdminCoupons />}
+          {tab === "shipping" && <AdminShipping />}
+          {tab === "users" && <AdminUsers />}
+          {tab === "affiliates" && <AdminAffiliates />}
+          {tab === "resends" && <AdminResends />}
+          {tab === "settings" && <AdminSettings />}
+          {tab === "diagnostics" && <AdminDiagnostics />}
+          {tab === "audit" && <AdminAuditLog />}
+        </div>
+      </main>
 
       <CommandPalette
         open={paletteOpen}

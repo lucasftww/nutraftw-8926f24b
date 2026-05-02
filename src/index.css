@@ -1,4 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -103,51 +104,53 @@
     --shadow-cta: 0 8px 24px -8px hsl(18 95% 54% / 0.45);
   }
 
-  /* ===== Dark mode tokens — usado no /admin (wrapper .dark) =====
-     Paleta preta profunda com cinzas frios. Mantém os mesmos nomes
-     semânticos para reaproveitar todos os componentes. */
+  /* ===== Dark mode tokens — Luminous Editorial =====
+     Usado no /admin (wrapper .dark). Preto profundo com accent ciano-glow.
+     Mantém os nomes semânticos para reaproveitar todos os componentes. */
   .dark {
-    --background: 220 18% 6%;       /* quase preto azulado */
-    --foreground: 210 20% 96%;
+    --background: 180 13% 4%;       /* #0a0c0c — void */
+    --foreground: 210 12% 90%;
 
-    --card: 220 16% 9%;             /* superfície dos painéis */
-    --card-foreground: 210 20% 96%;
+    --card: 180 8% 9%;              /* #131616 — surface */
+    --card-foreground: 210 12% 92%;
 
-    --popover: 220 16% 8%;
-    --popover-foreground: 210 20% 96%;
+    --popover: 180 8% 7%;
+    --popover-foreground: 210 12% 92%;
 
-    --primary: 210 95% 62%;         /* azul vibrante p/ ações */
-    --primary-foreground: 220 30% 8%;
-    --primary-glow: 210 95% 70%;
+    /* Accent ciano-glow — substituem o azul-marinho do tema claro */
+    --primary: 182 87% 70%;         /* #70f3f5 */
+    --primary-foreground: 180 13% 6%;
+    --primary-glow: 182 87% 78%;
 
-    --secondary: 18 95% 58%;
+    --secondary: 18 95% 60%;
     --secondary-foreground: 0 0% 100%;
-    --secondary-glow: 18 95% 66%;
+    --secondary-glow: 18 95% 68%;
 
-    --muted: 220 14% 14%;
-    --muted-foreground: 215 14% 65%;
+    --muted: 180 6% 14%;
+    --muted-foreground: 180 5% 55%; /* #849191 */
 
-    --accent: 220 14% 16%;
-    --accent-foreground: 210 20% 96%;
+    --accent: 180 6% 16%;
+    --accent-foreground: 210 12% 92%;
 
-    --destructive: 0 75% 58%;
+    --destructive: 350 80% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 145 70% 45%;
+    --success: 152 65% 48%;
     --success-foreground: 0 0% 100%;
 
     --whatsapp: 142 70% 49%;
     --whatsapp-foreground: 0 0% 100%;
     --whatsapp-hover: 142 70% 42%;
 
-    --border: 220 14% 18%;
-    --input: 220 14% 18%;
-    --ring: 210 95% 62%;
+    --border: 180 6% 14%;
+    --input: 180 6% 14%;
+    --ring: 182 87% 70%;
 
-    --shadow-elegant: 0 10px 30px -10px hsl(0 0% 0% / 0.6);
-    --shadow-card: 0 2px 12px -4px hsl(0 0% 0% / 0.5);
-    --shadow-soft: 0 1px 2px hsl(0 0% 0% / 0.4), 0 4px 12px -4px hsl(0 0% 0% / 0.3);
-    --shadow-pop: 0 12px 32px -12px hsl(0 0% 0% / 0.7);
+    --shadow-elegant: 0 10px 30px -10px hsl(0 0% 0% / 0.7);
+    --shadow-card: 0 2px 12px -4px hsl(0 0% 0% / 0.6);
+    --shadow-soft: 0 1px 2px hsl(0 0% 0% / 0.5), 0 4px 12px -4px hsl(0 0% 0% / 0.4);
+    --shadow-pop: 0 16px 40px -16px hsl(0 0% 0% / 0.8);
+    --shadow-glow: 0 0 24px -4px hsl(182 87% 70% / 0.35);
   }
 
   * { @apply border-border; }
