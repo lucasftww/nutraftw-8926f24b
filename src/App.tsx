@@ -11,6 +11,7 @@ import ScrollToTop from "@/components/ScrollToTop";
 import Catalog from "@/pages/Catalog";
 import ProductDetail from "@/pages/ProductDetail";
 import Login from "@/pages/Login";
+import ResetPassword from "@/pages/ResetPassword";
 import NotFound from "@/pages/NotFound";
 import About from "@/pages/About";
 import ReferralCapture from "@/pages/ReferralCapture";
@@ -67,6 +68,7 @@ export default function App() {
                   <Route path="/" element={<Catalog />} />
                   <Route path="/produto/:slug" element={<ProductDetail />} />
                   <Route path="/login" element={<Login />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/admin/login" element={<Lazy fallback={<GenericPageSkeleton />}><AdminLogin /></Lazy>} />
                   <Route path="/checkout" element={<Lazy fallback={<CheckoutSkeleton />}><Checkout /></Lazy>} />
                   <Route path="/minha-conta" element={<RequireAuth fallback={<MyAccountSkeleton />}><Lazy fallback={<MyAccountSkeleton />}><MyAccount /></Lazy></RequireAuth>} />
