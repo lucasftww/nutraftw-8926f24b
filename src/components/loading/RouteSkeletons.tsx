@@ -124,7 +124,7 @@ export function WishlistSkeleton() {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {Array.from({ length: 10 }).map((_, i) => (
           <div key={i} className="bg-card rounded-xl border border-border overflow-hidden">
-            <Skeleton className="aspect-[4/3] w-full rounded-none" />
+            <Skeleton className="aspect-square w-full rounded-none" />
             <div className="p-3 space-y-2">
               <Skeleton className="h-4 w-3/4" />
               <Skeleton className="h-5 w-1/2" />

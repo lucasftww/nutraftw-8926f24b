@@ -305,10 +305,34 @@
 }
 
 /* ===== Scrollbars =====
-   Loja (tema claro): scrollbar nativo, discreto.
+   Loja (tema claro): scrollbar fina e discreta sobre o background.
    Admin (.dark): scrollbar fina e escura para combinar com o tema.
    Resolve o problema da scrollbar branca grossa visível no admin. */
 @layer utilities {
+  /* Scrollbar global da loja (tema claro) — fina, discreta, premium */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.25);
+    border-radius: 999px;
+    border: 2px solid hsl(var(--background));
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.45);
+    background-clip: padding-box;
+    border: 2px solid hsl(var(--background));
+  }
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
+  }
+
   /* Scrollbar dark global dentro do admin */
   .dark ::-webkit-scrollbar {
     width: 10px;
