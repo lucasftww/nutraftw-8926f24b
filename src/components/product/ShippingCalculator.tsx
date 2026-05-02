@@ -113,7 +113,7 @@ export function ShippingCalculator() {
           type="button"
           onClick={() => calculate(zip)}
           disabled={loading || zip.replace(/\D/g, "").length !== 8}
-          className="h-11 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-40 inline-flex items-center justify-center min-w-[80px] active:scale-95 transition-transform"
+          className="h-11 px-5 rounded-xl bg-primary text-primary-foreground text-sm font-bold shadow-sm hover:bg-primary-glow disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center min-w-[92px] active:scale-95 transition-all"
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Calcular"}
         </button>
