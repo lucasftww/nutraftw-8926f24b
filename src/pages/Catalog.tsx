@@ -600,18 +600,23 @@ export default function Catalog() {
               </ul>
             </div>
 
-            {/* Rodapé com CTA grande */}
-            <div className="px-4 py-4 border-t border-border bg-background shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.08)]">
-              <div className="flex gap-3">
+            {/* Rodapé com CTA grande — "Ver produtos" em laranja (CTA de avanço),
+                "Limpar" discreto como link/outline. Regra de conversão:
+                laranja = avançar, neutro = secundário. */}
+            <div
+              className="px-4 py-4 border-t border-border bg-background shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.08)]"
+              style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)" }}
+            >
+              <div className="flex items-center gap-3">
                 <button
                   onClick={() => setSelectedCats(new Set())}
-                  className="flex-1 h-14 rounded-2xl border-2 border-border text-base font-semibold text-foreground hover:bg-muted active:bg-muted/80 transition-colors"
+                  className="h-14 px-4 text-sm font-semibold text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors"
                 >
                   Limpar
                 </button>
                 <button
                   onClick={() => setFiltersOpen(false)}
-                  className="flex-[1.4] h-14 rounded-2xl bg-primary text-primary-foreground text-base font-semibold hover:bg-primary-glow shadow-md"
+                  className="flex-1 h-14 rounded-2xl bg-secondary text-secondary-foreground text-base font-extrabold hover:bg-secondary/90 active:scale-[0.99] shadow-lg shadow-secondary/30 transition-all"
                 >
                   Ver {filtered.length} {filtered.length === 1 ? "produto" : "produtos"}
                 </button>

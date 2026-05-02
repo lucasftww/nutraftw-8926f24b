@@ -204,10 +204,19 @@ export function CartDrawer() {
               Finalizar pedido
               <ArrowRight className="h-4 w-4 ml-1.5" />
             </Button>
-            <p className="mt-2 flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
-              <Lock className="h-3 w-3" />
-              Pagamento 100% seguro
-            </p>
+            <div className="mt-2 flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={closeCart}
+                className="text-[12px] font-semibold text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors"
+              >
+                ← Continuar comprando
+              </button>
+              <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <Lock className="h-3 w-3" />
+                Pagamento seguro
+              </p>
+            </div>
           </footer>
         )}
       </aside>
