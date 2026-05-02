@@ -54,7 +54,10 @@ export default function ProductDetail() {
                 "@type": "Offer",
                 priceCurrency: "BRL",
                 price: finalPriceEarly.toFixed(2),
-                availability: "https://schema.org/InStock",
+                availability:
+                  (p.stock ?? 0) > 0
+                    ? "https://schema.org/InStock"
+                    : "https://schema.org/OutOfStock",
                 url: typeof window !== "undefined" ? window.location.href : undefined,
               },
             },
