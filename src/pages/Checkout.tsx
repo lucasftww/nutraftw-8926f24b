@@ -1408,11 +1408,11 @@ export default function Checkout() {
               <>
                 <div
                   className={`flex items-center justify-between rounded-lg px-3 py-2 ${
-                    couponError ? "bg-destructive/10" : "bg-secondary/10"
+                    couponError ? "bg-destructive/10" : "bg-success/10"
                   }`}
                 >
                   <div className="flex items-center gap-2 text-sm">
-                    <Check className={`h-4 w-4 ${couponError ? "text-destructive" : "text-secondary"}`} />
+                    <Check className={`h-4 w-4 ${couponError ? "text-destructive" : "text-success"}`} />
                     <span className="font-semibold">{coupon.code}</span>
                     <span className="text-xs text-muted-foreground">
                       {couponError ? "indisponível" : "aplicado"}

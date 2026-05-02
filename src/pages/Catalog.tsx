@@ -657,7 +657,7 @@ const Section = memo(function Section({
         </h2>
         {isPromos && maxDiscount > 0 && (
           <span className="text-xs md:text-sm text-muted-foreground">
-            até <span className="font-semibold text-secondary">{maxDiscount}% off</span>
+            até <span className="font-extrabold text-success">{maxDiscount}% off</span>
           </span>
         )}
       </div>
@@ -787,7 +787,7 @@ const ProductCard = memo(function ProductCard({
                   );
                 })()}
                 {isOut && (
-                  <span className="absolute top-2 left-2 z-[1] inline-flex items-center rounded-full text-[10px] font-semibold px-2 py-0.5 bg-foreground/85 text-background">
+                  <span className="absolute top-2 left-2 z-[1] inline-flex items-center rounded-full text-[10px] font-semibold px-2 py-0.5 bg-muted-foreground/90 text-background">
                     Esgotado
                   </span>
                 )}
