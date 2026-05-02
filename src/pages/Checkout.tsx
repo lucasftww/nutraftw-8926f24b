@@ -541,8 +541,13 @@ export default function Checkout() {
   // concluído quando os passos anteriores também estão prontos.
   const paymentMethodAvailable =
     settings.checkout_enable_pix !== "0" || settings.checkout_enable_card !== "0";
-  const paymentDone =
+  // "Selecionado" — usado pra liberar o botão de finalizar.
+  const paymentSelected =
     !!form.payment_method && paymentMethodAvailable && buyerDone && addressDone && shippingDone;
+  // "Concluído" no stepper — só vira ✓ DEPOIS que o pagamento for processado
+  // (pedido criado). Antes, o passo 3 marcava ✓ assim que o método era
+  // escolhido, dando impressão de "pago" sem cobrança nenhuma.
+  const paymentDone = false;
 
   // Mesmas fórmulas usadas no RPC `create_order` para garantir que o resumo
   // exibido aqui bate com o total que o servidor vai gravar.
@@ -1574,7 +1579,7 @@ export default function Checkout() {
                       ? "Continuar — preencher endereço"
                       : !shippingDone
                         ? "Continuar — escolher frete"
-                        : !paymentDone
+                          : !paymentSelected
                           ? "Continuar — escolher pagamento"
                           : "Finalizar pedido"
               }
@@ -1584,7 +1589,7 @@ export default function Checkout() {
                   ? document.querySelector<HTMLInputElement>('input[autocomplete="name"]')
                   : !addressDone
                   ? document.querySelector<HTMLInputElement>('input[autocomplete="postal-code"]')
-                  : !shippingDone || !paymentDone
+                  : !shippingDone || !paymentSelected
                   ? document.querySelector<HTMLElement>('[data-checkout-payment]') || document.querySelector<HTMLElement>('h2.checkout-section-title')
                   : null;
                 if (target) {
@@ -1599,7 +1604,7 @@ export default function Checkout() {
             >
               {submitting ? (
                 <><Loader2 className="w-4 h-4 mr-1.5 animate-spin inline" /> Processando…</>
-              ) : (buyerDone && addressDone && shippingDone && paymentDone) ? (
+              ) : (buyerDone && addressDone && shippingDone && paymentSelected) ? (
                 <>Finalizar pedido</>
               ) : (
                 <>Continuar</>
