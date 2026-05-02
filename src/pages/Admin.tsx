@@ -27,8 +27,6 @@ import { AdminModal } from "@/components/admin/AdminModal";
 import { ConfirmProvider, useConfirm } from "@/components/admin/ConfirmDialog";
 import { ProductThumb } from "@/components/admin/ProductThumb";
 import { EmptyState } from "@/components/admin/EmptyState";
-import { ProductThumb } from "@/components/admin/ProductThumb";
-import { EmptyState } from "@/components/admin/EmptyState";
 import { queryKeys } from "@/lib/queryKeys";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 import { logAdminAction, shallowDiff } from "@/lib/auditLog";
