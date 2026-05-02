@@ -74,17 +74,18 @@ export default function App() {
                   <Route path="/produto/:slug" element={<ProductDetail />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/admin/login" element={<Lazy fallback={<GenericPageSkeleton />}><AdminLogin /></Lazy>} />
                   <Route path="/checkout" element={<Lazy fallback={<CheckoutSkeleton />}><Checkout /></Lazy>} />
                   <Route path="/minha-conta" element={<RequireAuth fallback={<MyAccountSkeleton />}><Lazy fallback={<MyAccountSkeleton />}><MyAccount /></Lazy></RequireAuth>} />
                   <Route path="/favoritos" element={<Lazy fallback={<WishlistSkeleton />}><Wishlist /></Lazy>} />
                   <Route path="/instalar" element={<Lazy fallback={<GenericPageSkeleton />}><Install /></Lazy>} />
-                  <Route path="/admin" element={<RequireAuth adminOnly fallback={<AdminSkeleton />}><Lazy fallback={<AdminSkeleton />}><Admin /></Lazy></RequireAuth>} />
-                  <Route path="/admin/health" element={<RequireAuth adminOnly fallback={<AdminSkeleton />}><Lazy fallback={<AdminSkeleton />}><AdminHealth /></Lazy></RequireAuth>} />
                   <Route path="/sobre" element={<About />} />
                   <Route path="/r/:code" element={<ReferralCapture />} />
                   <Route path="*" element={<NotFound />} />
                 </Route>
+                {/* Rotas administrativas — fora do MainLayout (sem Header/Footer da loja) */}
+                <Route path="/admin/login" element={<Lazy fallback={<GenericPageSkeleton />}><AdminLogin /></Lazy>} />
+                <Route path="/admin" element={<RequireAuth adminOnly fallback={<AdminSkeleton />}><Lazy fallback={<AdminSkeleton />}><Admin /></Lazy></RequireAuth>} />
+                <Route path="/admin/health" element={<RequireAuth adminOnly fallback={<AdminSkeleton />}><Lazy fallback={<AdminSkeleton />}><AdminHealth /></Lazy></RequireAuth>} />
               </Routes>
             </AuthProvider>
           </BrowserRouter>
