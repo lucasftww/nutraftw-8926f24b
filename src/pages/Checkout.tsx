@@ -1143,22 +1143,28 @@ export default function Checkout() {
                 </div>
                 <div className="checkout-field">
                   <label htmlFor="co-state" className="checkout-label">Estado *</label>
-                  <select
-                    id="co-state"
-                    required
-                    value={form.state}
-                    onChange={(e) => setForm({ ...form, state: e.target.value })}
-                    className="checkout-input bg-white appearance-none cursor-pointer"
-                    autoComplete="address-level1"
-                  >
-                    <option value="">UF</option>
-                    {[
-                      "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG",
-                      "PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO",
-                    ].map((uf) => (
-                      <option key={uf} value={uf}>{uf}</option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      id="co-state"
+                      required
+                      value={form.state}
+                      onChange={(e) => setForm({ ...form, state: e.target.value })}
+                      className="checkout-input bg-white appearance-none cursor-pointer pr-10"
+                      autoComplete="address-level1"
+                    >
+                      <option value="">UF</option>
+                      {[
+                        "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG",
+                        "PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO",
+                      ].map((uf) => (
+                        <option key={uf} value={uf}>{uf}</option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      aria-hidden
+                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -1488,7 +1494,7 @@ export default function Checkout() {
                     type="button"
                     disabled={couponLoading || !couponInput.trim()}
                     onClick={applyCoupon}
-                    className="h-12 px-5 rounded-xl border-2 border-border bg-white font-semibold text-sm hover:border-primary hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="h-12 px-5 rounded-xl bg-primary text-primary-foreground font-bold text-sm shadow-sm hover:bg-primary-glow disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   >
                     {couponLoading ? "…" : "Aplicar"}
                   </button>
@@ -1567,10 +1573,15 @@ export default function Checkout() {
         >
           <div className="flex items-center gap-3">
             <div className="flex-1 min-w-0 leading-tight">
-              <span className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Total</span>
-              <span className="block text-lg font-extrabold text-foreground tabular-nums">
+              <span className="block text-[10px] font-semibold text-muted-foreground uppercase tracking-wider leading-none">Total</span>
+              <span className="block text-lg font-extrabold text-foreground tabular-nums leading-tight mt-0.5">
                 {formatBRL(grandTotal)}
               </span>
+              {form.payment_method === "pix" && pixDiscount > 0 && (
+                <span className="block text-[10px] text-success font-bold tabular-nums leading-none">
+                  PIX · economiza {formatBRL(pixDiscount)}
+                </span>
+              )}
             </div>
             <button
               type="button"
