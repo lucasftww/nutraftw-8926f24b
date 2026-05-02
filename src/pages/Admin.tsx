@@ -704,26 +704,33 @@ function AdminProducts() {
               <input type="checkbox" checked={selected.has(p.id)} onChange={() => toggleSel(p.id)} className="sr-only" aria-label={`Selecionar ${p.name}`} />
               {selected.has(p.id) && <Check className="h-3.5 w-3.5 text-primary" />}
             </label>
-            <img src={p.image_url || "/assets/no-image.svg"} alt="" className="w-14 h-14 rounded-lg object-cover bg-muted shrink-0" />
+            <ProductThumb src={p.image_url} size="lg" alt={p.name} />
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm leading-snug line-clamp-2">{p.name}</p>
               <p className="text-xs text-muted-foreground truncate">{p.category?.name || "Sem categoria"}</p>
               <div className="flex items-center justify-between mt-1.5">
                 <span className="font-bold text-primary text-sm">{formatBRL(p.price)}</span>
-                <span className={`text-[11px] tabular-nums ${p.stock < 5 ? "text-destructive font-bold" : "text-muted-foreground"}`}>
-                  Stock: {p.stock}
-                </span>
+                <StockBadge stock={p.stock} />
               </div>
             </div>
             <div className="flex flex-col gap-1 shrink-0">
-              <button onClick={() => setEditing(p)} aria-label="Editar" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted"><Pencil className="h-4 w-4" /></button>
-              <button onClick={() => duplicate(p)} aria-label="Duplicar" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted"><Copy className="h-4 w-4" /></button>
-              <button onClick={() => del(p.id)} aria-label="Remover" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="h-4 w-4" /></button>
+              <button onClick={() => setEditing(p)} aria-label="Editar" title="Editar" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted"><Pencil className="h-4 w-4" /></button>
+              <button onClick={() => duplicate(p)} aria-label="Duplicar" title="Duplicar" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted"><Copy className="h-4 w-4" /></button>
+              <button onClick={() => del(p.id)} aria-label="Remover" title="Remover" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="h-4 w-4" /></button>
             </div>
           </li>
         ))}
         {!loading && items.length === 0 && (
-          <li className="text-center py-12 text-muted-foreground bg-card rounded-2xl border border-border">Nenhum produto.</li>
+          <li className="bg-card rounded-2xl border border-border">
+            <EmptyState
+              icon={Package}
+              title="Nenhum produto encontrado"
+              description={debouncedQuery ? "Tente outra busca ou limpe o filtro." : "Cadastre seu primeiro produto para começar a vender."}
+              action={!debouncedQuery && (
+                <Button onClick={() => setEditing({ is_active: true })}><Plus className="h-4 w-4" /> Novo produto</Button>
+              )}
+            />
+          </li>
         )}
       </ul>
 
