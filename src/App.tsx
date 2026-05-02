@@ -60,7 +60,12 @@ export default function App() {
       <QueryClientProvider client={qc}>
         <TooltipProvider>
           <Toaster />
-          <BrowserRouter>
+          <BrowserRouter
+            future={{
+              v7_startTransition: true,
+              v7_relativeSplatPath: true,
+            }}
+          >
             <AuthProvider>
               <ScrollToTop />
               <Routes>
