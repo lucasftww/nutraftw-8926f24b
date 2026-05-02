@@ -344,6 +344,8 @@ function AdminProducts() {
       image_url: f.image_url || null,
       category_id: f.category_id || null,
       is_featured: !!f.is_featured,
+      is_new_release: !!f.is_new_release,
+      is_on_offer: !!f.is_on_offer,
       is_active: f.is_active !== false,
     };
     const before = f.id ? items.find((p) => p.id === f.id) : null;
@@ -418,6 +420,8 @@ function AdminProducts() {
       image_url: p.image_url,
       category_id: p.category_id,
       is_featured: false,
+      is_new_release: false,
+      is_on_offer: false,
       is_active: false, // cópia inativa por padrão para revisão
     };
     const { data, error } = await supabase.from("products").insert(payload).select().maybeSingle();
@@ -787,8 +791,30 @@ function AdminProducts() {
                 />
                 <p className="text-[11px] text-muted-foreground">{(editing.meta_description || "").length}/160</p>
               </div>
-              <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!editing.is_featured} onChange={(e) => setEditing({ ...editing, is_featured: e.target.checked })} /> Em destaque</label>
-              <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={editing.is_active !== false} onChange={(e) => setEditing({ ...editing, is_active: e.target.checked })} /> Ativo</label>
+              {/* Etiquetas visuais do card — apenas uma aparece por vez na imagem,
+                  com prioridade Esgotado (auto via stock=0) > Lançamento > Oferta > -X% (auto via sale_price). */}
+              <div className="sm:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-border">
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={!!editing.is_featured} onChange={(e) => setEditing({ ...editing, is_featured: e.target.checked })} />
+                  Em destaque
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={!!editing.is_new_release} onChange={(e) => setEditing({ ...editing, is_new_release: e.target.checked })} />
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="inline-flex items-center rounded-full bg-primary text-primary-foreground text-[9px] font-bold px-1.5 py-0.5 leading-none">LANÇAMENTO</span>
+                  </span>
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={!!editing.is_on_offer} onChange={(e) => setEditing({ ...editing, is_on_offer: e.target.checked })} />
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="inline-flex items-center rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold px-1.5 py-0.5 leading-none">OFERTA</span>
+                  </span>
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={editing.is_active !== false} onChange={(e) => setEditing({ ...editing, is_active: e.target.checked })} />
+                  Ativo
+                </label>
+              </div>
             </div>
             <div className="flex justify-end gap-2 pt-4 border-t border-border sticky bottom-0 bg-card">
               <Button type="button" variant="outline" onClick={() => setEditing(null)}>Cancelar</Button>
