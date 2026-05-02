@@ -676,6 +676,12 @@ function AdminProducts() {
                   type="checkbox"
                   aria-label="Selecionar todos"
                   checked={items.length > 0 && selected.size === items.length}
+                  ref={(el) => {
+                    if (el) {
+                      // Estado indeterminado quando há seleção parcial.
+                      el.indeterminate = selected.size > 0 && selected.size < items.length;
+                    }
+                  }}
                   onChange={toggleAllVisible}
                 />
               </th>
@@ -1267,6 +1273,11 @@ function AdminOrders() {
                   type="checkbox"
                   aria-label="Selecionar todos"
                   checked={filtered.length > 0 && selected.size === filtered.length}
+                  ref={(el) => {
+                    if (el) {
+                      el.indeterminate = selected.size > 0 && selected.size < filtered.length;
+                    }
+                  }}
                   onChange={toggleAll}
                 />
               </th>
