@@ -154,15 +154,8 @@ function PaymentOption({
 /** Mensagem inline de validação — verde "ok" / vermelho "erro" / nada quando idle.
  *  `id` permite vincular ao input via aria-describedby (acessibilidade). */
 function FieldHint({ status, message, id }: { status: FieldStatus; message?: string; id?: string }) {
-  if (status === "idle") return null;
-  if (status === "valid") {
-    return (
-      <p id={id} className="field-hint field-hint-ok" aria-live="polite">
-        <CheckCircle2 className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-        <span>Tudo certo</span>
-      </p>
-    );
-  }
+  // Visual clean: ocultamos o "Tudo certo" — só mostramos mensagens de erro.
+  if (status !== "invalid") return null;
   return (
     <p id={id} role="alert" className="field-hint field-hint-error">
       <AlertCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
