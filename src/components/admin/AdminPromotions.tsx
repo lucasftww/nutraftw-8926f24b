@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { GripVertical, Search, Tag, Plus, X, Loader2 } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
+import { ProductThumb } from "@/components/admin/ProductThumb";
+import { EmptyState } from "@/components/admin/EmptyState";
 
 type Product = {
   id: string;
@@ -163,11 +165,12 @@ export function AdminPromotions() {
             </h3>
           </div>
           {promos.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground text-sm">
-              Nenhuma promoção ativa.
-              <br />
-              Adicione produtos do painel ao lado →
-            </div>
+            <EmptyState
+              icon={Tag}
+              title="Nenhum produto em destaque"
+              description="Clique em + Promo no painel ao lado para adicionar produtos aqui — eles aparecerão no topo do catálogo."
+              compact
+            />
           ) : (
             <ul className="space-y-2">
               {promos.map((p, idx) => {
@@ -190,11 +193,7 @@ export function AdminPromotions() {
                     <div className="w-7 h-7 rounded-full bg-secondary/20 text-secondary text-xs font-bold flex items-center justify-center shrink-0">
                       {idx + 1}
                     </div>
-                    {p.image_url ? (
-                      <img src={p.image_url} alt="" className="w-12 h-12 rounded-lg object-cover bg-muted shrink-0" />
-                    ) : (
-                      <div className="w-12 h-12 rounded-lg bg-muted shrink-0" />
-                    )}
+                    <ProductThumb src={p.image_url} alt={p.name} size="md" />
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold truncate">{p.name}</p>
                       <p className="text-xs text-muted-foreground">
@@ -239,17 +238,13 @@ export function AdminPromotions() {
               className="w-full h-10 pl-9 pr-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:border-primary"
             />
           </div>
-          <ul className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
+          <ul className="space-y-2 max-h-[600px] overflow-y-auto pr-1 scrollbar-thin">
             {filteredAvailable.map((p) => (
               <li
                 key={p.id}
                 className="flex items-center gap-3 p-2.5 rounded-xl border border-border bg-background hover:border-primary/40 transition-colors"
               >
-                {p.image_url ? (
-                  <img src={p.image_url} alt="" className="w-12 h-12 rounded-lg object-cover bg-muted shrink-0" />
-                ) : (
-                  <div className="w-12 h-12 rounded-lg bg-muted shrink-0" />
-                )}
+                <ProductThumb src={p.image_url} alt={p.name} size="md" />
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold truncate">{p.name}</p>
                   <p className="text-xs text-muted-foreground">{formatBRL(p.price)}</p>
