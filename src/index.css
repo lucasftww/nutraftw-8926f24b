@@ -301,3 +301,56 @@
     50%      { box-shadow: 0 0 0 6px hsl(var(--success) / 0); }
   }
 }
+
+/* ===== Scrollbars =====
+   Loja (tema claro): scrollbar nativo, discreto.
+   Admin (.dark): scrollbar fina e escura para combinar com o tema.
+   Resolve o problema da scrollbar branca grossa visível no admin. */
+@layer utilities {
+  /* Scrollbar dark global dentro do admin */
+  .dark ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  .dark ::-webkit-scrollbar-track {
+    background: hsl(var(--background));
+  }
+  .dark ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted));
+    border-radius: 999px;
+    border: 2px solid hsl(var(--background));
+  }
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.45);
+  }
+  .dark * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted)) transparent;
+  }
+
+  /* Variante "thin" — para listas internas (modal, promos, drawers) */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.25);
+    border-radius: 999px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.4);
+  }
+
+  /* Glow ciano sutil no foco (usado no admin) */
+  .focus-glow:focus-within,
+  .focus-glow:focus {
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.6), 0 0 18px -4px hsl(var(--primary) / 0.45);
+    border-color: hsl(var(--primary) / 0.6);
+  }
+}
