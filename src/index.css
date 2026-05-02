@@ -46,7 +46,8 @@
 @layer base {
   :root {
     --background: 40 20% 99%;
-    --foreground: 222 39% 14%;
+    /* Texto principal — azul-marinho profundo #061A3A */
+    --foreground: 218 73% 12%;
 
     --card: 0 0% 100%;
     --card-foreground: 222 39% 14%;
@@ -54,15 +55,16 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 39% 14%;
 
-    /* Azul marinho profundo — confiança farmacêutica */
-    --primary: 222 65% 20%;
+    /* Azul marinho profundo — confiança farmacêutica (#0B1F3A) */
+    --primary: 218 67% 14%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 222 65% 32%;
+    --primary-glow: 218 60% 24%;
 
-    /* Laranja de conversão — CTA "Comprar" (Amazon/ML) */
-    --secondary: 18 95% 54%;
+    /* Laranja de conversão — CTA "Comprar" (#F97316 / orange-500)
+       hover #EA580C, pressed #C2410C */
+    --secondary: 25 95% 53%;
     --secondary-foreground: 0 0% 100%;
-    --secondary-glow: 18 95% 62%;
+    --secondary-glow: 21 90% 48%;
 
     --muted: 220 25% 96%;
     --muted-foreground: 220 12% 44%;
@@ -77,8 +79,8 @@
     --destructive: 0 78% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Verde mais vibrante — economia, garantia, "em estoque" */
-    --success: 145 75% 38%;
+    /* Verde — exclusivo para PIX, WhatsApp, economia/sucesso (#16A34A) */
+    --success: 142 71% 36%;
     --success-foreground: 0 0% 100%;
 
     /* WhatsApp brand color — #25D366 em HSL */

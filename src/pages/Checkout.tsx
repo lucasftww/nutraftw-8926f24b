@@ -1593,7 +1593,7 @@ export default function Checkout() {
                 // Tudo pronto → submete o form.
                 document.querySelector<HTMLFormElement>('form')?.requestSubmit();
               }}
-              className="h-12 px-5 rounded-2xl text-sm font-extrabold bg-success hover:bg-success/90 text-success-foreground shadow-lg shadow-success/30 whitespace-nowrap active:scale-[0.98] transition-all disabled:opacity-60"
+              className="h-12 px-5 rounded-2xl text-sm font-extrabold bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-lg shadow-secondary/30 whitespace-nowrap active:scale-[0.98] transition-all disabled:opacity-60"
             >
               {submitting ? (
                 <><Loader2 className="w-4 h-4 mr-1.5 animate-spin inline" /> Processando…</>
