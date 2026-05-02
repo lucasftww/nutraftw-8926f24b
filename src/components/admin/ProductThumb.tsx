@@ -1,5 +1,6 @@
 import { ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 /**
  * Thumbnail de produto padronizado para o admin.
@@ -27,7 +28,8 @@ export function ProductThumb({
   className?: string;
 }) {
   const cls = SIZES[size] ?? SIZES.md;
-  if (!src) {
+  const [broken, setBroken] = useState(false);
+  if (!src || broken) {
     return (
       <div
         aria-hidden
@@ -46,13 +48,7 @@ export function ProductThumb({
       src={src}
       alt={alt}
       loading="lazy"
-      onError={(e) => {
-        const img = e.currentTarget;
-        // Substitui imagem quebrada pelo fallback inline (evita 2º request)
-        img.style.display = "none";
-        const ph = img.nextElementSibling as HTMLElement | null;
-        if (ph) ph.style.display = "inline-flex";
-      }}
+      onError={() => setBroken(true)}
       className={cn(cls, "shrink-0 object-cover bg-muted/60 border border-border/60", className)}
     />
   );
