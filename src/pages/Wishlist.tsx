@@ -36,15 +36,21 @@ export default function Wishlist() {
     if (!isAuthed) { setLoading(false); return; }
     if (ids.size === 0) { setItems([]); setLoading(false); return; }
     setLoading(true);
+    // Bug fix: sem flag de cancelamento, uma resposta antiga pode chegar
+    // depois de uma nova (ex.: usuário remove favorito e re-favorita
+    // rapidamente) e sobrescrever a lista correta com a obsoleta.
+    let cancelled = false;
     supabase
       .from("products")
       .select("id, slug, name, price, sale_price, image_url, stock")
       .eq("is_active", true)
       .in("id", Array.from(ids))
       .then(({ data }) => {
+        if (cancelled) return;
         setItems(((data as any) || []) as FavProduct[]);
         setLoading(false);
       });
+    return () => { cancelled = true; };
     // Bug fix: depender só de `ids.size` não detecta troca de itens com
     // o mesmo total (ex.: remover A e adicionar B). Usamos uma chave
     // ordenada e estável dos IDs — re-busca SOMENTE quando o conjunto muda.
