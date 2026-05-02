@@ -926,7 +926,10 @@ export default function Checkout() {
         <div className="space-y-4 sm:space-y-6 min-w-0">
           {/* Dados do Comprador */}
           <section className="checkout-card">
-            <h2 className="checkout-section-title">Seus dados</h2>
+            <div className="flex items-center gap-3 mb-4 sm:mb-6">
+              <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground text-sm font-extrabold tabular-nums shrink-0">1</span>
+              <h2 className="checkout-section-title !mb-0">Seus dados</h2>
+            </div>
             <div className="space-y-4">
               <div className="checkout-field">
                 <label htmlFor="co-name" className="checkout-label">Nome Completo *</label>
@@ -1014,7 +1017,10 @@ export default function Checkout() {
 
           {/* Endereço de Entrega */}
           <section className="checkout-card">
-            <h2 className="checkout-section-title">Endereço</h2>
+            <div className="flex items-center gap-3 mb-4 sm:mb-6">
+              <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground text-sm font-extrabold tabular-nums shrink-0">2</span>
+              <h2 className="checkout-section-title !mb-0">Endereço</h2>
+            </div>
             <div className="space-y-4">
               <div className="checkout-field">
                 <label htmlFor="co-zip" className="checkout-label">CEP *</label>
@@ -1162,7 +1168,10 @@ export default function Checkout() {
           {cepReady && (
           <section className="checkout-card space-y-5">
             <div className="flex items-center justify-between gap-2">
-              <h2 className="checkout-section-title !mb-0">Entrega</h2>
+              <div className="flex items-center gap-3">
+                <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground text-sm font-extrabold tabular-nums shrink-0">3</span>
+                <h2 className="checkout-section-title !mb-0">Entrega</h2>
+              </div>
               {shippingLoading && (
                 <span className="ml-auto inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground" aria-live="polite">
                   <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
@@ -1266,8 +1275,11 @@ export default function Checkout() {
           )}
 
           {/* Forma de Pagamento */}
-          <section className="checkout-card">
-            <h2 className="checkout-section-title">Pagamento</h2>
+          <section className="checkout-card" data-checkout-payment>
+            <div className="flex items-center gap-3 mb-4 sm:mb-6">
+              <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground text-sm font-extrabold tabular-nums shrink-0">4</span>
+              <h2 className="checkout-section-title !mb-0">Pagamento</h2>
+            </div>
             {(() => {
               const pixOn = settings.checkout_enable_pix !== "0";
               const cardOn = settings.checkout_enable_card !== "0";
