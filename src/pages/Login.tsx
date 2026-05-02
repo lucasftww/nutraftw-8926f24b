@@ -136,6 +136,26 @@ export default function Login() {
     if (error) toast.error(error.message);
   }
 
+  async function onForgotPassword() {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail) {
+      toast.error("Digite seu e-mail acima primeiro");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast.success("Enviamos um link de recuperação para seu e-mail.");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao enviar e-mail de recuperação");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="container py-12 md:py-20 max-w-md">
       <div className="bg-card rounded-2xl border border-border shadow-card p-6 md:p-8">
@@ -200,6 +220,17 @@ export default function Login() {
               <p className="text-xs text-muted-foreground">Mínimo 8 caracteres.</p>
             )}
           </div>
+          {mode === "login" && (
+            <div className="text-right">
+              <button
+                type="button"
+                onClick={onForgotPassword}
+                className="text-xs font-medium text-primary hover:underline"
+              >
+                Esqueci minha senha
+              </button>
+            </div>
+          )}
           <Button type="submit" disabled={loading} className="w-full" size="lg">
             {loading ? "Aguarde…" : mode === "login" ? "Entrar" : "Criar conta"}
           </Button>
