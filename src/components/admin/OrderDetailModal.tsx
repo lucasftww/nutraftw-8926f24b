@@ -87,8 +87,8 @@ function buildDeclarationHtml(order: any, items: any[]) {
   <div class="grid">
     <div>
       <h3>Remetente</h3>
-      <div>KA Imports</div>
-      <div>contato@kaimports.com.br</div>
+      <div>GIMPORTS</div>
+      <div>contato@gimports.com.br</div>
     </div>
     <div>
       <h3>Destinatário</h3>
