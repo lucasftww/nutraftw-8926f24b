@@ -451,6 +451,8 @@ export type Database = {
           image_url: string | null
           is_active: boolean
           is_featured: boolean
+          is_new_release: boolean
+          is_on_offer: boolean
           meta_description: string | null
           meta_title: string | null
           name: string
@@ -470,6 +472,8 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean
           is_featured?: boolean
+          is_new_release?: boolean
+          is_on_offer?: boolean
           meta_description?: string | null
           meta_title?: string | null
           name: string
@@ -489,6 +493,8 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean
           is_featured?: boolean
+          is_new_release?: boolean
+          is_on_offer?: boolean
           meta_description?: string | null
           meta_title?: string | null
           name?: string
