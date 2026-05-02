@@ -818,7 +818,7 @@ const ProductCard = memo(function ProductCard({
                   }
                   if (hasRealSale) {
                     return (
-                      <span className={`${pillBase} bg-secondary text-secondary-foreground`}>
+                      <span className={`${pillBase} bg-destructive text-destructive-foreground`}>
                         -{discountPct}% OFF
                       </span>
                     );
