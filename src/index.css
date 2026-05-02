@@ -309,28 +309,30 @@
    Admin (.dark): scrollbar fina e escura para combinar com o tema.
    Resolve o problema da scrollbar branca grossa visível no admin. */
 @layer utilities {
-  /* Scrollbar global da loja (tema claro) — fina, discreta, premium */
-  ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: hsl(var(--muted-foreground) / 0.25);
-    border-radius: 999px;
-    border: 2px solid hsl(var(--background));
-    background-clip: padding-box;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground) / 0.45);
-    background-clip: padding-box;
-    border: 2px solid hsl(var(--background));
-  }
+  /* Scrollbar da loja (tema claro) — fina e discreta apenas no documento.
+     Escopada em html/body para evitar regressões em containers internos
+     (drawers, modais, listas) que controlam o próprio scrollbar. */
   html {
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
+  }
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  html::-webkit-scrollbar-track,
+  body::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  html::-webkit-scrollbar-thumb,
+  body::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.28);
+    border-radius: 999px;
+  }
+  html::-webkit-scrollbar-thumb:hover,
+  body::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.45);
   }
 
   /* Scrollbar dark global dentro do admin */
