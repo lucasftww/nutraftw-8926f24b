@@ -456,6 +456,7 @@ export type Database = {
           meta_description: string | null
           meta_title: string | null
           name: string
+          offer_order: number
           price: number
           sale_price: number | null
           slug: string
@@ -477,6 +478,7 @@ export type Database = {
           meta_description?: string | null
           meta_title?: string | null
           name: string
+          offer_order?: number
           price?: number
           sale_price?: number | null
           slug: string
@@ -498,6 +500,7 @@ export type Database = {
           meta_description?: string | null
           meta_title?: string | null
           name?: string
+          offer_order?: number
           price?: number
           sale_price?: number | null
           slug?: string
