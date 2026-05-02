@@ -457,11 +457,11 @@ export default function ProductDetail() {
                       </span>
                     )}
                   </div>
-                  <div className="pt-3 pb-3 px-2.5">
+                  <div className="flex flex-col flex-1 pt-3 pb-3 px-2.5 sm:px-3">
                     <h3 className="font-medium text-[13px] sm:text-sm leading-snug line-clamp-2 min-h-[2.5rem] text-foreground">
                       {r.name}
                     </h3>
-                    <div className="mt-1.5 flex flex-col gap-0.5">
+                    <div className="mt-1.5 flex flex-col gap-0.5 mb-2">
                       {rHasSale && (
                         <span className="text-caption text-muted-foreground line-through tabular-nums">
                           de {formatBRL(rPrice)}
@@ -471,6 +471,10 @@ export default function ProductDetail() {
                         {formatBRL(rFinal)}
                       </span>
                     </div>
+                    {/* CTA discreto — convida o clique sem competir com o card-link */}
+                    <span className="mt-auto inline-flex items-center justify-center gap-1 h-9 rounded-full border border-border text-[12px] font-semibold text-foreground/80 group-hover:border-secondary group-hover:text-secondary group-hover:bg-secondary/5 transition-colors">
+                      Ver produto →
+                    </span>
                   </div>
                 </Link>
               );
