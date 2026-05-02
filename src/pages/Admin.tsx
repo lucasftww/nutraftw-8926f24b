@@ -1273,6 +1273,11 @@ function AdminOrders() {
                   type="checkbox"
                   aria-label="Selecionar todos"
                   checked={filtered.length > 0 && selected.size === filtered.length}
+                  ref={(el) => {
+                    if (el) {
+                      el.indeterminate = selected.size > 0 && selected.size < filtered.length;
+                    }
+                  }}
                   onChange={toggleAll}
                 />
               </th>
