@@ -88,10 +88,14 @@ export default {
           "0%": { transform: "translateX(100%)" },
           "100%": { transform: "translateX(0)" },
         },
+        shimmer: {
+          "100%": { transform: "translateX(100%)" },
+        },
       },
       animation: {
         "fade-in": "fade-in 0.4s ease-out",
         "slide-in-right": "slide-in-right 0.3s ease-out",
+        shimmer: "shimmer 1.6s ease-in-out infinite",
       },
     },
   },
