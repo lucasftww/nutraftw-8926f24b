@@ -78,7 +78,7 @@ export function AdminModal({
             <X className="h-4 w-4" />
           </button>
         </header>
-        <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4 scrollbar-thin">
           {children}
         </div>
       </div>

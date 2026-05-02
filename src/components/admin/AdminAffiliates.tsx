@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatBRL } from "@/lib/utils";
 import { toast } from "sonner";
-import { Loader2, Search, Check, RefreshCcw, DollarSign, Clock, XCircle, AlertTriangle } from "lucide-react";
+import { Loader2, Search, Check, RefreshCcw, DollarSign, Clock, XCircle, AlertTriangle, Handshake } from "lucide-react";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
+import { EmptyState } from "@/components/admin/EmptyState";
 import { useConfirm } from "@/components/admin/ConfirmDialog";
 import { logAdminAction } from "@/lib/auditLog";
 
@@ -26,11 +27,11 @@ type CommissionRow = {
 };
 
 const STATUS_LABELS: Record<string, { label: string; cls: string; icon: any }> = {
-  pending:   { label: "Pendente",  cls: "bg-amber-500/10 text-amber-600",   icon: Clock },
-  released:  { label: "Liberada",  cls: "bg-blue-500/10 text-blue-600",     icon: Check },
-  paid:      { label: "Paga",      cls: "bg-emerald-500/10 text-emerald-600", icon: DollarSign },
-  cancelled: { label: "Cancelada", cls: "bg-muted text-muted-foreground",   icon: XCircle },
-  clawback:  { label: "Estorno",   cls: "bg-destructive/10 text-destructive", icon: AlertTriangle },
+  pending:   { label: "Pendente",  cls: "bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/25",     icon: Clock },
+  released:  { label: "Liberada",  cls: "bg-primary/15 text-primary ring-1 ring-primary/25",          icon: Check },
+  paid:      { label: "Paga",      cls: "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/25", icon: DollarSign },
+  cancelled: { label: "Cancelada", cls: "bg-muted text-muted-foreground ring-1 ring-border",          icon: XCircle },
+  clawback:  { label: "Estorno",   cls: "bg-destructive/15 text-destructive ring-1 ring-destructive/25", icon: AlertTriangle },
 };
 
 export function AdminAffiliates() {
@@ -134,10 +135,10 @@ export function AdminAffiliates() {
   if (error) return <AdminErrorBanner error={error} onRetry={load} />;
 
   const cards = [
-    { label: "A liberar (pendente)", value: totals.pending, cls: "text-amber-600 bg-amber-50" },
-    { label: "A pagar (liberada)",    value: totals.released, cls: "text-blue-600 bg-blue-50" },
-    { label: "Total pago",            value: totals.paid, cls: "text-emerald-600 bg-emerald-50" },
-    { label: "Estornos pendentes",    value: totals.clawback, cls: "text-destructive bg-destructive/10" },
+    { label: "A liberar (pendente)", value: totals.pending,  cls: "text-amber-400 bg-amber-500/10 ring-1 ring-amber-500/20" },
+    { label: "A pagar (liberada)",    value: totals.released, cls: "text-primary bg-primary/10 ring-1 ring-primary/20" },
+    { label: "Total pago",            value: totals.paid,     cls: "text-emerald-400 bg-emerald-500/10 ring-1 ring-emerald-500/20" },
+    { label: "Estornos pendentes",    value: totals.clawback, cls: "text-destructive bg-destructive/10 ring-1 ring-destructive/25" },
   ];
 
   return (
@@ -223,7 +224,13 @@ export function AdminAffiliates() {
                 );
               })}
               {!loading && filtered.length === 0 && (
-                <tr><td colSpan={6} className="text-center py-12 text-muted-foreground">Nenhuma comissão encontrada.</td></tr>
+                <tr><td colSpan={6}>
+                  <EmptyState
+                    icon={Handshake}
+                    title="Nenhuma comissão encontrada"
+                    description="As comissões serão listadas após pedidos com indicação de afiliado."
+                  />
+                </td></tr>
               )}
             </tbody>
           </table>

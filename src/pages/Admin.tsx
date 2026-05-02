@@ -25,6 +25,8 @@ import { AdminAffiliates } from "@/components/admin/AdminAffiliates";
 import { AdminPromotions } from "@/components/admin/AdminPromotions";
 import { AdminModal } from "@/components/admin/AdminModal";
 import { ConfirmProvider, useConfirm } from "@/components/admin/ConfirmDialog";
+import { ProductThumb } from "@/components/admin/ProductThumb";
+import { EmptyState } from "@/components/admin/EmptyState";
 import { queryKeys } from "@/lib/queryKeys";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 import { logAdminAction, shallowDiff } from "@/lib/auditLog";
@@ -68,6 +70,31 @@ const TAB_TO_GROUP: Record<Tab, string> = (() => {
   for (const g of GROUPS) for (const t of g.tabs) m[t] = g.id;
   return m;
 })();
+
+/**
+ * Badge de estoque consistente em toda a área admin.
+ * - 0   → "Esgotado" (vermelho)
+ * - 1-4 → "Baixo: N" (âmbar) — não usa vermelho para não pesar visualmente
+ * - ≥5  → "N" (neutro)
+ */
+function StockBadge({ stock }: { stock: number }) {
+  const n = Number(stock ?? 0);
+  if (n === 0) {
+    return (
+      <span className="badge-pill bg-destructive/15 text-destructive border border-destructive/25">
+        Esgotado
+      </span>
+    );
+  }
+  if (n < 5) {
+    return (
+      <span className="badge-pill bg-amber-500/15 text-amber-500 border border-amber-500/25 tabular-nums">
+        Baixo · {n}
+      </span>
+    );
+  }
+  return <span className="text-sm font-medium text-muted-foreground tabular-nums">{n}</span>;
+}
 
 export default function Admin() {
   return (
@@ -124,17 +151,17 @@ function AdminInner() {
   return (
     <div className="flex min-h-screen w-full bg-background text-foreground">
       {/* ========== Sidebar fixa (desktop) ========== */}
-      <aside className="hidden lg:flex w-64 shrink-0 flex-col border-r border-border bg-card/30 sticky top-0 h-screen overflow-y-auto">
-        <div className="px-6 pt-7 pb-8">
+      <aside className="hidden lg:flex w-56 shrink-0 flex-col border-r border-border bg-card/30 sticky top-0 h-screen overflow-y-auto scrollbar-thin">
+        <div className="px-5 pt-6 pb-7">
           <div className="text-lg font-medium tracking-tight text-foreground">
             GIMPORTS<span className="text-primary">.</span>
           </div>
           <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mt-1">Painel admin</p>
         </div>
-        <nav className="flex-1 px-4 pb-4 space-y-7">
+        <nav className="flex-1 px-3 pb-4 space-y-5">
           {GROUPS.map((g) => (
-            <div key={g.id} className="space-y-1.5">
-              <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground px-3 mb-2 flex items-center gap-2">
+            <div key={g.id} className="space-y-1">
+              <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground/80 px-3 mb-1.5 flex items-center gap-2">
                 <g.icon className="h-3 w-3" />
                 {g.label}
               </div>
@@ -148,14 +175,14 @@ function AdminInner() {
                     key={t.id}
                     onClick={() => setTab(t.id)}
                     aria-current={active ? "page" : undefined}
-                    className={`group w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all relative ${
+                    className={`group w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-[13px] transition-all relative ${
                       active
                         ? "bg-primary/10 text-primary font-medium"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
                     }`}
                   >
-                    {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary rounded-r" style={{ boxShadow: "0 0 12px hsl(var(--primary) / 0.6)" }} />}
-                    <t.icon className={`h-4 w-4 shrink-0 ${active ? "text-primary" : ""}`} />
+                    {active && <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-[2px] h-4 bg-primary rounded-r" style={{ boxShadow: "0 0 12px hsl(var(--primary) / 0.6)" }} />}
+                    <t.icon className={`h-3.5 w-3.5 shrink-0 ${active ? "text-primary" : ""}`} />
                     <span className="flex-1 text-left">{t.label}</span>
                     {showBadge && (
                       <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-secondary text-secondary-foreground text-[10px] font-bold leading-none">
@@ -237,7 +264,7 @@ function AdminInner() {
       {/* ========== Conteúdo principal ========== */}
       <main className="flex-1 min-w-0 flex flex-col">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 flex items-center gap-3 px-4 md:px-8 h-16 border-b border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+        <header className="sticky top-0 z-30 flex items-center gap-3 px-4 md:px-8 h-14 border-b border-border bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/40">
           <button
             onClick={() => setMobileNavOpen(true)}
             className="lg:hidden p-2 -ml-2 text-muted-foreground"
@@ -258,7 +285,7 @@ function AdminInner() {
           {/* Busca global */}
           <button
             onClick={() => setPaletteOpen(true)}
-            className="flex items-center gap-2 h-9 px-3 rounded-full bg-card border border-border text-sm text-muted-foreground hover:border-primary/40 transition-colors"
+            className="flex items-center gap-2 h-9 px-3 rounded-full bg-background/60 border border-border text-sm text-muted-foreground hover:border-primary/50 hover:text-foreground hover:shadow-[0_0_18px_-4px_hsl(var(--primary)/0.45)] transition-all"
             aria-label="Buscar (Ctrl+K)"
           >
             <Search className="h-4 w-4" />
@@ -268,12 +295,12 @@ function AdminInner() {
         </header>
 
         {/* Page content */}
-        <div className="flex-1 px-4 md:px-8 py-6 md:py-10">
+        <div className="flex-1 px-4 md:px-8 py-6 md:py-8">
           {/* Page title */}
-          <div className="mb-6 md:mb-8">
+          <div className="mb-5 md:mb-7">
             <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-1.5">{currentGroup?.label}</p>
-            <h1 className="text-2xl md:text-3xl font-light tracking-tight text-foreground flex items-center gap-3">
-              {currentTab?.icon && <currentTab.icon className="h-6 w-6 text-primary" />}
+            <h1 className="text-xl md:text-2xl font-medium tracking-tight text-foreground flex items-center gap-2.5">
+              {currentTab?.icon && <currentTab.icon className="h-5 w-5 text-primary" />}
               {currentTab?.label ?? "Dashboard"}
             </h1>
           </div>
@@ -671,8 +698,8 @@ function AdminProducts() {
               <option value="deactivate">Desativar</option>
               <option value="feature">Destacar</option>
               <option value="unfeature">Remover destaque</option>
-              <option value="stock_set">Definir stock</option>
-              <option value="stock_inc">Somar ao stock (±)</option>
+              <option value="stock_set">Definir estoque</option>
+              <option value="stock_inc">Somar ao estoque (±)</option>
               <option value="delete">Remover</option>
             </select>
             {(bulkAction === "stock_set" || bulkAction === "stock_inc") && (
@@ -702,26 +729,33 @@ function AdminProducts() {
               <input type="checkbox" checked={selected.has(p.id)} onChange={() => toggleSel(p.id)} className="sr-only" aria-label={`Selecionar ${p.name}`} />
               {selected.has(p.id) && <Check className="h-3.5 w-3.5 text-primary" />}
             </label>
-            <img src={p.image_url || "/assets/no-image.svg"} alt="" className="w-14 h-14 rounded-lg object-cover bg-muted shrink-0" />
+            <ProductThumb src={p.image_url} size="lg" alt={p.name} />
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm leading-snug line-clamp-2">{p.name}</p>
               <p className="text-xs text-muted-foreground truncate">{p.category?.name || "Sem categoria"}</p>
               <div className="flex items-center justify-between mt-1.5">
                 <span className="font-bold text-primary text-sm">{formatBRL(p.price)}</span>
-                <span className={`text-[11px] tabular-nums ${p.stock < 5 ? "text-destructive font-bold" : "text-muted-foreground"}`}>
-                  Stock: {p.stock}
-                </span>
+                <StockBadge stock={p.stock} />
               </div>
             </div>
             <div className="flex flex-col gap-1 shrink-0">
-              <button onClick={() => setEditing(p)} aria-label="Editar" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted"><Pencil className="h-4 w-4" /></button>
-              <button onClick={() => duplicate(p)} aria-label="Duplicar" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted"><Copy className="h-4 w-4" /></button>
-              <button onClick={() => del(p.id)} aria-label="Remover" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="h-4 w-4" /></button>
+              <button onClick={() => setEditing(p)} aria-label="Editar" title="Editar" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted"><Pencil className="h-4 w-4" /></button>
+              <button onClick={() => duplicate(p)} aria-label="Duplicar" title="Duplicar" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted"><Copy className="h-4 w-4" /></button>
+              <button onClick={() => del(p.id)} aria-label="Remover" title="Remover" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="h-4 w-4" /></button>
             </div>
           </li>
         ))}
         {!loading && items.length === 0 && (
-          <li className="text-center py-12 text-muted-foreground bg-card rounded-2xl border border-border">Nenhum produto.</li>
+          <li className="bg-card rounded-2xl border border-border">
+            <EmptyState
+              icon={Package}
+              title="Nenhum produto encontrado"
+              description={debouncedQuery ? "Tente outra busca ou limpe o filtro." : "Cadastre seu primeiro produto para começar a vender."}
+              action={!debouncedQuery && (
+                <Button onClick={() => setEditing({ is_active: true })}><Plus className="h-4 w-4" /> Novo produto</Button>
+              )}
+            />
+          </li>
         )}
       </ul>
 
@@ -746,7 +780,7 @@ function AdminProducts() {
               <th className="text-left px-4 py-3">Produto</th>
               <th className="text-left px-4 py-3 hidden md:table-cell">Categoria</th>
               <th className="text-right px-4 py-3">Preço</th>
-              <th className="text-right px-4 py-3 hidden md:table-cell">Stock</th>
+              <th className="text-right px-4 py-3 hidden md:table-cell">Estoque</th>
               <th className="px-4 py-3"></th>
             </tr>
           </thead>
@@ -763,7 +797,7 @@ function AdminProducts() {
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <img src={p.image_url || "/assets/no-image.svg"} alt="" className="w-10 h-10 rounded object-cover bg-muted" />
+                    <ProductThumb src={p.image_url} size="sm" alt={p.name} />
                     <div>
                       <p className="font-medium">{p.name}</p>
                       {!p.is_active && <span className="text-xs text-muted-foreground">Inativo</span>}
@@ -773,17 +807,26 @@ function AdminProducts() {
                 <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{p.category?.name || "—"}</td>
                 <td className="px-4 py-3 text-right font-semibold">{formatBRL(p.price)}</td>
                 <td className="px-4 py-3 text-right hidden md:table-cell">
-                  <span className={p.stock < 5 ? "text-destructive font-semibold" : ""}>{p.stock}</span>
+                  <StockBadge stock={p.stock} />
                 </td>
                 <td className="px-4 py-3 text-right whitespace-nowrap">
-                  <button onClick={() => setEditing(p)} className="p-1.5 hover:bg-muted rounded mr-1"><Pencil className="h-4 w-4" /></button>
+                  <button onClick={() => setEditing(p)} aria-label="Editar" title="Editar" className="p-1.5 hover:bg-muted rounded mr-1"><Pencil className="h-4 w-4" /></button>
                   <button onClick={() => duplicate(p)} aria-label="Duplicar" title="Duplicar" className="p-1.5 hover:bg-muted rounded mr-1"><Copy className="h-4 w-4" /></button>
-                  <button onClick={() => del(p.id)} className="p-1.5 hover:bg-destructive/10 text-destructive rounded"><Trash2 className="h-4 w-4" /></button>
+                  <button onClick={() => del(p.id)} aria-label="Remover" title="Remover" className="p-1.5 hover:bg-destructive/10 text-destructive rounded"><Trash2 className="h-4 w-4" /></button>
                 </td>
               </tr>
             ))}
             {!loading && items.length === 0 && (
-              <tr><td colSpan={6} className="text-center py-12 text-muted-foreground">Nenhum produto.</td></tr>
+              <tr><td colSpan={6}>
+                <EmptyState
+                  icon={Package}
+                  title="Nenhum produto encontrado"
+                  description={debouncedQuery ? "Tente outra busca ou limpe o filtro." : "Cadastre seu primeiro produto para começar a vender."}
+                  action={!debouncedQuery && (
+                    <Button onClick={() => setEditing({ is_active: true })}><Plus className="h-4 w-4" /> Novo produto</Button>
+                  )}
+                />
+              </td></tr>
             )}
           </tbody>
         </table>
@@ -813,12 +856,20 @@ function AdminProducts() {
               </div>
               <div className="space-y-2"><Label>Preço (R$)</Label><Input type="number" step="0.01" min="0" required value={editing.price ?? ""} onChange={(e) => setEditing({ ...editing, price: e.target.value })} /></div>
               <div className="space-y-2"><Label>Preço promocional (R$)</Label><Input type="number" step="0.01" min="0" placeholder="opcional" value={editing.sale_price ?? ""} onChange={(e) => setEditing({ ...editing, sale_price: e.target.value })} /></div>
-              <div className="space-y-2"><Label>Stock</Label><Input type="number" min="0" value={editing.stock ?? 0} onChange={(e) => setEditing({ ...editing, stock: e.target.value })} /></div>
+              <div className="space-y-2"><Label>Estoque</Label><Input type="number" min="0" value={editing.stock ?? 0} onChange={(e) => setEditing({ ...editing, stock: e.target.value })} /></div>
               <div className="space-y-2 sm:col-span-2">
                 <Label>Imagem</Label>
                 <ImageUpload value={editing.image_url || ""} onChange={(url) => setEditing({ ...editing, image_url: url })} />
               </div>
-              <div className="space-y-2 sm:col-span-2"><Label>Descrição</Label><textarea className="w-full rounded-xl border border-input bg-background p-3 text-sm min-h-[80px]" value={editing.description || ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} /></div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Descrição</Label>
+                <textarea
+                  className="w-full rounded-xl border border-input bg-background p-3 text-sm min-h-[90px] focus:outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/15 transition-all scrollbar-thin"
+                  placeholder="Descrição curta do produto, apresentação e observações."
+                  value={editing.description || ""}
+                  onChange={(e) => setEditing({ ...editing, description: e.target.value })}
+                />
+              </div>
               <div className="space-y-2"><Label>Princípio ativo</Label><Input value={editing.active_principle || ""} onChange={(e) => setEditing({ ...editing, active_principle: e.target.value })} /></div>
               <div className="space-y-2"><Label>Composição</Label><Input value={editing.composition || ""} onChange={(e) => setEditing({ ...editing, composition: e.target.value })} /></div>
               <div className="space-y-2 sm:col-span-2 pt-3 mt-1 border-t border-border">
@@ -1005,30 +1056,35 @@ function AdminCategories() {
   const sorted = [...items].sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
 
   return (
-    <div className="bg-card rounded-2xl border border-border p-6">
-      <div className="flex gap-2 mb-6">
-        <Input placeholder="Nova categoria" value={name} onChange={(e) => setName(e.target.value)} />
+    <div className="bg-card rounded-2xl border border-border p-5 max-w-2xl">
+      <div className="flex gap-2 mb-4">
+        <Input
+          placeholder="Nova categoria (use acentos: Ergogênicos)"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }}
+        />
         <Button onClick={add}><Plus className="h-4 w-4" /> Adicionar</Button>
       </div>
-      <ul className="divide-y divide-border">
+      <ul className="divide-y divide-border/60">
         {sorted.map((c, idx) => (
-          <li key={c.id} className="flex items-center gap-2 py-3">
-            <div className="flex flex-col">
+          <li key={c.id} className="flex items-center gap-2 py-2 group">
+            <div className="flex flex-col -space-y-px">
               <button
                 onClick={() => move(c.id, -1)}
                 disabled={idx === 0}
                 aria-label={`Mover ${c.name} para cima`}
-                className="h-5 w-6 inline-flex items-center justify-center rounded hover:bg-muted disabled:opacity-30 disabled:hover:bg-transparent"
+                className="h-7 w-7 inline-flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:hover:bg-transparent"
               >
-                <ChevronUp className="h-3.5 w-3.5" />
+                <ChevronUp className="h-4 w-4" />
               </button>
               <button
                 onClick={() => move(c.id, 1)}
                 disabled={idx === sorted.length - 1}
                 aria-label={`Mover ${c.name} para baixo`}
-                className="h-5 w-6 inline-flex items-center justify-center rounded hover:bg-muted disabled:opacity-30 disabled:hover:bg-transparent"
+                className="h-7 w-7 inline-flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:hover:bg-transparent"
               >
-                <ChevronDown className="h-3.5 w-3.5" />
+                <ChevronDown className="h-4 w-4" />
               </button>
             </div>
             <div className="flex-1 min-w-0">
@@ -1049,30 +1105,40 @@ function AdminCategories() {
                   className="text-left w-full"
                   onClick={() => { setEditingId(c.id); setEditName(c.name); }}
                 >
-                  <p className="font-medium hover:text-primary transition-colors">{c.name}</p>
-                  <p className="text-xs text-muted-foreground">{c.slug}</p>
+                  <p className="font-medium text-sm hover:text-primary transition-colors">{c.name}</p>
+                  <p className="text-[11px] text-muted-foreground/70 font-mono">{c.slug}</p>
                 </button>
               )}
             </div>
-            <button onClick={() => del(c.id)} aria-label={`Remover ${c.name}`} className="p-2 hover:bg-destructive/10 text-destructive rounded shrink-0"><Trash2 className="h-4 w-4" /></button>
+            <button onClick={() => del(c.id)} aria-label={`Remover ${c.name}`} title="Remover" className="h-8 w-8 inline-flex items-center justify-center rounded-md opacity-60 group-hover:opacity-100 hover:bg-destructive/10 text-destructive shrink-0 transition-opacity"><Trash2 className="h-4 w-4" /></button>
           </li>
         ))}
-        {items.length === 0 && <p className="text-center py-8 text-muted-foreground">Nenhuma categoria.</p>}
+        {items.length === 0 && (
+          <li>
+            <EmptyState
+              icon={Tags}
+              title="Nenhuma categoria criada"
+              description="Crie categorias para organizar o catálogo (ex.: Tirzepatida, Retatrutide, Ergogênicos)."
+              compact
+            />
+          </li>
+        )}
       </ul>
-      <p className="mt-4 text-xs text-muted-foreground">Toque no nome para renomear · use as setas para reordenar.</p>
+      <p className="mt-4 text-[11px] text-muted-foreground/80">Clique no nome para renomear · use as setas para reordenar.</p>
     </div>
   );
 }
 
 const STATUSES = ["pending", "paid", "processing", "shipped", "delivered", "cancelled", "refunded"];
+// Cores compatíveis com o tema dark do admin (sem fundos brancos pastéis).
 const STATUS_COLORS: Record<string, string> = {
-  pending: "bg-amber-100 text-amber-700",
-  paid: "bg-emerald-100 text-emerald-700",
-  processing: "bg-blue-100 text-blue-700",
-  shipped: "bg-indigo-100 text-indigo-700",
-  delivered: "bg-green-100 text-green-700",
-  cancelled: "bg-red-100 text-red-700",
-  refunded: "bg-gray-100 text-gray-700",
+  pending:    "bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/25",
+  paid:       "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/25",
+  processing: "bg-primary/15 text-primary ring-1 ring-primary/25",
+  shipped:    "bg-primary/20 text-primary ring-1 ring-primary/25",
+  delivered:  "bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/30",
+  cancelled:  "bg-destructive/15 text-destructive ring-1 ring-destructive/25",
+  refunded:   "bg-muted text-muted-foreground ring-1 ring-border",
 };
 
 function AdminOrders() {
@@ -1329,7 +1395,7 @@ function AdminOrders() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</span>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${STATUS_COLORS[o.status] || "bg-muted"}`}>{o.status}</span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${STATUS_COLORS[o.status] || "bg-muted text-muted-foreground"}`}>{o.status}</span>
                 </div>
                 <p className="font-semibold text-sm leading-tight truncate mt-1">{o.shipping_full_name || "—"}</p>
                 <div className="flex items-center justify-between mt-1.5">
@@ -1341,7 +1407,15 @@ function AdminOrders() {
             </div>
           </li>
         ))}
-        {!loading && filtered.length === 0 && <li className="text-center py-12 text-muted-foreground bg-card rounded-2xl border border-border">Nenhum pedido.</li>}
+        {!loading && filtered.length === 0 && (
+          <li className="bg-card rounded-2xl border border-border">
+            <EmptyState
+              icon={ShoppingBag}
+              title="Nenhum pedido encontrado"
+              description="Quando uma compra for feita, ela aparecerá aqui."
+            />
+          </li>
+        )}
       </ul>
 
       <div className="hidden md:block bg-card rounded-2xl border border-border overflow-hidden">
@@ -1399,8 +1473,16 @@ function AdminOrders() {
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={7} className="text-center py-12 text-muted-foreground">
-                  {loading ? "Carregando pedidos…" : "Nenhum pedido."}
+                <td colSpan={7}>
+                  {loading ? (
+                    <div className="text-center py-12 text-muted-foreground">Carregando pedidos…</div>
+                  ) : (
+                    <EmptyState
+                      icon={ShoppingBag}
+                      title="Nenhum pedido encontrado"
+                      description="Quando uma compra for feita, ela aparecerá aqui."
+                    />
+                  )}
                 </td>
               </tr>
             )}

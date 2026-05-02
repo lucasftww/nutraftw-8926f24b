@@ -7,10 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Plus, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
+import { EmptyState } from "@/components/admin/EmptyState";
 import { queryKeys } from "@/lib/queryKeys";
 import { logAdminAction, shallowDiff } from "@/lib/auditLog";
 import { AdminModal } from "@/components/admin/AdminModal";
 import { useConfirm } from "@/components/admin/ConfirmDialog";
+import { Ticket } from "lucide-react";
 
 export function AdminCoupons() {
   const [items, setItems] = useState<any[]>([]);
@@ -140,17 +142,30 @@ export function AdminCoupons() {
                 <td className="px-4 py-3 hidden md:table-cell text-muted-foreground">R$ {Number(c.min_subtotal).toFixed(2)}</td>
                 <td className="px-4 py-3 hidden md:table-cell text-muted-foreground">{c.uses}{c.max_uses ? ` / ${c.max_uses}` : ""}</td>
                 <td className="px-4 py-3">
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${c.active ? "bg-emerald-100 text-emerald-700" : "bg-muted text-muted-foreground"}`}>
+                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${c.active ? "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/25" : "bg-muted text-muted-foreground"}`}>
                     {c.active ? "Ativo" : "Inativo"}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-right whitespace-nowrap">
-                  <button onClick={() => setEditing(c)} className="p-1.5 hover:bg-muted rounded mr-1"><Pencil className="h-4 w-4" /></button>
-                  <button onClick={() => del(c.id)} className="p-1.5 hover:bg-destructive/10 text-destructive rounded"><Trash2 className="h-4 w-4" /></button>
+                  <button onClick={() => setEditing(c)} aria-label="Editar cupom" title="Editar" className="p-1.5 hover:bg-muted rounded mr-1"><Pencil className="h-4 w-4" /></button>
+                  <button onClick={() => del(c.id)} aria-label="Remover cupom" title="Remover" className="p-1.5 hover:bg-destructive/10 text-destructive rounded"><Trash2 className="h-4 w-4" /></button>
                 </td>
               </tr>
             ))}
-            {items.length === 0 && <tr><td colSpan={6} className="text-center py-12 text-muted-foreground">Nenhum cupom cadastrado.</td></tr>}
+            {items.length === 0 && (
+              <tr><td colSpan={6}>
+                <EmptyState
+                  icon={Ticket}
+                  title="Nenhum cupom cadastrado"
+                  description="Crie cupons para campanhas, afiliados ou recuperação de carrinho."
+                  action={
+                    <Button onClick={() => setEditing({ active: true, discount_type: "percent" })}>
+                      <Plus className="h-4 w-4" /> Criar primeiro cupom
+                    </Button>
+                  }
+                />
+              </td></tr>
+            )}
           </tbody>
         </table>
       </div>

@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
-import { Package, ShoppingBag, DollarSign, Users, TrendingUp, Clock, Receipt, Boxes } from "lucide-react";
+import { Package, ShoppingBag, DollarSign, Users, TrendingUp, Clock, Receipt, Boxes, Sparkles } from "lucide-react";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "./AdminErrorBanner";
+import { ProductThumb } from "./ProductThumb";
+import { EmptyState } from "./EmptyState";
 import { toast } from "sonner";
 
 type Stats = {
@@ -133,36 +135,70 @@ export function AdminDashboard() {
     return <div className="text-center py-12 text-muted-foreground">Carregando métricas…</div>;
   }
 
+  // Paleta consistente (admin dark): primary cyan, success green, amber para atenção,
+  // destructive só para crítico (estoque baixo). Sem cores aleatórias.
   const cards = [
-    { label: "Receita líquida", value: formatBRL(stats.totalRevenue), icon: DollarSign, color: "text-emerald-600", bg: "bg-emerald-50" },
-    { label: "Pedidos pagos", value: stats.paidOrdersCount, icon: ShoppingBag, color: "text-primary", bg: "bg-primary/10" },
-    { label: "Ticket médio", value: formatBRL(stats.aov), icon: Receipt, color: "text-blue-600", bg: "bg-blue-50" },
-    { label: "Itens vendidos", value: stats.itemsSold, icon: Boxes, color: "text-purple-600", bg: "bg-purple-50" },
-    { label: "Pendentes", value: stats.pendingOrders, icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
-    { label: "Produtos", value: stats.totalProducts, icon: Package, color: "text-slate-600", bg: "bg-slate-100" },
-    { label: "Stock baixo", value: stats.lowStock, icon: TrendingUp, color: "text-destructive", bg: "bg-destructive/10" },
-    { label: "Clientes", value: stats.totalCustomers, icon: Users, color: "text-fuchsia-600", bg: "bg-fuchsia-50" },
+    { label: "Receita líquida", value: formatBRL(stats.totalRevenue), icon: DollarSign, tone: "success" as const, hint: "soma do total de pedidos pagos" },
+    { label: "Pedidos pagos",   value: stats.paidOrdersCount,         icon: ShoppingBag, tone: "primary" as const },
+    { label: "Ticket médio",    value: formatBRL(stats.aov),          icon: Receipt,     tone: "primary" as const },
+    { label: "Itens vendidos",  value: stats.itemsSold,               icon: Boxes,       tone: "neutral" as const },
+    { label: "Pendentes",       value: stats.pendingOrders,           icon: Clock,       tone: "amber" as const },
+    { label: "Produtos",        value: stats.totalProducts,           icon: Package,     tone: "neutral" as const },
+    { label: "Estoque baixo",   value: stats.lowStock,                icon: TrendingUp,  tone: "destructive" as const },
+    { label: "Clientes",        value: stats.totalCustomers,          icon: Users,       tone: "primary" as const },
   ];
+  const TONE: Record<string, string> = {
+    primary:     "text-primary bg-primary/10 ring-1 ring-primary/15",
+    success:     "text-emerald-400 bg-emerald-500/10 ring-1 ring-emerald-500/20",
+    amber:       "text-amber-400 bg-amber-500/10 ring-1 ring-amber-500/20",
+    destructive: "text-destructive bg-destructive/10 ring-1 ring-destructive/25",
+    neutral:     "text-muted-foreground bg-muted/50 ring-1 ring-border",
+  };
+
+  // Quando ainda não há nenhuma venda, mostra um banner informativo no topo
+  // em vez de só números zerados — ajuda o admin novo a entender a tela.
+  const hasNoSales = stats.totalOrders === 0;
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      {hasNoSales && (
+        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5 flex items-start gap-3">
+          <div className="h-9 w-9 rounded-xl bg-primary/15 text-primary inline-flex items-center justify-center shrink-0">
+            <Sparkles className="h-4 w-4" />
+          </div>
+          <div>
+            <p className="font-semibold text-sm">Tudo pronto para o primeiro pedido</p>
+            <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+              As métricas começam a popular assim que houver vendas. Verifique o catálogo e configure cupons em <strong>Vendas → Cupons</strong>.
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {cards.map((c) => (
-          <div key={c.label} className="bg-card rounded-2xl border border-border p-4">
-            <div className={`inline-flex p-2 rounded-lg ${c.bg} ${c.color} mb-3`}>
-              <c.icon className="h-4 w-4" />
+          <div key={c.label} className="bg-card rounded-2xl border border-border p-4 hover:border-border/80 transition-colors">
+            <div className={`inline-flex p-2 rounded-lg ${TONE[c.tone]} mb-3`}>
+              <c.icon className="h-3.5 w-3.5" />
             </div>
-            <p className="text-xs text-muted-foreground">{c.label}</p>
-            <p className="text-lg font-bold mt-1">{c.value}</p>
+            <p className="text-[11px] uppercase tracking-wider text-muted-foreground/80 font-medium">{c.label}</p>
+            <p className="text-xl font-semibold mt-1 tabular-nums">{c.value}</p>
           </div>
         ))}
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        <div className="bg-card rounded-2xl border border-border p-6">
-          <h3 className="font-bold mb-4">Pedidos recentes</h3>
+        <div className="bg-card rounded-2xl border border-border p-5">
+          <h3 className="font-semibold text-sm mb-4 flex items-center gap-2">
+            <ShoppingBag className="h-4 w-4 text-primary" /> Pedidos recentes
+          </h3>
           {stats.recentOrders.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhum pedido ainda.</p>
+            <EmptyState
+              icon={ShoppingBag}
+              title="Nenhum pedido encontrado"
+              description="Quando uma compra for feita, ela aparecerá aqui."
+              compact
+            />
           ) : (
             <ul className="divide-y divide-border">
               {stats.recentOrders.map((o) => (
@@ -181,15 +217,22 @@ export function AdminDashboard() {
           )}
         </div>
 
-        <div className="bg-card rounded-2xl border border-border p-6">
-          <h3 className="font-bold mb-4">Produtos mais vendidos</h3>
+        <div className="bg-card rounded-2xl border border-border p-5">
+          <h3 className="font-semibold text-sm mb-4 flex items-center gap-2">
+            <Boxes className="h-4 w-4 text-primary" /> Produtos mais vendidos
+          </h3>
           {stats.topProducts.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhuma venda ainda.</p>
+            <EmptyState
+              icon={Boxes}
+              title="Sem vendas no período"
+              description="Os produtos mais vendidos aparecerão aqui após o primeiro pagamento."
+              compact
+            />
           ) : (
             <ul className="divide-y divide-border">
               {stats.topProducts.map((p, i) => (
                 <li key={(p.id || p.name) + i} className="py-3 flex items-center gap-3 text-sm">
-                  <img src={p.image || "/assets/no-image.svg"} alt={p.name} className="w-10 h-10 rounded object-cover bg-muted" />
+                  <ProductThumb src={p.image} size="sm" alt={p.name} />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium line-clamp-2 leading-snug">{p.name}</p>
                     <p className="text-xs text-muted-foreground">{p.qty} unid. vendidas</p>
