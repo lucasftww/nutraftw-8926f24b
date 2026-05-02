@@ -5,6 +5,8 @@ import { formatBRL } from "@/lib/utils";
 import { toast } from "sonner";
 import { PackageCheck, Truck } from "lucide-react";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
+import { EmptyState } from "@/components/admin/EmptyState";
+import { RefreshCcw } from "lucide-react";
 import { logAdminAction } from "@/lib/auditLog";
 
 const STATUS_OPTIONS = [
@@ -104,7 +106,15 @@ export function AdminResends() {
             </div>
           </div>
         ))}
-        {items.length === 0 && <div className="text-center py-12 text-muted-foreground bg-card rounded-2xl border border-border">Nenhum reenvio.</div>}
+        {items.length === 0 && (
+          <div className="bg-card rounded-2xl border border-border">
+            <EmptyState
+              icon={RefreshCcw}
+              title="Nenhuma solicitação de reenvio"
+              description="As solicitações abertas pelos clientes aparecerão aqui."
+            />
+          </div>
+        )}
       </div>
     </>
   );
