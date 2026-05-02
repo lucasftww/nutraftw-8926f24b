@@ -772,7 +772,7 @@ function AdminProducts() {
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <img src={p.image_url || "/assets/no-image.svg"} alt="" className="w-10 h-10 rounded object-cover bg-muted" />
+                    <ProductThumb src={p.image_url} size="sm" alt={p.name} />
                     <div>
                       <p className="font-medium">{p.name}</p>
                       {!p.is_active && <span className="text-xs text-muted-foreground">Inativo</span>}
@@ -782,17 +782,26 @@ function AdminProducts() {
                 <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{p.category?.name || "—"}</td>
                 <td className="px-4 py-3 text-right font-semibold">{formatBRL(p.price)}</td>
                 <td className="px-4 py-3 text-right hidden md:table-cell">
-                  <span className={p.stock < 5 ? "text-destructive font-semibold" : ""}>{p.stock}</span>
+                  <StockBadge stock={p.stock} />
                 </td>
                 <td className="px-4 py-3 text-right whitespace-nowrap">
-                  <button onClick={() => setEditing(p)} className="p-1.5 hover:bg-muted rounded mr-1"><Pencil className="h-4 w-4" /></button>
+                  <button onClick={() => setEditing(p)} aria-label="Editar" title="Editar" className="p-1.5 hover:bg-muted rounded mr-1"><Pencil className="h-4 w-4" /></button>
                   <button onClick={() => duplicate(p)} aria-label="Duplicar" title="Duplicar" className="p-1.5 hover:bg-muted rounded mr-1"><Copy className="h-4 w-4" /></button>
-                  <button onClick={() => del(p.id)} className="p-1.5 hover:bg-destructive/10 text-destructive rounded"><Trash2 className="h-4 w-4" /></button>
+                  <button onClick={() => del(p.id)} aria-label="Remover" title="Remover" className="p-1.5 hover:bg-destructive/10 text-destructive rounded"><Trash2 className="h-4 w-4" /></button>
                 </td>
               </tr>
             ))}
             {!loading && items.length === 0 && (
-              <tr><td colSpan={6} className="text-center py-12 text-muted-foreground">Nenhum produto.</td></tr>
+              <tr><td colSpan={6}>
+                <EmptyState
+                  icon={Package}
+                  title="Nenhum produto encontrado"
+                  description={debouncedQuery ? "Tente outra busca ou limpe o filtro." : "Cadastre seu primeiro produto para começar a vender."}
+                  action={!debouncedQuery && (
+                    <Button onClick={() => setEditing({ is_active: true })}><Plus className="h-4 w-4" /> Novo produto</Button>
+                  )}
+                />
+              </td></tr>
             )}
           </tbody>
         </table>
