@@ -1579,7 +1579,7 @@ export default function Checkout() {
                       ? "Continuar — preencher endereço"
                       : !shippingDone
                         ? "Continuar — escolher frete"
-                        : !paymentDone
+                          : !paymentSelected
                           ? "Continuar — escolher pagamento"
                           : "Finalizar pedido"
               }
@@ -1589,7 +1589,7 @@ export default function Checkout() {
                   ? document.querySelector<HTMLInputElement>('input[autocomplete="name"]')
                   : !addressDone
                   ? document.querySelector<HTMLInputElement>('input[autocomplete="postal-code"]')
-                  : !shippingDone || !paymentDone
+                  : !shippingDone || !paymentSelected
                   ? document.querySelector<HTMLElement>('[data-checkout-payment]') || document.querySelector<HTMLElement>('h2.checkout-section-title')
                   : null;
                 if (target) {
@@ -1604,7 +1604,7 @@ export default function Checkout() {
             >
               {submitting ? (
                 <><Loader2 className="w-4 h-4 mr-1.5 animate-spin inline" /> Processando…</>
-              ) : (buyerDone && addressDone && shippingDone && paymentDone) ? (
+              ) : (buyerDone && addressDone && shippingDone && paymentSelected) ? (
                 <>Finalizar pedido</>
               ) : (
                 <>Continuar</>
