@@ -738,9 +738,13 @@ const ProductCard = memo(function ProductCard({
   const isOut = (p.stock ?? 0) <= 0;
   const ageDays = (Date.now() - new Date(p.created_at).getTime()) / 86400000;
   const isNew = !isOut && ageDays <= 30;
+  // Etiquetas marcadas pelo admin no painel.
+  const isLaunch = !!(p as ProductRow & { is_new_release?: boolean }).is_new_release;
+  const isOffer = !!(p as ProductRow & { is_on_offer?: boolean }).is_on_offer;
   // Apenas um badge por card e nunca empilhado com "-x%". "Novo" vira um
   // ponto sutil + texto pequeno em cinza (não compete com o preço).
   // "Esgotado" continua forte porque indica indisponibilidade real.
+  // Prioridade: Esgotado (vermelho) > Lançamento (azul) > Oferta (vermelho) > -X% OFF (laranja).
   return (
             <Link
               ref={linkRef}
@@ -786,16 +790,41 @@ const ProductCard = memo(function ProductCard({
                     />
                   );
                 })()}
-                {isOut && (
-                  <span className="absolute top-2 left-2 z-[1] inline-flex items-center rounded-full text-[10px] font-semibold px-2 py-0.5 bg-muted-foreground/90 text-background">
-                    Esgotado
-                  </span>
-                )}
-                {hasRealSale && !isOut && (
-                  <span className="badge-pill absolute top-2 left-2 z-[1] bg-secondary text-secondary-foreground font-bold shadow-sm">
-                    -{discountPct}%
-                  </span>
-                )}
+                {(() => {
+                  // Apenas UMA etiqueta visível por vez no canto superior esquerdo.
+                  // Estilo "pílula" inspirado nas referências enviadas pelo usuário.
+                  const pillBase =
+                    "absolute top-2 left-2 z-[1] inline-flex items-center rounded-full text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wide px-2.5 py-1 leading-none shadow-md";
+                  if (isOut) {
+                    return (
+                      <span className={`${pillBase} bg-destructive text-destructive-foreground`}>
+                        ESGOTADO
+                      </span>
+                    );
+                  }
+                  if (isLaunch) {
+                    return (
+                      <span className={`${pillBase} bg-primary text-primary-foreground`}>
+                        LANÇAMENTO
+                      </span>
+                    );
+                  }
+                  if (isOffer) {
+                    return (
+                      <span className={`${pillBase} bg-destructive text-destructive-foreground`}>
+                        OFERTA
+                      </span>
+                    );
+                  }
+                  if (hasRealSale) {
+                    return (
+                      <span className={`${pillBase} bg-secondary text-secondary-foreground`}>
+                        -{discountPct}% OFF
+                      </span>
+                    );
+                  }
+                  return null;
+                })()}
                 {/* Wishlist: sempre visível, em pill branca no canto inferior direito da imagem */}
                 <WishlistButton
                   productId={p.id}

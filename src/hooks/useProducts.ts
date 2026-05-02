@@ -11,6 +11,8 @@ export interface ProductRow {
   sale_price: number | null;
   image_url: string | null;
   is_featured: boolean;
+  is_new_release: boolean;
+  is_on_offer: boolean;
   stock: number;
   created_at: string;
   category: { id: string; name: string; slug: string } | null;
@@ -23,7 +25,7 @@ export interface CategoryRow {
 }
 
 const PRODUCT_COLUMNS =
-  "id, slug, name, description, price, sale_price, image_url, is_featured, stock, created_at, category:categories(id, name, slug)";
+  "id, slug, name, description, price, sale_price, image_url, is_featured, is_new_release, is_on_offer, stock, created_at, category:categories(id, name, slug)";
 
 export function useCategories() {
   return useQuery<CategoryRow[]>({
