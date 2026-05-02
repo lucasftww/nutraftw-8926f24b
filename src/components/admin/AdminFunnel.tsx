@@ -110,12 +110,13 @@ export function AdminFunnel() {
   const stages = useMemo(() => {
     const s = summary;
     if (!s) return [];
+    // Paleta consistente: tons de ciano para o topo do funil → verde no fim (conversão).
     return [
-      { key: "views",    label: "Visualizações",    value: s.views,            icon: Eye,           color: "bg-blue-500" },
-      { key: "wishlist", label: "Favoritos",        value: s.wishlist_adds,    icon: Heart,         color: "bg-pink-500" },
-      { key: "cart",     label: "Adições ao carrinho", value: s.cart_adds,     icon: ShoppingCart,  color: "bg-amber-500" },
-      { key: "checkout", label: "Checkout iniciado", value: s.checkout_started, icon: CreditCard,    color: "bg-violet-500" },
-      { key: "paid",     label: "Pedidos pagos",    value: s.orders_paid,      icon: CheckCircle2,  color: "bg-emerald-500" },
+      { key: "views",    label: "Visualizações",       value: s.views,            icon: Eye,          color: "bg-primary/40" },
+      { key: "wishlist", label: "Favoritos",           value: s.wishlist_adds,    icon: Heart,        color: "bg-primary/60" },
+      { key: "cart",     label: "Adições ao carrinho", value: s.cart_adds,        icon: ShoppingCart, color: "bg-primary/75" },
+      { key: "checkout", label: "Checkout iniciado",   value: s.checkout_started, icon: CreditCard,   color: "bg-primary" },
+      { key: "paid",     label: "Pedidos pagos",       value: s.orders_paid,      icon: CheckCircle2, color: "bg-emerald-500" },
     ];
   }, [summary]);
 
@@ -149,13 +150,13 @@ export function AdminFunnel() {
       </div>
 
       {loading ? (
-        <div className="rounded-2xl border border-border bg-card p-12 text-center text-sm text-muted-foreground">
+        <div className="rounded-2xl border border-border bg-card p-10 text-center text-sm text-muted-foreground">
           <Loader2 className="h-5 w-5 mx-auto mb-2 animate-spin" />
           Carregando métricas…
         </div>
       ) : !summary ? (
-        <div className="rounded-2xl border border-border bg-card p-12 text-center text-sm text-muted-foreground">
-          Nenhum dado no período.
+        <div className="rounded-2xl border border-border bg-card">
+          <EmptyStateInline />
         </div>
       ) : (
         <>
@@ -178,6 +179,8 @@ export function AdminFunnel() {
                 const prev = i > 0 ? stages[i - 1] : null;
                 const stepConv = prev ? ratio(s.value, prev.value) : 1;
                 const dropPct = prev ? Math.max(0, 1 - stepConv) : 0;
+                // Mostrar alerta de abandono só se realmente significativo (> 30%)
+                const showDrop = prev && dropPct > 0.3 && (prev.value - s.value) >= 5;
                 return (
                   <li key={s.key}>
                     <div className="flex items-center justify-between mb-1.5 text-sm">
@@ -185,29 +188,35 @@ export function AdminFunnel() {
                         <s.icon className="h-4 w-4 text-muted-foreground" />
                         <span className="font-semibold">{s.label}</span>
                         {prev && (
-                          <span className="text-[11px] text-muted-foreground">
+                          <span
+                            className="text-[11px] text-muted-foreground"
+                            title={`Conversão da etapa anterior: ${pct(stepConv)}`}
+                          >
                             · {pct(stepConv)} da etapa anterior
                           </span>
                         )}
                       </div>
                       <span className="font-bold tabular-nums">{s.value.toLocaleString("pt-BR")}</span>
                     </div>
-                    <div className="relative h-7 rounded-lg bg-muted overflow-hidden">
+                    <div className="relative h-6 rounded-lg bg-muted/60 overflow-hidden">
                       <div
-                        className={`absolute inset-y-0 left-0 ${s.color} opacity-90 transition-all duration-500`}
+                        className={`absolute inset-y-0 left-0 ${s.color} transition-all duration-500`}
                         style={{ width: `${widthPct}%` }}
                       />
                     </div>
-                    {prev && dropPct > 0.1 && (
-                      <p className="mt-1 flex items-center gap-1 text-[11px] text-destructive">
+                    {showDrop && (
+                      <p className="mt-1 flex items-center gap-1 text-[11px] text-amber-500/90">
                         <TrendingDown className="h-3 w-3" />
-                        {pct(dropPct)} abandona aqui ({(prev.value - s.value).toLocaleString("pt-BR")} pessoas)
+                        {pct(dropPct)} abandona aqui · {(prev!.value - s.value).toLocaleString("pt-BR")} pessoas
                       </p>
                     )}
                   </li>
                 );
               })}
             </ul>
+            <p className="mt-4 pt-3 border-t border-border/60 text-[11px] text-muted-foreground/80 leading-relaxed">
+              Etapas de origens diferentes (analytics × pedidos) podem variar. Pequenas inconsistências são esperadas — foque na tendência relativa.
+            </p>
           </div>
 
           {/* Breakdown por produto */}
@@ -248,10 +257,10 @@ export function AdminFunnel() {
                           <td className="px-4 py-3 text-right tabular-nums hidden md:table-cell">{r.wishlist_adds}</td>
                           <td className="px-4 py-3 text-right tabular-nums">{r.cart_adds}</td>
                           <td className="px-4 py-3 text-right tabular-nums">{r.units_paid}</td>
-                          <td className={`px-4 py-3 text-right tabular-nums font-semibold ${lowVtc ? "text-destructive" : ""}`}>
+                          <td className={`px-4 py-3 text-right tabular-nums font-semibold ${lowVtc ? "text-amber-500" : ""}`}>
                             {pct(r.view_to_cart)}
                           </td>
-                          <td className={`px-4 py-3 text-right tabular-nums font-semibold ${lowCtp ? "text-destructive" : ""}`}>
+                          <td className={`px-4 py-3 text-right tabular-nums font-semibold ${lowCtp ? "text-amber-500" : ""}`}>
                             {pct(r.cart_to_paid)}
                           </td>
                           <td className="px-2 py-3">
@@ -272,12 +281,23 @@ export function AdminFunnel() {
               </div>
             )}
             <p className="px-5 py-3 text-[11px] text-muted-foreground border-t border-border bg-muted/20">
-              Linhas em vermelho indicam pontos críticos (View→Cart &lt; 5% com 10+ views, ou Cart→Paid &lt; 20% com 5+ carrinhos).
+              Em <span className="text-amber-500 font-medium">âmbar</span>: pontos com baixa conversão (View→Cart &lt; 5% com 10+ views, ou Cart→Paid &lt; 20% com 5+ carrinhos).
             </p>
           </div>
         </>
       )}
     </section>
+  );
+}
+
+function EmptyStateInline() {
+  return (
+    <div className="py-16 px-6 text-center">
+      <p className="font-semibold text-sm">Sem dados no período</p>
+      <p className="text-xs text-muted-foreground mt-1.5">
+        Altere o período acima ou aguarde novos eventos para ver o funil.
+      </p>
+    </div>
   );
 }
 
