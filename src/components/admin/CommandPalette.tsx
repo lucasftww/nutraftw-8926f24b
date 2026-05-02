@@ -26,8 +26,8 @@ type Action = {
 
 type Tab =
   | "dashboard" | "funnel" | "reports" | "products" | "categories"
-  | "orders" | "coupons" | "shipping" | "users"
-  | "resends" | "settings" | "diagnostics" | "audit";
+  | "promotions" | "orders" | "coupons" | "shipping" | "users"
+  | "affiliates" | "resends" | "settings" | "diagnostics" | "audit";
 
 const SHORTCUT_TABS: { id: Tab; label: string }[] = [
   { id: "dashboard", label: "Ir para Dashboard" },
