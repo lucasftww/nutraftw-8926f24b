@@ -1,0 +1,1 @@
+UPDATE public.shipping_rates SET price = 70 WHERE active = true;
