@@ -115,7 +115,7 @@ export function Header() {
                   </svg>
                 )}
                 {user && (
-                  <span aria-hidden className="absolute bottom-1 right-1 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-background" />
+                  <span aria-hidden className="absolute bottom-1 right-1 h-2 w-2 rounded-full bg-success ring-2 ring-background" />
                 )}
               </Link>
 
@@ -140,7 +140,7 @@ export function Header() {
                   <circle cx="17" cy="19" r="1.3" />
                 </svg>
                 {count > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-[18px] min-w-[18px] px-1 items-center justify-center rounded-full bg-foreground text-[10px] font-semibold text-background ring-2 ring-background">
+                  <span className="absolute -top-1 -right-1 flex h-[18px] min-w-[18px] px-1 items-center justify-center rounded-full bg-secondary text-[10px] font-semibold text-secondary-foreground ring-2 ring-background shadow-sm">
                     {count > 99 ? "99+" : count}
                   </span>
                 )}
