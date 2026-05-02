@@ -799,7 +799,7 @@ const ProductCard = memo(function ProductCard({
                   // Apenas UMA etiqueta visível por vez no canto superior esquerdo.
                   // Estilo "pílula" inspirado nas referências enviadas pelo usuário.
                   const pillBase =
-                    "absolute top-2 left-2 z-[1] inline-flex items-center rounded-full text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wide px-2.5 py-1 leading-none shadow-md";
+                    "absolute top-2 left-2 z-[1] inline-flex items-center rounded-full text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wide px-3 py-1 leading-none shadow-md";
                   if (isOut) {
                     return (
                       <span className={`${pillBase} bg-destructive text-destructive-foreground`}>
