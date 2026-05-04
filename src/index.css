@@ -79,6 +79,9 @@
     --destructive: 0 89% 60%;
     --destructive-foreground: 0 0% 100%;
 
+    --old-price: 0 54% 54%;
+    --old-price-foreground: 0 0% 100%;
+
     /* Verde — exclusivo para PIX, WhatsApp, economia/sucesso (#16A34A) */
     --success: 142 71% 36%;
     --success-foreground: 0 0% 100%;
@@ -136,6 +139,9 @@
 
     --destructive: 350 80% 60%;
     --destructive-foreground: 0 0% 100%;
+
+    --old-price: 0 45% 58%;
+    --old-price-foreground: 0 0% 100%;
 
     --success: 152 65% 48%;
     --success-foreground: 0 0% 100%;

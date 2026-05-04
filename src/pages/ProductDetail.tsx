@@ -228,7 +228,7 @@ export default function ProductDetail() {
                 <span className="inline-flex items-center rounded-full bg-success/10 text-success px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider">
                   Economize {formatBRL(Number(p.price) - finalPrice)} (-{discountPct}%)
                 </span>
-                <span className="text-sm text-muted-foreground line-through tabular-nums">
+                <span className="text-sm font-medium text-oldPrice line-through tabular-nums">
                   {formatBRL(Number(p.price))}
                 </span>
               </div>
