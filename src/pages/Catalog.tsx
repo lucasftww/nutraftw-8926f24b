@@ -859,7 +859,7 @@ const ProductCard = memo(function ProductCard({
                     "de R$" — alinha cards com e sem desconto na mesma altura. */}
                 <div className="mt-2 leading-tight min-h-[64px] flex flex-col justify-end">
                   {hasRealSale ? (
-                    <div className="text-xs text-muted-foreground line-through tabular-nums">
+                    <div className="text-xs text-oldPrice font-medium line-through tabular-nums">
                       de {formatBRL(priceNum)}
                     </div>
                   ) : (
