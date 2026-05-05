@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { ShoppingCart, ShieldCheck, Truck, Package, CreditCard, MessageCircle, QrCode, ChevronDown } from "lucide-react";
+import { ShoppingCart, ShieldCheck, Truck, Package, CreditCard, MessageCircle, QrCode, ChevronDown, ArrowLeft } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { responsiveImage, imageUrl } from "@/lib/image";
 import { Button } from "@/components/ui/button";
@@ -130,6 +130,16 @@ export default function ProductDetail() {
 
   return (
     <section className="py-5 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full pb-24 sm:pb-10">
+      {/* Botão Voltar — mobile-first, discreto mas sempre visível */}
+      <button
+        type="button"
+        onClick={() => nav(-1)}
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded-md px-1 -ml-1"
+      >
+        <ArrowLeft className="h-4 w-4" strokeWidth={2.25} />
+        Voltar
+      </button>
+
       {/* Breadcrumbs — reforçam a navegação até o Catálogo sem duplicar links */}
       <nav aria-label="Breadcrumb" className="mb-5">
         <ol
