@@ -5,7 +5,7 @@ import { useCart } from "@/hooks/useCart";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
-import logoGimports from "@/assets/logo-gimports.svg";
+import logoRoyalVita from "@/assets/logo-royalvita.svg";
 import { prefetchMyAccount } from "@/App";
 
 export function Header() {
@@ -64,14 +64,14 @@ export function Header() {
               </button>
               <Link to="/" className="flex items-center gap-2 group cursor-pointer min-w-0">
                 <img
-                  src={logoGimports}
-                  alt="GIMPORTS"
+                  src={logoRoyalVita}
+                  alt="Royal Vita"
                   width={32}
                   height={32}
                   className="h-7 w-7 md:h-8 md:w-8 object-contain shrink-0"
                 />
                 <span className="font-display font-semibold text-[15px] md:text-base tracking-tight text-primary hidden sm:block truncate">
-                  GIMPORTS
+                  Royal Vita
                 </span>
               </Link>
             </div>
@@ -175,9 +175,9 @@ export function Header() {
                     destino "/" que já é coberto pelo item "Catálogo" abaixo.
                   */}
                   <div className="flex items-center gap-2 min-w-0" aria-hidden="true">
-                    <img src={logoGimports} alt="" width={32} height={32} className="h-7 w-7 md:h-8 md:w-8 object-contain shrink-0" />
+                    <img src={logoRoyalVita} alt="" width={32} height={32} className="h-7 w-7 md:h-8 md:w-8 object-contain shrink-0" />
                     <span className="font-display font-semibold text-[15px] md:text-base tracking-tight text-primary truncate">
-                      GIMPORTS
+                      Royal Vita
                     </span>
                   </div>
                   <button

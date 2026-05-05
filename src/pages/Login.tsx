@@ -163,7 +163,7 @@ export default function Login() {
           {mode === "login" ? "Entrar" : "Criar conta"}
         </h1>
         <p className="text-center text-sm text-muted-foreground mb-6">
-          {mode === "login" ? "Acesse sua conta GIMPORTS" : "Cadastre-se gratuitamente"}
+          {mode === "login" ? "Acesse sua conta Royal Vita" : "Cadastre-se gratuitamente"}
         </p>
 
         <div className="grid grid-cols-2 gap-1 p-1 bg-muted rounded-full mb-6">

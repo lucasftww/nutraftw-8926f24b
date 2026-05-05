@@ -9,7 +9,7 @@
  * `profiles.referred_by_code` (gravado no DB) e `affiliate_referrals`
  * (gravado a partir do localStorage).
  */
-const KEY = "gimports.affiliate.ref.v1";
+const KEY = "royalvita.affiliate.ref.v1";
 const TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 export type AffiliateAttribution = {
