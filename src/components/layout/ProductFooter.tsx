@@ -57,7 +57,7 @@ export function ProductFooter() {
           </nav>
 
           <p className="text-[11px] text-muted-foreground/80">
-            © {year} GIMPORTS
+            © {year} Royal Vita
           </p>
         </div>
       </div>

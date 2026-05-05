@@ -28,7 +28,7 @@ export default function Wishlist() {
   const [loading, setLoading] = useState(true);
 
   useSEO({
-    title: "Meus favoritos | GIMPORTS",
+    title: "Meus favoritos | Royal Vita",
     description: "Produtos que você salvou para depois.",
   });
 

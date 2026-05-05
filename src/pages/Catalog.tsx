@@ -170,9 +170,9 @@ export default function Catalog() {
   }, [add, openCart]);
 
   useSEO({
-    title: "GIMPORTS — Catálogo de farmacêuticos importados",
+    title: "Royal Vita — Catálogo de farmacêuticos importados",
     description:
-      "Catálogo GIMPORTS com produtos farmacêuticos importados: peptídeos, suporte e mais, com preços transparentes e envio para todo o Brasil.",
+      "Catálogo Royal Vita com produtos farmacêuticos importados: peptídeos, suporte e mais, com preços transparentes e envio para todo o Brasil.",
     type: "website",
     jsonLd: {
       "@context": "https://schema.org",

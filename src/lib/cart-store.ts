@@ -23,12 +23,12 @@ export interface CartLine {
   updated_at: number;
 }
 
-const STORAGE_KEY = "gimports-cart-v1";
-const COUPON_KEY = "gimports-coupon-v1";
+const STORAGE_KEY = "royalvita-cart-v1";
+const COUPON_KEY = "royalvita-coupon-v1";
 // Chave legada de uma fila de operações pendentes que nunca chegou a ser
 // drenada — limpamos no load para não inflar o localStorage de quem já usou
 // versões anteriores do app.
-const LEGACY_PENDING_KEY = "gimports-cart-pending-v1";
+const LEGACY_PENDING_KEY = "royalvita-cart-pending-v1";
 
 let lines: CartLine[] = [];
 let drawerOpen = false;
