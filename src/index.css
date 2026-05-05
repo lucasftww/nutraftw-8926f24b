@@ -55,10 +55,15 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 39% 14%;
 
-    /* Azul marinho profundo — confiança farmacêutica (#0B1F3A) */
-    --primary: 218 67% 14%;
+    /* Royal Blue — extraído da logo Royal Vita (#0B1F6B / deep royal) */
+    --primary: 230 81% 23%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 218 60% 24%;
+    --primary-glow: 226 70% 36%;
+
+    /* Brand cyan — swoosh / sparkle da logo (#3FC1E5) — usar em badges,
+       hovers de destaque, micro-acentos. NÃO usar como CTA principal. */
+    --brand-cyan: 194 74% 57%;
+    --brand-cyan-foreground: 230 81% 18%;
 
     /* Laranja de conversão — CTA "Comprar" (#F97316 / orange-500)
        hover #EA580C, pressed #C2410C */
