@@ -134,54 +134,11 @@ export default function ProductDetail() {
       <button
         type="button"
         onClick={() => nav(-1)}
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded-md px-1 -ml-1"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded-md px-1 -ml-1"
       >
         <ArrowLeft className="h-4 w-4" strokeWidth={2.25} />
         Voltar
       </button>
-
-      {/* Breadcrumbs — reforçam a navegação até o Catálogo sem duplicar links */}
-      <nav aria-label="Breadcrumb" className="mb-5">
-        <ol
-          className="flex items-center flex-wrap gap-1.5 text-sm text-muted-foreground"
-          itemScope
-          itemType="https://schema.org/BreadcrumbList"
-        >
-          <li
-            itemProp="itemListElement"
-            itemScope
-            itemType="https://schema.org/ListItem"
-            className="inline-flex items-center"
-          >
-            <Link
-              to="/"
-              itemProp="item"
-              className="hover:text-primary transition-colors font-medium"
-            >
-              <span itemProp="name">Catálogo</span>
-            </Link>
-            <meta itemProp="position" content="1" />
-          </li>
-          <li aria-hidden="true" className="text-muted-foreground/50">
-            ›
-          </li>
-          <li
-            itemProp="itemListElement"
-            itemScope
-            itemType="https://schema.org/ListItem"
-            className="inline-flex items-center min-w-0"
-            aria-current="page"
-          >
-            <span
-              itemProp="name"
-              className="text-foreground font-medium line-clamp-2 leading-snug"
-            >
-              {p.name}
-            </span>
-            <meta itemProp="position" content="2" />
-          </li>
-        </ol>
-      </nav>
 
       <div className="grid lg:grid-cols-2 gap-6 lg:gap-12 items-start">
         {/* Image */}
