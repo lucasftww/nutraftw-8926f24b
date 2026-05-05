@@ -47,6 +47,10 @@ export default {
           foreground: "hsl(var(--whatsapp-foreground))",
           hover: "hsl(var(--whatsapp-hover))",
         },
+        "brand-cyan": {
+          DEFAULT: "hsl(var(--brand-cyan))",
+          foreground: "hsl(var(--brand-cyan-foreground))",
+        },
         muted: {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
