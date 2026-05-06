@@ -172,7 +172,11 @@ export function Header() {
                         <img
                           src={logoRoyalVittaText}
                           alt="Royal Vitta"
-                          className="h-5 sm:h-6 md:h-7 w-auto object-contain transition-all duration-300 animate-in fade-in slide-in-from-left-4 duration-700"
+                          width={240}
+                          height={48}
+                          decoding="async"
+                          fetchPriority="high"
+                          className="h-5 sm:h-6 md:h-7 w-auto object-contain"
                         />
                       </Link>
                   <button
