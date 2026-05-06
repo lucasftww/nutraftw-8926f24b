@@ -1,0 +1,1 @@
+UPDATE public.site_settings SET value = 'Olá! Vim pelo site da Royal Vita.', updated_at = now() WHERE key = 'whatsapp_message' AND value ILIKE '%gimports%';
