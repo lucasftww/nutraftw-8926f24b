@@ -176,7 +176,7 @@ export function Header() {
             {/* Cabeçalho — mesmas medidas, padding e tipografia do header fixo */}
             <div className="w-full glass border-b border-border/50 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-background/70">
               <div className="w-full pl-2 pr-3 sm:pl-3 sm:pr-6">
-                <div className="flex items-center justify-between h-12 md:h-14 gap-4">
+                <div className="flex items-center justify-between h-16 gap-4">
                   {/*
                     Marca apenas visual (não-clicável) — evita duplicar o
                     destino "/" que já é coberto pelo item "Catálogo" abaixo.
