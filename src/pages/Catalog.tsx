@@ -750,7 +750,7 @@ const ProductCard = memo(function ProductCard({
             >
               {/* Imagem — aspect quadrado + padding interno para uniformizar
                   produtos com recortes/proporções diferentes nos assets. */}
-              <div className="relative aspect-[5/4] sm:aspect-square overflow-hidden bg-white p-2 sm:p-4 flex items-center justify-center">
+              <div className="relative aspect-square overflow-hidden bg-white p-3 sm:p-4 flex items-center justify-center">
                 {(() => {
                   const r = responsiveImage(
                     p.image_url,
@@ -831,7 +831,7 @@ const ProductCard = memo(function ProductCard({
               {/* Conteúdo: slot de badge fixo + título + bloco de preço com
                   altura reservada — garante que CTA fica na MESMA linha entre
                   cards vizinhos do grid, mesmo sem promoção. */}
-              <div className="flex flex-col flex-1 px-3 pt-2.5 pb-3 sm:px-3.5 sm:pt-3 sm:pb-4">
+              <div className="flex flex-col flex-1 px-3 pt-2 pb-2.5 sm:px-3.5 sm:pt-3 sm:pb-4">
                 {/* Slot fixo de "etiqueta superior" — reserva 16px sempre,
                     de modo que o título inicie na mesma altura em todos os cards. */}
                 <div className="min-h-[16px] mb-1 flex items-center">
@@ -847,7 +847,7 @@ const ProductCard = memo(function ProductCard({
                 </h3>
                 {/* Bloco de preço com altura mínima reservada para a linha
                     "de R$" — alinha cards com e sem desconto na mesma altura. */}
-                <div className="mt-1.5 sm:mt-2 leading-tight sm:min-h-[64px] flex flex-col sm:justify-end">
+                <div className="mt-1 sm:mt-2 leading-tight sm:min-h-[64px] flex flex-col sm:justify-end">
                   {hasRealSale ? (
                     <div className="text-xs text-oldPrice font-medium line-through tabular-nums">
                       de {formatBRL(priceNum)}
@@ -867,7 +867,7 @@ const ProductCard = memo(function ProductCard({
                     ou 3x de {formatBRL(finalPrice / 3)}
                   </div>
                 </div>
-                <div className="mt-auto flex flex-col gap-1.5">
+                <div className="mt-2.5 sm:mt-auto flex flex-col gap-1 sm:gap-1.5">
                 <button
                   type="button"
                   onClick={(e) => {
@@ -876,7 +876,7 @@ const ProductCard = memo(function ProductCard({
                     // 40+ que pode não perceber que o card inteiro é clicável.
                   }}
                   aria-label={`Ver detalhes de ${p.name}`}
-                  className="inline-flex items-center justify-center h-9 sm:h-10 w-full rounded-full border border-primary/30 bg-background text-primary text-sm font-semibold hover:bg-primary/5 active:scale-[0.98] transition-all"
+                  className="inline-flex items-center justify-center h-8 sm:h-10 w-full rounded-full border border-primary/30 bg-background text-primary text-[13px] sm:text-sm font-semibold hover:bg-primary/5 active:scale-[0.98] transition-all"
                 >
                   Ver produto
                 </button>
@@ -889,7 +889,7 @@ const ProductCard = memo(function ProductCard({
                   }}
                   disabled={isOut}
                   aria-label={isOut ? "Esgotado" : `Adicionar ${p.name} ao carrinho`}
-                  className="inline-flex items-center justify-center gap-1 h-9 sm:h-10 w-full rounded-full bg-secondary text-secondary-foreground text-sm font-semibold hover:bg-secondary/90 active:scale-[0.98] transition-all shadow-sm shadow-secondary/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
+                  className="inline-flex items-center justify-center gap-1 h-9 sm:h-10 w-full rounded-full bg-secondary text-secondary-foreground text-[13px] sm:text-sm font-semibold hover:bg-secondary/90 active:scale-[0.98] transition-all shadow-sm shadow-secondary/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
                 >
                   <ShoppingCart className="h-3.5 w-3.5" strokeWidth={2.2} />
                   Comprar
