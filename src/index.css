@@ -15,11 +15,11 @@
   html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
-    /* Bloqueia rolagem horizontal residual em Androids (Redmi/MIUI) que
-       ignoram overflow-x apenas em divs internas — força o viewport a nunca
-       mostrar barra/área extra à direita. */
-    overflow-x: hidden;
-    max-width: 100%;
+    /* IMPORTANTE: não usar overflow-x:hidden no <html> — quebra
+       position: sticky no mobile (iOS Safari e Chrome Android), pois
+       o container de scroll deixa de ser o viewport. Bloqueamos rolagem
+       horizontal apenas no <body> com overflow-x: clip (não cria novo
+       contexto de scroll, então sticky continua funcionando). */
     /* scroll-behavior: smooth removido — causava efeito "kicking" no mobile
        quando imagens lazy/conteúdo acima carregavam após F5 e o navegador
        animava o reajuste do scroll. Mantemos smooth só em âncoras (:target). */
@@ -28,7 +28,9 @@
     -webkit-tap-highlight-color: transparent;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-    overflow-x: hidden;
+    /* clip > hidden: não estabelece um scroll container, preservando o
+       comportamento de position: sticky do header. */
+    overflow-x: clip;
     max-width: 100%;
     /* Evita que o navegador "puxe" o scroll quando elementos acima da
        viewport mudam de altura (lazy images, banners, etc.) — principal
