@@ -305,12 +305,12 @@ function Last24hPanel({ data }: { data: Last24h }) {
                 </div>
                 <div className="text-right shrink-0">
                   <p className="font-bold tabular-nums">{formatBRL(o.total)}</p>
-                  <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full mt-0.5 ${
+                  <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full mt-0.5 ring-1 ${
                     ["paid","processing","shipped","delivered"].includes(o.status)
-                      ? "bg-emerald-500/15 text-emerald-600"
+                      ? "bg-emerald-500/15 text-emerald-400 ring-emerald-500/25"
                       : o.status === "pending"
-                      ? "bg-amber-500/15 text-amber-600"
-                      : "bg-muted text-muted-foreground"
+                      ? "bg-amber-500/15 text-amber-400 ring-amber-500/25"
+                      : "bg-muted text-muted-foreground ring-border"
                   }`}>
                     {o.status}
                   </span>
