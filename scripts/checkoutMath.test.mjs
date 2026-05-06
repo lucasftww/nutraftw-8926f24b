@@ -100,3 +100,34 @@ test("cupom fixo limitado ao subtotal", () => {
   assert.equal(r.couponDiscount, 50);
   assert.equal(r.total, 0);
 });
+
+// Simula a paginação batch usada na exportação CSV (Orders/Users).
+test("export batch para quando lote vem incompleto", async () => {
+  const total = 1234;
+  const BATCH = 500;
+  const MAX = 20000;
+  const fetchPage = async (offset) => {
+    const remaining = Math.max(0, total - offset);
+    return Array.from({ length: Math.min(BATCH, remaining) }, (_, i) => ({ id: offset + i }));
+  };
+  const all = [];
+  for (let off = 0; off < MAX; off += BATCH) {
+    const rows = await fetchPage(off);
+    all.push(...rows);
+    if (rows.length < BATCH) break;
+  }
+  assert.equal(all.length, total);
+});
+
+test("export respeita teto MAX", async () => {
+  const BATCH = 100;
+  const MAX = 300;
+  const fetchPage = async () => Array.from({ length: BATCH }, (_, i) => i);
+  const all = [];
+  for (let off = 0; off < MAX; off += BATCH) {
+    const rows = await fetchPage();
+    all.push(...rows);
+    if (rows.length < BATCH) break;
+  }
+  assert.equal(all.length, MAX);
+});
