@@ -27,10 +27,10 @@ export default function Wishlist() {
   const [items, setItems] = useState<FavProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useSEO({
-    title: "Meus favoritos | Royal Vitta",
-    description: "Produtos que você salvou para depois.",
-  });
+   useSEO({
+     title: "Meus favoritos",
+     description: "Produtos que você salvou para depois.",
+   });
 
   useEffect(() => {
     if (!isAuthed) { setLoading(false); return; }
