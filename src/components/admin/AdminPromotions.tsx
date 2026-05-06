@@ -243,7 +243,7 @@ export function AdminPromotions() {
             <EmptyState
               icon={Tag}
               title="Nenhum produto em destaque"
-              description="Clique em + Promo no painel ao lado para adicionar produtos aqui — eles aparecerão no topo do catálogo."
+              description="Clique em + Promo nos produtos disponíveis para adicioná-los aqui — eles aparecerão no topo do catálogo."
               compact
             />
           ) : (
