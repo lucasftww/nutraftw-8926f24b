@@ -5,7 +5,6 @@ import { useCart } from "@/hooks/useCart";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
-import logoRoyalVita from "@/assets/logo-royalvita-horizontal.png";
 import { prefetchMyAccount } from "@/App";
 
 export function Header() {
@@ -62,19 +61,11 @@ export function Header() {
                   <path d="M4 17h16" />
                 </svg>
               </button>
-              <Link to="/" className="flex items-center group cursor-pointer min-w-0" aria-label="Royal Vitta">
-                {/* Lockup horizontal em todas as larguras — pré-carregado para evitar flash. */}
-                <img
-                  src={logoRoyalVita}
-                  alt="Royal Vitta"
-                  width={240}
-                  height={64}
-                  loading="eager"
-                  decoding="async"
-                  fetchPriority="high"
-                  className="h-8 sm:h-9 md:h-10 lg:h-11 w-auto object-contain shrink-0"
-                />
-              </Link>
+               <Link to="/" className="flex items-center group cursor-pointer min-w-0" aria-label="Royal Vitta">
+                 <span className="text-xl md:text-2xl font-bold tracking-tight text-primary">
+                   ROYAL VITTA
+                 </span>
+               </Link>
             </div>
 
             {/* Direita: conta + carrinho */}
@@ -175,18 +166,11 @@ export function Header() {
                     Marca apenas visual (não-clicável) — evita duplicar o
                     destino "/" que já é coberto pelo item "Catálogo" abaixo.
                   */}
-                  <div className="flex items-center min-w-0" aria-hidden="true">
-                    <img
-                      src={logoRoyalVita}
-                      alt="Royal Vitta"
-                      width={200}
-                      height={48}
-                      loading="eager"
-                      fetchPriority="high"
-                      decoding="async"
-                      className="h-10 w-auto object-contain shrink-0"
-                    />
-                  </div>
+                   <div className="flex items-center min-w-0" aria-hidden="true">
+                     <span className="text-xl font-bold tracking-tight text-primary">
+                       ROYAL VITTA
+                     </span>
+                   </div>
                   <button
                     onClick={() => setMobileMenuOpen(false)}
                     aria-label="Fechar menu"
