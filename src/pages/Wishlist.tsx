@@ -132,11 +132,10 @@ export default function Wishlist() {
             return (
               <div
                 key={p.id}
-                style={{ animationDelay: `${Math.min(idx, 7) * 40}ms`, animationFillMode: "both" }}
-                className={`group flex flex-col h-full rounded-2xl bg-card overflow-hidden border border-border/50 hover:border-primary/30 hover:shadow-[var(--shadow-card)] transition-all animate-fade-in ${isOut ? "opacity-70" : ""}`}
+                className={`group flex flex-col h-full rounded-2xl bg-card overflow-hidden border border-border/50 ${isOut ? "opacity-70" : ""}`}
               >
                 <Link to={`/produto/${p.slug}`} className="relative aspect-square overflow-hidden bg-white block">
-                  <img src={r.src} srcSet={r.srcSet || undefined} sizes={r.sizes} alt={p.name} loading="lazy" decoding="async" width={400} height={400} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300" />
+                  <img src={r.src} srcSet={r.srcSet || undefined} sizes={r.sizes} alt={p.name} loading="lazy" decoding="async" width={400} height={400} className="w-full h-full object-cover" />
                   <WishlistButton productId={p.id} className="absolute top-2 right-2" size="sm" />
                   {isOut && (
                     <span className="badge-pill absolute top-2 left-2 uppercase tracking-wide font-bold bg-foreground/85 text-background">
