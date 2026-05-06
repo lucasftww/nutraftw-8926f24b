@@ -868,6 +868,24 @@ export type Database = {
           wishlist_count: number
         }[]
       }
+      admin_users_overview: {
+        Args: { p_limit?: number; p_offset?: number; p_search?: string }
+        Returns: {
+          city: string
+          cpf: string
+          created_at: string
+          email: string
+          full_name: string
+          is_admin: boolean
+          last_order_at: string
+          ltv: number
+          orders_count: number
+          phone: string
+          state: string
+          total_count: number
+          user_id: string
+        }[]
+      }
       affiliate_commission_rate: { Args: never; Returns: number }
       affiliate_release_days: { Args: never; Returns: number }
       apply_last_promo: { Args: { p_product_id: string }; Returns: number }

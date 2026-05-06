@@ -14,6 +14,7 @@ import { ProductThumb } from "@/components/admin/ProductThumb";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { queryKeys } from "@/lib/queryKeys";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
+import { friendlyErrorMessage } from "@/lib/friendlyError";
 import { logAdminAction, shallowDiff } from "@/lib/auditLog";
 import { auditUpdateIntegrity } from "@/lib/integrityAudit";
 import { SortableList, useSortableRow, DragHandle } from "@/components/admin/SortableList";
@@ -212,7 +213,7 @@ export function AdminProducts() {
           summary: `Produto "${payload.name}"`,
         });
       }
-      toast.error(error.message);
+      toast.error(friendlyErrorMessage(error));
     } else {
       toast.success("Produto guardado");
       const saved: any = data || payload;
@@ -251,7 +252,7 @@ export function AdminProducts() {
     const { error } = await supabase.from("products").delete().eq("id", id);
     if (error) {
       logSupabaseError("Remover produto", error, { id });
-      toast.error(error.message);
+      toast.error(friendlyErrorMessage(error));
     } else {
       toast.success("Removido");
       logAdminAction({

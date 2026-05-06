@@ -9,6 +9,7 @@ import { OrderDetailModal } from "@/components/admin/OrderDetailModal";
 import { useConfirm } from "@/components/admin/ConfirmDialog";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
+import { friendlyErrorMessage } from "@/lib/friendlyError";
 
 const STATUSES = ["pending", "paid", "processing", "shipped", "delivered", "cancelled", "refunded"];
 function paymentLabel(pm: string | null | undefined): string {
@@ -126,7 +127,7 @@ export function AdminOrders() {
     });
     if (err) {
       logSupabaseError("Atualizar estado do pedido", err, { order_id: id, new_status: status });
-      toast.error(`Falha ao atualizar: ${err.message}`);
+      toast.error(`Falha ao atualizar: ${friendlyErrorMessage(err)}`);
       // Rollback
       setItems((p) => p.map((o) => (o.id === id ? { ...o, status: prev } : o)));
     } else {
