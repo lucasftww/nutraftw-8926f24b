@@ -42,120 +42,43 @@ export function AdminDashboard() {
     setLoading(true);
     setError(null);
     try {
-      const [ordersRes, productsRes, customersRes] = await Promise.all([
-        supabase.from("orders").select("id, total, status, created_at, shipping_full_name").order("created_at", { ascending: false }),
-        supabase.from("products").select("id, name, stock, price, image_url"),
-        supabase.from("profiles").select("id", { count: "exact", head: true }),
-      ]);
-
-      if (ordersRes.error) {
-        const info = logSupabaseError("Carregar pedidos", ordersRes.error, { table: "orders" });
+      // RPC agregada server-side (escala para milhões de pedidos).
+      // Antes baixávamos TODOS os pedidos para somar no client — quebrava
+      // ao passar de 1000 (limite default do Supabase) e gerava payload
+      // inviável em produção.
+      const { data, error: rpcErr } = await (supabase as any).rpc("admin_dashboard_stats");
+      if (rpcErr) {
+        const info = logSupabaseError("Dashboard", rpcErr, { rpc: "admin_dashboard_stats" });
         setError(info);
-        toast.error(`Pedidos: ${info.message}`);
+        toast.error(`Dashboard: ${info.message}`);
         setLoading(false);
         return;
       }
-      if (productsRes.error) {
-        const info = logSupabaseError("Carregar produtos", productsRes.error, { table: "products" });
-        setError(info);
-        toast.error(`Produtos: ${info.message}`);
-        setLoading(false);
-        return;
-      }
-      if (customersRes.error) {
-        const info = logSupabaseError("Contar clientes", customersRes.error, { table: "profiles" });
-        setError(info);
-        toast.error(`Clientes: ${info.message}`);
-        setLoading(false);
-        return;
-      }
-
-      const orders = ordersRes.data;
-      const products = productsRes.data;
-      const customersCount = customersRes.count;
-
-      const paidOrders = (orders || []).filter((o) => ["paid", "processing", "shipped", "delivered"].includes(o.status));
-      // Receita = soma do `total` das ordens pagas. `total` já é líquido (após cupom + PIX).
-      const totalRevenue = paidOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
-      const pendingOrders = (orders || []).filter((o) => o.status === "pending").length;
-      const lowStock = (products || []).filter((p) => (p.stock || 0) < 5).length;
-      const paidOrdersCount = paidOrders.length;
-      const aov = paidOrdersCount > 0 ? totalRevenue / paidOrdersCount : 0;
-
-      // Top produtos REAIS, derivados de order_items das ordens pagas.
-      let itemsSold = 0;
-      let topProducts: any[] = [];
-      if (paidOrders.length > 0) {
-        const paidIds = paidOrders.map((o) => o.id);
-        const { data: oi, error: oiErr } = await supabase
-          .from("order_items")
-          .select("product_id, product_name, product_image_url, quantity, subtotal")
-          .in("order_id", paidIds);
-        if (oiErr) {
-          const info = logSupabaseError("Carregar itens dos pedidos", oiErr, {
-            table: "order_items",
-            order_count: paidIds.length,
-          });
-          setError(info);
-          toast.error(`Itens: ${info.message}`);
-          setLoading(false);
-          return;
-        }
-        const agg = new Map<string, { id: string | null; name: string; image: string | null; qty: number; revenue: number }>();
-        for (const it of (oi as any[]) || []) {
-          const key = it.product_id || it.product_name;
-          const cur = agg.get(key) || { id: it.product_id, name: it.product_name, image: it.product_image_url, qty: 0, revenue: 0 };
-          cur.qty += Number(it.quantity || 0);
-          cur.revenue += Number(it.subtotal || 0);
-          itemsSold += Number(it.quantity || 0);
-          agg.set(key, cur);
-        }
-        topProducts = Array.from(agg.values()).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
-      }
-
+      const d: any = data || {};
       setStats({
-        totalRevenue,
-        totalOrders: (orders || []).length,
-        paidOrdersCount,
-        aov,
-        itemsSold,
-        pendingOrders,
-        totalProducts: (products || []).length,
-        lowStock,
-        totalCustomers: customersCount || 0,
-        recentOrders: (orders || []).slice(0, 5),
-        topProducts,
+        totalRevenue: Number(d.total_revenue || 0),
+        totalOrders: Number(d.total_orders || 0),
+        paidOrdersCount: Number(d.paid_orders_count || 0),
+        aov: Number(d.aov || 0),
+        itemsSold: Number(d.items_sold || 0),
+        pendingOrders: Number(d.pending_orders || 0),
+        totalProducts: Number(d.total_products || 0),
+        lowStock: Number(d.low_stock || 0),
+        totalCustomers: Number(d.total_customers || 0),
+        recentOrders: Array.isArray(d.recent_orders) ? d.recent_orders : [],
+        topProducts: Array.isArray(d.top_products) ? d.top_products : [],
       });
-
-      // ===== Últimas 24h: vendas + mini funil =====
-      const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
-      const last24Orders = (orders || []).filter((o) => o.created_at >= since);
-      const last24Paid = last24Orders.filter((o) => ["paid", "processing", "shipped", "delivered"].includes(o.status));
-      const recentSales = last24Orders
-        .slice()
-        .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
-        .slice(0, 6);
-
-      const [ev24, wl24, ci24] = await Promise.all([
-        supabase.from("product_events").select("event_type", { head: false, count: "exact" }).gte("created_at", since),
-        supabase.from("wishlists").select("id", { head: true, count: "exact" }).gte("created_at", since),
-        supabase.from("cart_items").select("id", { head: true, count: "exact" }).gte("created_at", since),
-      ]);
-      const events = (ev24.data as Array<{ event_type: string }> | null) || [];
-      const views = events.filter((e) => e.event_type === "view").length;
-      const checkoutStarted = events.filter((e) => e.event_type === "checkout_started").length;
-
+      const l24 = d.last24h || {};
       setLast24h({
-        ordersCount: last24Orders.length,
-        paidCount: last24Paid.length,
-        revenue: last24Paid.reduce((s, o) => s + Number(o.total || 0), 0),
-        views,
-        wishlist: wl24.count || 0,
-        cartAdds: ci24.count || 0,
-        checkoutStarted,
-        recentSales,
+        ordersCount: Number(l24.orders_count || 0),
+        paidCount: Number(l24.paid_count || 0),
+        revenue: Number(l24.revenue || 0),
+        views: Number(l24.views || 0),
+        wishlist: Number(l24.wishlist || 0),
+        cartAdds: Number(l24.cart_adds || 0),
+        checkoutStarted: Number(l24.checkout_started || 0),
+        recentSales: Array.isArray(l24.recent_sales) ? l24.recent_sales : [],
       });
-
       setLoading(false);
     } catch (e: any) {
       const info = logSupabaseError("Dashboard", e);
