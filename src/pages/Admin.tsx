@@ -169,7 +169,7 @@ function AdminInner() {
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-xs font-medium text-foreground truncate">Administrador</div>
-              <div className="text-[11px] text-muted-foreground/80 truncate">{user?.email}</div>
+              <div className="text-[11px] text-muted-foreground/80 break-all leading-tight" title={user?.email}>{user?.email}</div>
             </div>
           </div>
           <button
