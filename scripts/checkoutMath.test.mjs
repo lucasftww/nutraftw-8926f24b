@@ -1,3 +1,29 @@
+test("range de paginação: page * size, +size-1", () => {
+  const PAGE_SIZE = 30;
+  const ranges = (page) => [page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1];
+  assert.deepEqual(ranges(0), [0, 29]);
+  assert.deepEqual(ranges(1), [30, 59]);
+  assert.deepEqual(ranges(5), [150, 179]);
+});
+
+test("totalPages calcula com base no totalCount", () => {
+  const totalPages = (n, size) => Math.max(1, Math.ceil(n / size));
+  assert.equal(totalPages(0, 30), 1);
+  assert.equal(totalPages(30, 30), 1);
+  assert.equal(totalPages(31, 30), 2);
+  assert.equal(totalPages(150, 50), 3);
+});
+
+test("status rollback: simulação", async () => {
+  let list = [{ id: "a", status: "pending" }];
+  const setList = (n) => (list = n);
+  // sucesso
+  let prev = list[0].status;
+  setList(list.map((o) => o.id === "a" ? { ...o, status: "paid" } : o));
+  // simula erro → rollback
+  setList(list.map((o) => o.id === "a" ? { ...o, status: prev } : o));
+  assert.equal(list[0].status, "pending");
+});
 /**
  * Testes pequenos com `node --test` (sem precisar instalar vitest).
  * Rode com:  node --test scripts/checkoutMath.test.mjs
