@@ -161,7 +161,7 @@ export function Header() {
             {/* Cabeçalho — mesmas medidas, padding e tipografia do header fixo */}
              <div className="w-full glass border-b border-border/50 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-background/70 min-h-[72px]">
                <div className="w-full px-4 sm:px-6">
-                 <div className="flex items-center justify-between h-18 md:h-20 gap-4">
+                 <div className="flex items-center justify-between h-16 md:h-20 gap-4">
                   {/*
                     Marca apenas visual (não-clicável) — evita duplicar o
                     destino "/" que já é coberto pelo item "Catálogo" abaixo.
@@ -170,7 +170,7 @@ export function Header() {
                         <img 
                           src={logoRoyalVittaText} 
                           alt="Royal Vitta" 
-                          className="h-12 sm:h-14 md:h-16 lg:h-18 w-auto object-contain transition-all duration-300 animate-in fade-in slide-in-from-left-4 duration-700" 
+                          className="h-8 sm:h-9 md:h-10 w-auto object-contain transition-all duration-300 animate-in fade-in slide-in-from-left-4 duration-700"
                         />
                       </Link>
                   <button
