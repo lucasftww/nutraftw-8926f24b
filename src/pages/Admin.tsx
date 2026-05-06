@@ -639,6 +639,29 @@ function AdminProducts() {
   if (error) return <AdminErrorBanner error={error} onRetry={load} />;
   const totalPages = totalCount != null ? Math.max(1, Math.ceil(totalCount / PAGE_SIZE)) : null;
 
+  // Drag-and-drop só faz sentido sem busca ativa (com busca, a ordem visual
+  // é por relevância, não pela ordem manual).
+  const canReorder = !debouncedQuery;
+
+  async function reorderProducts(next: any[]) {
+    // Reatribui display_order em incrementos de 10 baseado na página atual,
+    // assim novos itens cabem entre os existentes sem renumerar tudo.
+    const baseOffset = page * PAGE_SIZE * 10;
+    const updates = next.map((p, i) => ({ id: p.id, display_order: baseOffset + (i + 1) * 10 }));
+    setItems(next.map((p, i) => ({ ...p, display_order: baseOffset + (i + 1) * 10 })));
+    const results = await Promise.all(
+      updates.map((u) => supabase.from("products").update({ display_order: u.display_order } as any).eq("id", u.id)),
+    );
+    const failed = results.filter((r) => r.error);
+    if (failed.length) {
+      toast.error(`Falha ao salvar nova ordem (${failed.length})`);
+      load();
+    } else {
+      toast.success("Ordem atualizada");
+      qc.invalidateQueries({ queryKey: queryKeys.products.all });
+    }
+  }
+
   async function exportCsv() {
     toast.info("Gerando CSV…");
     // Exporta todos os produtos (até 5000) com os campos editáveis principais.
