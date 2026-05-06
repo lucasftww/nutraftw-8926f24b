@@ -40,14 +40,16 @@ const ACTIONS = [
   { value: "divergence_detected", label: "Divergência" },
 ];
 
-const ACTION_META: Record<string, { icon: any; color: string; bg: string; label: string }> = {
-  create:        { icon: Plus,            color: "text-emerald-700", bg: "bg-emerald-50",     label: "Criou" },
-  update:        { icon: Pencil,          color: "text-blue-700",    bg: "bg-blue-50",        label: "Editou" },
-  delete:        { icon: Trash2,          color: "text-destructive", bg: "bg-destructive/10", label: "Removeu" },
-  status_change: { icon: ArrowRightCircle,color: "text-amber-700",   bg: "bg-amber-50",       label: "Mudou estado" },
-  settings_save: { icon: SettingsIcon,    color: "text-slate-700",   bg: "bg-slate-100",      label: "Salvou config" },
-  update_failed:       { icon: AlertTriangle, color: "text-destructive", bg: "bg-destructive/10", label: "Update falhou" },
-  divergence_detected: { icon: ShieldAlert,   color: "text-amber-700",   bg: "bg-amber-50",       label: "Divergência" },
+import { STATUS_TONE } from "./statusTone";
+
+const ACTION_META: Record<string, { icon: any; tone: string; label: string }> = {
+  create:        { icon: Plus,             tone: STATUS_TONE.ok,    label: "Criou" },
+  update:        { icon: Pencil,           tone: STATUS_TONE.info,  label: "Editou" },
+  delete:        { icon: Trash2,           tone: STATUS_TONE.error, label: "Removeu" },
+  status_change: { icon: ArrowRightCircle, tone: STATUS_TONE.warn,  label: "Mudou estado" },
+  settings_save: { icon: SettingsIcon,     tone: STATUS_TONE.muted, label: "Salvou config" },
+  update_failed:       { icon: AlertTriangle, tone: STATUS_TONE.error, label: "Update falhou" },
+  divergence_detected: { icon: ShieldAlert,   tone: STATUS_TONE.warn,  label: "Divergência" },
 };
 
 const PAGE_SIZE = 50;
@@ -137,7 +139,7 @@ export function AdminAuditLog() {
       <div className="bg-card rounded-2xl border border-border overflow-hidden">
         <ul className="divide-y divide-border">
           {filtered.map((e) => {
-            const meta = ACTION_META[e.action] || { icon: Pencil, color: "text-muted-foreground", bg: "bg-muted", label: e.action };
+            const meta = ACTION_META[e.action] || { icon: Pencil, tone: STATUS_TONE.muted, label: e.action };
             const Icon = meta.icon;
             const isOpen = !!expanded[e.id];
             return (
@@ -146,7 +148,7 @@ export function AdminAuditLog() {
                   onClick={() => setExpanded((s) => ({ ...s, [e.id]: !s[e.id] }))}
                   className="w-full flex items-start gap-3 p-4 hover:bg-muted/30 transition-colors text-left"
                 >
-                  <div className={`shrink-0 inline-flex p-2 rounded-lg ${meta.bg} ${meta.color}`}>
+                  <div className={`shrink-0 inline-flex p-2 rounded-lg ${meta.tone}`}>
                     <Icon className="h-4 w-4" />
                   </div>
                   <div className="flex-1 min-w-0">
