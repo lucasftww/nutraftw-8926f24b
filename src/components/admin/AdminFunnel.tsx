@@ -217,7 +217,7 @@ export function AdminFunnel() {
               </span>
             </header>
 
-            <div className="grid lg:grid-cols-[minmax(0,1fr)_1.1fr] gap-6 lg:gap-8 items-center">
+            <div className="grid lg:grid-cols-[minmax(0,1fr)_1.1fr] gap-6 lg:gap-8 lg:items-center">
               {/* SVG do funil */}
               <FunnelSVG stages={stages} />
 
