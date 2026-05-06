@@ -640,6 +640,7 @@ function AdminProducts() {
   const totalPages = totalCount != null ? Math.max(1, Math.ceil(totalCount / PAGE_SIZE)) : null;
 
   async function exportCsv() {
+    /* see below */
     toast.info("Gerando CSV…");
     // Exporta todos os produtos (até 5000) com os campos editáveis principais.
     const { data, error } = await supabase
