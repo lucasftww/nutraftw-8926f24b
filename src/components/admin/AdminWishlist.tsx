@@ -212,7 +212,7 @@ export function AdminWishlist() {
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Ordenado pelos produtos mais favoritados nos últimos {days} dias. Use isso para priorizar reposição de estoque.
+        Ordenado pelos produtos mais favoritados {days === 1 ? "nas últimas 24 horas" : `nos últimos ${days} dias`}. Use isso para priorizar reposição de estoque.
       </p>
     </div>
   );
