@@ -6,6 +6,7 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { prefetchMyAccount } from "@/App";
+import logoRV from "@/assets/logo-rv.png";
 
 export function Header() {
   const { user, isAdmin } = useAuth();
@@ -62,6 +63,7 @@ export function Header() {
                 </svg>
               </button>
                 <Link to="/" className="flex items-center group cursor-pointer min-w-0" aria-label="Home">
+                  <img src={logoRV} alt="RV" className="h-9 md:h-11 w-auto object-contain" />
                 </Link>
             </div>
 
@@ -164,6 +166,7 @@ export function Header() {
                     destino "/" que já é coberto pelo item "Catálogo" abaixo.
                   */}
                     <div className="flex items-center min-w-0" aria-hidden="true">
+                      <img src={logoRV} alt="" className="h-9 w-auto object-contain" />
                     </div>
                   <button
                     onClick={() => setMobileMenuOpen(false)}
