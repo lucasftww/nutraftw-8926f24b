@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatBRL, slugify } from "@/lib/utils";
 import { toast } from "sonner";
-import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, RefreshCcw, Settings, BarChart3, Activity, History, TrendingUp, Users, Download, ChevronUp, ChevronDown, Check, Calendar, Copy, Command, Handshake, Tag, Menu, X, ChevronRight, Heart } from "lucide-react";
+import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, RefreshCcw, Settings, BarChart3, Activity, History, TrendingUp, Users, Download, ChevronUp, ChevronDown, Check, Calendar, Copy, Command, Handshake, Tag, Menu, X, ChevronRight, Heart, GripVertical } from "lucide-react";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { WeeklyReport } from "@/components/admin/WeeklyReport";
 import { ImageUpload } from "@/components/admin/ImageUpload";
