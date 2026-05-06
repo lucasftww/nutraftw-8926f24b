@@ -5,7 +5,23 @@ import { Button } from "@/components/ui/button";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "./AdminErrorBanner";
 import { toast } from "sonner";
 import { AdminModal } from "./AdminModal";
-import { Printer, FileText } from "lucide-react";
+import { Printer, FileText, Plus, Trash2, RefreshCcw } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { logAdminAction } from "@/lib/auditLog";
+
+const REFUND_REASONS: { value: string; label: string }[] = [
+  { value: "customer_request", label: "Pedido do cliente" },
+  { value: "product_unavailable", label: "Produto indisponível" },
+  { value: "shipping_issue", label: "Problema no envio" },
+  { value: "payment_issue", label: "Problema no pagamento" },
+  { value: "fraud", label: "Fraude" },
+  { value: "duplicate_order", label: "Pedido duplicado" },
+  { value: "other", label: "Outro" },
+];
+const REFUND_STATUS_LABEL: Record<string, string> = {
+  pending: "Pendente", processed: "Processado", failed: "Falhou",
+};
 
 function paymentLabel(pm: string | null | undefined): string {
   if (!pm) return "—";
@@ -120,15 +136,19 @@ function buildDeclarationHtml(order: any, items: any[]) {
 export function OrderDetailModal({ orderId, onClose }: { orderId: string; onClose: () => void }) {
   const [order, setOrder] = useState<any | null>(null);
   const [items, setItems] = useState<any[]>([]);
+  const [refunds, setRefunds] = useState<any[]>([]);
+  const [newRefund, setNewRefund] = useState<{ amount: string; reason: string; notes: string }>({ amount: "", reason: "customer_request", notes: "" });
+  const [savingRefund, setSavingRefund] = useState(false);
   const [error, setError] = useState<AdminErrorInfo | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const [orderRes, itemsRes] = await Promise.all([
+    const [orderRes, itemsRes, refundsRes] = await Promise.all([
       supabase.from("orders").select("*").eq("id", orderId).maybeSingle(),
       supabase.from("order_items").select("*").eq("order_id", orderId),
+      supabase.from("order_refunds" as any).select("*").eq("order_id", orderId).order("created_at", { ascending: false }),
     ]);
     if (orderRes.error) {
       const info = logSupabaseError("Carregar pedido", orderRes.error, { table: "orders", order_id: orderId });
@@ -146,12 +166,61 @@ export function OrderDetailModal({ orderId, onClose }: { orderId: string; onClos
     }
     setOrder(orderRes.data);
     setItems(itemsRes.data || []);
+    setRefunds((refundsRes as any)?.data || []);
     setLoading(false);
   }, [orderId]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  async function addRefund() {
+    const amount = Number(String(newRefund.amount).replace(",", "."));
+    if (!Number.isFinite(amount) || amount <= 0) { toast.error("Informe um valor válido (> 0)"); return; }
+    const total = Number(order?.total || 0);
+    const already = refunds.filter(r => r.status !== "failed").reduce((s, r) => s + Number(r.amount || 0), 0);
+    if (amount + already > total + 0.001) {
+      toast.error(`Valor excede o total do pedido (${formatBRL(total - already)} disponível)`);
+      return;
+    }
+    setSavingRefund(true);
+    const { data, error } = await (supabase.from("order_refunds" as any).insert({
+      order_id: orderId,
+      amount,
+      reason: newRefund.reason,
+      notes: newRefund.notes.trim() || null,
+      status: "pending",
+    }).select().maybeSingle() as any);
+    setSavingRefund(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Estorno registrado");
+    logAdminAction({
+      action: "create", entity: "order_refunds", entityId: (data as any)?.id ?? null,
+      summary: `Estorno ${formatBRL(amount)} em pedido #${orderId.slice(0,8)}`,
+      diff: { after: data },
+    });
+    setNewRefund({ amount: "", reason: "customer_request", notes: "" });
+    load();
+  }
+
+  async function setRefundStatus(id: string, status: "processed" | "failed") {
+    const { error } = await (supabase.from("order_refunds" as any).update({
+      status, processed_at: status === "processed" ? new Date().toISOString() : null,
+    }).eq("id", id) as any);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Estorno marcado como ${REFUND_STATUS_LABEL[status].toLowerCase()}`);
+    logAdminAction({ action: "update", entity: "order_refunds", entityId: id, summary: `Estorno → ${status}` });
+    load();
+  }
+
+  async function delRefund(id: string) {
+    if (!confirm("Remover este registro de estorno?")) return;
+    const { error } = await (supabase.from("order_refunds" as any).delete().eq("id", id) as any);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Removido");
+    logAdminAction({ action: "delete", entity: "order_refunds", entityId: id, summary: "Estorno removido" });
+    load();
+  }
 
   return (
     <AdminModal open onClose={onClose} title={`Pedido #${orderId.slice(0, 8)}`} size="lg">
@@ -237,6 +306,68 @@ export function OrderDetailModal({ orderId, onClose }: { orderId: string; onClos
                 <p className="text-muted-foreground">{order.notes}</p>
               </section>
             )}
+
+            <section className="text-sm border-t border-border pt-4">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-semibold flex items-center gap-2"><RefreshCcw className="h-4 w-4" /> Estornos</h3>
+                {refunds.length > 0 && (
+                  <span className="text-xs text-muted-foreground">
+                    Total estornado: {formatBRL(refunds.filter(r => r.status === "processed").reduce((s, r) => s + Number(r.amount || 0), 0))}
+                  </span>
+                )}
+              </div>
+
+              {refunds.length > 0 && (
+                <ul className="divide-y divide-border border border-border rounded-xl mb-3 overflow-hidden">
+                  {refunds.map((r) => (
+                    <li key={r.id} className="p-3 flex items-center gap-3 flex-wrap">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold">{formatBRL(r.amount)} <span className="ml-2 text-xs text-muted-foreground font-normal">{REFUND_REASONS.find(x => x.value === r.reason)?.label ?? r.reason}</span></p>
+                        {r.notes && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{r.notes}</p>}
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          {new Date(r.created_at).toLocaleString("pt-BR")}
+                          {r.processed_at && ` · processado em ${new Date(r.processed_at).toLocaleString("pt-BR")}`}
+                        </p>
+                      </div>
+                      <span className={`badge-pill text-xs ${
+                        r.status === "processed" ? "bg-emerald-500/15 text-emerald-500 border border-emerald-500/30" :
+                        r.status === "failed" ? "bg-destructive/15 text-destructive border border-destructive/30" :
+                        "bg-amber-500/15 text-amber-500 border border-amber-500/30"
+                      }`}>{REFUND_STATUS_LABEL[r.status] ?? r.status}</span>
+                      {r.status === "pending" && (
+                        <>
+                          <Button size="sm" variant="outline" onClick={() => setRefundStatus(r.id, "processed")}>Marcar processado</Button>
+                          <Button size="sm" variant="outline" onClick={() => setRefundStatus(r.id, "failed")}>Falhou</Button>
+                        </>
+                      )}
+                      <button onClick={() => delRefund(r.id)} title="Remover" className="p-1.5 hover:bg-destructive/10 text-destructive rounded">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <div className="bg-muted/30 rounded-xl p-3 grid sm:grid-cols-[120px,1fr,auto] gap-2 items-end">
+                <div className="space-y-1">
+                  <Label className="text-xs">Valor (R$)</Label>
+                  <Input type="number" step="0.01" min="0" value={newRefund.amount} onChange={(e) => setNewRefund({ ...newRefund, amount: e.target.value })} placeholder="0,00" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Motivo</Label>
+                  <select className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm" value={newRefund.reason} onChange={(e) => setNewRefund({ ...newRefund, reason: e.target.value })}>
+                    {REFUND_REASONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                  </select>
+                </div>
+                <Button onClick={addRefund} disabled={savingRefund}>
+                  <Plus className="h-4 w-4" /> Registrar
+                </Button>
+                <div className="space-y-1 sm:col-span-3">
+                  <Label className="text-xs">Observações (opcional)</Label>
+                  <Input value={newRefund.notes} onChange={(e) => setNewRefund({ ...newRefund, notes: e.target.value })} placeholder="Ex: cliente reportou avaria, transferência via PIX em 06/05" />
+                </div>
+              </div>
+            </section>
 
             <div className="flex justify-end gap-2 pt-2 flex-wrap">
               <Button variant="outline" onClick={() => openPrintWindow(buildShippingLabelHtml(order))}>
