@@ -236,24 +236,24 @@ function WelcomeBanner({ revenue, ordersToday }: { revenue: number; ordersToday:
     return "Boa noite";
   }, []);
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary via-primary-glow to-brand-cyan p-5 md:p-6 text-primary-foreground shadow-elegant">
-      <div aria-hidden className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
-      <div aria-hidden className="absolute -right-4 -bottom-12 h-32 w-32 rounded-full bg-white/10 blur-3xl" />
+    <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-card via-card to-primary/10 p-5 md:p-6 text-foreground shadow-soft">
+      <div aria-hidden className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/15 blur-3xl" />
+      <div aria-hidden className="absolute -left-12 -bottom-16 h-40 w-40 rounded-full bg-brand-cyan/10 blur-3xl" />
       <div className="relative flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] opacity-80">Painel Royal Vita</p>
-          <h2 className="font-brand text-2xl md:text-3xl font-bold mt-1 tracking-tight uppercase">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary/80">Painel Royal Vita</p>
+          <h2 className="font-brand text-2xl md:text-3xl font-bold mt-1.5 tracking-tight uppercase text-foreground">
             {greeting}, admin
           </h2>
-          <p className="text-sm opacity-85 mt-1.5 max-w-md">
+          <p className="text-sm text-muted-foreground mt-1.5 max-w-md">
             {ordersToday > 0
               ? `${ordersToday} ${ordersToday === 1 ? "pedido novo" : "pedidos novos"} hoje. Continue assim.`
               : "Sem pedidos novos ainda hoje. Hora de revisar promoções?"}
           </p>
         </div>
         <div className="text-right">
-          <p className="text-[11px] font-semibold uppercase tracking-wider opacity-80">Receita acumulada</p>
-          <p className="font-display text-2xl md:text-3xl font-extrabold tabular-nums mt-1">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Receita acumulada</p>
+          <p className="font-display text-2xl md:text-3xl font-extrabold tabular-nums mt-1 text-primary">
             {revenue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
           </p>
         </div>
