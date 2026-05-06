@@ -1,6 +1,6 @@
 {
-  "name": "Royal Vitta — Importação Farmacêutica",
-  "short_name": "Royal Vitta",
+   "name": "Importação Farmacêutica",
+   "short_name": "Farmacêutica",
   "description": "Importe medicamentos, peptídeos e produtos farmacêuticos com rapidez, segurança e preço justo.",
   "start_url": "/",
   "scope": "/",

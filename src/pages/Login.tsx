@@ -162,9 +162,9 @@ export default function Login() {
         <h1 className="font-display text-3xl font-extrabold text-primary text-center mb-2">
           {mode === "login" ? "Entrar" : "Criar conta"}
         </h1>
-        <p className="text-center text-sm text-muted-foreground mb-6">
-          {mode === "login" ? "Acesse sua conta Royal Vitta" : "Cadastre-se gratuitamente"}
-        </p>
+         <p className="text-center text-sm text-muted-foreground mb-6">
+           {mode === "login" ? "Acesse sua conta" : "Cadastre-se gratuitamente"}
+         </p>
 
         <div className="grid grid-cols-2 gap-1 p-1 bg-muted rounded-full mb-6">
           <button

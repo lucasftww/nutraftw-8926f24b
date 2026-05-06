@@ -4,7 +4,7 @@ import { useSEO } from "@/hooks/useSEO";
 
 export default function NotFound() {
   useSEO({
-    title: "Página não encontrada — Royal Vitta",
+     title: "Página não encontrada",
     description: "A página que você procura não existe ou foi movida.",
     // Aponta o canonical para a home — evita indexar a URL inexistente
     canonical: typeof window !== "undefined" ? window.location.origin + "/" : undefined,

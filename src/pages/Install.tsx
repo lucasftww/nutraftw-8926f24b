@@ -28,7 +28,7 @@ export default function Install() {
       window.navigator.standalone === true);
 
   useEffect(() => {
-    document.title = "Instalar Royal Vitta no celular";
+     document.title = "Instalar no celular";
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferred(e as BeforeInstallPromptEvent);
@@ -56,9 +56,9 @@ export default function Install() {
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
           <Smartphone className="h-8 w-8" />
         </div>
-        <h1 className="text-3xl font-bold tracking-tight">
-          Instale a Royal Vitta na tela inicial
-        </h1>
+         <h1 className="text-3xl font-bold tracking-tight">
+           Instale na tela inicial
+         </h1>
         <p className="mt-2 text-muted-foreground">
           Compre mais rápido, com carregamento instantâneo e funcionamento offline.
         </p>

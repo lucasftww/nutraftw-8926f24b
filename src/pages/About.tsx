@@ -4,19 +4,19 @@ import { useSEO } from "@/hooks/useSEO";
 
 export default function About() {
   useSEO({
-    title: "Sobre a Royal Vitta — quem somos e como trabalhamos",
-    description:
-      "Conheça a Royal Vitta: curadoria de farmacêuticos importados, atendimento humano e entrega para todo o Brasil com pagamento seguro.",
+     title: "Sobre — quem somos e como trabalhamos",
+     description:
+       "Conheça nossa curadoria de farmacêuticos importados, atendimento humano e entrega para todo o Brasil com pagamento seguro.",
     type: "website",
   });
 
   return (
     <div className="container max-w-3xl mx-auto px-4 py-12 md:py-16">
-      <h1 className="font-display text-3xl md:text-4xl font-extrabold text-foreground tracking-tight">
-        Sobre a Royal Vitta
-      </h1>
-      <p className="mt-4 text-base md:text-lg text-muted-foreground leading-relaxed">
-        A Royal Vitta nasceu para tornar o acesso a produtos farmacêuticos importados
+       <h1 className="font-display text-3xl md:text-4xl font-extrabold text-foreground tracking-tight">
+         Sobre
+       </h1>
+       <p className="mt-4 text-base md:text-lg text-muted-foreground leading-relaxed">
+         Nascemos para tornar o acesso a produtos farmacêuticos importados
         simples, transparente e confiável. Selecionamos cada item do catálogo
         pensando em qualidade, procedência e no que realmente faz sentido para
         quem busca cuidado com a saúde sem complicação.

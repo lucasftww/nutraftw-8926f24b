@@ -36,9 +36,9 @@ export default function ProductDetail() {
   useSEO(
     p
       ? {
-          title: `${p.name} | Royal Vitta`,
-          description:
-            (p.description || `Compre ${p.name} na Royal Vitta com envio para todo o Brasil.`).slice(0, 160),
+           title: `${p.name}`,
+           description:
+             (p.description || `Compre ${p.name} com envio para todo o Brasil.`).slice(0, 160),
           image: p.image_url || undefined,
           type: "product",
           jsonLd: [
@@ -81,7 +81,7 @@ export default function ProductDetail() {
             },
           ],
         }
-      : { title: "Produto | Royal Vitta" }
+       : { title: "Produto" }
   );
 
   // Registra o produto atual para o footer (antes de qualquer early return — regra dos hooks).
