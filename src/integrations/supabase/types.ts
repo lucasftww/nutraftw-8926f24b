@@ -802,6 +802,7 @@ export type Database = {
       }
     }
     Functions: {
+      admin_dashboard_stats: { Args: never; Returns: Json }
       admin_set_order_status: {
         Args: { p_order_id: string; p_reason?: string; p_status: string }
         Returns: undefined
