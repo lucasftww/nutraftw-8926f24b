@@ -45,7 +45,7 @@ function timeAgo(iso: string | null) {
 export function AdminWishlist() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
-  const [days, setDays] = useState<number>(30);
+  const [days, setDays] = useState<number>(1);
   const [q, setQ] = useState("");
 
   useEffect(() => {
