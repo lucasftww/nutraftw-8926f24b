@@ -33,6 +33,7 @@ import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/compo
 import { logAdminAction, shallowDiff } from "@/lib/auditLog";
 import { useNewOrdersNotifier } from "@/hooks/useNewOrdersNotifier";
 import { CommandPalette } from "@/components/admin/CommandPalette";
+import { SortableList, useSortableRow, DragHandle } from "@/components/admin/SortableList";
 
 type Tab = "dashboard" | "funnel" | "wishlist" | "reports" | "products" | "categories" | "promotions" | "orders" | "coupons" | "shipping" | "users" | "affiliates" | "resends" | "settings" | "diagnostics" | "audit";
 
@@ -374,6 +375,8 @@ function AdminProducts() {
     let q = supabase
       .from("products")
       .select("*, category:categories(name)", { count: "exact" })
+      // Quando há busca: relevância por data. Sem busca: ordem manual definida pelo admin.
+      .order(debouncedQuery ? "created_at" : "display_order", { ascending: !debouncedQuery })
       .order("created_at", { ascending: false })
       .range(from, to);
     if (debouncedQuery) {
