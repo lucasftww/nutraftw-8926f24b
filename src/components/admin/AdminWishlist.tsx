@@ -149,7 +149,7 @@ export function AdminWishlist() {
                     <tr key={r.product_id} className="hover:bg-muted/30 transition-colors">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3 min-w-0">
-                          <ProductThumb url={r.product_image_url} name={r.product_name} />
+                            <ProductThumb src={r.product_image_url ?? undefined} alt={r.product_name} size="sm" />
                           <div className="min-w-0">
                             <div className="font-medium text-foreground truncate max-w-[280px]">{r.product_name}</div>
                             <div className="text-xs text-muted-foreground flex items-center gap-2">
