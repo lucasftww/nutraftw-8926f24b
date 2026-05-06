@@ -2,13 +2,12 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, Search, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, RefreshCcw, Settings, BarChart3, Activity, History, TrendingUp, Users, Handshake, Tag, Menu, X, ChevronRight, Heart } from "lucide-react";
+import { LogOut, Search, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, Settings, BarChart3, Activity, History, TrendingUp, Users, Handshake, Tag, Menu, X, ChevronRight, Heart } from "lucide-react";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { WeeklyReport } from "@/components/admin/WeeklyReport";
 import { OrderDetailModal } from "@/components/admin/OrderDetailModal";
 import { AdminCoupons } from "@/components/admin/AdminCoupons";
 import { AdminShipping } from "@/components/admin/AdminShipping";
-import { AdminResends } from "@/components/admin/AdminResends";
 import { AdminSettings } from "@/components/admin/AdminSettings";
 import { AdminDiagnostics } from "@/components/admin/AdminDiagnostics";
 import { AdminAuditLog } from "@/components/admin/AdminAuditLog";
@@ -24,9 +23,9 @@ import { ConfirmProvider } from "@/components/admin/ConfirmDialog";
 import { useNewOrdersNotifier } from "@/hooks/useNewOrdersNotifier";
 import { CommandPalette } from "@/components/admin/CommandPalette";
 
-type Tab = "dashboard" | "funnel" | "wishlist" | "reports" | "products" | "categories" | "promotions" | "orders" | "coupons" | "shipping" | "users" | "affiliates" | "resends" | "settings" | "diagnostics" | "audit";
+type Tab = "dashboard" | "funnel" | "wishlist" | "reports" | "products" | "categories" | "promotions" | "orders" | "coupons" | "shipping" | "users" | "affiliates" | "settings" | "diagnostics" | "audit";
 
-const TAB_IDS: Tab[] = ["dashboard","funnel","wishlist","reports","products","categories","promotions","orders","coupons","shipping","users","affiliates","resends","settings","diagnostics","audit"];
+const TAB_IDS: Tab[] = ["dashboard","funnel","wishlist","reports","products","categories","promotions","orders","coupons","shipping","users","affiliates","settings","diagnostics","audit"];
 
 const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -41,7 +40,6 @@ const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "shipping", label: "Fretes", icon: Truck },
   { id: "users", label: "Usuários", icon: Users },
   { id: "affiliates", label: "Afiliados", icon: Handshake },
-  { id: "resends", label: "Reenvios", icon: RefreshCcw },
   { id: "settings", label: "Configurações", icon: Settings },
   { id: "diagnostics", label: "Diagnóstico", icon: Activity },
   { id: "audit", label: "Histórico", icon: History },
@@ -54,7 +52,7 @@ const GROUPS: Group[] = [
   { id: "overview", label: "Visão geral", icon: LayoutDashboard, tabs: ["dashboard", "funnel", "wishlist", "reports"] },
   { id: "catalog",  label: "Catálogo",    icon: Package,         tabs: ["products", "categories", "promotions"] },
   { id: "sales",    label: "Vendas",      icon: ShoppingBag,     tabs: ["orders", "coupons", "shipping"] },
-  { id: "people",   label: "Pessoas",     icon: Users,           tabs: ["users", "affiliates", "resends"] },
+  { id: "people",   label: "Pessoas",     icon: Users,           tabs: ["users", "affiliates"] },
   { id: "system",   label: "Sistema",     icon: Settings,        tabs: ["settings", "diagnostics", "audit"] },
 ];
 const TAB_TO_GROUP: Record<Tab, string> = (() => {
