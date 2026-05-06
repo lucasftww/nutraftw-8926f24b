@@ -834,14 +834,6 @@ const ProductCard = memo(function ProductCard({
               <div className="flex flex-col flex-1 px-3 pt-2 pb-3 sm:px-3.5 sm:pt-3 sm:pb-4">
                 {/* Slot fixo de "etiqueta superior" — reserva 16px sempre,
                     de modo que o título inicie na mesma altura em todos os cards. */}
-                <div className="min-h-[16px] mb-1 flex items-center">
-                  {isNew && !hasRealSale && !isOut && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-primary/60" />
-                      Novo
-                    </span>
-                  )}
-                </div>
                 <h3 className="font-medium text-[13px] sm:text-sm leading-snug text-foreground line-clamp-2 sm:line-clamp-3 min-h-[2.6em] sm:min-h-[3.9em]">
                   {p.name}
                 </h3>
