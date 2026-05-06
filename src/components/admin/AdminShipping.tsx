@@ -118,7 +118,8 @@ export function AdminShipping() {
         <Button onClick={() => setEditing({ active: true, label: "Padrão" })}><Plus className="h-4 w-4" /> Novo frete</Button>
       </div>
       <div className="bg-card rounded-2xl border border-border overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[640px]">
           <thead className="bg-muted/50 text-xs uppercase tracking-wide">
             <tr>
               <th className="text-left px-4 py-3">UF</th>
@@ -139,7 +140,7 @@ export function AdminShipping() {
                   {s.delivery_days_min && s.delivery_days_max ? `${s.delivery_days_min}–${s.delivery_days_max}` : "—"}
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${s.active ? "bg-emerald-100 text-emerald-700" : "bg-muted text-muted-foreground"}`}>
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${s.active ? "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/25" : "bg-muted text-muted-foreground"}`}>
                     {s.active ? "Ativo" : "Inativo"}
                   </span>
                 </td>
@@ -152,6 +153,7 @@ export function AdminShipping() {
             {items.length === 0 && <tr><td colSpan={6} className="text-center py-12 text-muted-foreground">Nenhum frete cadastrado.</td></tr>}
           </tbody>
         </table>
+        </div>
       </div>
 
       <AdminModal open={!!editing} onClose={() => setEditing(null)} title={editing?.id ? "Editar frete" : "Novo frete"} size="md">

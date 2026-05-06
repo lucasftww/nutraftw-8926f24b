@@ -269,7 +269,7 @@ export function AdminPromotions() {
                     </div>
                     <button
                       onClick={() => openHistory(p)}
-                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-primary/10 text-primary transition-opacity"
+                      className="p-1.5 rounded-lg hover:bg-primary/10 text-primary transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100"
                       title="Ver histórico de promoções"
                       aria-label="Histórico"
                     >
@@ -277,7 +277,7 @@ export function AdminPromotions() {
                     </button>
                     <button
                       onClick={() => removeFromPromo(p)}
-                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-destructive/15 text-destructive transition-opacity"
+                      className="p-1.5 rounded-lg hover:bg-destructive/15 text-destructive transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100"
                       title="Remover da promoção"
                       aria-label="Remover"
                     >

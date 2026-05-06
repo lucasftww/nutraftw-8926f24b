@@ -189,9 +189,10 @@ export function AdminUsers() {
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-xs sm:text-sm text-muted-foreground basis-full sm:basis-auto leading-relaxed">
           {items.length} {items.length === 1 ? "usuário" : "usuários"} ·{" "}
-          {items.filter((u) => u.is_admin).length} admin · {totals.buyers} compradores · LTV médio {formatBRL(totals.avgLtv)}
+          {items.filter((u) => u.is_admin).length} admin · {totals.buyers} compradores ·{" "}
+          <span className="whitespace-nowrap">LTV médio {formatBRL(totals.avgLtv)}</span>
         </p>
       </div>
 

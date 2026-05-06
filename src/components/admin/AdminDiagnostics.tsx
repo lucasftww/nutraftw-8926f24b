@@ -173,7 +173,8 @@ export function AdminDiagnostics() {
       </div>
 
       <div className="bg-card rounded-2xl border border-border overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[560px]">
           <thead className="bg-muted/50 text-xs uppercase tracking-wide">
             <tr>
               <th className="text-left px-4 py-3">Entidade</th>
@@ -196,7 +197,7 @@ export function AdminDiagnostics() {
                   </td>
                   <td className="px-4 py-3 text-center">
                     {sync === "ok" && (
-                      <span className="inline-flex items-center gap-1 text-xs text-emerald-700">
+                      <span className="inline-flex items-center gap-1 text-xs text-emerald-400">
                         <CheckCircle2 className="h-3.5 w-3.5" /> sincronizado
                       </span>
                     )}
@@ -219,6 +220,7 @@ export function AdminDiagnostics() {
             })}
           </tbody>
         </table>
+        </div>
       </div>
 
       <div className="bg-muted/30 rounded-xl p-4 text-xs text-muted-foreground space-y-1">

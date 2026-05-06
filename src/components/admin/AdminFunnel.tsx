@@ -144,12 +144,12 @@ export function AdminFunnel() {
             {period.id === "24h" ? "Últimas 24 horas" : `Últimos ${period.hours / 24} dias`}
           </p>
         </div>
-        <div className="inline-flex rounded-full border border-border p-1 bg-muted/30">
+        <div className="inline-flex rounded-full border border-border p-1 bg-muted/30 w-full sm:w-auto">
           {PERIODS.map((p) => (
             <button
               key={p.id}
               onClick={() => setPeriodId(p.id)}
-              className={`px-4 h-9 text-xs font-semibold rounded-full transition-colors ${
+              className={`flex-1 sm:flex-initial px-3 sm:px-4 h-9 text-xs font-semibold rounded-full transition-colors ${
                 periodId === p.id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -217,7 +217,7 @@ export function AdminFunnel() {
               </span>
             </header>
 
-            <div className="grid lg:grid-cols-[minmax(0,1fr)_1.1fr] gap-6 lg:gap-8 items-center">
+            <div className="grid lg:grid-cols-[minmax(0,1fr)_1.1fr] gap-6 lg:gap-8 lg:items-center">
               {/* SVG do funil */}
               <FunnelSVG stages={stages} />
 
@@ -293,8 +293,8 @@ export function AdminFunnel() {
                 Nenhum produto com atividade no período.
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+              <div className="overflow-x-auto -mx-5 md:mx-0">
+                <table className="w-full text-sm min-w-[720px]">
                   <thead className="bg-muted/30 text-xs uppercase tracking-wider text-muted-foreground">
                     <tr>
                       <th className="text-left px-4 py-3">Produto</th>
@@ -368,7 +368,7 @@ function EmptyStateInline() {
  */
 function FunnelSVG({ stages }: { stages: Array<{ key: string; label: string; value: number; gradient: string }> }) {
   const W = 520;
-  const H = 360;
+  const H = Math.max(320, stages.length * 78);
   const top = stages[0]?.value || 1;
   const minWidthRatio = 0.18; // garante que a última faixa nunca fique invisível
   const widths = stages.map((s) => {
