@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatBRL } from "@/lib/utils";
 import { toast } from "sonner";
-import { Loader2, Search, Check, RefreshCcw, DollarSign, Clock, XCircle, AlertTriangle, Handshake } from "lucide-react";
+import { Loader2, Search, Check, RefreshCcw, DollarSign, Clock, XCircle, AlertTriangle, Handshake, Download } from "lucide-react";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { useConfirm } from "@/components/admin/ConfirmDialog";
 import { logAdminAction } from "@/lib/auditLog";
+import { downloadCsv } from "@/lib/exportCsv";
 
 type CommissionRow = {
   id: string;
@@ -134,6 +135,26 @@ export function AdminAffiliates() {
 
   if (error) return <AdminErrorBanner error={error} onRetry={load} />;
 
+  function exportCsv() {
+    downloadCsv(
+      `comissoes-${new Date().toISOString().slice(0, 10)}`,
+      [
+        { key: "affiliate_name", label: "afiliado" },
+        { key: "affiliate_email", label: "email" },
+        { key: "order_id", label: "pedido_id" },
+        { key: "amount", label: "valor" },
+        { key: "status", label: "status" },
+        { key: "eligible_release_at", label: "elegivel_em" },
+        { key: "released_at", label: "liberada_em" },
+        { key: "paid_at", label: "paga_em" },
+        { key: "cancellation_reason", label: "motivo_cancelamento" },
+        { key: "created_at", label: "criada_em" },
+      ],
+      filtered as any,
+    );
+    toast.success(`${filtered.length} comissões exportadas`);
+  }
+
   const cards = [
     { label: "A liberar (pendente)", value: totals.pending,  cls: "text-amber-400 bg-amber-500/10 ring-1 ring-amber-500/20" },
     { label: "A pagar (liberada)",    value: totals.released, cls: "text-primary bg-primary/10 ring-1 ring-primary/20" },
@@ -172,6 +193,9 @@ export function AdminAffiliates() {
         <Button variant="outline" size="sm" onClick={releaseDue} disabled={busy === "release-all"}>
           {busy === "release-all" ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCcw className="h-4 w-4" />}
           Liberar elegíveis
+        </Button>
+        <Button variant="outline" size="sm" onClick={exportCsv} disabled={loading || filtered.length === 0}>
+          <Download className="h-4 w-4" /> CSV
         </Button>
       </div>
 
