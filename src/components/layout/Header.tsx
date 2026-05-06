@@ -7,6 +7,7 @@ import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { prefetchMyAccount } from "@/App";
 import logoRV from "@/assets/logo-rv.png";
+import logoRoyalVittaText from "@/assets/logo-royalvitta-text.png";
 
 export function Header() {
   const { user, isAdmin } = useAuth();
@@ -166,7 +167,7 @@ export function Header() {
                     destino "/" que já é coberto pelo item "Catálogo" abaixo.
                   */}
                      <div className="flex items-center min-w-0" aria-hidden="true">
-                       <img src={logoRV} alt="" className="h-11 w-auto object-contain" />
+                      <img src={logoRoyalVittaText} alt="Royal Vitta" className="h-8 w-auto object-contain" />
                      </div>
                   <button
                     onClick={() => setMobileMenuOpen(false)}
