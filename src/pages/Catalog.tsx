@@ -867,18 +867,21 @@ const ProductCard = memo(function ProductCard({
                     </span>
                   )}
                 </div>
-                <h3 className="font-medium text-[13px] sm:text-sm leading-snug text-foreground line-clamp-3 min-h-[3.9em]">
+                <h3 className="font-medium text-[13px] sm:text-sm leading-snug text-foreground line-clamp-2 sm:line-clamp-3 min-h-[2.6em] sm:min-h-[3.9em]">
                   {p.name}
                 </h3>
                 {/* Bloco de preço com altura mínima reservada para a linha
                     "de R$" — alinha cards com e sem desconto na mesma altura. */}
-                <div className="mt-2 leading-tight min-h-[64px] flex flex-col justify-end">
+                <div className="mt-1.5 sm:mt-2 leading-tight sm:min-h-[64px] flex flex-col sm:justify-end">
                   {hasRealSale ? (
                     <div className="text-xs text-oldPrice font-medium line-through tabular-nums">
                       de {formatBRL(priceNum)}
                     </div>
                   ) : (
-                    <div aria-hidden className="h-[16px]" />
+                    // Em desktop reservamos a linha "de R$" para alinhar cards
+                    // do mesmo grid; no mobile (2 col) deixamos o preço subir
+                    // para perto do nome — evita o vão vazio nos cards "NOVO".
+                    <div aria-hidden className="hidden sm:block h-[16px]" />
                   )}
                   <div className="text-base md:text-lg font-extrabold text-primary tabular-nums">
                     {formatBRL(finalPrice)}
@@ -898,7 +901,7 @@ const ProductCard = memo(function ProductCard({
                   }}
                   disabled={isOut}
                   aria-label={isOut ? "Esgotado" : `Adicionar ${p.name} ao carrinho`}
-                  className="mt-3 inline-flex items-center justify-center gap-1 h-9 sm:h-10 w-full rounded-full bg-secondary text-secondary-foreground text-sm font-semibold hover:bg-secondary/90 active:scale-[0.98] transition-all shadow-sm shadow-secondary/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
+                  className="mt-auto inline-flex items-center justify-center gap-1 h-9 sm:h-10 w-full rounded-full bg-secondary text-secondary-foreground text-sm font-semibold hover:bg-secondary/90 active:scale-[0.98] transition-all shadow-sm shadow-secondary/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
                 >
                   <ShoppingCart className="h-3.5 w-3.5" strokeWidth={2.2} />
                   Comprar
