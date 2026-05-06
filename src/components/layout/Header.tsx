@@ -5,7 +5,8 @@ import { useCart } from "@/hooks/useCart";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
-import logoRoyalVita from "@/assets/logo-royalvita.svg";
+import logoRoyalVita from "@/assets/logo-royalvita-horizontal.png";
+import logoMark from "@/assets/logo-royalvita-mark.png";
 import { prefetchMyAccount } from "@/App";
 
 export function Header() {
@@ -62,17 +63,18 @@ export function Header() {
                   <path d="M4 17h16" />
                 </svg>
               </button>
-              <Link to="/" className="flex items-center gap-2 group cursor-pointer min-w-0">
+              <Link to="/" className="flex items-center group cursor-pointer min-w-0" aria-label="Royal Vita">
+                {/* Mobile: só o símbolo. Desktop: lockup horizontal completo. */}
+                <img
+                  src={logoMark}
+                  alt="Royal Vita"
+                  className="h-8 w-auto sm:hidden object-contain shrink-0"
+                />
                 <img
                   src={logoRoyalVita}
                   alt="Royal Vita"
-                  width={36}
-                  height={36}
-                  className="h-8 w-8 md:h-9 md:w-9 object-contain shrink-0"
+                  className="hidden sm:block h-9 md:h-10 w-auto object-contain shrink-0"
                 />
-                <span className="font-brand font-bold text-[14px] md:text-[15px] tracking-[0.18em] text-primary hidden sm:block truncate leading-none uppercase">
-                  Royal Vita
-                </span>
               </Link>
             </div>
 
@@ -174,11 +176,8 @@ export function Header() {
                     Marca apenas visual (não-clicável) — evita duplicar o
                     destino "/" que já é coberto pelo item "Catálogo" abaixo.
                   */}
-                  <div className="flex items-center gap-2 min-w-0" aria-hidden="true">
-                    <img src={logoRoyalVita} alt="" width={36} height={36} className="h-8 w-8 md:h-9 md:w-9 object-contain shrink-0" />
-                    <span className="font-brand font-bold text-[14px] md:text-[15px] tracking-[0.18em] text-primary truncate leading-none uppercase">
-                      Royal Vita
-                    </span>
+                  <div className="flex items-center min-w-0" aria-hidden="true">
+                    <img src={logoRoyalVita} alt="" className="h-9 w-auto object-contain shrink-0" />
                   </div>
                   <button
                     onClick={() => setMobileMenuOpen(false)}
