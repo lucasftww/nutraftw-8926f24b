@@ -752,32 +752,24 @@ function AdminProducts() {
       )}
 
       {/* Mobile: cards. Desktop (md+): tabela. */}
+      {canReorder && !loading && items.length > 0 && (
+        <p className="text-xs text-muted-foreground mb-2 hidden md:block">
+          💡 Arraste pelo ícone <GripVertical className="inline h-3 w-3" /> para reordenar como aparecerá no site.
+        </p>
+      )}
       <ul className="md:hidden space-y-2">
         {loading && Array.from({ length: 6 }).map((_, i) => (
           <li key={i} className="h-20 bg-muted/50 rounded-2xl animate-pulse" />
         ))}
-        {!loading && items.map((p) => (
-          <li key={p.id} className={`bg-card rounded-2xl border p-3 flex gap-3 ${selected.has(p.id) ? "border-primary ring-2 ring-primary/20" : "border-border"}`}>
-            <label className="shrink-0 mt-1 inline-flex items-center justify-center w-5 h-5 rounded border border-input cursor-pointer">
-              <input type="checkbox" checked={selected.has(p.id)} onChange={() => toggleSel(p.id)} className="sr-only" aria-label={`Selecionar ${p.name}`} />
-              {selected.has(p.id) && <Check className="h-3.5 w-3.5 text-primary" />}
-            </label>
-            <ProductThumb src={p.image_url} size="lg" alt={p.name} />
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm leading-snug line-clamp-2">{p.name}</p>
-              <p className="text-xs text-muted-foreground truncate">{p.category?.name || "Sem categoria"}</p>
-              <div className="flex items-center justify-between mt-1.5">
-                <span className="font-bold text-primary text-sm">{formatBRL(p.price)}</span>
-                <StockBadge stock={p.stock} />
-              </div>
-            </div>
-            <div className="flex flex-col gap-1 shrink-0">
-              <button onClick={() => setEditing(p)} aria-label="Editar" title="Editar" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted"><Pencil className="h-4 w-4" /></button>
-              <button onClick={() => duplicate(p)} aria-label="Duplicar" title="Duplicar" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted"><Copy className="h-4 w-4" /></button>
-              <button onClick={() => del(p.id)} aria-label="Remover" title="Remover" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="h-4 w-4" /></button>
-            </div>
-          </li>
-        ))}
+        {!loading && (canReorder ? (
+          <SortableList items={items} onReorder={reorderProducts}>
+            {items.map((p) => (
+              <ProductMobileRow key={p.id} p={p} sortable selected={selected} toggleSel={toggleSel} setEditing={setEditing} duplicate={duplicate} del={del} />
+            ))}
+          </SortableList>
+        ) : items.map((p) => (
+          <ProductMobileRow key={p.id} p={p} sortable={false} selected={selected} toggleSel={toggleSel} setEditing={setEditing} duplicate={duplicate} del={del} />
+        )))}
         {!loading && items.length === 0 && (
           <li className="bg-card rounded-2xl border border-border">
             <EmptyState
@@ -823,31 +815,15 @@ function AdminProducts() {
                 <td className="px-4 py-3" colSpan={6}><div className="h-10 bg-muted/50 rounded animate-pulse" /></td>
               </tr>
             ))}
-            {!loading && items.map((p) => (
-              <tr key={p.id} className={`border-t border-border ${selected.has(p.id) ? "bg-primary/5" : ""}`}>
-                <td className="px-3 py-3">
-                  <input type="checkbox" aria-label={`Selecionar ${p.name}`} checked={selected.has(p.id)} onChange={() => toggleSel(p.id)} />
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <ProductThumb src={p.image_url} size="sm" alt={p.name} />
-                    <div>
-                      <p className="font-medium">{p.name}</p>
-                      {!p.is_active && <span className="text-xs text-muted-foreground">Inativo</span>}
-                    </div>
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{p.category?.name || "—"}</td>
-                <td className="px-4 py-3 text-right font-semibold">{formatBRL(p.price)}</td>
-                <td className="px-4 py-3 text-right hidden md:table-cell">
-                  <StockBadge stock={p.stock} />
-                </td>
-                <td className="px-4 py-3 text-right whitespace-nowrap">
-                  <button onClick={() => setEditing(p)} aria-label="Editar" title="Editar" className="p-1.5 hover:bg-muted rounded mr-1"><Pencil className="h-4 w-4" /></button>
-                  <button onClick={() => duplicate(p)} aria-label="Duplicar" title="Duplicar" className="p-1.5 hover:bg-muted rounded mr-1"><Copy className="h-4 w-4" /></button>
-                  <button onClick={() => del(p.id)} aria-label="Remover" title="Remover" className="p-1.5 hover:bg-destructive/10 text-destructive rounded"><Trash2 className="h-4 w-4" /></button>
-                </td>
-              </tr>
+            {!loading && canReorder && (
+              <SortableList items={items} onReorder={reorderProducts}>
+                {items.map((p) => (
+                  <ProductTableRow key={p.id} p={p} sortable selected={selected} toggleSel={toggleSel} setEditing={setEditing} duplicate={duplicate} del={del} />
+                ))}
+              </SortableList>
+            )}
+            {!loading && !canReorder && items.map((p) => (
+              <ProductTableRow key={p.id} p={p} sortable={false} selected={selected} toggleSel={toggleSel} setEditing={setEditing} duplicate={duplicate} del={del} />
             ))}
             {!loading && items.length === 0 && (
               <tr><td colSpan={6}>
