@@ -1406,7 +1406,7 @@ function AdminOrders() {
                 </div>
                 <p className="font-semibold text-sm leading-tight truncate mt-1">{o.shipping_full_name || "—"}</p>
                 <div className="flex items-center justify-between mt-1.5">
-                  <span className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("pt-BR")} · {o.payment_method || "—"}</span>
+                  <span className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("pt-BR")} · {paymentLabel(o.payment_method)}</span>
                   <span className="font-bold text-primary text-sm">{formatBRL(o.total)}</span>
                 </div>
               </div>
