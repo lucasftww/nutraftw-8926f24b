@@ -1360,7 +1360,7 @@ function AdminOrders() {
         <select className="h-11 rounded-xl border border-input bg-background px-3 text-sm" value={paymentFilter} onChange={(e) => setPaymentFilter(e.target.value)} aria-label="Filtrar por pagamento">
           <option value="all">Todos pagamentos</option>
           <option value="pix">PIX</option>
-          <option value="card">Cartão</option>
+          <option value="credit_card">Cartão</option>
         </select>
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Calendar className="h-4 w-4" />
