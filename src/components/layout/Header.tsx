@@ -65,7 +65,7 @@ export function Header() {
               </button>
                   <Link to="/" className="flex items-center group cursor-pointer min-w-0 -ml-1 md:-ml-2" aria-label="Home">
                     <div className="relative p-1 rounded-full bg-background/50 transition-all duration-300">
-                      <img src={logoRV} alt="RV" width={80} height={80} decoding="async" fetchPriority="high" className="h-6 sm:h-7 md:h-8 lg:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105" />
+                      <img src={logoRV} alt="RV" width={80} height={80} decoding="async" {...({ fetchpriority: "high" } as Record<string, string>)} className="h-6 sm:h-7 md:h-8 lg:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105" />
                     </div>
                   </Link>
             </div>
@@ -175,7 +175,7 @@ export function Header() {
                           width={240}
                           height={48}
                           decoding="async"
-                          fetchPriority="high"
+                          {...({ fetchpriority: "high" } as Record<string, string>)}
                           className="h-5 sm:h-6 md:h-7 w-auto object-contain"
                         />
                       </Link>
