@@ -332,10 +332,10 @@ export function WeeklyReport() {
   }
 
   const cards = [
-    { label: "Receita", value: formatBRL(revenue), delta: pctDelta(revenue, prevRevenue), icon: DollarSign, color: "text-emerald-600", bg: "bg-emerald-50" },
-    { label: "Pedidos pagos", value: ordersCount, delta: pctDelta(ordersCount, prevOrdersCount), icon: ShoppingBag, color: "text-primary", bg: "bg-primary/10" },
-    { label: "Ticket médio", value: formatBRL(aov), delta: pctDelta(aov, prevAov), icon: Receipt, color: "text-blue-600", bg: "bg-blue-50" },
-    { label: "Itens vendidos", value: itemsSold, delta: null as number | null, icon: Package, color: "text-purple-600", bg: "bg-purple-50" },
+    { label: "Receita",        value: formatBRL(revenue),    delta: pctDelta(revenue, prevRevenue),         icon: DollarSign,  color: "text-emerald-400",       bg: "bg-emerald-500/10 ring-1 ring-emerald-500/20" },
+    { label: "Pedidos pagos",  value: ordersCount,           delta: pctDelta(ordersCount, prevOrdersCount), icon: ShoppingBag, color: "text-primary",            bg: "bg-primary/10 ring-1 ring-primary/20" },
+    { label: "Ticket médio",   value: formatBRL(aov),        delta: pctDelta(aov, prevAov),                 icon: Receipt,     color: "text-brand-cyan",         bg: "bg-brand-cyan/10 ring-1 ring-brand-cyan/20" },
+    { label: "Itens vendidos", value: itemsSold,             delta: null as number | null,                  icon: Package,     color: "text-amber-400",          bg: "bg-amber-500/10 ring-1 ring-amber-500/20" },
   ];
 
   // ───────── Daily series filtrada/paginada ─────────
