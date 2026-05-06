@@ -132,7 +132,6 @@ export default function Wishlist() {
             return (
               <div
                 key={p.id}
-                style={{ animationDelay: `${Math.min(idx, 7) * 40}ms`, animationFillMode: "both" }}
                 className={`group flex flex-col h-full rounded-2xl bg-card overflow-hidden border border-border/50 ${isOut ? "opacity-70" : ""}`}
               >
                 <Link to={`/produto/${p.slug}`} className="relative aspect-square overflow-hidden bg-white block">
