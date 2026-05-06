@@ -14,12 +14,14 @@ import { useProducts, useCategories, type ProductRow } from "@/hooks/useProducts
 
 type Product = ProductRow;
 
-const SORT_KEYS = ["categoria", "recentes", "az"] as const;
+const SORT_KEYS = ["categoria", "recentes", "az", "preco_asc", "preco_desc"] as const;
 type SortKey = (typeof SORT_KEYS)[number];
 const SORT_LABELS: Record<SortKey, string> = {
   categoria: "Por categoria",
   recentes: "Mais recentes",
   az: "A–Z",
+  preco_asc: "Menor preço",
+  preco_desc: "Maior preço",
 };
 
 // Helpers puros — declarados fora do componente para não serem recriados
@@ -265,6 +267,15 @@ export default function Catalog() {
       return (a: Product, b: Product) =>
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     }
+    if (sort === "preco_asc" || sort === "preco_desc") {
+      const eff = (p: Product) => {
+        const pr = Number(p.price) || 0;
+        const sp = p.sale_price != null ? Number(p.sale_price) : 0;
+        return sp > 0 && sp < pr ? sp : pr;
+      };
+      const dir = sort === "preco_asc" ? 1 : -1;
+      return (a: Product, b: Product) => (eff(a) - eff(b)) * dir;
+    }
     // "categoria" (curadoria): mais desconto primeiro, desempate por score
     return (a: Product, b: Product) => {
       const dDiff = discountPctOf(b) - discountPctOf(a);
@@ -468,7 +479,7 @@ export default function Catalog() {
             className="absolute inset-0 bg-foreground/50 backdrop-blur-[2px] animate-in fade-in"
             onClick={() => setFiltersOpen(false)}
           />
-          <aside className="absolute right-0 top-0 h-full w-[92%] max-w-md bg-background shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
+          <aside className="absolute right-0 top-0 h-full w-full sm:w-[92%] sm:max-w-md bg-background shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
             {/* Header — grande, claro, com contador */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-border">
               <div className="flex items-center gap-3">
@@ -501,7 +512,7 @@ export default function Catalog() {
                 <h3 className="text-[13px] font-bold uppercase tracking-wider text-muted-foreground px-2 mb-2">
                   Ordenar por
                 </h3>
-                <div className="flex flex-wrap gap-2 px-1">
+                <div className="grid grid-cols-2 gap-2 px-1 sm:flex sm:flex-wrap">
                   {SORT_KEYS.map((k) => {
                     const active = sort === k;
                     return (
@@ -510,7 +521,7 @@ export default function Catalog() {
                         type="button"
                         onClick={() => setSort(k)}
                         aria-pressed={active}
-                        className={`inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full text-sm font-medium transition-colors ${
+                        className={`inline-flex items-center justify-center gap-1.5 h-10 px-3 rounded-full text-sm font-medium transition-colors ${
                           active
                             ? "bg-primary text-primary-foreground shadow-sm"
                             : "bg-muted/60 text-foreground hover:bg-muted"
