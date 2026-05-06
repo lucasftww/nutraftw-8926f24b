@@ -806,6 +806,25 @@ export type Database = {
         Args: { p_order_id: string; p_reason?: string; p_status: string }
         Returns: undefined
       }
+      admin_top_wishlist: {
+        Args: { p_days?: number; p_limit?: number }
+        Returns: {
+          cart_count: number
+          is_active: boolean
+          is_on_offer: boolean
+          last_added_at: string
+          price: number
+          product_id: string
+          product_image_url: string
+          product_name: string
+          product_slug: string
+          sale_price: number
+          stock: number
+          unique_users: number
+          units_paid: number
+          wishlist_count: number
+        }[]
+      }
       affiliate_commission_rate: { Args: never; Returns: number }
       affiliate_release_days: { Args: never; Returns: number }
       apply_last_promo: { Args: { p_product_id: string }; Returns: number }
