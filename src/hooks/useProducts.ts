@@ -53,6 +53,8 @@ export function useProducts() {
         .order("is_on_offer", { ascending: false })
         .order("offer_order", { ascending: true })
         .order("is_featured", { ascending: false })
+        // Ordem manual definida pelo admin (drag-and-drop em /admin/products)
+        .order("display_order", { ascending: true })
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data as any) || [];

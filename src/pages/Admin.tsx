@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatBRL, slugify } from "@/lib/utils";
 import { toast } from "sonner";
-import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, RefreshCcw, Settings, BarChart3, Activity, History, TrendingUp, Users, Download, ChevronUp, ChevronDown, Check, Calendar, Copy, Command, Handshake, Tag, Menu, X, ChevronRight, Heart } from "lucide-react";
+import { LogOut, Plus, Trash2, Pencil, Search, Eye, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, RefreshCcw, Settings, BarChart3, Activity, History, TrendingUp, Users, Download, ChevronUp, ChevronDown, Check, Calendar, Copy, Command, Handshake, Tag, Menu, X, ChevronRight, Heart, GripVertical } from "lucide-react";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { WeeklyReport } from "@/components/admin/WeeklyReport";
 import { ImageUpload } from "@/components/admin/ImageUpload";
@@ -33,6 +33,7 @@ import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/compo
 import { logAdminAction, shallowDiff } from "@/lib/auditLog";
 import { useNewOrdersNotifier } from "@/hooks/useNewOrdersNotifier";
 import { CommandPalette } from "@/components/admin/CommandPalette";
+import { SortableList, useSortableRow, DragHandle } from "@/components/admin/SortableList";
 
 type Tab = "dashboard" | "funnel" | "wishlist" | "reports" | "products" | "categories" | "promotions" | "orders" | "coupons" | "shipping" | "users" | "affiliates" | "resends" | "settings" | "diagnostics" | "audit";
 
@@ -339,6 +340,80 @@ function AdminInner() {
   );
 }
 
+// ===================== Linhas reutilizáveis (com suporte a drag) =====================
+
+function ProductMobileRow({ p, sortable, selected, toggleSel, setEditing, duplicate, del }: any) {
+  const sort = sortable ? useSortableRow(p.id) : null;
+  return (
+    <li
+      ref={sort?.setNodeRef}
+      style={sort?.style}
+      className={`bg-card rounded-2xl border p-3 flex gap-2 ${selected.has(p.id) ? "border-primary ring-2 ring-primary/20" : "border-border"}`}
+    >
+      {sortable && <DragHandle handleProps={sort!.handleProps} />}
+      <label className="shrink-0 mt-1 inline-flex items-center justify-center w-5 h-5 rounded border border-input cursor-pointer">
+        <input type="checkbox" checked={selected.has(p.id)} onChange={() => toggleSel(p.id)} className="sr-only" aria-label={`Selecionar ${p.name}`} />
+        {selected.has(p.id) && <Check className="h-3.5 w-3.5 text-primary" />}
+      </label>
+      <ProductThumb src={p.image_url} size="lg" alt={p.name} />
+      <div className="flex-1 min-w-0">
+        <p className="font-semibold text-sm leading-snug line-clamp-2">{p.name}</p>
+        <p className="text-xs text-muted-foreground truncate">{p.category?.name || "Sem categoria"}</p>
+        <div className="flex items-center justify-between mt-1.5">
+          <span className="font-bold text-primary text-sm">{formatBRL(p.price)}</span>
+          <StockBadge stock={p.stock} />
+        </div>
+      </div>
+      <div className="flex flex-col gap-1 shrink-0">
+        <button onClick={() => setEditing(p)} aria-label="Editar" title="Editar" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted"><Pencil className="h-4 w-4" /></button>
+        <button onClick={() => duplicate(p)} aria-label="Duplicar" title="Duplicar" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted"><Copy className="h-4 w-4" /></button>
+        <button onClick={() => del(p.id)} aria-label="Remover" title="Remover" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="h-4 w-4" /></button>
+      </div>
+    </li>
+  );
+}
+
+function ProductTableRow({ p, sortable, selected, toggleSel, setEditing, duplicate, del }: any) {
+  const sort = sortable ? useSortableRow(p.id) : null;
+  return (
+    <tr
+      ref={sort?.setNodeRef as any}
+      style={sort?.style}
+      className={`border-t border-border ${selected.has(p.id) ? "bg-primary/5" : ""} ${sort?.isDragging ? "bg-muted/50" : ""}`}
+    >
+      <td className="px-2 py-3 w-10">
+        {sortable ? (
+          <DragHandle handleProps={sort!.handleProps} />
+        ) : (
+          <span className="inline-block w-8" />
+        )}
+      </td>
+      <td className="px-3 py-3">
+        <input type="checkbox" aria-label={`Selecionar ${p.name}`} checked={selected.has(p.id)} onChange={() => toggleSel(p.id)} />
+      </td>
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-3">
+          <ProductThumb src={p.image_url} size="sm" alt={p.name} />
+          <div>
+            <p className="font-medium">{p.name}</p>
+            {!p.is_active && <span className="text-xs text-muted-foreground">Inativo</span>}
+          </div>
+        </div>
+      </td>
+      <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{p.category?.name || "—"}</td>
+      <td className="px-4 py-3 text-right font-semibold">{formatBRL(p.price)}</td>
+      <td className="px-4 py-3 text-right hidden md:table-cell">
+        <StockBadge stock={p.stock} />
+      </td>
+      <td className="px-4 py-3 text-right whitespace-nowrap">
+        <button onClick={() => setEditing(p)} aria-label="Editar" title="Editar" className="p-1.5 hover:bg-muted rounded mr-1"><Pencil className="h-4 w-4" /></button>
+        <button onClick={() => duplicate(p)} aria-label="Duplicar" title="Duplicar" className="p-1.5 hover:bg-muted rounded mr-1"><Copy className="h-4 w-4" /></button>
+        <button onClick={() => del(p.id)} aria-label="Remover" title="Remover" className="p-1.5 hover:bg-destructive/10 text-destructive rounded"><Trash2 className="h-4 w-4" /></button>
+      </td>
+    </tr>
+  );
+}
+
 function AdminProducts() {
   const [items, setItems] = useState<any[]>([]);
   const [cats, setCats] = useState<any[]>([]);
@@ -374,6 +449,8 @@ function AdminProducts() {
     let q = supabase
       .from("products")
       .select("*, category:categories(name)", { count: "exact" })
+      // Quando há busca: relevância por data. Sem busca: ordem manual definida pelo admin.
+      .order(debouncedQuery ? "created_at" : "display_order", { ascending: !debouncedQuery })
       .order("created_at", { ascending: false })
       .range(from, to);
     if (debouncedQuery) {
@@ -636,6 +713,29 @@ function AdminProducts() {
   if (error) return <AdminErrorBanner error={error} onRetry={load} />;
   const totalPages = totalCount != null ? Math.max(1, Math.ceil(totalCount / PAGE_SIZE)) : null;
 
+  // Drag-and-drop só faz sentido sem busca ativa (com busca, a ordem visual
+  // é por relevância, não pela ordem manual).
+  const canReorder = !debouncedQuery;
+
+  async function reorderProducts(next: any[]) {
+    // Reatribui display_order em incrementos de 10 baseado na página atual,
+    // assim novos itens cabem entre os existentes sem renumerar tudo.
+    const baseOffset = page * PAGE_SIZE * 10;
+    const updates = next.map((p, i) => ({ id: p.id, display_order: baseOffset + (i + 1) * 10 }));
+    setItems(next.map((p, i) => ({ ...p, display_order: baseOffset + (i + 1) * 10 })));
+    const results = await Promise.all(
+      updates.map((u) => supabase.from("products").update({ display_order: u.display_order } as any).eq("id", u.id)),
+    );
+    const failed = results.filter((r) => r.error);
+    if (failed.length) {
+      toast.error(`Falha ao salvar nova ordem (${failed.length})`);
+      load();
+    } else {
+      toast.success("Ordem atualizada");
+      qc.invalidateQueries({ queryKey: queryKeys.products.all });
+    }
+  }
+
   async function exportCsv() {
     toast.info("Gerando CSV…");
     // Exporta todos os produtos (até 5000) com os campos editáveis principais.
@@ -726,32 +826,24 @@ function AdminProducts() {
       )}
 
       {/* Mobile: cards. Desktop (md+): tabela. */}
+      {canReorder && !loading && items.length > 0 && (
+        <p className="text-xs text-muted-foreground mb-2 hidden md:block">
+          💡 Arraste pelo ícone <GripVertical className="inline h-3 w-3" /> para reordenar como aparecerá no site.
+        </p>
+      )}
       <ul className="md:hidden space-y-2">
         {loading && Array.from({ length: 6 }).map((_, i) => (
           <li key={i} className="h-20 bg-muted/50 rounded-2xl animate-pulse" />
         ))}
-        {!loading && items.map((p) => (
-          <li key={p.id} className={`bg-card rounded-2xl border p-3 flex gap-3 ${selected.has(p.id) ? "border-primary ring-2 ring-primary/20" : "border-border"}`}>
-            <label className="shrink-0 mt-1 inline-flex items-center justify-center w-5 h-5 rounded border border-input cursor-pointer">
-              <input type="checkbox" checked={selected.has(p.id)} onChange={() => toggleSel(p.id)} className="sr-only" aria-label={`Selecionar ${p.name}`} />
-              {selected.has(p.id) && <Check className="h-3.5 w-3.5 text-primary" />}
-            </label>
-            <ProductThumb src={p.image_url} size="lg" alt={p.name} />
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm leading-snug line-clamp-2">{p.name}</p>
-              <p className="text-xs text-muted-foreground truncate">{p.category?.name || "Sem categoria"}</p>
-              <div className="flex items-center justify-between mt-1.5">
-                <span className="font-bold text-primary text-sm">{formatBRL(p.price)}</span>
-                <StockBadge stock={p.stock} />
-              </div>
-            </div>
-            <div className="flex flex-col gap-1 shrink-0">
-              <button onClick={() => setEditing(p)} aria-label="Editar" title="Editar" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted"><Pencil className="h-4 w-4" /></button>
-              <button onClick={() => duplicate(p)} aria-label="Duplicar" title="Duplicar" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted"><Copy className="h-4 w-4" /></button>
-              <button onClick={() => del(p.id)} aria-label="Remover" title="Remover" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="h-4 w-4" /></button>
-            </div>
-          </li>
-        ))}
+        {!loading && (canReorder ? (
+          <SortableList items={items} onReorder={reorderProducts}>
+            {items.map((p) => (
+              <ProductMobileRow key={p.id} p={p} sortable selected={selected} toggleSel={toggleSel} setEditing={setEditing} duplicate={duplicate} del={del} />
+            ))}
+          </SortableList>
+        ) : items.map((p) => (
+          <ProductMobileRow key={p.id} p={p} sortable={false} selected={selected} toggleSel={toggleSel} setEditing={setEditing} duplicate={duplicate} del={del} />
+        )))}
         {!loading && items.length === 0 && (
           <li className="bg-card rounded-2xl border border-border">
             <EmptyState
@@ -770,6 +862,7 @@ function AdminProducts() {
         <table className="w-full text-sm">
           <thead className="bg-muted/50 text-xs uppercase tracking-wide">
             <tr>
+              <th className="px-2 py-3 w-10"></th>
               <th className="px-3 py-3 w-8">
                 <input
                   type="checkbox"
@@ -794,37 +887,21 @@ function AdminProducts() {
           <tbody>
             {loading && Array.from({ length: 6 }).map((_, i) => (
               <tr key={i} className="border-t border-border">
-                <td className="px-4 py-3" colSpan={6}><div className="h-10 bg-muted/50 rounded animate-pulse" /></td>
+                <td className="px-4 py-3" colSpan={7}><div className="h-10 bg-muted/50 rounded animate-pulse" /></td>
               </tr>
             ))}
-            {!loading && items.map((p) => (
-              <tr key={p.id} className={`border-t border-border ${selected.has(p.id) ? "bg-primary/5" : ""}`}>
-                <td className="px-3 py-3">
-                  <input type="checkbox" aria-label={`Selecionar ${p.name}`} checked={selected.has(p.id)} onChange={() => toggleSel(p.id)} />
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <ProductThumb src={p.image_url} size="sm" alt={p.name} />
-                    <div>
-                      <p className="font-medium">{p.name}</p>
-                      {!p.is_active && <span className="text-xs text-muted-foreground">Inativo</span>}
-                    </div>
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{p.category?.name || "—"}</td>
-                <td className="px-4 py-3 text-right font-semibold">{formatBRL(p.price)}</td>
-                <td className="px-4 py-3 text-right hidden md:table-cell">
-                  <StockBadge stock={p.stock} />
-                </td>
-                <td className="px-4 py-3 text-right whitespace-nowrap">
-                  <button onClick={() => setEditing(p)} aria-label="Editar" title="Editar" className="p-1.5 hover:bg-muted rounded mr-1"><Pencil className="h-4 w-4" /></button>
-                  <button onClick={() => duplicate(p)} aria-label="Duplicar" title="Duplicar" className="p-1.5 hover:bg-muted rounded mr-1"><Copy className="h-4 w-4" /></button>
-                  <button onClick={() => del(p.id)} aria-label="Remover" title="Remover" className="p-1.5 hover:bg-destructive/10 text-destructive rounded"><Trash2 className="h-4 w-4" /></button>
-                </td>
-              </tr>
+            {!loading && canReorder && (
+              <SortableList items={items} onReorder={reorderProducts}>
+                {items.map((p) => (
+                  <ProductTableRow key={p.id} p={p} sortable selected={selected} toggleSel={toggleSel} setEditing={setEditing} duplicate={duplicate} del={del} />
+                ))}
+              </SortableList>
+            )}
+            {!loading && !canReorder && items.map((p) => (
+              <ProductTableRow key={p.id} p={p} sortable={false} selected={selected} toggleSel={toggleSel} setEditing={setEditing} duplicate={duplicate} del={del} />
             ))}
             {!loading && items.length === 0 && (
-              <tr><td colSpan={6}>
+              <tr><td colSpan={7}>
                 <EmptyState
                   icon={Package}
                   title="Nenhum produto encontrado"
