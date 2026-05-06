@@ -502,8 +502,22 @@ export default function Checkout() {
   // se a UF não tem tarifa cadastrada, o RPC `create_order` rejeita o pedido
   // — mostrar um valor estimado no resumo só confunde o cliente.
   const cepFilled = onlyDigits(form.zip).length === 8 && form.state.trim().length === 2;
-  const shippingKnown = !!selectedShipping;
   const cepReady = onlyDigits(form.zip).length === 8 && form.state.trim().length === 2;
+  // Centralizado em src/lib/checkoutMath.ts — paridade testada com o RPC
+  // create_order. Mantém o mesmo comportamento (sem fallback de frete,
+  // PIX 5%, seguro 10%, cupom percentual ou fixo limitado ao subtotal).
+  const _totals = calcTotals({
+    subtotal: total,
+    shipping: selectedShipping ? Number(selectedShipping.price) : null,
+    insurance: insuranceOn,
+    coupon: coupon
+      ? { type: coupon.discount_type === "percent" ? "percent" : "fixed", value: Number(coupon.discount_value || 0) }
+      : null,
+    paymentMethod: form.payment_method as "pix" | "credit_card",
+  });
+  const shippingValue = _totals.shipping;
+  const shippingKnown = _totals.shippingKnown;
+  const insurance = _totals.insurance;
 
   // === Progresso das etapas (derivado, sem novo state) ===
   // Cada etapa "concluída" exige seus campos mínimos válidos.
