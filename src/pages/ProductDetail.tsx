@@ -394,7 +394,7 @@ export default function ProductDetail() {
                 <Link
                   key={r.id}
                   to={`/produto/${r.slug}`}
-                  className="group flex flex-col h-full rounded-2xl bg-card overflow-hidden border border-border/50 hover:border-primary/30 hover:shadow-[var(--shadow-card)] transition-all"
+                  className="group flex flex-col h-full rounded-2xl bg-card overflow-hidden border border-border/50"
                 >
                   <div className="relative aspect-square overflow-hidden bg-white">
                     {(() => {
@@ -414,7 +414,7 @@ export default function ProductDetail() {
                           width={400}
                           height={400}
                           onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
-                          className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
+                          className="w-full h-full object-cover"
                         />
                       );
                     })()}
