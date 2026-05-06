@@ -2,13 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Shield, ShieldOff, Loader2 } from "lucide-react";
+import { Search, Shield, ShieldOff, Loader2, Download } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { logAdminAction } from "@/lib/auditLog";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 import { useConfirm } from "@/components/admin/ConfirmDialog";
+import { downloadCsv } from "@/lib/exportCsv";
 
 interface UserRow {
   user_id: string;
@@ -177,6 +178,23 @@ export function AdminUsers() {
 
   if (error) return <AdminErrorBanner error={error} onRetry={load} />;
 
+  function exportCsv() {
+    downloadCsv(
+      `usuarios-${new Date().toISOString().slice(0, 10)}`,
+      [
+        { key: "full_name", label: "nome" },
+        { key: "email", label: "email" },
+        { key: "created_at", label: "cadastro" },
+        { key: "is_admin", label: "admin" },
+        { key: "orders_count", label: "pedidos" },
+        { key: "ltv", label: "ltv" },
+        { key: "last_order_at", label: "ultimo_pedido" },
+      ],
+      filtered as any,
+    );
+    toast.success(`${filtered.length} usuários exportados`);
+  }
+
   return (
     <div>
       <div className="flex items-center gap-3 mb-4 flex-wrap">
@@ -194,6 +212,9 @@ export function AdminUsers() {
           {items.filter((u) => u.is_admin).length} admin · {totals.buyers} compradores ·{" "}
           <span className="whitespace-nowrap">LTV médio {formatBRL(totals.avgLtv)}</span>
         </p>
+        <Button variant="outline" size="sm" onClick={exportCsv} disabled={loading || filtered.length === 0}>
+          <Download className="h-4 w-4" /> CSV
+        </Button>
       </div>
 
       <div className="bg-card rounded-2xl border border-border overflow-hidden">
