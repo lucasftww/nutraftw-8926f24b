@@ -1,0 +1,4 @@
+UPDATE public.shipping_rates SET price=70, delivery_days_min=5, delivery_days_max=6, updated_at=now() WHERE state IN ('SP','RJ','MG','ES');
+UPDATE public.shipping_rates SET price=73, delivery_days_min=5, delivery_days_max=6, updated_at=now() WHERE state IN ('PR','SC','RS','DF','GO','MS','MT');
+UPDATE public.shipping_rates SET price=76, delivery_days_min=5, delivery_days_max=7, updated_at=now() WHERE state IN ('BA','SE','AL','PE','PB','RN','CE','PI','MA');
+UPDATE public.shipping_rates SET price=80, delivery_days_min=6, delivery_days_max=7, updated_at=now() WHERE state IN ('TO','PA','RO','AC','AM','RR','AP');
