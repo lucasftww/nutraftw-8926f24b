@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
-import { Package, ShoppingBag, DollarSign, Users, TrendingUp, Clock, Receipt, Boxes, Sparkles } from "lucide-react";
+import { Package, ShoppingBag, DollarSign, Users, TrendingUp, Clock, Receipt, Boxes, Sparkles, Eye, Heart, ShoppingCart, CreditCard, CheckCircle2, Zap } from "lucide-react";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "./AdminErrorBanner";
 import { ProductThumb } from "./ProductThumb";
 import { EmptyState } from "./EmptyState";
@@ -21,8 +21,20 @@ type Stats = {
   topProducts: any[];
 };
 
+type Last24h = {
+  ordersCount: number;
+  paidCount: number;
+  revenue: number;
+  views: number;
+  wishlist: number;
+  cartAdds: number;
+  checkoutStarted: number;
+  recentSales: Array<{ id: string; total: number; status: string; created_at: string; shipping_full_name: string | null }>;
+};
+
 export function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
+  const [last24h, setLast24h] = useState<Last24h | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<AdminErrorInfo | null>(null);
 
@@ -114,6 +126,36 @@ export function AdminDashboard() {
         recentOrders: (orders || []).slice(0, 5),
         topProducts,
       });
+
+      // ===== Últimas 24h: vendas + mini funil =====
+      const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+      const last24Orders = (orders || []).filter((o) => o.created_at >= since);
+      const last24Paid = last24Orders.filter((o) => ["paid", "processing", "shipped", "delivered"].includes(o.status));
+      const recentSales = last24Orders
+        .slice()
+        .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
+        .slice(0, 6);
+
+      const [ev24, wl24, ci24] = await Promise.all([
+        supabase.from("product_events").select("event_type", { head: false, count: "exact" }).gte("created_at", since),
+        supabase.from("wishlists").select("id", { head: true, count: "exact" }).gte("created_at", since),
+        supabase.from("cart_items").select("id", { head: true, count: "exact" }).gte("created_at", since),
+      ]);
+      const events = (ev24.data as Array<{ event_type: string }> | null) || [];
+      const views = events.filter((e) => e.event_type === "view").length;
+      const checkoutStarted = events.filter((e) => e.event_type === "checkout_started").length;
+
+      setLast24h({
+        ordersCount: last24Orders.length,
+        paidCount: last24Paid.length,
+        revenue: last24Paid.reduce((s, o) => s + Number(o.total || 0), 0),
+        views,
+        wishlist: wl24.count || 0,
+        cartAdds: ci24.count || 0,
+        checkoutStarted,
+        recentSales,
+      });
+
       setLoading(false);
     } catch (e: any) {
       const info = logSupabaseError("Dashboard", e);
@@ -166,6 +208,8 @@ export function AdminDashboard() {
         revenue={stats.totalRevenue}
         ordersToday={stats.recentOrders.filter((o) => isToday(o.created_at)).length}
       />
+
+      {last24h && <Last24hPanel data={last24h} />}
 
       {hasNoSales && (
         <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5 flex items-start gap-3">
