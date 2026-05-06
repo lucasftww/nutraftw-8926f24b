@@ -185,7 +185,7 @@ function AdminInner() {
                         : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
                     }`}
                   >
-                    {active && <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-[2px] h-4 bg-primary rounded-r" style={{ boxShadow: "0 0 12px hsl(var(--primary) / 0.6)" }} />}
+                    {active && <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-[2px] h-4 bg-primary rounded-r" style={{ boxShadow: "0 0 6px hsl(var(--primary) / 0.45)" }} />}
                     <t.icon className={`h-3.5 w-3.5 shrink-0 ${active ? "text-primary" : ""}`} />
                     <span className="flex-1 text-left">{t.label}</span>
                     {showBadge && (
@@ -201,12 +201,13 @@ function AdminInner() {
         </nav>
         <div className="border-t border-border p-4">
           <div className="flex items-center gap-3 px-2 mb-3">
-            <div className="w-9 h-9 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xs font-semibold">
+            <div className="relative w-9 h-9 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xs font-semibold ring-1 ring-primary/25">
               {(user?.email ?? "?").slice(0, 2).toUpperCase()}
+              <span aria-hidden className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-success ring-2 ring-card" />
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-xs font-medium text-foreground truncate">Administrador</div>
-              <div className="text-[11px] text-muted-foreground truncate">{user?.email}</div>
+              <div className="text-[11px] text-muted-foreground/80 truncate">{user?.email}</div>
             </div>
           </div>
           <button
