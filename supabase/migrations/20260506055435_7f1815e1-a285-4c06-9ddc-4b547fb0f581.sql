@@ -1,0 +1,2 @@
+update products set image_url = '/products/agua-bacteriostatica-2ml.svg' where slug = 'agua-bacteriostatica-2ml';
+update products set image_url = '/products/agua-bacteriostatica-3ml.svg' where slug = 'agua-bacteriostatica-3ml';
