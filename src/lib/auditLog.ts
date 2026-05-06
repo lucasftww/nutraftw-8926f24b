@@ -35,6 +35,7 @@ export type AdminEntity =
   | "orders"
   | "resends"
   | "affiliate_commissions"
+  | "order_refunds"
   | "user_roles";
 
 export interface AdminLogInput {
