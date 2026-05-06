@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { auditUpdateIntegrity } from "@/lib/integrityAudit";
 import { Button } from "@/components/ui/button";
 import { formatBRL } from "@/lib/utils";
 import { toast } from "sonner";
@@ -43,6 +44,11 @@ export function AdminResends() {
     const { error } = await supabase.from("orders").update(patch).eq("id", id);
     if (error) {
       logSupabaseError("Atualizar reenvio", error, { id, patch });
+      await auditUpdateIntegrity({
+        table: "orders", id, payload: patch, error,
+        entity: "resends",
+        summary: `Reenvio #${id.slice(0, 8)}`,
+      });
       toast.error(error.message);
     } else {
       toast.success("Atualizado");
@@ -53,6 +59,14 @@ export function AdminResends() {
         summary: `Reenvio #${id.slice(0, 8)} → ${patch.resend_status ?? "atualizado"}`,
         diff: { after: patch },
       });
+      const r = await auditUpdateIntegrity({
+        table: "orders", id, payload: patch,
+        entity: "resends",
+        summary: `Reenvio #${id.slice(0, 8)}`,
+      });
+      if (!r.ok) {
+        toast.warning(`Divergência detectada (${r.divergedKeys.join(", ")}). Veja o log.`);
+      }
       load();
     }
   }
