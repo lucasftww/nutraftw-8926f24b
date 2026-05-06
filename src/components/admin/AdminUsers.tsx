@@ -351,6 +351,23 @@ export function AdminUsers() {
           </table>
         </div>
       </div>
+
+      {/* Paginação */}
+      {totalCount > PAGE_SIZE && (
+        <div className="flex items-center justify-between gap-2 pt-1">
+          <span className="text-xs text-muted-foreground">
+            Página {page + 1} de {totalPages} · {totalCount} usuários
+          </span>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" disabled={page === 0 || loading} onClick={() => setPage((p) => Math.max(0, p - 1))}>
+              <ChevronLeft className="h-4 w-4" /> <span className="hidden sm:inline">Anterior</span>
+            </Button>
+            <Button variant="outline" size="sm" disabled={page + 1 >= totalPages || loading} onClick={() => setPage((p) => p + 1)}>
+              <span className="hidden sm:inline">Próxima</span> <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
