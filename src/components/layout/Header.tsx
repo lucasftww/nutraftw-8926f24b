@@ -190,7 +190,7 @@ export function Header() {
                       loading="eager"
                       fetchPriority="high"
                       decoding="async"
-                      className="h-10 w-auto object-contain shrink-0"
+                      className="h-14 w-auto object-contain shrink-0"
                     />
                   </div>
                   <button
