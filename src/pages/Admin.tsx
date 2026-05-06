@@ -887,7 +887,7 @@ function AdminProducts() {
           <tbody>
             {loading && Array.from({ length: 6 }).map((_, i) => (
               <tr key={i} className="border-t border-border">
-                <td className="px-4 py-3" colSpan={6}><div className="h-10 bg-muted/50 rounded animate-pulse" /></td>
+                <td className="px-4 py-3" colSpan={7}><div className="h-10 bg-muted/50 rounded animate-pulse" /></td>
               </tr>
             ))}
             {!loading && canReorder && (
@@ -901,7 +901,7 @@ function AdminProducts() {
               <ProductTableRow key={p.id} p={p} sortable={false} selected={selected} toggleSel={toggleSel} setEditing={setEditing} duplicate={duplicate} del={del} />
             ))}
             {!loading && items.length === 0 && (
-              <tr><td colSpan={6}>
+              <tr><td colSpan={7}>
                 <EmptyState
                   icon={Package}
                   title="Nenhum produto encontrado"
