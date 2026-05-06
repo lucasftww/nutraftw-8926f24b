@@ -180,21 +180,34 @@ export function AdminOrders() {
   const totalPages = totalCount != null ? Math.max(1, Math.ceil(totalCount / PAGE_SIZE)) : null;
 
   async function exportCSV() {
-    let q = supabase
+    // Bug fix: antes usava .limit(5000) silencioso. Agora pagina em lotes
+    // de 1000 (limite do PostgREST) e avisa se atingir o teto de segurança.
+    const MAX = 20000;
+    const BATCH = 1000;
+    const all: any[] = [];
+    const buildQuery = (from: number, to: number) => {
+      let q = supabase
       .from("orders")
       .select(
         "id, created_at, status, payment_method, total, subtotal, shipping, insurance, discount, coupon_code, shipping_full_name, shipping_cpf, shipping_phone, shipping_zip, shipping_city, shipping_state",
       )
       .order("created_at", { ascending: false })
-      .limit(5000);
-    if (filter !== "all") q = q.eq("status", filter as any);
-    if (paymentFilter !== "all") q = q.eq("payment_method", paymentFilter as any);
-    if (dateFrom) q = q.gte("created_at", new Date(dateFrom + "T00:00:00").toISOString());
-    if (dateTo) q = q.lte("created_at", new Date(dateTo + "T23:59:59").toISOString());
-    const { data, error: err } = await q;
-    if (err || !data) {
-      toast.error(`Falha ao exportar: ${err?.message ?? "sem dados"}`);
-      return;
+        .range(from, to);
+      if (filter !== "all") q = q.eq("status", filter as any);
+      if (paymentFilter !== "all") q = q.eq("payment_method", paymentFilter as any);
+      if (dateFrom) q = q.gte("created_at", new Date(dateFrom + "T00:00:00").toISOString());
+      if (dateTo) q = q.lte("created_at", new Date(dateTo + "T23:59:59").toISOString());
+      return q;
+    };
+    for (let offset = 0; offset < MAX; offset += BATCH) {
+      const { data, error: err } = await buildQuery(offset, offset + BATCH - 1);
+      if (err) {
+        toast.error(`Falha ao exportar: ${friendlyErrorMessage(err)}`);
+        return;
+      }
+      const rows = data || [];
+      all.push(...rows);
+      if (rows.length < BATCH) break;
     }
     const headers = [
       "id", "created_at", "status", "payment_method", "total", "subtotal",
@@ -206,7 +219,7 @@ export function AdminOrders() {
       const s = String(v).replace(/"/g, '""');
       return /[",\n;]/.test(s) ? `"${s}"` : s;
     };
-    const rows = data.map((o: any) => [
+    const rows = all.map((o: any) => [
       o.id, o.created_at, o.status, o.payment_method, o.total, o.subtotal,
       o.shipping, o.insurance, o.discount, o.coupon_code, o.shipping_full_name,
       o.shipping_cpf, o.shipping_phone, o.shipping_zip, o.shipping_city, o.shipping_state,
@@ -219,7 +232,11 @@ export function AdminOrders() {
     a.download = `pedidos-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success(`${data.length} pedidos exportados`);
+    if (all.length >= MAX) {
+      toast.warning(`Exportados ${all.length} pedidos (limite atingido — aplique filtros para o restante)`);
+    } else {
+      toast.success(`${all.length} pedidos exportados`);
+    }
   }
 
   return (
