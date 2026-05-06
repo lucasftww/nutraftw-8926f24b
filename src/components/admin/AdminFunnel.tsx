@@ -289,86 +289,144 @@ function EmptyStateInline() {
 }
 
 /**
- * Funil em SVG: trapezoides empilhados, largura proporcional ao valor da etapa.
- * Cada faixa tem gradiente próprio. Renderiza valor + label dentro da faixa.
+ * Funil de conversão redesenhado.
+ *
+ * Layout:
+ *  - Header com título e badge de conversão ponta-a-ponta.
+ *  - Lista vertical de "stage cards" cada um com:
+ *      • Ícone com gradiente da etapa
+ *      • Label + número grande do volume
+ *      • Barra de progresso proporcional ao topo do funil
+ *      • Conversão vs etapa anterior + drop-off em destaque (âmbar)
+ *  - Conector animado entre cards mostra o "fluxo" de drop.
  */
-function FunnelSVG({ stages }: { stages: Array<{ key: string; label: string; value: number; gradient: string }> }) {
-  const W = 520;
-  const H = Math.max(320, stages.length * 78);
+function FunnelFlow({
+  stages,
+  overallConversion,
+}: {
+  stages: Array<{ key: string; label: string; value: number; gradient: string; icon: any }>;
+  overallConversion: number;
+}) {
   const top = stages[0]?.value || 1;
-  const minWidthRatio = 0.18; // garante que a última faixa nunca fique invisível
-  const widths = stages.map((s) => {
-    const r = top > 0 ? s.value / top : 0;
-    return Math.max(minWidthRatio, r);
-  });
-  const bandH = H / stages.length;
-  // Mapeia o gradient tailwind do stage para stops HSL. Mantemos pares fixos
-  // pra garantir consistência sem depender do compilador Tailwind no SVG.
-  const palette: Record<string, [string, string]> = {
-    views: ["#7DD3FC", "#06B6D4"],
-    wishlist: ["#22D3EE", "#0B1F6B"],
-    cart: ["#0B1F6B", "#1E63C8"],
-    checkout: ["#F97316", "#F59E0B"],
-    paid: ["#10B981", "#16A34A"],
-  };
   return (
-    <div className="w-full">
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label="Funil de conversão">
-        <defs>
-          {stages.map((s) => {
-            const [c1, c2] = palette[s.key] || ["#0B1F6B", "#3FC1E5"];
-            return (
-              <linearGradient key={s.key} id={`fnl-${s.key}`} x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0" stopColor={c1} />
-                <stop offset="1" stopColor={c2} />
-              </linearGradient>
-            );
-          })}
-          <filter id="fnl-shadow" x="-10%" y="-10%" width="120%" height="120%">
-            <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#0B1F6B" floodOpacity="0.18" />
-          </filter>
-        </defs>
+    <div className="relative overflow-hidden rounded-3xl border border-border/70 bg-gradient-to-br from-card via-card to-muted/20 p-5 md:p-7 shadow-card">
+      {/* Glow decorativo de fundo */}
+      <div aria-hidden className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
+      <div aria-hidden className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-brand-cyan/10 blur-3xl" />
+
+      <header className="relative mb-6 flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h3 className="font-display text-lg md:text-xl font-extrabold tracking-tight text-foreground">
+            Etapas do funil
+          </h3>
+          <p className="text-xs text-muted-foreground mt-1">
+            Volume real, conversão entre etapas e pontos de abandono.
+          </p>
+        </div>
+        <span className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary via-primary-glow to-brand-cyan px-3.5 py-1.5 text-xs font-bold text-primary-foreground shadow-elegant">
+          <Sparkles className="h-3.5 w-3.5" />
+          {pct(overallConversion)} ponta-a-ponta
+        </span>
+      </header>
+
+      <ol className="relative space-y-3">
         {stages.map((s, i) => {
-          const wTop = widths[i] * W;
-          const wBot = (widths[i + 1] ?? widths[i] * 0.85) * W;
-          const y0 = i * bandH;
-          const y1 = y0 + bandH - 6; // gap entre faixas
-          const xTopL = (W - wTop) / 2;
-          const xTopR = xTopL + wTop;
-          const xBotL = (W - wBot) / 2;
-          const xBotR = xBotL + wBot;
-          const d = `M${xTopL},${y0} L${xTopR},${y0} L${xBotR},${y1} L${xBotL},${y1} Z`;
-          const cx = W / 2;
-          const cy = y0 + bandH / 2 - 3;
+          const prev = i > 0 ? stages[i - 1] : null;
+          const stepConv = prev ? ratio(s.value, prev.value) : 1;
+          const dropPct = prev ? Math.max(0, 1 - stepConv) : 0;
+          const dropAbs = prev ? Math.max(0, prev.value - s.value) : 0;
+          const showDrop = !!prev && dropPct > 0.3 && dropAbs >= 5;
+          const widthPct = top > 0 ? Math.max(4, (s.value / top) * 100) : 4;
+          const Icon = s.icon;
+          const isLast = i === stages.length - 1;
           return (
-            <g key={s.key} filter="url(#fnl-shadow)">
-              <path d={d} fill={`url(#fnl-${s.key})`} />
-              <text
-                x={cx}
-                y={cy - 4}
-                textAnchor="middle"
-                fontSize="11"
-                fontWeight="600"
-                fill="#FFFFFF"
-                opacity="0.92"
-                style={{ letterSpacing: "0.08em", textTransform: "uppercase" }}
-              >
-                {s.label}
-              </text>
-              <text
-                x={cx}
-                y={cy + 16}
-                textAnchor="middle"
-                fontSize="20"
-                fontWeight="800"
-                fill="#FFFFFF"
-              >
-                {s.value.toLocaleString("pt-BR")}
-              </text>
-            </g>
+            <li key={s.key} className="relative">
+              {/* Conector vertical até o próximo card */}
+              {!isLast && (
+                <span
+                  aria-hidden
+                  className="absolute left-[26px] top-full z-0 h-3 w-px bg-gradient-to-b from-border to-transparent"
+                />
+              )}
+
+              <div className="relative z-10 flex items-stretch gap-3 rounded-2xl border border-border/70 bg-card/80 backdrop-blur-sm p-3.5 md:p-4 hover:border-primary/40 hover:shadow-soft transition-all">
+                {/* Ícone numerado */}
+                <div className="relative shrink-0">
+                  <span
+                    className={`relative inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${s.gradient} text-white shadow-lg`}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <span className="absolute -bottom-1 -right-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-background border border-border text-[10px] font-bold tabular-nums text-foreground">
+                    {i + 1}
+                  </span>
+                </div>
+
+                {/* Label + barra + valor */}
+                <div className="min-w-0 flex-1 flex flex-col justify-center gap-1.5">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <p className="text-[11px] uppercase tracking-[0.14em] font-semibold text-muted-foreground truncate">
+                      {s.label}
+                    </p>
+                    <p className="font-display text-xl md:text-2xl font-extrabold tabular-nums leading-none text-foreground">
+                      {s.value.toLocaleString("pt-BR")}
+                    </p>
+                  </div>
+                  <div className="relative h-2 rounded-full bg-muted/60 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full bg-gradient-to-r ${s.gradient} shadow-[0_0_12px_-2px_currentColor] transition-[width] duration-700 ease-out`}
+                      style={{ width: `${widthPct}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Conversão vs etapa anterior */}
+                <div className="hidden sm:flex flex-col items-end justify-center min-w-[88px] shrink-0 pl-2 border-l border-border/60">
+                  {prev ? (
+                    <>
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground leading-none">
+                        Conversão
+                      </p>
+                      <p
+                        className={`font-display font-extrabold text-lg tabular-nums leading-tight mt-1 ${
+                          showDrop ? "text-amber-500" : "text-foreground"
+                        }`}
+                      >
+                        {pct(stepConv)}
+                      </p>
+                      {showDrop && (
+                        <p className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-500 mt-0.5">
+                          <AlertTriangle className="h-3 w-3" />
+                          −{dropAbs.toLocaleString("pt-BR")}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider">
+                      Topo
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Mobile: conversão abaixo do card */}
+              {prev && (
+                <div className="sm:hidden flex items-center justify-between mt-1 px-3.5 text-[11px]">
+                  <span className="text-muted-foreground">Conversão da etapa</span>
+                  <span className={`font-bold tabular-nums ${showDrop ? "text-amber-500" : "text-foreground"}`}>
+                    {pct(stepConv)}
+                    {showDrop && <span className="ml-1 opacity-80">(−{dropAbs.toLocaleString("pt-BR")})</span>}
+                  </span>
+                </div>
+              )}
+            </li>
           );
         })}
-      </svg>
+      </ol>
+
+      <p className="relative mt-6 pt-4 border-t border-border/60 text-[11px] text-muted-foreground/80 leading-relaxed">
+        Etapas vêm de origens diferentes (analytics × pedidos). Foque na tendência relativa, não no número absoluto.
+      </p>
     </div>
   );
 }
