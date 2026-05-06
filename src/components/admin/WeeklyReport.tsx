@@ -42,7 +42,7 @@ import {
   X,
 } from "lucide-react";
 
-type Range = "7d" | "14d" | "30d";
+type Range = "24h" | "7d" | "14d" | "30d";
 
 const PAID_STATUSES = ["paid", "processing", "shipped", "delivered"];
 const PIE_COLORS = ["hsl(var(--primary))", "hsl(var(--secondary))", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#0ea5e9"];
@@ -91,15 +91,23 @@ export function WeeklyReport() {
   const [productPage, setProductPage] = useState(1);
   const PRODUCT_PAGE_SIZE = 10;
 
-  const days = range === "7d" ? 7 : range === "14d" ? 14 : 30;
+  const isHourly = range === "24h";
+  const days = range === "7d" ? 7 : range === "14d" ? 14 : range === "30d" ? 30 : 1;
 
   const { startDate, endDate, prevStart, prevEnd } = useMemo(() => {
+    if (isHourly) {
+      const end = new Date();
+      const start = new Date(end.getTime() - 24 * 60 * 60 * 1000);
+      const pEnd = new Date(start.getTime() - 1);
+      const pStart = new Date(pEnd.getTime() - 24 * 60 * 60 * 1000);
+      return { startDate: start, endDate: end, prevStart: pStart, prevEnd: pEnd };
+    }
     const end = endOfDay(new Date());
     const start = startOfDay(subDays(end, days - 1));
     const pEnd = endOfDay(subDays(start, 1));
     const pStart = startOfDay(subDays(pEnd, days - 1));
     return { startDate: start, endDate: end, prevStart: pStart, prevEnd: pEnd };
-  }, [days]);
+  }, [days, isHourly]);
 
   useEffect(() => {
     let cancelled = false;
@@ -265,6 +273,35 @@ export function WeeklyReport() {
   }, [paid, items]);
 
   const dailySeries = useMemo(() => {
+    if (isHourly) {
+      // Buckets de 1h cobrindo as últimas 24 horas (cheias).
+      const buckets = new Map<string, { revenue: number; orders: number; ts: number }>();
+      const startHour = new Date(startDate);
+      startHour.setMinutes(0, 0, 0);
+      for (let i = 0; i < 24; i++) {
+        const d = new Date(startHour.getTime() + i * 3600 * 1000);
+        const k = format(d, "yyyy-MM-dd HH");
+        buckets.set(k, { revenue: 0, orders: 0, ts: d.getTime() });
+      }
+      for (const o of paid) {
+        const d = new Date(o.created_at);
+        const k = format(d, "yyyy-MM-dd HH");
+        const b = buckets.get(k);
+        if (b) {
+          b.revenue += Number(o.total || 0);
+          b.orders += 1;
+        }
+      }
+      return Array.from(buckets.entries())
+        .sort((a, b) => a[1].ts - b[1].ts)
+        .map(([k, v]) => ({
+          date: k,
+          label: format(new Date(v.ts), "HH'h'", { locale: ptBR }),
+          weekday: format(new Date(v.ts), "EEE", { locale: ptBR }),
+          revenue: Number(v.revenue.toFixed(2)),
+          orders: v.orders,
+        }));
+    }
     const buckets = new Map<string, { revenue: number; orders: number }>();
     eachDayOfInterval({ start: startDate, end: endDate }).forEach((d) => {
       buckets.set(format(d, "yyyy-MM-dd"), { revenue: 0, orders: 0 });
@@ -284,7 +321,7 @@ export function WeeklyReport() {
       revenue: Number(v.revenue.toFixed(2)),
       orders: v.orders,
     }));
-  }, [paid, startDate, endDate]);
+  }, [paid, startDate, endDate, isHourly]);
 
   const topProducts = useMemo(() => {
     const map = new Map<string, { name: string; image: string | null; qty: number; revenue: number }>();
@@ -415,7 +452,7 @@ export function WeeklyReport() {
         </div>
         <div className="flex items-center gap-2">
           <div className="inline-flex rounded-full border border-border bg-background p-1">
-            {(["7d", "14d", "30d"] as Range[]).map((r) => (
+            {(["24h", "7d", "14d", "30d"] as Range[]).map((r) => (
               <button
                 key={r}
                 onClick={() => setRange(r)}
@@ -423,7 +460,7 @@ export function WeeklyReport() {
                   range === r ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {r === "7d" ? "7 dias" : r === "14d" ? "14 dias" : "30 dias"}
+                {r === "24h" ? "24h" : r === "7d" ? "7 dias" : r === "14d" ? "14 dias" : "30 dias"}
               </button>
             ))}
           </div>
