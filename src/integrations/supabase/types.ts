@@ -312,6 +312,45 @@ export type Database = {
           },
         ]
       }
+      order_refunds: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          order_id: string
+          processed_at: string | null
+          reason: Database["public"]["Enums"]["refund_reason"]
+          status: Database["public"]["Enums"]["refund_status"]
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          order_id: string
+          processed_at?: string | null
+          reason?: Database["public"]["Enums"]["refund_reason"]
+          status?: Database["public"]["Enums"]["refund_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          order_id?: string
+          processed_at?: string | null
+          reason?: Database["public"]["Enums"]["refund_reason"]
+          status?: Database["public"]["Enums"]["refund_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           coupon_code: string | null
@@ -944,6 +983,15 @@ export type Database = {
         | "cancelled"
         | "refunded"
       payment_method: "pix" | "credit_card" | "boleto"
+      refund_reason:
+        | "customer_request"
+        | "product_unavailable"
+        | "shipping_issue"
+        | "payment_issue"
+        | "fraud"
+        | "duplicate_order"
+        | "other"
+      refund_status: "pending" | "processed" | "failed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1082,6 +1130,16 @@ export const Constants = {
         "refunded",
       ],
       payment_method: ["pix", "credit_card", "boleto"],
+      refund_reason: [
+        "customer_request",
+        "product_unavailable",
+        "shipping_issue",
+        "payment_issue",
+        "fraud",
+        "duplicate_order",
+        "other",
+      ],
+      refund_status: ["pending", "processed", "failed"],
     },
   },
 } as const
