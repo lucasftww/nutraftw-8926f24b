@@ -167,7 +167,11 @@ export function Header() {
                     destino "/" que já é coberto pelo item "Catálogo" abaixo.
                   */}
                      <div className="flex items-center min-w-0" aria-hidden="true">
-                      <img src={logoRoyalVittaText} alt="Royal Vitta" className="h-8 sm:h-10 md:h-12 lg:h-14 w-auto object-contain py-2 transition-all duration-300" />
+                      <img 
+                        src={logoRoyalVittaText} 
+                        alt="Royal Vitta" 
+                        className="h-8 sm:h-10 md:h-12 lg:h-14 w-auto object-contain py-2 transition-all duration-300 animate-in fade-in slide-in-from-left-4 duration-500" 
+                      />
                      </div>
                   <button
                     onClick={() => setMobileMenuOpen(false)}
