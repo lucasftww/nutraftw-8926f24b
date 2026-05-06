@@ -82,10 +82,14 @@ export default function Catalog() {
   useEffect(() => {
     if (query === urlQuery) return;
     const t = setTimeout(() => {
-      const params = new URLSearchParams(searchParams);
-      if (query) params.set("q", query);
-      else params.delete("q");
-      setSearchParams(params, { replace: true });
+      // Lê searchParams via setter funcional para evitar sobrescrever
+      // alterações concorrentes (ex.: ?categoria=…) feitas no debounce.
+      setSearchParams((prev) => {
+        const params = new URLSearchParams(prev);
+        if (query) params.set("q", query);
+        else params.delete("q");
+        return params;
+      }, { replace: true });
     }, 200);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
