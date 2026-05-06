@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Eye, Heart, ShoppingCart, CreditCard, CheckCircle2, TrendingDown, Loader2, Calendar, ArrowRight } from "lucide-react";
+import { Eye, Heart, ShoppingCart, CreditCard, CheckCircle2, TrendingDown, Loader2, Calendar, ArrowRight, Users, ShoppingBag, DollarSign, Sparkles, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { toast } from "sonner";
@@ -110,13 +110,15 @@ export function AdminFunnel() {
   const stages = useMemo(() => {
     const s = summary;
     if (!s) return [];
-    // Paleta consistente: tons de ciano para o topo do funil → verde no fim (conversão).
+    // Paleta degradê: ciano (topo de funil, descoberta) → primary → secondary
+    // (intenção) → success (conversão). Cada etapa tem cor própria pra
+    // facilitar leitura visual rápida.
     return [
-      { key: "views",    label: "Visualizações",       value: s.views,            icon: Eye,          color: "bg-primary/40" },
-      { key: "wishlist", label: "Favoritos",           value: s.wishlist_adds,    icon: Heart,        color: "bg-primary/60" },
-      { key: "cart",     label: "Adições ao carrinho", value: s.cart_adds,        icon: ShoppingCart, color: "bg-primary/75" },
-      { key: "checkout", label: "Checkout iniciado",   value: s.checkout_started, icon: CreditCard,   color: "bg-primary" },
-      { key: "paid",     label: "Pedidos pagos",       value: s.orders_paid,      icon: CheckCircle2, color: "bg-emerald-500" },
+      { key: "views",    label: "Visualizações",       value: s.views,            icon: Eye,          gradient: "from-sky-400 to-cyan-500",        accent: "text-sky-600" },
+      { key: "wishlist", label: "Favoritos",           value: s.wishlist_adds,    icon: Heart,        gradient: "from-cyan-500 to-primary",         accent: "text-cyan-700" },
+      { key: "cart",     label: "Adições ao carrinho", value: s.cart_adds,        icon: ShoppingCart, gradient: "from-primary to-primary-glow",     accent: "text-primary" },
+      { key: "checkout", label: "Checkout iniciado",   value: s.checkout_started, icon: CreditCard,   gradient: "from-secondary to-amber-500",      accent: "text-secondary" },
+      { key: "paid",     label: "Pedidos pagos",       value: s.orders_paid,      icon: CheckCircle2, gradient: "from-emerald-500 to-success",      accent: "text-success" },
     ];
   }, [summary]);
 
@@ -128,7 +130,12 @@ export function AdminFunnel() {
       {/* Header + filtro de período */}
       <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <h2 className="font-display text-2xl font-extrabold text-primary">Funil de conversão</h2>
+          <h2 className="font-display text-2xl md:text-3xl font-extrabold text-primary inline-flex items-center gap-2">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-brand-cyan text-primary-foreground shadow-elegant">
+              <TrendingDown className="h-4 w-4 rotate-180" />
+            </span>
+            Funil de conversão
+          </h2>
           <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1.5">
             <Calendar className="h-3.5 w-3.5" />
             Últimos {days} dias
@@ -160,61 +167,114 @@ export function AdminFunnel() {
         </div>
       ) : (
         <>
-          {/* KPIs no topo */}
+          {/* KPIs no topo — cada card com sua cor */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <KpiCard label="Visitantes únicos" value={summary.unique_viewers.toLocaleString("pt-BR")} hint={`${summary.views.toLocaleString("pt-BR")} visualizações`} />
-            <KpiCard label="Pedidos pagos" value={summary.orders_paid.toLocaleString("pt-BR")} hint={`${summary.orders_total} total`} />
-            <KpiCard label="Receita paga" value={formatBRL(summary.revenue_paid)} hint={`Ticket médio ${formatBRL(aov)}`} />
-            <KpiCard label="Conversão geral" value={pct(overallConversion)} hint="Visitas → pagas" highlight />
+            <KpiCard
+              label="Visitantes únicos"
+              value={summary.unique_viewers.toLocaleString("pt-BR")}
+              hint={`${summary.views.toLocaleString("pt-BR")} visualizações`}
+              icon={Users}
+              tone="cyan"
+            />
+            <KpiCard
+              label="Pedidos pagos"
+              value={summary.orders_paid.toLocaleString("pt-BR")}
+              hint={`${summary.orders_total} total`}
+              icon={ShoppingBag}
+              tone="primary"
+            />
+            <KpiCard
+              label="Receita paga"
+              value={formatBRL(summary.revenue_paid)}
+              hint={`Ticket médio ${formatBRL(aov)}`}
+              icon={DollarSign}
+              tone="success"
+            />
+            <KpiCard
+              label="Conversão geral"
+              value={pct(overallConversion)}
+              hint="Visitas → pagas"
+              icon={Sparkles}
+              tone="secondary"
+              highlight
+            />
           </div>
 
-          {/* Funil visual */}
-          <div className="rounded-2xl border border-border bg-card p-5 md:p-6">
-            <h3 className="font-bold text-base mb-1">Etapas do funil</h3>
-            <p className="text-xs text-muted-foreground mb-5">Drop-off entre cada etapa do período selecionado.</p>
-            <ul className="space-y-3">
+          {/* Funil visual com trapézios coloridos (forma de funil real) */}
+          <div className="rounded-2xl border border-border bg-gradient-to-b from-card to-muted/20 p-5 md:p-7 shadow-card">
+            <header className="mb-5 flex items-start justify-between gap-3 flex-wrap">
+              <div>
+                <h3 className="font-bold text-base md:text-lg">Etapas do funil</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Cada etapa mostra o volume e a conversão a partir da anterior.
+                </p>
+              </div>
+              <span className="badge-pill bg-primary/10 text-primary">
+                {pct(overallConversion)} ponta-a-ponta
+              </span>
+            </header>
+            <ul className="space-y-2.5">
               {stages.map((s, i) => {
                 const top = stages[0].value || 1;
-                const widthPct = Math.max(4, (s.value / top) * 100);
+                const widthPct = Math.max(18, (s.value / top) * 100);
                 const prev = i > 0 ? stages[i - 1] : null;
                 const stepConv = prev ? ratio(s.value, prev.value) : 1;
                 const dropPct = prev ? Math.max(0, 1 - stepConv) : 0;
-                // Mostrar alerta de abandono só se realmente significativo (> 30%)
                 const showDrop = prev && dropPct > 0.3 && (prev.value - s.value) >= 5;
+                const Icon = s.icon;
                 return (
-                  <li key={s.key}>
-                    <div className="flex items-center justify-between mb-1.5 text-sm">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <s.icon className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-semibold">{s.label}</span>
-                        {prev && (
-                          <span
-                            className="text-[11px] text-muted-foreground"
-                            title={`Conversão da etapa anterior: ${pct(stepConv)}`}
-                          >
-                            · {pct(stepConv)} da etapa anterior
-                          </span>
-                        )}
-                      </div>
-                      <span className="font-bold tabular-nums">{s.value.toLocaleString("pt-BR")}</span>
-                    </div>
-                    <div className="relative h-6 rounded-lg bg-muted/60 overflow-hidden">
+                  <li key={s.key} className="relative">
+                    {/* Linha conectora vertical entre etapas */}
+                    {i > 0 && (
+                      <span aria-hidden className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-px h-2.5 bg-border" />
+                    )}
+                    <div
+                      className="mx-auto relative flex items-center gap-3 px-4 py-3 rounded-xl text-white shadow-elegant transition-all hover:scale-[1.01]"
+                      style={{
+                        width: `${widthPct}%`,
+                        minWidth: 240,
+                        background: `linear-gradient(90deg, hsl(var(--primary) / 0.0) 0%, transparent 0%)`,
+                      }}
+                    >
                       <div
-                        className={`absolute inset-y-0 left-0 ${s.color} transition-all duration-500`}
-                        style={{ width: `${widthPct}%` }}
+                        aria-hidden
+                        className={`absolute inset-0 rounded-xl bg-gradient-to-r ${s.gradient} opacity-95`}
                       />
+                      <div className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white/20 backdrop-blur-sm shrink-0">
+                        <Icon className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="relative min-w-0 flex-1">
+                        <p className="text-[11px] uppercase tracking-wider opacity-85 leading-none">
+                          {s.label}
+                        </p>
+                        <p className="font-display text-xl font-extrabold tabular-nums leading-tight mt-0.5">
+                          {s.value.toLocaleString("pt-BR")}
+                        </p>
+                      </div>
+                      {prev && (
+                        <div className="relative shrink-0 text-right">
+                          <p className="text-[10px] uppercase tracking-wider opacity-80 leading-none">
+                            Conversão
+                          </p>
+                          <p className="font-bold text-sm tabular-nums leading-tight mt-0.5">
+                            {pct(stepConv)}
+                          </p>
+                        </div>
+                      )}
                     </div>
                     {showDrop && (
-                      <p className="mt-1 flex items-center gap-1 text-[11px] text-amber-500/90">
-                        <TrendingDown className="h-3 w-3" />
-                        {pct(dropPct)} abandona aqui · {(prev!.value - s.value).toLocaleString("pt-BR")} pessoas
-                      </p>
+                      <div className="mt-1.5 mx-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-medium w-fit">
+                        <AlertTriangle className="h-3 w-3 shrink-0" />
+                        <span>
+                          {pct(dropPct)} abandona aqui · {(prev!.value - s.value).toLocaleString("pt-BR")} pessoas perdidas
+                        </span>
+                      </div>
                     )}
                   </li>
                 );
               })}
             </ul>
-            <p className="mt-4 pt-3 border-t border-border/60 text-[11px] text-muted-foreground/80 leading-relaxed">
+            <p className="mt-5 pt-4 border-t border-border/60 text-[11px] text-muted-foreground/80 leading-relaxed">
               Etapas de origens diferentes (analytics × pedidos) podem variar. Pequenas inconsistências são esperadas — foque na tendência relativa.
             </p>
           </div>
@@ -301,17 +361,39 @@ function EmptyStateInline() {
   );
 }
 
-function KpiCard({ label, value, hint, highlight }: { label: string; value: string; hint?: string; highlight?: boolean }) {
+type KpiTone = "cyan" | "primary" | "success" | "secondary";
+
+function KpiCard({
+  label, value, hint, icon: Icon, tone, highlight,
+}: {
+  label: string; value: string; hint?: string;
+  icon: React.ComponentType<{ className?: string }>;
+  tone: KpiTone; highlight?: boolean;
+}) {
+  // Tom = ícone + barra lateral colorida; o card em si é claro p/ legibilidade.
+  const toneMap: Record<KpiTone, { bar: string; iconBg: string; iconFg: string; chipBg: string }> = {
+    cyan:      { bar: "bg-gradient-to-b from-sky-400 to-cyan-500", iconBg: "bg-sky-100",       iconFg: "text-sky-600",       chipBg: "bg-sky-50" },
+    primary:   { bar: "bg-gradient-to-b from-primary to-primary-glow", iconBg: "bg-primary/10", iconFg: "text-primary",     chipBg: "bg-primary/5" },
+    success:   { bar: "bg-gradient-to-b from-emerald-500 to-success", iconBg: "bg-emerald-100", iconFg: "text-emerald-700", chipBg: "bg-emerald-50" },
+    secondary: { bar: "bg-gradient-to-b from-secondary to-amber-500", iconBg: "bg-secondary/10", iconFg: "text-secondary",  chipBg: "bg-secondary/5" },
+  };
+  const t = toneMap[tone];
   return (
-    <div className={`rounded-2xl border p-4 ${highlight ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border"}`}>
-      <p className={`text-[11px] font-semibold uppercase tracking-wider ${highlight ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
-        {label}
-      </p>
-      <p className="font-display text-2xl md:text-[1.6rem] font-extrabold tabular-nums leading-tight mt-1">
+    <div className={`relative overflow-hidden rounded-2xl border bg-card p-4 shadow-soft ${highlight ? "border-secondary/40 ring-1 ring-secondary/20" : "border-border"}`}>
+      <span aria-hidden className={`absolute inset-y-0 left-0 w-1.5 ${t.bar}`} />
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          {label}
+        </p>
+        <span className={`inline-flex h-8 w-8 items-center justify-center rounded-lg ${t.iconBg}`}>
+          <Icon className={`h-4 w-4 ${t.iconFg}`} />
+        </span>
+      </div>
+      <p className="font-display text-2xl md:text-[1.6rem] font-extrabold tabular-nums leading-tight mt-1.5 text-foreground">
         {value}
       </p>
       {hint && (
-        <p className={`text-[11px] mt-1 ${highlight ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+        <p className="text-[11px] mt-1 text-muted-foreground">
           {hint}
         </p>
       )}
