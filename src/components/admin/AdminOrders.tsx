@@ -218,32 +218,36 @@ export function AdminOrders() {
 
   return (
     <>
-      <div className="flex justify-between items-center mb-4 gap-3 flex-wrap">
-        <div className="relative flex-1 min-w-[200px] max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input className="pl-9" placeholder="Buscar por ID, nome ou CPF…" value={query} onChange={(e) => setQuery(e.target.value)} />
+      <div className="mb-4 space-y-2">
+        <div className="flex gap-2 items-stretch">
+          <div className="relative flex-1 min-w-0">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input className="pl-9" placeholder="Buscar por ID, nome ou CPF…" value={query} onChange={(e) => setQuery(e.target.value)} />
+          </div>
+          <Button variant="outline" onClick={exportCSV} disabled={loading} className="shrink-0">
+            <Download className="h-4 w-4" /> <span className="hidden sm:inline">Exportar CSV</span>
+          </Button>
         </div>
-        <select className="h-11 rounded-xl border border-input bg-background px-3 text-sm" value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="Filtrar por estado">
-          <option value="all">Todos estados</option>
-          {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-        </select>
-        <select className="h-11 rounded-xl border border-input bg-background px-3 text-sm" value={paymentFilter} onChange={(e) => setPaymentFilter(e.target.value)} aria-label="Filtrar por pagamento">
-          <option value="all">Todos pagamentos</option>
-          <option value="pix">PIX</option>
-          <option value="credit_card">Cartão</option>
-        </select>
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Calendar className="h-4 w-4" />
-          <Input type="date" className="h-11 w-[140px]" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} aria-label="Data inicial" />
-          <span>até</span>
-          <Input type="date" className="h-11 w-[140px]" value={dateTo} onChange={(e) => setDateTo(e.target.value)} aria-label="Data final" />
-          {(dateFrom || dateTo) && (
-            <button onClick={() => { setDateFrom(""); setDateTo(""); }} className="text-xs underline text-muted-foreground hover:text-foreground">limpar</button>
-          )}
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 items-center">
+          <select className="h-11 rounded-xl border border-input bg-background px-3 text-sm min-w-0" value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="Filtrar por estado">
+            <option value="all">Todos estados</option>
+            {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+          <select className="h-11 rounded-xl border border-input bg-background px-3 text-sm min-w-0" value={paymentFilter} onChange={(e) => setPaymentFilter(e.target.value)} aria-label="Filtrar por pagamento">
+            <option value="all">Todos pagamentos</option>
+            <option value="pix">PIX</option>
+            <option value="credit_card">Cartão</option>
+          </select>
+          <div className="col-span-2 sm:col-span-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Calendar className="h-4 w-4 shrink-0" />
+            <Input type="date" className="h-11 flex-1 sm:w-[140px] sm:flex-none min-w-0" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} aria-label="Data inicial" />
+            <span className="shrink-0">até</span>
+            <Input type="date" className="h-11 flex-1 sm:w-[140px] sm:flex-none min-w-0" value={dateTo} onChange={(e) => setDateTo(e.target.value)} aria-label="Data final" />
+            {(dateFrom || dateTo) && (
+              <button onClick={() => { setDateFrom(""); setDateTo(""); }} className="text-xs underline text-muted-foreground hover:text-foreground shrink-0">limpar</button>
+            )}
+          </div>
         </div>
-        <Button variant="outline" onClick={exportCSV} disabled={loading}>
-          <Download className="h-4 w-4" /> Exportar CSV
-        </Button>
       </div>
 
       {selected.size > 0 && (
