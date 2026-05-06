@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { GripVertical, Search, Tag, Plus, X, Loader2 } from "lucide-react";
+import { GripVertical, Search, Tag, Plus, X, Loader2, History, RotateCcw } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { ProductThumb } from "@/components/admin/ProductThumb";
 import { EmptyState } from "@/components/admin/EmptyState";
@@ -18,6 +18,16 @@ type Product = {
   offer_order: number;
 };
 
+type PromoHistoryRow = {
+  id: string;
+  product_id: string;
+  original_price: number;
+  sale_price: number;
+  discount_percent: number;
+  started_at: string;
+  ended_at: string | null;
+};
+
 /**
  * Painel de promoções com drag-and-drop.
  * - Lista à esquerda: produtos atualmente em promoção (arrastar para reordenar)
@@ -30,6 +40,10 @@ export function AdminPromotions() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
+  const [lastByProduct, setLastByProduct] = useState<Record<string, PromoHistoryRow>>({});
+  const [historyOpen, setHistoryOpen] = useState<Product | null>(null);
+  const [historyRows, setHistoryRows] = useState<PromoHistoryRow[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const dragIndex = useRef<number | null>(null);
   const overIndex = useRef<number | null>(null);
   const [dragVer, setDragVer] = useState(0); // força re-render durante drag
@@ -54,6 +68,16 @@ export function AdminPromotions() {
       .sort((a, b) => a.name.localeCompare(b.name));
     setPromos(onOffer);
     setAvailable(off);
+    // Última promoção registrada por produto (para mostrar "Reaplicar R$ X")
+    const { data: hist } = await (supabase as any)
+      .from("product_promo_history")
+      .select("id,product_id,original_price,sale_price,discount_percent,started_at,ended_at")
+      .order("started_at", { ascending: false });
+    const map: Record<string, PromoHistoryRow> = {};
+    for (const row of (hist ?? []) as PromoHistoryRow[]) {
+      if (!map[row.product_id]) map[row.product_id] = row;
+    }
+    setLastByProduct(map);
     setLoading(false);
   }
 
@@ -115,6 +139,32 @@ export function AdminPromotions() {
     toast.success(`"${p.name}" adicionado às promoções`);
   }
 
+  async function reapplyLastPromo(p: Product) {
+    const { data, error } = await (supabase as any).rpc("apply_last_promo", {
+      p_product_id: p.id,
+    });
+    if (error) { toast.error(error.message); return; }
+    if (!data) {
+      toast.info("Nenhum histórico de promoção válido para reaplicar.");
+      return;
+    }
+    toast.success(`Promoção reaplicada: ${formatBRL(Number(data))}`);
+    await load();
+  }
+
+  async function openHistory(p: Product) {
+    setHistoryOpen(p);
+    setHistoryLoading(true);
+    const { data, error } = await (supabase as any)
+      .from("product_promo_history")
+      .select("id,product_id,original_price,sale_price,discount_percent,started_at,ended_at")
+      .eq("product_id", p.id)
+      .order("started_at", { ascending: false });
+    if (error) toast.error(error.message);
+    setHistoryRows((data ?? []) as PromoHistoryRow[]);
+    setHistoryLoading(false);
+  }
+
   async function removeFromPromo(p: Product) {
     const { error } = await supabase
       .from("products")
@@ -129,6 +179,12 @@ export function AdminPromotions() {
   const filteredAvailable = available.filter((p) =>
     p.name.toLowerCase().includes(search.trim().toLowerCase())
   );
+
+  function fmtDate(iso: string) {
+    return new Date(iso).toLocaleDateString("pt-BR", {
+      day: "2-digit", month: "2-digit", year: "2-digit",
+    });
+  }
 
   if (loading) {
     return (
@@ -208,6 +264,14 @@ export function AdminPromotions() {
                       </p>
                     </div>
                     <button
+                      onClick={() => openHistory(p)}
+                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-primary/10 text-primary transition-opacity"
+                      title="Ver histórico de promoções"
+                      aria-label="Histórico"
+                    >
+                      <History className="h-4 w-4" />
+                    </button>
+                    <button
                       onClick={() => removeFromPromo(p)}
                       className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-destructive/15 text-destructive transition-opacity"
                       title="Remover da promoção"
@@ -247,8 +311,28 @@ export function AdminPromotions() {
                 <ProductThumb src={p.image_url} alt={p.name} size="md" />
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold truncate">{p.name}</p>
-                  <p className="text-xs text-muted-foreground">{formatBRL(p.price)}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatBRL(p.price)}
+                    {lastByProduct[p.id] && (
+                      <span className="ml-2 text-secondary font-semibold">
+                        última: {formatBRL(lastByProduct[p.id].sale_price)}
+                        {" "}(-{Math.round(lastByProduct[p.id].discount_percent)}%)
+                      </span>
+                    )}
+                  </p>
                 </div>
+                {lastByProduct[p.id] && (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => reapplyLastPromo(p)}
+                    className="gap-1 h-8"
+                    title={`Reaplicar última promoção (${formatBRL(lastByProduct[p.id].sale_price)})`}
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    Reaplicar
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   variant="outline"
@@ -272,6 +356,68 @@ export function AdminPromotions() {
       <p className="text-xs text-muted-foreground text-center">
         Dica: arraste os cartões da esquerda pelo ícone <GripVertical className="inline h-3 w-3" /> para reordenar e clique em <strong>Salvar ordem</strong>.
       </p>
+
+      {/* Modal de histórico */}
+      {historyOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+          onClick={() => setHistoryOpen(null)}
+        >
+          <div
+            className="bg-card rounded-2xl border border-border shadow-xl w-full max-w-lg max-h-[80vh] overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3 p-4 border-b border-border">
+              <div className="min-w-0">
+                <h3 className="font-bold text-base flex items-center gap-2">
+                  <History className="h-4 w-4 text-primary" />
+                  Histórico de promoções
+                </h3>
+                <p className="text-sm text-muted-foreground truncate">{historyOpen.name}</p>
+              </div>
+              <button
+                onClick={() => setHistoryOpen(null)}
+                className="p-1.5 rounded-lg hover:bg-muted"
+                aria-label="Fechar"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="overflow-y-auto p-4 space-y-2">
+              {historyLoading ? (
+                <div className="flex items-center justify-center py-8 text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" /> Carregando…
+                </div>
+              ) : historyRows.length === 0 ? (
+                <p className="text-center py-8 text-sm text-muted-foreground">
+                  Sem histórico de promoções para este produto.
+                </p>
+              ) : (
+                historyRows.map((row) => (
+                  <div
+                    key={row.id}
+                    className="flex items-center gap-3 p-3 rounded-xl border border-border bg-background"
+                  >
+                    <div className="w-12 h-12 rounded-lg bg-secondary/15 text-secondary font-bold text-sm flex items-center justify-center shrink-0">
+                      -{Math.round(row.discount_percent)}%
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold">
+                        <span className="line-through opacity-60">{formatBRL(row.original_price)}</span>{" "}
+                        → <span className="text-secondary">{formatBRL(row.sale_price)}</span>
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {fmtDate(row.started_at)}
+                        {row.ended_at ? ` → ${fmtDate(row.ended_at)}` : " · em andamento"}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
