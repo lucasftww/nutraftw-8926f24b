@@ -102,6 +102,8 @@ export function AdminOrders() {
   }, [items, query]);
 
   async function setStatus(id: string, status: string) {
+    const prev = items.find((o) => o.id === id)?.status;
+    if (prev === status) return;
     let reason: string | null = null;
     if (status === "cancelled" || status === "refunded") {
       const label = status === "cancelled" ? "cancelamento" : "reembolso";
@@ -115,6 +117,8 @@ export function AdminOrders() {
       if (r === null) return;
       reason = r.trim() ? r.trim() : null;
     }
+    // Otimista: aplica imediatamente; rollback se falhar.
+    setItems((p) => p.map((o) => (o.id === id ? { ...o, status } : o)));
     const { error: err } = await supabase.rpc("admin_set_order_status", {
       p_order_id: id,
       p_status: status,
@@ -123,9 +127,10 @@ export function AdminOrders() {
     if (err) {
       logSupabaseError("Atualizar estado do pedido", err, { order_id: id, new_status: status });
       toast.error(`Falha ao atualizar: ${err.message}`);
+      // Rollback
+      setItems((p) => p.map((o) => (o.id === id ? { ...o, status: prev } : o)));
     } else {
       toast.success("Estado atualizado");
-      setItems((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
     }
   }
 
