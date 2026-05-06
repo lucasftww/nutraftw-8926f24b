@@ -110,9 +110,9 @@ function buildDeclarationHtml(order: any, items: any[]) {
   <div class="sub">Pedido <span class="id">#${e(order.id)}</span> · ${e(new Date(order.created_at).toLocaleString("pt-BR"))}</div>
   <div class="grid">
     <div>
-      <h3>Remetente</h3>
-      <div>Royal Vitta</div>
-      <div>contato@royalvita.com.br</div>
+       <h3>Remetente</h3>
+       <div>Nutra</div>
+       <div>contato@nutraftw.com.br</div>
     </div>
     <div>
       <h3>Destinatário</h3>

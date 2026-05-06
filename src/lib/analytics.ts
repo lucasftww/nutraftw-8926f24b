@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
-const SESSION_KEY = "royalvita-session-id";
-const VIEW_DEDUPE_KEY = "royalvita-view-dedupe";
+ const SESSION_KEY = "nutra-session-id";
+ const VIEW_DEDUPE_KEY = "nutra-view-dedupe";
 const VIEW_DEDUPE_TTL_MS = 30 * 60 * 1000; // 30 min
 
 function getSessionId(): string {

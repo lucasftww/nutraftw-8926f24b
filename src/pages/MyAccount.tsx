@@ -157,11 +157,11 @@ export default function MyAccount() {
     if (!affiliateUrl) return;
     if (navigator.share) {
       try {
-        await navigator.share({
-          title: "Royal Vitta — Loja farmacêutica",
-          text: "Use meu link e confira os produtos:",
-          url: affiliateUrl,
-        });
+         await navigator.share({
+           title: "Loja farmacêutica",
+           text: "Use meu link e confira os produtos:",
+           url: affiliateUrl,
+         });
       } catch { /* usuário cancelou */ }
     } else {
       copyLink();
