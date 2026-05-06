@@ -176,9 +176,9 @@ export default function Catalog() {
   }, [add, openCart]);
 
   useSEO({
-    title: "Royal Vita — Catálogo de farmacêuticos importados",
+    title: "Royal Vitta — Catálogo de farmacêuticos importados",
     description:
-      "Catálogo Royal Vita com produtos farmacêuticos importados: peptídeos, suporte e mais, com preços transparentes e envio para todo o Brasil.",
+      "Catálogo Royal Vitta com produtos farmacêuticos importados: peptídeos, suporte e mais, com preços transparentes e envio para todo o Brasil.",
     type: "website",
     jsonLd: {
       "@context": "https://schema.org",

@@ -1,8 +1,9 @@
 # Project Memory
 
 ## Core
-Clone idêntico ao KA Imports (ka-imports.com). Catálogo farmacêutico. Use dados oficiais reais (39 produtos), sem placeholders.
-Visual: azul marinho profissional, fonte Inter, botões de header rounded-full. Alta fidelidade ao original.
+Marca: Royal Vitta (antes GIMPORTS). Logo SVG em src/assets/logo-royalvita.svg, monograma RV navy + swoosh cyan.
+Clone inspirado em KA Imports. Catálogo farmacêutico. Use dados oficiais reais (39 produtos), sem placeholders.
+Visual: azul royal (#0B1F6B / --primary), accent cyan (--brand-cyan), CTA laranja (--secondary) e PIX/sucesso verde — manter para conversão.
 Sistemas separados: /admin (com login próprio) e área de cliente em /login.
 **Mobile-first**: 100% do público vem do celular com intenção de compra. Priorize mobile e atalhos de checkout sempre.
 

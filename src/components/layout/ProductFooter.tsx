@@ -57,7 +57,7 @@ export function ProductFooter() {
           </nav>
 
           <p className="text-[11px] text-muted-foreground/80">
-            © {year} <span className="font-brand font-bold tracking-[0.18em] uppercase">Royal Vita</span>
+            © {year} <span className="font-brand font-bold tracking-[0.18em] uppercase">Royal Vitta</span>
           </p>
         </div>
       </div>

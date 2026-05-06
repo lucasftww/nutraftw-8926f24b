@@ -158,7 +158,7 @@ export default function MyAccount() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: "Royal Vita — Loja farmacêutica",
+          title: "Royal Vitta — Loja farmacêutica",
           text: "Use meu link e confira os produtos:",
           url: affiliateUrl,
         });

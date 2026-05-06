@@ -43,7 +43,7 @@
   }
 }
 
-/* Royal Vita Design System — Azul marinho profissional */
+/* Royal Vitta Design System — Azul marinho profissional */
 @layer base {
   :root {
     --background: 40 20% 99%;
@@ -56,7 +56,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 39% 14%;
 
-    /* Royal Blue — extraído da logo Royal Vita (#0B1F6B / deep royal) */
+    /* Royal Blue — extraído da logo Royal Vitta (#0B1F6B / deep royal) */
     --primary: 230 81% 23%;
     --primary-foreground: 0 0% 100%;
     --primary-glow: 226 70% 36%;

@@ -111,7 +111,7 @@ function buildDeclarationHtml(order: any, items: any[]) {
   <div class="grid">
     <div>
       <h3>Remetente</h3>
-      <div>Royal Vita</div>
+      <div>Royal Vitta</div>
       <div>contato@royalvita.com.br</div>
     </div>
     <div>

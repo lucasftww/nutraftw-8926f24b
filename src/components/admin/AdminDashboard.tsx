@@ -243,7 +243,7 @@ function WelcomeBanner({ revenue, ordersToday }: { revenue: number; ordersToday:
       <div aria-hidden className="absolute -left-12 -bottom-16 h-40 w-40 rounded-full bg-brand-cyan/10 blur-3xl" />
       <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-3 md:gap-4">
         <div className="min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary/80">Painel Royal Vita</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary/80">Painel Royal Vitta</p>
           <h2 className="font-brand text-xl md:text-3xl font-bold mt-1.5 tracking-tight uppercase text-foreground leading-tight">
             {greeting}, admin
           </h2>
