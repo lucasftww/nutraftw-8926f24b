@@ -72,7 +72,7 @@ export function Header() {
                   loading="eager"
                   decoding="async"
                   fetchPriority="high"
-                  className="h-12 sm:h-14 md:h-16 w-auto object-contain shrink-0"
+                  className="h-14 sm:h-16 md:h-20 w-auto object-contain shrink-0"
                 />
               </Link>
             </div>
@@ -176,16 +176,18 @@ export function Header() {
                     destino "/" que já é coberto pelo item "Catálogo" abaixo.
                   */}
                   <div className="flex items-center min-w-0" aria-hidden="true">
-                    <img
-                      src={logoRoyalVita}
-                      alt="Royal Vitta"
-                      width={200}
-                      height={48}
-                      loading="eager"
-                      fetchPriority="high"
-                      decoding="async"
-                      className="h-14 w-auto object-contain shrink-0"
-                    />
+                    <div className="flex items-center min-w-0" aria-hidden="true">
+                      <img
+                        src={logoRoyalVita}
+                        alt="Royal Vitta"
+                        width={200}
+                        height={48}
+                        loading="eager"
+                        fetchPriority="high"
+                        decoding="async"
+                        className="h-16 w-auto object-contain shrink-0"
+                      />
+                    </div>
                   </div>
                   <button
                     onClick={() => setMobileMenuOpen(false)}
