@@ -68,7 +68,7 @@ export function Header() {
                 <img
                   src={logoMark}
                   alt="Royal Vita"
-                  className="h-9 w-auto sm:hidden object-contain shrink-0"
+                  className="h-7 w-auto sm:hidden object-contain shrink-0 block"
                 />
                 <img
                   src={logoRoyalVita}
