@@ -52,7 +52,7 @@ function ratio(num: number, den: number): number {
  * com taxas de drop-off entre etapas e ranking de produtos por conversão.
  */
 export function AdminFunnel() {
-  const [periodId, setPeriodId] = useState<PeriodId>("30d");
+  const [periodId, setPeriodId] = useState<PeriodId>("24h");
   const period = PERIODS.find((p) => p.id === periodId)!;
   const [summary, setSummary] = useState<Summary | null>(null);
   const [byProduct, setByProduct] = useState<ByProduct[]>([]);
