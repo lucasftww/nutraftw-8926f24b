@@ -33,3 +33,23 @@ npm install
 - Wishlist com usuário deslogado/logado
 - Checkout completo (cupom, frete, pagamento)
 - Painel admin (troca de abas e pedidos)
+
+## Migrations no Supabase (produção)
+
+Após um `git pull`, aplique SQL novo no projeto correto no dashboard ou via CLI.
+
+### Opção A — Dashboard (rápido)
+
+1. Abra [Supabase Dashboard](https://supabase.com/dashboard) → seu projeto → **SQL Editor**.
+2. Cole o conteúdo do arquivo `supabase/migrations/20260506165100_security_and_affiliate_hardening.sql`.
+3. Execute (**Run**). Confira se não há erro.
+
+### Opção B — CLI
+
+```bash
+npx supabase login
+npx supabase link --project-ref SEU_PROJECT_REF
+npx supabase db push
+```
+
+(`db push` aplica migrations locais em ordem no DB ligado ao projeto.)
