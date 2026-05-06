@@ -562,6 +562,8 @@ export default function Checkout() {
   const couponDiscount = _totals.couponDiscount;
   const pixDiscount = _totals.pixDiscount;
   const grandTotal = _totals.total;
+  // baseTotal mantido para a UI legada (parcelas/“ou em x vezes”).
+  const baseTotal = total + shippingValue + insurance - couponDiscount;
 
   // Lista de itens no resumo — memoizada porque depende só de `lines`,
   // que raramente muda durante o checkout. Sem isso, cada keystroke do
