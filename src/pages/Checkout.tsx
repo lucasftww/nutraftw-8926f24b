@@ -557,14 +557,11 @@ export default function Checkout() {
   // resumo mostrava um desconto desalinhado do que o servidor cobraria.
   // Recalcular client-side com a mesma fórmula garante paridade visual
   // com o pedido criado.
-  const couponDiscount = !coupon
-    ? 0
-    : coupon.discount_type === "percent"
-      ? Math.round((total * Number(coupon.discount_value || 0)) / 100 * 100) / 100
-      : Math.min(Number(coupon.discount_value || 0), total);
-  const baseTotal = total + shippingValue + insurance - couponDiscount;
-  const pixDiscount = form.payment_method === "pix" ? Math.round(baseTotal * PIX_DISCOUNT * 100) / 100 : 0;
-  const grandTotal = baseTotal - pixDiscount;
+  // Mantemos os mesmos nomes de variáveis para não tocar na UI; valores
+  // vêm do helper centralizado em `calcTotals` (paridade com create_order).
+  const couponDiscount = _totals.couponDiscount;
+  const pixDiscount = _totals.pixDiscount;
+  const grandTotal = _totals.total;
 
   // Lista de itens no resumo — memoizada porque depende só de `lines`,
   // que raramente muda durante o checkout. Sem isso, cada keystroke do
