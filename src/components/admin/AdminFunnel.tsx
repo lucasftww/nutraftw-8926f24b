@@ -29,10 +29,12 @@ interface ByProduct {
 }
 
 const PERIODS = [
-  { id: 7, label: "7 dias" },
-  { id: 30, label: "30 dias" },
-  { id: 90, label: "90 dias" },
+  { id: "24h", label: "24h", hours: 24 },
+  { id: "7d",  label: "7 dias",  hours: 24 * 7 },
+  { id: "30d", label: "30 dias", hours: 24 * 30 },
+  { id: "90d", label: "90 dias", hours: 24 * 90 },
 ] as const;
+type PeriodId = typeof PERIODS[number]["id"];
 
 function pct(n: number): string {
   if (!isFinite(n) || n <= 0) return "0%";
@@ -50,18 +52,19 @@ function ratio(num: number, den: number): number {
  * com taxas de drop-off entre etapas e ranking de produtos por conversão.
  */
 export function AdminFunnel() {
-  const [days, setDays] = useState<number>(30);
+  const [periodId, setPeriodId] = useState<PeriodId>("30d");
+  const period = PERIODS.find((p) => p.id === periodId)!;
   const [summary, setSummary] = useState<Summary | null>(null);
   const [byProduct, setByProduct] = useState<ByProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
   const range = useMemo(() => {
     const end = new Date();
-    const start = new Date();
-    start.setDate(end.getDate() - days);
-    start.setHours(0, 0, 0, 0);
+    const start = new Date(end.getTime() - period.hours * 3600 * 1000);
+    // Para janelas em dias, alinhar ao início do dia para incluir a coorte completa.
+    if (period.hours >= 24 * 7) start.setHours(0, 0, 0, 0);
     return { start: start.toISOString(), end: end.toISOString() };
-  }, [days]);
+  }, [period.hours]);
 
   useEffect(() => {
     let cancel = false;
@@ -138,16 +141,16 @@ export function AdminFunnel() {
           </h2>
           <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1.5">
             <Calendar className="h-3.5 w-3.5" />
-            Últimos {days} dias
+            {period.id === "24h" ? "Últimas 24 horas" : `Últimos ${period.hours / 24} dias`}
           </p>
         </div>
         <div className="inline-flex rounded-full border border-border p-1 bg-muted/30">
           {PERIODS.map((p) => (
             <button
               key={p.id}
-              onClick={() => setDays(p.id)}
+              onClick={() => setPeriodId(p.id)}
               className={`px-4 h-9 text-xs font-semibold rounded-full transition-colors ${
-                days === p.id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                periodId === p.id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {p.label}
