@@ -244,7 +244,7 @@ export default function ProductDetail() {
                   { product_id: p.id, slug: p.slug, name: p.name, price: finalPrice, image_url: p.image_url },
                   1
                 );
-                nav("/checkout");
+                openCart();
               }}
             >
               <ShoppingCart className="w-4 h-4 mr-2" strokeWidth={2.5} />
@@ -485,7 +485,7 @@ export default function ProductDetail() {
                   { product_id: p.id, slug: p.slug, name: p.name, price: finalPrice, image_url: p.image_url },
                   1
                 );
-                nav("/checkout");
+                openCart();
               }}
             >
               <ShoppingCart className="w-4 h-4 mr-1.5" strokeWidth={2.5} />
