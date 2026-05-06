@@ -19,7 +19,6 @@ import type { FieldStatus } from "@/lib/validators";
 import { getAffiliateRefData, clearAffiliateRef } from "@/lib/affiliateRef";
 import { CheckoutStepper } from "@/components/checkout/CheckoutStepper";
 
-const SHIPPING_FALLBACK = 80;
 const INSURANCE_RATE = 0.1;
 const PIX_DISCOUNT = 0.05;
 
