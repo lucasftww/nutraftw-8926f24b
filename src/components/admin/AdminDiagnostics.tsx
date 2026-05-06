@@ -220,6 +220,7 @@ export function AdminDiagnostics() {
             })}
           </tbody>
         </table>
+        </div>
       </div>
 
       <div className="bg-muted/30 rounded-xl p-4 text-xs text-muted-foreground space-y-1">
