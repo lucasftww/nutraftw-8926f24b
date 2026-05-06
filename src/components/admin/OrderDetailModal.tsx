@@ -7,6 +7,14 @@ import { toast } from "sonner";
 import { AdminModal } from "./AdminModal";
 import { Printer, FileText } from "lucide-react";
 
+function paymentLabel(pm: string | null | undefined): string {
+  if (!pm) return "—";
+  if (pm === "pix") return "PIX";
+  if (pm === "credit_card") return "Cartão";
+  if (pm === "boleto") return "Boleto";
+  return pm;
+}
+
 /**
  * Abre uma janela com layout pronto-para-imprimir (etiqueta + declaração).
  * Não persiste nada — apenas formata os dados do pedido para impressão A4 ou
@@ -217,7 +225,7 @@ export function OrderDetailModal({ orderId, onClose }: { orderId: string; onClos
                       <span>Total</span>
                       <span className="text-primary">{formatBRL(total)}</span>
                     </div>
-                    <p className="text-xs text-muted-foreground pt-2">Pagamento: {order.payment_method || "—"}</p>
+                    <p className="text-xs text-muted-foreground pt-2">Pagamento: {paymentLabel(order.payment_method)}</p>
                   </>
                 );
               })()}

@@ -132,6 +132,14 @@ export function AdminPromotions() {
   }
 
   async function addToPromo(p: Product) {
+    // Sem preço promocional, marcar `is_on_offer=true` mostra o produto na faixa
+    // de promoções com o mesmo preço cheio — confunde o cliente. Avisamos.
+    if (!p.sale_price || p.sale_price <= 0 || p.sale_price >= p.price) {
+      toast.warning("Defina um Preço promocional no produto antes de colocar em destaque.", {
+        description: `"${p.name}" não tem desconto cadastrado.`,
+      });
+      return;
+    }
     const newOrder = (promos.length + 1) * 10;
     const { error } = await supabase
       .from("products")
@@ -317,12 +325,21 @@ export function AdminPromotions() {
                   <p className="text-sm font-semibold truncate">{p.name}</p>
                   <p className="text-xs text-muted-foreground">
                     {formatBRL(p.price)}
-                    {lastByProduct[p.id] && (
-                      <span className="ml-2 text-secondary font-semibold">
-                        última: {formatBRL(lastByProduct[p.id].sale_price)}
-                        {" "}(-{Math.round(lastByProduct[p.id].discount_percent)}%)
-                      </span>
-                    )}
+                    {lastByProduct[p.id] && (() => {
+                      const h = lastByProduct[p.id];
+                      // discount_percent não é populado pelo trigger — calcular se faltar.
+                      const pct = Number.isFinite(Number(h.discount_percent)) && Number(h.discount_percent) > 0
+                        ? Math.round(Number(h.discount_percent))
+                        : (h.original_price > 0
+                            ? Math.round(((h.original_price - h.sale_price) / h.original_price) * 100)
+                            : 0);
+                      return (
+                        <span className="ml-2 text-secondary font-semibold">
+                          última: {formatBRL(h.sale_price)}
+                          {pct > 0 ? ` (-${pct}%)` : ""}
+                        </span>
+                      );
+                    })()}
                   </p>
                 </div>
                 {lastByProduct[p.id] && (
@@ -397,13 +414,19 @@ export function AdminPromotions() {
                   Sem histórico de promoções para este produto.
                 </p>
               ) : (
-                historyRows.map((row) => (
+                historyRows.map((row) => {
+                  const pct = Number.isFinite(Number(row.discount_percent)) && Number(row.discount_percent) > 0
+                    ? Math.round(Number(row.discount_percent))
+                    : (row.original_price > 0
+                        ? Math.round(((row.original_price - row.sale_price) / row.original_price) * 100)
+                        : 0);
+                  return (
                   <div
                     key={row.id}
                     className="flex items-center gap-3 p-3 rounded-xl border border-border bg-background"
                   >
                     <div className="w-12 h-12 rounded-lg bg-secondary/15 text-secondary font-bold text-sm flex items-center justify-center shrink-0">
-                      -{Math.round(row.discount_percent)}%
+                      -{pct}%
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold">
@@ -416,7 +439,8 @@ export function AdminPromotions() {
                       </p>
                     </div>
                   </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>

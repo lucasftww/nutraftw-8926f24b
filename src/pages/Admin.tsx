@@ -1137,6 +1137,14 @@ function AdminCategories() {
 }
 
 const STATUSES = ["pending", "paid", "processing", "shipped", "delivered", "cancelled", "refunded"];
+// Rótulos amigáveis para `payment_method` (enum no DB: pix | credit_card | boleto)
+function paymentLabel(pm: string | null | undefined): string {
+  if (!pm) return "—";
+  if (pm === "pix") return "PIX";
+  if (pm === "credit_card") return "Cartão";
+  if (pm === "boleto") return "Boleto";
+  return pm;
+}
 // Cores compatíveis com o tema dark do admin (sem fundos brancos pastéis).
 const STATUS_COLORS: Record<string, string> = {
   pending:    "bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/25",
@@ -1360,7 +1368,7 @@ function AdminOrders() {
         <select className="h-11 rounded-xl border border-input bg-background px-3 text-sm" value={paymentFilter} onChange={(e) => setPaymentFilter(e.target.value)} aria-label="Filtrar por pagamento">
           <option value="all">Todos pagamentos</option>
           <option value="pix">PIX</option>
-          <option value="card">Cartão</option>
+          <option value="credit_card">Cartão</option>
         </select>
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Calendar className="h-4 w-4" />
@@ -1406,7 +1414,7 @@ function AdminOrders() {
                 </div>
                 <p className="font-semibold text-sm leading-tight truncate mt-1">{o.shipping_full_name || "—"}</p>
                 <div className="flex items-center justify-between mt-1.5">
-                  <span className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("pt-BR")} · {o.payment_method || "—"}</span>
+                  <span className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("pt-BR")} · {paymentLabel(o.payment_method)}</span>
                   <span className="font-bold text-primary text-sm">{formatBRL(o.total)}</span>
                 </div>
               </div>
