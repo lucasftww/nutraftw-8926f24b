@@ -167,10 +167,10 @@ export function Header() {
                     destino "/" que já é coberto pelo item "Catálogo" abaixo.
                   */}
                       <Link to="/" className="flex items-center min-w-0" onClick={() => setMobileMenuOpen(false)}>
-                        <img 
-                          src={logoRoyalVittaText} 
-                          alt="Royal Vitta" 
-                          className="h-8 sm:h-9 md:h-10 w-auto object-contain transition-all duration-300 animate-in fade-in slide-in-from-left-4 duration-700"
+                        <img
+                          src={logoRoyalVittaText}
+                          alt="Royal Vitta"
+                          className="h-6 sm:h-7 md:h-8 w-auto object-contain transition-all duration-300 animate-in fade-in slide-in-from-left-4 duration-700"
                         />
                       </Link>
                   <button
