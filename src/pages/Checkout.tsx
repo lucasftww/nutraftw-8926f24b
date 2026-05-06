@@ -19,7 +19,6 @@ import type { FieldStatus } from "@/lib/validators";
 import { getAffiliateRefData, clearAffiliateRef } from "@/lib/affiliateRef";
 import { CheckoutStepper } from "@/components/checkout/CheckoutStepper";
 
-const SHIPPING_FALLBACK = 80;
 const INSURANCE_RATE = 0.1;
 const PIX_DISCOUNT = 0.05;
 
@@ -499,18 +498,12 @@ export default function Checkout() {
   }, [total, coupon]);
 
   const selectedShipping = shippingOptions.find((o) => o.id === shippingId);
-  // Bug fix: antes usávamos SHIPPING_FALLBACK (R$ 80) sempre que não havia frete
-  // selecionado — incluindo o estado inicial, sem CEP. Resultado: o resumo mostrava
-  // "Frete R$ 80,00" e somava no total mesmo sem o usuário ter informado endereço.
-  // Agora só caímos no fallback se o CEP estiver completo mas não conseguimos
-  // carregar uma tarifa; sem CEP, o frete fica zerado e a UI mostra "—".
+  // Frete: usa valor real selecionado. Não aplicamos fallback "fantasma":
+  // se a UF não tem tarifa cadastrada, o RPC `create_order` rejeita o pedido
+  // — mostrar um valor estimado no resumo só confunde o cliente.
   const cepFilled = onlyDigits(form.zip).length === 8 && form.state.trim().length === 2;
-  const shippingValue = selectedShipping
-    ? Number(selectedShipping.price)
-    : cepFilled
-      ? SHIPPING_FALLBACK
-      : 0;
-  const shippingKnown = !!selectedShipping || cepFilled;
+  const shippingValue = selectedShipping ? Number(selectedShipping.price) : 0;
+  const shippingKnown = !!selectedShipping;
   const insurance = insuranceOn ? Math.round(total * INSURANCE_RATE * 100) / 100 : 0;
   const cepReady = onlyDigits(form.zip).length === 8 && form.state.trim().length === 2;
 

@@ -164,16 +164,33 @@ export function AdminProducts() {
   async function save(e: React.FormEvent) {
     e.preventDefault();
     const f = editing;
+    // Validações que o `required` do HTML não cobre.
+    const nameTrim = (f.name || "").trim();
+    if (nameTrim.length < 2) {
+      toast.error("Informe o nome do produto.");
+      return;
+    }
+    const priceNum = Number(String(f.price ?? "").replace(",", "."));
+    if (!Number.isFinite(priceNum) || priceNum <= 0) {
+      toast.error("Preço deve ser maior que zero.");
+      return;
+    }
+    const stockNum = Number.parseInt(String(f.stock ?? 0), 10);
+    if (!Number.isFinite(stockNum) || stockNum < 0) {
+      toast.error("Estoque inválido.");
+      return;
+    }
+    const slugTrim = (f.slug || "").trim();
     const basePayload = {
-      name: f.name,
-      slug: f.slug || slugify(f.name),
+      name: nameTrim,
+      slug: slugTrim ? slugify(slugTrim) : slugify(nameTrim),
       description: f.description || null,
       active_principle: f.active_principle || null,
       composition: f.composition || null,
       meta_title: f.meta_title?.trim() || null,
       meta_description: f.meta_description?.trim() || null,
-      price: Number(f.price) || 0,
-      stock: Number(f.stock) || 0,
+      price: priceNum,
+      stock: stockNum,
       image_url: f.image_url || null,
       category_id: f.category_id || null,
       is_featured: !!f.is_featured,
