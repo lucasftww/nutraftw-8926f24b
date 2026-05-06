@@ -317,12 +317,21 @@ export function AdminPromotions() {
                   <p className="text-sm font-semibold truncate">{p.name}</p>
                   <p className="text-xs text-muted-foreground">
                     {formatBRL(p.price)}
-                    {lastByProduct[p.id] && (
-                      <span className="ml-2 text-secondary font-semibold">
-                        última: {formatBRL(lastByProduct[p.id].sale_price)}
-                        {" "}(-{Math.round(lastByProduct[p.id].discount_percent)}%)
-                      </span>
-                    )}
+                    {lastByProduct[p.id] && (() => {
+                      const h = lastByProduct[p.id];
+                      // discount_percent não é populado pelo trigger — calcular se faltar.
+                      const pct = Number.isFinite(Number(h.discount_percent)) && Number(h.discount_percent) > 0
+                        ? Math.round(Number(h.discount_percent))
+                        : (h.original_price > 0
+                            ? Math.round(((h.original_price - h.sale_price) / h.original_price) * 100)
+                            : 0);
+                      return (
+                        <span className="ml-2 text-secondary font-semibold">
+                          última: {formatBRL(h.sale_price)}
+                          {pct > 0 ? ` (-${pct}%)` : ""}
+                        </span>
+                      );
+                    })()}
                   </p>
                 </div>
                 {lastByProduct[p.id] && (
