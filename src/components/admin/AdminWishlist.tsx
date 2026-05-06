@@ -91,7 +91,7 @@ export function AdminWishlist() {
         <StatCard icon={Heart} label="Produtos favoritados" value={totals.products} tone="rose" />
         <StatCard icon={Heart} label="Favoritos no período" value={totals.favorites} tone="rose" />
         <StatCard icon={UsersIcon} label="Clientes interessados" value={totals.users} tone="cyan" />
-        <StatCard icon={AlertTriangle} label="Repor estoque" value={totals.lowStock} tone="amber" hint="Favoritado e com ≤ 5 em estoque" />
+        <StatCard icon={AlertTriangle} label="Favoritos sem estoque" value={totals.lowStock} tone="amber" hint="Favoritado e com ≤ 5 em estoque" />
       </div>
 
       {/* Toolbar */}

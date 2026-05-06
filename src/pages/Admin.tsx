@@ -942,7 +942,20 @@ function AdminProducts() {
                 </select>
               </div>
               <div className="space-y-2"><Label>Preço (R$)</Label><Input type="number" step="0.01" min="0" required value={editing.price ?? ""} onChange={(e) => setEditing({ ...editing, price: e.target.value })} /></div>
-              <div className="space-y-2"><Label>Preço promocional (R$)</Label><Input type="number" step="0.01" min="0" placeholder="opcional" value={editing.sale_price ?? ""} onChange={(e) => setEditing({ ...editing, sale_price: e.target.value })} /></div>
+              <div className="space-y-2">
+                <Label>Preço promocional (R$)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="—"
+                  value={editing.sale_price ?? ""}
+                  readOnly
+                  disabled
+                  title="Editável apenas pela aba Promoções (registra histórico)"
+                />
+                <p className="text-[11px] text-muted-foreground">Use a aba <strong>Promoções</strong> para alterar (mantém histórico).</p>
+              </div>
               <div className="space-y-2"><Label>Estoque</Label><Input type="number" min="0" value={editing.stock ?? 0} onChange={(e) => setEditing({ ...editing, stock: e.target.value })} /></div>
               <div className="space-y-2 sm:col-span-2">
                 <Label>Imagem</Label>
@@ -997,7 +1010,7 @@ function AdminProducts() {
                   </span>
                 </label>
                 <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={!!editing.is_on_offer} onChange={(e) => setEditing({ ...editing, is_on_offer: e.target.checked })} />
+                  <input type="checkbox" checked={!!editing.is_on_offer} disabled title="Gerenciado pela aba Promoções" />
                   <span className="inline-flex items-center gap-1.5">
                     <span className="inline-flex items-center rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold px-1.5 py-0.5 leading-none">OFERTA</span>
                   </span>
