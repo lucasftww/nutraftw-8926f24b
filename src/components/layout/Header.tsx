@@ -72,7 +72,7 @@ export function Header() {
                   loading="eager"
                   decoding="async"
                   fetchPriority="high"
-                  className="h-14 sm:h-16 md:h-20 w-auto object-contain shrink-0"
+                  className="h-14 sm:h-10 md:h-12 lg:h-14 w-auto object-contain shrink-0"
                 />
               </Link>
             </div>
