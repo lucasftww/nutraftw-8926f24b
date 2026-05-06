@@ -343,14 +343,17 @@ function AdminInner() {
 // ===================== Linhas reutilizáveis (com suporte a drag) =====================
 
 function ProductMobileRow({ p, sortable, selected, toggleSel, setEditing, duplicate, del }: any) {
-  const sort = sortable ? useSortableRow(p.id) : null;
+  // Hook deve ser chamado incondicionalmente (regras dos hooks). Quando o usuário
+  // ativa a busca, `sortable` muda de true→false; chamar condicionalmente
+  // quebrava com "Rendered fewer hooks than expected".
+  const sort = useSortableRow(p.id);
   return (
     <li
-      ref={sort?.setNodeRef}
-      style={sort?.style}
+      ref={sortable ? sort.setNodeRef : undefined}
+      style={sortable ? sort.style : undefined}
       className={`bg-card rounded-2xl border p-3 flex gap-2 ${selected.has(p.id) ? "border-primary ring-2 ring-primary/20" : "border-border"}`}
     >
-      {sortable && <DragHandle handleProps={sort!.handleProps} />}
+      {sortable && <DragHandle handleProps={sort.handleProps} />}
       <label className="shrink-0 mt-1 inline-flex items-center justify-center w-5 h-5 rounded border border-input cursor-pointer">
         <input type="checkbox" checked={selected.has(p.id)} onChange={() => toggleSel(p.id)} className="sr-only" aria-label={`Selecionar ${p.name}`} />
         {selected.has(p.id) && <Check className="h-3.5 w-3.5 text-primary" />}
@@ -374,16 +377,16 @@ function ProductMobileRow({ p, sortable, selected, toggleSel, setEditing, duplic
 }
 
 function ProductTableRow({ p, sortable, selected, toggleSel, setEditing, duplicate, del }: any) {
-  const sort = sortable ? useSortableRow(p.id) : null;
+  const sort = useSortableRow(p.id);
   return (
     <tr
-      ref={sort?.setNodeRef as any}
-      style={sort?.style}
-      className={`border-t border-border ${selected.has(p.id) ? "bg-primary/5" : ""} ${sort?.isDragging ? "bg-muted/50" : ""}`}
+      ref={sortable ? (sort.setNodeRef as any) : undefined}
+      style={sortable ? sort.style : undefined}
+      className={`border-t border-border ${selected.has(p.id) ? "bg-primary/5" : ""} ${sortable && sort.isDragging ? "bg-muted/50" : ""}`}
     >
       <td className="px-2 py-3 w-10">
         {sortable ? (
-          <DragHandle handleProps={sort!.handleProps} />
+          <DragHandle handleProps={sort.handleProps} />
         ) : (
           <span className="inline-block w-8" />
         )}
@@ -964,7 +967,7 @@ function AdminProducts() {
                 <Input
                   maxLength={70}
                   value={editing.meta_title || ""}
-                  placeholder={editing.name ? `${editing.name} | KA Imports` : "Use o nome do produto se vazio"}
+                  placeholder={editing.name ? `${editing.name} | Royal Vita` : "Use o nome do produto se vazio"}
                   onChange={(e) => setEditing({ ...editing, meta_title: e.target.value })}
                 />
                 <p className="text-[11px] text-muted-foreground">{(editing.meta_title || "").length}/60</p>
