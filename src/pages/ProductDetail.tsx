@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { ShoppingCart, ShieldCheck, Truck, Package, CreditCard, MessageCircle, QrCode, ChevronDown, ArrowLeft } from "lucide-react";
+import { ShoppingCart, ShieldCheck, Truck, Package, CreditCard, QrCode, ChevronDown, ArrowLeft } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { responsiveImage, imageUrl } from "@/lib/image";
 import { Button } from "@/components/ui/button";
@@ -133,7 +133,10 @@ export default function ProductDetail() {
       {/* Botão Voltar — mobile-first, discreto mas sempre visível */}
       <button
         type="button"
-        onClick={() => nav(-1)}
+        onClick={() => {
+          if (window.history.length > 1) nav(-1);
+          else nav("/", { replace: true });
+        }}
         className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded-md px-1 -ml-1"
       >
         <ArrowLeft className="h-4 w-4" strokeWidth={2.25} />
@@ -161,7 +164,7 @@ export default function ProductDetail() {
                 width={800}
                 height={800}
                 onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
-                className="w-full h-full object-cover aspect-square"
+                className="w-full h-full object-contain aspect-square bg-white"
               />
             );
           })()}
@@ -181,7 +184,7 @@ export default function ProductDetail() {
                 {p.category.name}
               </Link>
             )}
-            <h1 className="text-2xl md:text-4xl font-extrabold text-foreground mt-2 leading-tight tracking-tight">
+            <h1 className="text-2xl md:text-4xl font-extrabold text-foreground mt-2 leading-tight tracking-tight break-words">
               {p.name}
             </h1>
           </div>
@@ -414,7 +417,7 @@ export default function ProductDetail() {
                           width={400}
                           height={400}
                           onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-contain bg-white"
                         />
                       );
                     })()}
@@ -464,7 +467,7 @@ export default function ProductDetail() {
               aria-hidden="true"
               width={44}
               height={44}
-              className="h-11 w-11 rounded-lg object-cover bg-white border border-border shrink-0"
+              className="h-11 w-11 rounded-lg object-contain bg-white border border-border shrink-0"
               onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
             />
             <div className="flex-1 min-w-0 leading-tight">

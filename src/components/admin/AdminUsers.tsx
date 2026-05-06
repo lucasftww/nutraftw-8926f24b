@@ -44,6 +44,7 @@ export function AdminUsers() {
   const PAGE_SIZE = 50;
   const [page, setPage] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const t = window.setTimeout(() => setDebouncedQuery(query.trim()), 300);
@@ -89,7 +90,6 @@ export function AdminUsers() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, debouncedQuery]);
 
   async function toggleAdmin(u: UserRow) {
@@ -161,7 +161,6 @@ export function AdminUsers() {
 
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
-  const [exporting, setExporting] = useState(false);
   async function exportCsv() {
     // Bug fix: antes exportava apenas a página atual (50 linhas). Agora
     // pagina via RPC respeitando a busca atual, com teto de segurança.

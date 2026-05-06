@@ -12,14 +12,15 @@ export default function Login() {
   const [params] = useSearchParams();
   const initialMode = params.get("mode") === "signup" ? "register" : "login";
   const [mode, setMode] = useState<"login" | "register">(initialMode);
-  const [email, setEmail] = useState("");
+  const initialEmail = (params.get("email") || "").trim();
+  const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const nav = useNavigate();
   // Sanitiza o `next`: aceita SOMENTE caminhos internos (começam com "/" e
   // não com "//" para evitar protocol-relative URLs / open redirect).
-  const rawNext = params.get("next") || "/minha-conta";
+  const rawNext = params.get("next") || params.get("redirect") || "/minha-conta";
   const next = /^\/(?!\/)/.test(rawNext) ? rawNext : "/minha-conta";
 
   // ?ref=CODIGO direto na URL do /login tem prioridade. Se vier, persiste já
@@ -53,7 +54,8 @@ export default function Login() {
             .select("role")
             .eq("user_id", uid);
           if (rolesErr) console.error("[Login] roles fetch failed", rolesErr);
-          const isAdmin = roles?.some((r: any) => r.role === "admin");
+          const roleRows = (roles ?? []) as Array<{ role: string }>;
+          const isAdmin = roleRows.some((r) => r.role === "admin");
           nav(isAdmin ? "/admin" : next, { replace: true });
         } else {
           nav(next, { replace: true });

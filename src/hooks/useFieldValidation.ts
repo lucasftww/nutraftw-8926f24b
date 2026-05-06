@@ -39,7 +39,6 @@ export function useFieldValidation(
     if (immediate || debounceMs === 0) run();
     else timerRef.current = setTimeout(run, debounceMs);
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, touched, immediate]);
 
   return {

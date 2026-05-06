@@ -54,7 +54,6 @@ export default function Wishlist() {
     // Bug fix: depender só de `ids.size` não detecta troca de itens com
     // o mesmo total (ex.: remover A e adicionar B). Usamos uma chave
     // ordenada e estável dos IDs — re-busca SOMENTE quando o conjunto muda.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthed, Array.from(ids).sort().join(",")]);
 
   if (!isAuthed) {
@@ -66,7 +65,7 @@ export default function Wishlist() {
         <h1 className="text-2xl font-bold mb-2">Seus favoritos te esperam</h1>
         <p className="text-muted-foreground mb-6">Faça login para salvar produtos e encontrá-los em qualquer dispositivo.</p>
         <Link
-          to="/login?redirect=/favoritos"
+          to="/login?next=/favoritos"
           className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-2xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all"
         >
           Entrar agora <ArrowRight className="h-4 w-4" />

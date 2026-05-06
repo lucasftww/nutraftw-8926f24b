@@ -4,6 +4,7 @@ import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { calcTotals } from "@/lib/checkoutMath";
+import { validateCheckoutForm } from "@/lib/checkoutValidation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +16,6 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { trackEvent } from "@/lib/analytics";
 import { useFieldValidation } from "@/hooks/useFieldValidation";
 import { validateFullName, validateEmail, validatePhoneBR, validateCPF, validateCEP } from "@/lib/validators";
-import { isValidCPF } from "@/lib/validators";
 import type { FieldStatus } from "@/lib/validators";
 import { getAffiliateRefData, clearAffiliateRef } from "@/lib/affiliateRef";
 import { CheckoutStepper } from "@/components/checkout/CheckoutStepper";
@@ -189,7 +189,6 @@ export default function Checkout() {
   useEffect(() => {
     if (lines.length === 0) return;
     void trackEvent("checkout_started", lines[0]?.product_id ?? null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Pré-carrega + revalida cupom já aplicado no carrinho (drawer).
@@ -197,7 +196,6 @@ export default function Checkout() {
     if (!cartCouponCode) return;
     setCouponInput(cartCouponCode);
     void revalidateCouponByCode(cartCouponCode, { silent: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Sincroniza alterações de cupom de volta no carrinho (estado compartilhado).
@@ -211,7 +209,6 @@ export default function Checkout() {
       return;
     }
     setCartCoupon(coupon?.code ?? null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [coupon?.code]);
 
   // Hidrata do sessionStorage no mount (lazy initializer — só roda 1x).
@@ -305,7 +302,6 @@ export default function Checkout() {
       clearTimeout(t);
       ctrl.abort();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.zip]);
 
   // Frete dinâmico por UF — recalcula SOMENTE quando a UF muda de verdade.
@@ -668,57 +664,16 @@ export default function Checkout() {
     );
 
   function validate() {
-    // Bug fix: nome agora exige nome+sobrenome (alinhado ao validador inline).
-    if (!form.full_name.trim() || form.full_name.trim().split(/\s+/).filter(p => p.length >= 2).length < 2) {
-      toast.error("Informe nome e sobrenome.");
-      return false;
-    }
-    // Bug fix: e-mail era exigido pela UI mas NUNCA validado no submit.
-    if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.email.trim())) {
-      toast.error("Informe um e-mail válido.");
-      return false;
-    }
-    // Bug fix: aceitava qualquer 11 dígitos (ex.: 11111111111). Agora roda DV.
-    if (!isValidCPF(form.cpf)) {
-      toast.error("CPF inválido. Verifique os números digitados.");
-      return false;
-    }
-    if (onlyDigits(form.phone).length < 10) {
-      toast.error("Telefone inválido.");
-      return false;
-    }
-    if (onlyDigits(form.zip).length !== 8) {
-      toast.error("CEP inválido.");
-      return false;
-    }
-    if (!form.street.trim() || !form.number.trim() || !form.district.trim()) {
-      toast.error("Preencha rua, número e bairro.");
-      return false;
-    }
-    if (!form.city.trim() || form.state.trim().length !== 2) {
-      toast.error("Informe cidade e estado (UF).");
-      return false;
-    }
-    if (!shippingId) {
-      toast.error(
-        shippingOptions.length === 0
-          ? "Não há frete disponível para este estado. Entre em contato pelo WhatsApp."
-          : "Selecione uma opção de frete."
-      );
-      return false;
-    }
     const pixOn = settings.checkout_enable_pix !== "0";
     const cardOn = settings.checkout_enable_card !== "0";
-    if (!pixOn && !cardOn) {
-      toast.error("Pagamentos temporariamente indisponíveis. Contate o suporte.");
-      return false;
-    }
-    if (form.payment_method === "pix" && !pixOn) {
-      toast.error("PIX indisponível. Selecione cartão.");
-      return false;
-    }
-    if (form.payment_method === "credit_card" && !cardOn) {
-      toast.error("Cartão indisponível. Selecione PIX.");
+    const error = validateCheckoutForm(form, {
+      shippingId,
+      shippingOptionsCount: shippingOptions.length,
+      pixEnabled: pixOn,
+      cardEnabled: cardOn,
+    });
+    if (error) {
+      toast.error(error);
       return false;
     }
     return true;
@@ -865,17 +820,39 @@ export default function Checkout() {
         p_utm: utmPayload,
       });
       if (rpcErr) throw rpcErr;
-      void orderId;
+
+      const createdOrderId = typeof orderId === "string" ? orderId : null;
+      let paymentRedirectUrl: string | null = null;
+      if (createdOrderId) {
+        try {
+          const { data: paymentData } = await supabase.functions.invoke("create-payment-intent", {
+            body: {
+              order_id: createdOrderId,
+              method: form.payment_method,
+            },
+          });
+          if (paymentData && typeof paymentData === "object" && "checkout_url" in paymentData) {
+            paymentRedirectUrl = String((paymentData as Record<string, unknown>).checkout_url || "");
+          }
+        } catch {
+          // Integração de gateway opcional: se não existir função configurada,
+          // mantemos fluxo de pedido criado sem quebrar checkout.
+        }
+      }
 
       // Bug fix: navegar ANTES de clear() evita um frame com a tela
       // "Seu carrinho está vazio" enquanto a transição acontece.
-      toast.success("Pedido criado! Em breve entraremos em contato.");
+      toast.success("Pedido criado com sucesso!");
       // Limpa atribuição de afiliado — pedido criado, comissão registrada.
       try { clearAffiliateRef(); } catch {}
       // Limpa o rascunho persistido — pedido já foi gravado.
       try { window.sessionStorage.removeItem(FORM_STORAGE_KEY); } catch {}
-      nav("/minha-conta");
       clear();
+      if (paymentRedirectUrl) {
+        window.location.href = paymentRedirectUrl;
+        return;
+      }
+      nav(createdOrderId ? `/minha-conta?pedido=${encodeURIComponent(createdOrderId)}` : "/minha-conta");
     } catch (err: any) {
       const raw: string = err?.message || "Erro ao criar pedido";
       // Mensagens vindas do RPC create_order (Postgres RAISE EXCEPTION)
@@ -1177,7 +1154,7 @@ export default function Checkout() {
 
           {/* Entrega — só aparece após CEP/UF preenchidos */}
           {cepReady && (
-          <section className="checkout-card space-y-5">
+          <section className="checkout-card space-y-5" data-checkout-shipping>
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-3">
                 <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground text-sm font-extrabold tabular-nums shrink-0">3</span>
@@ -1540,17 +1517,15 @@ export default function Checkout() {
           >
             {submitting ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Processando…</>
-            ) : form.payment_method === "pix" ? (
-              <><QrCode className="w-5 h-5" /> Pagar com PIX</>
             ) : (
-              <><CreditCard className="w-5 h-5" /> Pagar com Cartão</>
+              <><CheckCircle2 className="w-5 h-5" /> Finalizar pedido</>
             )}
           </button>
           {/* Reforços de confiança discretos abaixo do CTA */}
           <div className="mt-3 space-y-2">
             {form.payment_method === "pix" && (
               <p className="text-center text-[11px] text-success font-semibold">
-                ✓ Aprovação imediata no PIX
+                ✓ Pedido confirmado e enviado para atendimento
               </p>
             )}
             <div className="flex items-center justify-center gap-3 text-muted-foreground/70">
@@ -1610,7 +1585,9 @@ export default function Checkout() {
                   ? document.querySelector<HTMLInputElement>('input[autocomplete="name"]')
                   : !addressDone
                   ? document.querySelector<HTMLInputElement>('input[autocomplete="postal-code"]')
-                  : !shippingDone || !paymentSelected
+                  : !shippingDone
+                  ? document.querySelector<HTMLElement>('[data-checkout-shipping]')
+                  : !paymentSelected
                   ? document.querySelector<HTMLElement>('[data-checkout-payment]') || document.querySelector<HTMLElement>('h2.checkout-section-title')
                   : null;
                 if (target) {

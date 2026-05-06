@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { VitePWA } from "vite-plugin-pwa";
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig(() => ({
   server: { host: "::", port: 8080 },
   plugins: [
     react(),
@@ -54,6 +54,12 @@ export default defineConfig(({ mode }) => ({
           "**/Admin-*.js",
           "**/AdminLogin-*.js",
           "**/AdminHealth-*.js",
+          "**/AdminProducts-*.js",
+          "**/WeeklyReport-*.js",
+          "**/WeeklyReportCharts-*.js",
+          "**/charts-vendor-*.js",
+          "**/dnd-vendor-*.js",
+          "**/date-vendor-*.js",
         ],
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [
@@ -88,6 +94,23 @@ export default defineConfig(({ mode }) => ({
               expiration: {
                 maxEntries: 200,
                 maxAgeSeconds: 60 * 60 * 24 * 30,
+              },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            // JS/CSS fora do precache (chunks pesados/raros) são cacheados
+            // sob demanda. Mantém first-load enxuto e acelera visitas
+            // subsequentes sem fixar todos os bundles no install do SW.
+            urlPattern: ({ request, url }) =>
+              (request.destination === "script" || request.destination === "style") &&
+              url.origin === self.location.origin,
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "gimports-assets",
+              expiration: {
+                maxEntries: 120,
+                maxAgeSeconds: 60 * 60 * 24 * 7,
               },
               cacheableResponse: { statuses: [0, 200] },
             },
@@ -132,11 +155,56 @@ export default defineConfig(({ mode }) => ({
     // que costuma ser o maior bundle e o mais caro de baixar.
     rollupOptions: {
       output: {
-        manualChunks: {
-          "react-vendor": ["react", "react-dom", "react-router-dom"],
-          "query-vendor": ["@tanstack/react-query"],
-          "supabase-vendor": ["@supabase/supabase-js"],
-          "ui-vendor": ["lucide-react", "sonner"],
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return;
+          if (
+            id.includes("/recharts/") ||
+            id.includes("\\recharts\\")
+          ) {
+            return "charts-vendor";
+          }
+          if (
+            id.includes("/date-fns/") ||
+            id.includes("\\date-fns\\")
+          ) {
+            return "date-vendor";
+          }
+          if (
+            id.includes("/@dnd-kit/") ||
+            id.includes("\\@dnd-kit\\")
+          ) {
+            return "dnd-vendor";
+          }
+          if (
+            id.includes("/react-router-dom/") ||
+            id.includes("\\react-router-dom\\") ||
+            id.includes("/react-dom/") ||
+            id.includes("\\react-dom\\") ||
+            id.includes("/react/") ||
+            id.includes("\\react\\")
+          ) {
+            return "react-vendor";
+          }
+          if (
+            id.includes("/@tanstack/react-query/") ||
+            id.includes("\\@tanstack\\react-query\\")
+          ) {
+            return "query-vendor";
+          }
+          if (
+            id.includes("/@supabase/supabase-js/") ||
+            id.includes("\\@supabase\\supabase-js\\")
+          ) {
+            return "supabase-vendor";
+          }
+          if (
+            id.includes("/lucide-react/") ||
+            id.includes("\\lucide-react\\") ||
+            id.includes("/sonner/") ||
+            id.includes("\\sonner\\")
+          ) {
+            return "ui-vendor";
+          }
         },
       },
     },

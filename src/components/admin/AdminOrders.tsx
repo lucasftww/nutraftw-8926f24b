@@ -87,7 +87,6 @@ export function AdminOrders() {
       }
     }
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, filter, paymentFilter, dateFrom, dateTo]);
 
   const filtered = useMemo(() => {
@@ -101,6 +100,10 @@ export function AdminOrders() {
       );
     });
   }, [items, query]);
+
+  useEffect(() => {
+    setSelected(new Set());
+  }, [query]);
 
   async function setStatus(id: string, status: string) {
     const prev = items.find((o) => o.id === id)?.status;
@@ -137,9 +140,16 @@ export function AdminOrders() {
 
   async function bulkSetStatus(status: string) {
     if (selected.size === 0) return;
+    const visibleIds = new Set(filtered.map((o) => o.id));
+    const scopedIds = Array.from(selected).filter((id) => visibleIds.has(id));
+    if (scopedIds.length === 0) {
+      toast.error("Nenhum pedido visível selecionado para atualizar.");
+      setSelected(new Set());
+      return;
+    }
     const isDestructive = status === "cancelled" || status === "refunded";
     const ok = await confirm({
-      title: `Marcar ${selected.size} pedido${selected.size === 1 ? "" : "s"} como "${status}"?`,
+      title: `Marcar ${scopedIds.length} pedido${scopedIds.length === 1 ? "" : "s"} como "${status}"?`,
       description: isDestructive
         ? "Esta ação cancelará/reembolsará vários pedidos de uma vez."
         : "Os pedidos selecionados terão o estado atualizado.",
@@ -149,7 +159,7 @@ export function AdminOrders() {
     if (!ok) return;
     setBulkBusy(true);
     let okCount = 0, failCount = 0;
-    for (const id of selected) {
+    for (const id of scopedIds) {
       const { error: err } = await supabase.rpc("admin_set_order_status", {
         p_order_id: id, p_status: status, p_reason: null,
       });

@@ -1,66 +1,73 @@
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useState, type ComponentType } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, Search, LayoutDashboard, Package, Tags, ShoppingBag, Ticket, Truck, Settings, BarChart3, Activity, History, TrendingUp, Users, Handshake, Tag, Menu, X, ChevronRight, Heart } from "lucide-react";
-import { AdminDashboard } from "@/components/admin/AdminDashboard";
-import { WeeklyReport } from "@/components/admin/WeeklyReport";
+import { LogOut, Search, Menu, X, ChevronRight } from "lucide-react";
 import { OrderDetailModal } from "@/components/admin/OrderDetailModal";
-import { AdminCoupons } from "@/components/admin/AdminCoupons";
-import { AdminShipping } from "@/components/admin/AdminShipping";
-import { AdminSettings } from "@/components/admin/AdminSettings";
-import { AdminDiagnostics } from "@/components/admin/AdminDiagnostics";
-import { AdminAuditLog } from "@/components/admin/AdminAuditLog";
-import { AdminFunnel } from "@/components/admin/AdminFunnel";
-import { AdminWishlist } from "@/components/admin/AdminWishlist";
-import { AdminUsers } from "@/components/admin/AdminUsers";
-import { AdminAffiliates } from "@/components/admin/AdminAffiliates";
-import { AdminPromotions } from "@/components/admin/AdminPromotions";
-import { AdminProducts } from "@/components/admin/AdminProducts";
-import { AdminCategories } from "@/components/admin/AdminCategories";
-import { AdminOrders } from "@/components/admin/AdminOrders";
 import { ConfirmProvider } from "@/components/admin/ConfirmDialog";
 import { useNewOrdersNotifier } from "@/hooks/useNewOrdersNotifier";
 import { CommandPalette } from "@/components/admin/CommandPalette";
+import { GROUPS, TABS, TAB_IDS, TAB_TO_GROUP, type Tab } from "@/pages/adminTabs";
 
-type Tab = "dashboard" | "funnel" | "wishlist" | "reports" | "products" | "categories" | "promotions" | "orders" | "coupons" | "shipping" | "users" | "affiliates" | "settings" | "diagnostics" | "audit";
+const loadAdminDashboard = () => import("@/components/admin/AdminDashboard");
+const loadAdminFunnel = () => import("@/components/admin/AdminFunnel");
+const loadAdminWishlist = () => import("@/components/admin/AdminWishlist");
+const loadWeeklyReport = () => import("@/components/admin/WeeklyReport");
+const loadAdminProducts = () => import("@/components/admin/AdminProducts");
+const loadAdminCategories = () => import("@/components/admin/AdminCategories");
+const loadAdminPromotions = () => import("@/components/admin/AdminPromotions");
+const loadAdminOrders = () => import("@/components/admin/AdminOrders");
+const loadAdminCoupons = () => import("@/components/admin/AdminCoupons");
+const loadAdminShipping = () => import("@/components/admin/AdminShipping");
+const loadAdminUsers = () => import("@/components/admin/AdminUsers");
+const loadAdminAffiliates = () => import("@/components/admin/AdminAffiliates");
+const loadAdminSettings = () => import("@/components/admin/AdminSettings");
+const loadAdminDiagnostics = () => import("@/components/admin/AdminDiagnostics");
+const loadAdminAuditLog = () => import("@/components/admin/AdminAuditLog");
 
-const TAB_IDS: Tab[] = ["dashboard","funnel","wishlist","reports","products","categories","promotions","orders","coupons","shipping","users","affiliates","settings","diagnostics","audit"];
+const tabPreloaders: Record<Tab, () => Promise<unknown>> = {
+  dashboard: loadAdminDashboard,
+  funnel: loadAdminFunnel,
+  wishlist: loadAdminWishlist,
+  reports: loadWeeklyReport,
+  products: loadAdminProducts,
+  categories: loadAdminCategories,
+  promotions: loadAdminPromotions,
+  orders: loadAdminOrders,
+  coupons: loadAdminCoupons,
+  shipping: loadAdminShipping,
+  users: loadAdminUsers,
+  affiliates: loadAdminAffiliates,
+  settings: loadAdminSettings,
+  diagnostics: loadAdminDiagnostics,
+  audit: loadAdminAuditLog,
+};
 
-const TABS: { id: Tab; label: string; icon: any }[] = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "funnel", label: "Funil", icon: TrendingUp },
-  { id: "wishlist", label: "Favoritos", icon: Heart },
-  { id: "reports", label: "Relatórios", icon: BarChart3 },
-  { id: "products", label: "Produtos", icon: Package },
-  { id: "categories", label: "Categorias", icon: Tags },
-  { id: "promotions", label: "Promoções", icon: Tag },
-  { id: "orders", label: "Pedidos", icon: ShoppingBag },
-  { id: "coupons", label: "Cupons", icon: Ticket },
-  { id: "shipping", label: "Fretes", icon: Truck },
-  { id: "users", label: "Usuários", icon: Users },
-  { id: "affiliates", label: "Afiliados", icon: Handshake },
-  { id: "settings", label: "Configurações", icon: Settings },
-  { id: "diagnostics", label: "Diagnóstico", icon: Activity },
-  { id: "audit", label: "Histórico", icon: History },
-];
+const tabComponents: Record<Tab, ComponentType> = {
+  dashboard: lazy(async () => ({ default: (await loadAdminDashboard()).AdminDashboard })),
+  funnel: lazy(async () => ({ default: (await loadAdminFunnel()).AdminFunnel })),
+  wishlist: lazy(async () => ({ default: (await loadAdminWishlist()).AdminWishlist })),
+  reports: lazy(async () => ({ default: (await loadWeeklyReport()).WeeklyReport })),
+  products: lazy(async () => ({ default: (await loadAdminProducts()).AdminProducts })),
+  categories: lazy(async () => ({ default: (await loadAdminCategories()).AdminCategories })),
+  promotions: lazy(async () => ({ default: (await loadAdminPromotions()).AdminPromotions })),
+  orders: lazy(async () => ({ default: (await loadAdminOrders()).AdminOrders })),
+  coupons: lazy(async () => ({ default: (await loadAdminCoupons()).AdminCoupons })),
+  shipping: lazy(async () => ({ default: (await loadAdminShipping()).AdminShipping })),
+  users: lazy(async () => ({ default: (await loadAdminUsers()).AdminUsers })),
+  affiliates: lazy(async () => ({ default: (await loadAdminAffiliates()).AdminAffiliates })),
+  settings: lazy(async () => ({ default: (await loadAdminSettings()).AdminSettings })),
+  diagnostics: lazy(async () => ({ default: (await loadAdminDiagnostics()).AdminDiagnostics })),
+  audit: lazy(async () => ({ default: (await loadAdminAuditLog()).AdminAuditLog })),
+};
 
-// Agrupamento das abas em 5 categorias — reduz cognitive load no mobile e dá
-// uma "navegação principal + sub-navegação" mais clara que 13 abas planas.
-type Group = { id: string; label: string; icon: any; tabs: Tab[] };
-const GROUPS: Group[] = [
-  { id: "overview", label: "Visão geral", icon: LayoutDashboard, tabs: ["dashboard", "funnel", "wishlist", "reports"] },
-  { id: "catalog",  label: "Catálogo",    icon: Package,         tabs: ["products", "categories", "promotions"] },
-  { id: "sales",    label: "Vendas",      icon: ShoppingBag,     tabs: ["orders", "coupons", "shipping"] },
-  { id: "people",   label: "Pessoas",     icon: Users,           tabs: ["users", "affiliates"] },
-  { id: "system",   label: "Sistema",     icon: Settings,        tabs: ["settings", "diagnostics", "audit"] },
-];
-const TAB_TO_GROUP: Record<Tab, string> = (() => {
-  const m = {} as Record<Tab, string>;
-  for (const g of GROUPS) for (const t of g.tabs) m[t] = g.id;
-  return m;
-})();
-
+function AdminTabFallback() {
+  return (
+    <div className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
+      Carregando módulo...
+    </div>
+  );
+}
 
 export default function Admin() {
   return (
@@ -102,7 +109,9 @@ function AdminInner() {
 
   // Notificador realtime de novos pedidos. Limpa o badge ao entrar na aba Pedidos.
   const { unseenCount, clear } = useNewOrdersNotifier();
-  useEffect(() => { if (tab === "orders") clear(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [tab]);
+  useEffect(() => {
+    if (tab === "orders") clear();
+  }, [tab, clear]);
 
   async function logout() {
     await supabase.auth.signOut();
@@ -113,6 +122,12 @@ function AdminInner() {
   const currentTab = TABS.find((t) => t.id === tab);
   const currentGroup = GROUPS.find((g) => g.id === activeGroupId);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const ActiveTabComponent = useMemo(() => tabComponents[tab], [tab]);
+  const shortcutLabel = navigator.platform.toLowerCase().includes("mac") ? "⌘K" : "Ctrl+K";
+
+  const preloadTab = (id: Tab) => {
+    void tabPreloaders[id]();
+  };
 
   return (
     <div className="flex min-h-screen w-full bg-background text-foreground">
@@ -140,6 +155,8 @@ function AdminInner() {
                   <button
                     key={t.id}
                     onClick={() => setTab(t.id)}
+                    onMouseEnter={() => preloadTab(t.id)}
+                    onFocus={() => preloadTab(t.id)}
                     aria-current={active ? "page" : undefined}
                     className={`group w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-[13px] transition-all relative ${
                       active
@@ -211,6 +228,7 @@ function AdminInner() {
                       <button
                         key={t.id}
                         onClick={() => { setTab(t.id); setMobileNavOpen(false); }}
+                        onTouchStart={() => preloadTab(t.id)}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm ${active ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground"}`}
                       >
                         <t.icon className="h-4 w-4" />
@@ -257,7 +275,7 @@ function AdminInner() {
           >
             <Search className="h-4 w-4" />
             <span className="hidden md:inline">Buscar pedidos, produtos…</span>
-            <kbd className="hidden md:inline text-[10px] font-mono px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground border border-border">⌘K</kbd>
+            <kbd className="hidden md:inline text-[10px] font-mono px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground border border-border">{shortcutLabel}</kbd>
           </button>
         </header>
 
@@ -272,21 +290,9 @@ function AdminInner() {
             </h1>
           </div>
 
-          {tab === "dashboard" && <AdminDashboard />}
-          {tab === "funnel" && <AdminFunnel />}
-          {tab === "wishlist" && <AdminWishlist />}
-          {tab === "reports" && <WeeklyReport />}
-          {tab === "products" && <AdminProducts />}
-          {tab === "categories" && <AdminCategories />}
-          {tab === "promotions" && <AdminPromotions />}
-          {tab === "orders" && <AdminOrders />}
-          {tab === "coupons" && <AdminCoupons />}
-          {tab === "shipping" && <AdminShipping />}
-          {tab === "users" && <AdminUsers />}
-          {tab === "affiliates" && <AdminAffiliates />}
-          {tab === "settings" && <AdminSettings />}
-          {tab === "diagnostics" && <AdminDiagnostics />}
-          {tab === "audit" && <AdminAuditLog />}
+          <Suspense fallback={<AdminTabFallback />}>
+            <ActiveTabComponent />
+          </Suspense>
         </div>
       </main>
 

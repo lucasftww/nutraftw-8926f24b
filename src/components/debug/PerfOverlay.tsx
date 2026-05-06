@@ -129,7 +129,7 @@ export function PerfOverlay() {
           }
         }
       });
-      // @ts-ignore — event timing
+      // @ts-expect-error — event timing (não tipado em alguns targets TS lib)
       o.observe({ type: "event", buffered: true, durationThreshold: 40 });
       observers.push(o);
     } catch {/* noop */}

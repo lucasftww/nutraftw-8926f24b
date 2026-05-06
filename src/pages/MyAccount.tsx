@@ -131,7 +131,6 @@ export default function MyAccount() {
       if (matchesCommFilter(c, commFilter)) filtered.push(c);
     }
     return { commCounts: counts, filteredComm: filtered };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [commissions, commFilter]);
 
   // Mantém o timer de "copiado" cancelável para evitar setState após unmount

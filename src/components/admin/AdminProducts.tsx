@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -108,11 +108,13 @@ export function AdminProducts() {
   const [error, setError] = useState<AdminErrorInfo | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [bulkAction, setBulkAction] = useState<"" | "activate" | "deactivate" | "feature" | "unfeature" | "stock_set" | "stock_inc" | "price_set" | "price_inc_pct" | "delete">("");
   const [bulkValue, setBulkValue] = useState<string>("");
   const PAGE_SIZE = 30;
   const qc = useQueryClient();
   const { confirm } = useConfirm();
+  const loadReqRef = useRef(0);
 
   useEffect(() => {
     const t = window.setTimeout(() => setDebouncedQuery(query.trim()), 300);
@@ -122,6 +124,7 @@ export function AdminProducts() {
   useEffect(() => { setPage(0); }, [debouncedQuery]);
 
   async function load() {
+    const requestId = ++loadReqRef.current;
     setLoading(true);
     setError(null);
     const from = page * PAGE_SIZE;
@@ -140,6 +143,7 @@ export function AdminProducts() {
       q,
       supabase.from("categories").select("*").order("display_order"),
     ]);
+    if (requestId !== loadReqRef.current) return;
     if (pr.error) {
       const info = logSupabaseError("Carregar produtos", pr.error, { table: "products" });
       setError(info);
@@ -159,11 +163,12 @@ export function AdminProducts() {
     setCats(cr.data || []);
     setLoading(false);
   }
-  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [page, debouncedQuery]);
+  useEffect(() => { load(); }, [page, debouncedQuery]);
   useEffect(() => { setSelected(new Set()); }, [page, debouncedQuery]);
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
+    if (saving) return;
     const f = editing;
     // Validações que o `required` do HTML não cobre.
     const nameTrim = (f.name || "").trim();
@@ -202,6 +207,7 @@ export function AdminProducts() {
       ? basePayload
       : { ...basePayload, sale_price: null, is_on_offer: false };
     const before = f.id ? items.find((p) => p.id === f.id) : null;
+    setSaving(true);
     const { data, error } = f.id
       ? await supabase.from("products").update(payload).eq("id", f.id).select().maybeSingle()
       : await supabase.from("products").insert(payload).select().maybeSingle();
@@ -238,6 +244,7 @@ export function AdminProducts() {
       qc.invalidateQueries({ queryKey: queryKeys.products.detailRoot });
       load();
     }
+    setSaving(false);
   }
 
   async function del(id: string) {
@@ -263,7 +270,11 @@ export function AdminProducts() {
         diff: { before },
       });
       qc.invalidateQueries({ queryKey: queryKeys.products.all });
-      load();
+      if (items.length === 1 && page > 0) {
+        setPage((p) => Math.max(0, p - 1));
+      } else {
+        load();
+      }
     }
   }
 
@@ -339,7 +350,7 @@ export function AdminProducts() {
     } else if (bulkAction === "price_set") {
       needsConfirm = true;
       const v = Number(String(bulkValue).replace(",", "."));
-      if (!Number.isFinite(v) || v < 0) { toast.error("Informe um preço válido (≥ 0)"); return; }
+      if (!Number.isFinite(v) || v <= 0) { toast.error("Informe um preço válido (> 0)"); return; }
       payload = { price: v }; summary = `preço = ${formatBRL(v)}`;
     } else if (bulkAction === "price_inc_pct") {
       const pct = Number(String(bulkValue).replace(",", "."));
@@ -698,7 +709,7 @@ export function AdminProducts() {
               <div className="space-y-2"><Label>Estoque</Label><Input type="number" min="0" value={editing.stock ?? 0} onChange={(e) => setEditing({ ...editing, stock: e.target.value })} /></div>
               <div className="space-y-2 sm:col-span-2">
                 <Label>Imagem</Label>
-                <ImageUpload value={editing.image_url || ""} onChange={(url) => setEditing({ ...editing, image_url: url })} />
+                <ImageUpload value={editing.image_url || ""} onChange={(url) => setEditing((prev: any) => prev ? { ...prev, image_url: url } : prev)} />
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label>Descrição</Label>
@@ -759,8 +770,8 @@ export function AdminProducts() {
               </div>
             </div>
             <div className="flex justify-end gap-2 pt-4 border-t border-border sticky bottom-0 bg-card">
-              <Button type="button" variant="outline" onClick={() => setEditing(null)}>Cancelar</Button>
-              <Button type="submit">Salvar</Button>
+              <Button type="button" variant="outline" disabled={saving} onClick={() => setEditing(null)}>Cancelar</Button>
+              <Button type="submit" disabled={saving}>{saving ? "Salvando..." : "Salvar"}</Button>
             </div>
           </form>
         )}

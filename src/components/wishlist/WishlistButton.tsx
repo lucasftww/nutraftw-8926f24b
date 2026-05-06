@@ -31,14 +31,7 @@ export function WishlistButton({ productId, className, variant = "card", size = 
       });
       return;
     }
-    const wasFav = isFav;
     toggle(productId);
-    if (!wasFav) {
-      toast.success("Adicionado aos favoritos", {
-        description: "Veja em Meus favoritos quando quiser.",
-        action: { label: "Ver lista", onClick: () => nav("/favoritos") },
-      });
-    }
   };
 
   const dim = size === "sm" ? "h-8 w-8" : "h-10 w-10";

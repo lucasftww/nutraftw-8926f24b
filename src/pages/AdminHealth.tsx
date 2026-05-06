@@ -366,7 +366,6 @@ export default function AdminHealth() {
   useEffect(() => {
     if (auth.loading) return;
     runAuto();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth.loading]);
 
   return (

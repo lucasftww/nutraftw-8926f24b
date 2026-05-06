@@ -24,6 +24,7 @@ export function useWishlist() {
       const { data, error } = await (supabase as any)
         .from("wishlists")
         .select("product_id")
+        .eq("user_id", uid)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return ((data as { product_id: string }[]) || []).map((r) => r.product_id);

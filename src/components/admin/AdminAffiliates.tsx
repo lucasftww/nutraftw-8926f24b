@@ -47,21 +47,31 @@ export function AdminAffiliates() {
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const { data, error: err } = await supabase
-      .from("affiliate_commissions")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(500);
-    if (err) {
-      const info = logSupabaseError("Carregar comissões", err, { table: "affiliate_commissions" });
-      setError(info);
-      toast.error(`Comissões: ${info.message}`);
-      setLoading(false);
-      return;
+    const MAX = 5000;
+    const BATCH = 1000;
+    const list: any[] = [];
+    for (let offset = 0; offset < MAX; offset += BATCH) {
+      const { data, error: err } = await supabase
+        .from("affiliate_commissions")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .range(offset, offset + BATCH - 1);
+      if (err) {
+        const info = logSupabaseError("Carregar comissões", err, { table: "affiliate_commissions", offset });
+        setError(info);
+        toast.error(`Comissões: ${info.message}`);
+        setLoading(false);
+        return;
+      }
+      const rows = (data as any[]) || [];
+      list.push(...rows);
+      if (rows.length < BATCH) break;
     }
-    const list = (data as any[]) || [];
+    if (list.length >= MAX) {
+      toast.warning("Exibindo as 5.000 comissões mais recentes. Aplique filtros de período para refinar.");
+    }
     const ids = Array.from(new Set(list.map((r) => r.affiliate_user_id))).filter(Boolean);
-    let profiles: Record<string, { email: string; name: string | null }> = {};
+    const profiles: Record<string, { email: string; name: string | null }> = {};
     if (ids.length) {
       const { data: pdata } = await supabase
         .from("profiles")

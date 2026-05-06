@@ -108,7 +108,13 @@ export function AdminDiagnostics() {
   const check = useCallback(async () => {
     setLoading(true);
     try {
-      const next: typeof counts = { ...counts };
+      const next: Record<EntityKey, { db: number | null; cache: number | null }> = {
+        products: { db: null, cache: null },
+        categories: { db: null, cache: null },
+        coupons: { db: null, cache: null },
+        shipping: { db: null, cache: null },
+        settings: { db: null, cache: null },
+      };
       await Promise.all(
         rows.map(async (r) => {
           const q = (supabase as any).from(r.table).select("id", { count: "exact", head: true });
@@ -129,10 +135,9 @@ export function AdminDiagnostics() {
     } finally {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qc]);
 
-  useEffect(() => { check(); /* eslint-disable-next-line */ }, []);
+  useEffect(() => { check(); }, [check]);
 
   async function invalidateAll() {
     await Promise.all(rows.map((r) => r.invalidate()));

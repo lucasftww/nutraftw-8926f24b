@@ -8,48 +8,12 @@ import { prefetchImage, shouldPrefetch } from "@/lib/prefetch";
 import { WishlistButton } from "@/components/wishlist/WishlistButton";
 import { Search, SlidersHorizontal, X, ArrowUpDown, ShoppingCart } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
+import { SORT_KEYS, SORT_LABELS, type SortKey, discountPctOf, isTirzepatidaCategory, productScore } from "@/lib/catalog";
 import { useCart } from "@/hooks/useCart";
 import { useSEO } from "@/hooks/useSEO";
 import { useProducts, useCategories, type ProductRow } from "@/hooks/useProducts";
 
 type Product = ProductRow;
-
-const SORT_KEYS = ["categoria", "recentes", "az", "preco_asc", "preco_desc"] as const;
-type SortKey = (typeof SORT_KEYS)[number];
-const SORT_LABELS: Record<SortKey, string> = {
-  categoria: "Por categoria",
-  recentes: "Mais recentes",
-  az: "A–Z",
-  preco_asc: "Menor preço",
-  preco_desc: "Maior preço",
-};
-
-// Helpers puros — declarados fora do componente para não serem recriados
-// a cada render do Catalog (entram nas deps de useMemo abaixo).
-
-/** Score de "atratividade" de venda — tie-breaker dentro das categorias. */
-const productScore = (p: ProductRow) => {
-  const inStock = (p.stock ?? 0) > 0 ? 1 : 0;
-  const featured = p.is_featured ? 1 : 0;
-  const recency = new Date(p.created_at).getTime();
-  return inStock * 1e15 + featured * 1e13 + recency;
-};
-
-/** % de desconto (0 quando não há promoção real). */
-const discountPctOf = (p: ProductRow) => {
-  const pr = Number(p.price);
-  const sp = p.sale_price != null ? Number(p.sale_price) : 0;
-  if (!(sp > 0 && sp < pr)) return 0;
-  return (pr - sp) / pr;
-};
-
-const isTirzepatidaCategory = (c: { name?: string | null; slug?: string | null }) => {
-  const value = `${c.name ?? ""} ${c.slug ?? ""}`
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-  return value.includes("tirzepatida") || value.includes("tirze") || value.includes("tizer");
-};
 
 export default function Catalog() {
   const { data: products = [], isLoading: loadingProducts } = useProducts();
@@ -79,7 +43,6 @@ export default function Catalog() {
     // - sem `?categoria=...`    → limpa o filtro (antes ficava preso ao
     //   navegar para `/` depois de uma categoria, exigindo recarregar a página).
     setSelectedCats(urlCategoria ? new Set([urlCategoria]) : new Set());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [urlCategoria]);
   useEffect(() => {
     if (query === urlQuery) return;
@@ -94,7 +57,6 @@ export default function Catalog() {
       }, { replace: true });
     }, 200);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
 
   // Drawer de filtros: ESC fecha + trava scroll do body enquanto aberto.
@@ -355,6 +317,19 @@ export default function Catalog() {
     return map;
   }, [products]);
 
+  const displayedCategories = useMemo(() => {
+    const promosCount = countByCat.get("__promos__") ?? 0;
+    const base = [...categories];
+    if (promosCount > 0 && !base.some((c) => c.slug === "__promos__")) {
+      base.unshift({
+        id: "__promos__",
+        slug: "__promos__",
+        name: "Promoções",
+      } as (typeof categories)[number]);
+    }
+    return base;
+  }, [categories, countByCat]);
+
   return (
     <>
       {/* Barra sticky única: busca + chips de categoria juntos.
@@ -549,7 +524,7 @@ export default function Catalog() {
                 )}
               </div>
               <ul className="flex flex-col gap-1.5 pb-24">
-                {[...categories].sort((a, b) => {
+                {[...displayedCategories].sort((a, b) => {
                   const aTirz = isTirzepatidaCategory(a) ? 0 : 1;
                   const bTirz = isTirzepatidaCategory(b) ? 0 : 1;
                   if (aTirz !== bTirz) return aTirz - bTirz;

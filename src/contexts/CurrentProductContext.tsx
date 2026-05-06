@@ -37,6 +37,5 @@ export function useRegisterCurrentProduct(p: CurrentProduct | null) {
   useEffect(() => {
     setCurrent(p);
     return () => setCurrent(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p?.slug, p?.name, p?.price]);
 }

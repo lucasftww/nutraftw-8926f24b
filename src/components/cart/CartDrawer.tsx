@@ -10,6 +10,7 @@ import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { CouponInput } from "@/components/cart/CouponInput";
 import { prefetchCheckout } from "@/App";
 import { prefetchImage } from "@/lib/prefetch";
+import { CART_MAX_QTY_PER_ITEM } from "@/lib/cart-store";
 
 export function CartDrawer() {
   const { lines, total, open, closeCart, setQty, remove } = useCart();
@@ -156,7 +157,9 @@ export function CartDrawer() {
                         <button
                           onClick={() => setQty(l.product_id, l.qty + 1)}
                           aria-label="Aumentar quantidade"
-                          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted active:bg-muted/80"
+                          disabled={l.qty >= CART_MAX_QTY_PER_ITEM}
+                          title={l.qty >= CART_MAX_QTY_PER_ITEM ? `Máximo de ${CART_MAX_QTY_PER_ITEM} por item` : undefined}
+                          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted active:bg-muted/80 disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                           <Plus className="h-3.5 w-3.5" />
                         </button>

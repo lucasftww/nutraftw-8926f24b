@@ -95,9 +95,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!hadCache) setRoleLoading(false);
         return;
       }
-      const next: Role = data?.some((r: any) => r.role === "admin")
+      const roleRows = (data ?? []) as Array<{ role: string }>;
+      const next: Role = roleRows.some((r) => r.role === "admin")
         ? "admin"
-        : data?.length
+        : roleRows.length
           ? "customer"
           : null;
       setRole(next);

@@ -29,9 +29,7 @@ export function logSupabaseError(scope: string, error: any, extra?: Record<strin
     at: new Date().toISOString(),
   };
   // Console em grupo para inspeção rápida no DevTools
-  // eslint-disable-next-line no-console
   console.group(`%c[admin] ${scope} falhou`, "color:#dc2626;font-weight:bold");
-  // eslint-disable-next-line no-console
   console.error("message:", info.message);
   if (info.code) console.error("code:", info.code);
   if (info.details) console.error("details:", info.details);

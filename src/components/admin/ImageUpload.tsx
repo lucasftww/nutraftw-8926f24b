@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,14 @@ import { toast } from "sonner";
 export function ImageUpload({ value, onChange }: { value: string; onChange: (url: string) => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const ALLOWED_MIME = [
     "image/jpeg",
@@ -70,15 +78,15 @@ export function ImageUpload({ value, onChange }: { value: string; onChange: (url
     });
     if (error) {
       toast.error("Falha no envio", { description: error.message });
-      setUploading(false);
+      if (mountedRef.current) setUploading(false);
       return;
     }
     const { data } = supabase.storage.from("product-images").getPublicUrl(path);
-    onChange(data.publicUrl);
+    if (mountedRef.current) onChange(data.publicUrl);
     toast.success("Imagem enviada", {
       description: `${file.name} (${formatSize(file.size)})`,
     });
-    setUploading(false);
+    if (mountedRef.current) setUploading(false);
   }
 
   return (

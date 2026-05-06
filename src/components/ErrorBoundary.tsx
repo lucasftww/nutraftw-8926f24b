@@ -24,6 +24,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
 
   render() {
     if (!this.state.error) return this.props.children;
+    const isDev = import.meta.env.DEV;
     return (
       <div className="min-h-screen flex items-center justify-center px-4 bg-background">
         <div className="max-w-md w-full bg-card border border-border rounded-2xl p-6 text-center shadow-card">
@@ -34,9 +35,11 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
             Tivemos um problema ao mostrar esta página. Você pode tentar novamente
             ou voltar ao catálogo.
           </p>
-          <pre className="text-left text-xs bg-muted/40 rounded p-3 mb-4 overflow-auto max-h-40">
-            {this.state.error.message}
-          </pre>
+          {isDev ? (
+            <pre className="text-left text-xs bg-muted/40 rounded p-3 mb-4 overflow-auto max-h-40">
+              {this.state.error.message}
+            </pre>
+          ) : null}
           <div className="flex gap-2 justify-center">
             <button
               onClick={this.reset}

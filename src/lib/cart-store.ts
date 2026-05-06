@@ -23,12 +23,13 @@ export interface CartLine {
   updated_at: number;
 }
 
- const STORAGE_KEY = "nutra-cart-v1";
- const COUPON_KEY = "nutra-coupon-v1";
+const STORAGE_KEY = "nutra-cart-v1";
+const COUPON_KEY = "nutra-coupon-v1";
 // Chave legada de uma fila de operações pendentes que nunca chegou a ser
 // drenada — limpamos no load para não inflar o localStorage de quem já usou
 // versões anteriores do app.
- const LEGACY_PENDING_KEY = "nutra-cart-pending-v1";
+const LEGACY_PENDING_KEY = "nutra-cart-pending-v1";
+export const CART_MAX_QTY_PER_ITEM = 100;
 
 let lines: CartLine[] = [];
 let drawerOpen = false;
@@ -103,12 +104,13 @@ export const cart = {
     const now = Date.now();
     const i = lines.findIndex((l) => l.product_id === line.product_id);
     if (i >= 0) {
-      const finalQty = lines[i].qty + qty;
+      const finalQty = Math.min(CART_MAX_QTY_PER_ITEM, Math.max(1, lines[i].qty + qty));
       lines = lines.map((l, idx) =>
         idx === i ? { ...l, qty: finalQty, updated_at: now } : l
       );
     } else {
-      lines = [...lines, { ...line, qty, updated_at: now }];
+      const nextQty = Math.min(CART_MAX_QTY_PER_ITEM, Math.max(1, qty));
+      lines = [...lines, { ...line, qty: nextQty, updated_at: now }];
     }
     persist();
   },
@@ -119,8 +121,9 @@ export const cart = {
     if (qty <= 0) {
       lines = lines.filter((_, idx) => idx !== i);
     } else {
+      const nextQty = Math.min(CART_MAX_QTY_PER_ITEM, qty);
       lines = lines.map((l, idx) =>
-        idx === i ? { ...l, qty, updated_at: now } : l
+        idx === i ? { ...l, qty: nextQty, updated_at: now } : l
       );
     }
     persist();
