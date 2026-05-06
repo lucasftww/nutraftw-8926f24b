@@ -5,7 +5,7 @@ import { useCart } from "@/hooks/useCart";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
-import logoRoyalVita from "@/assets/logo-royalvita-horizontal.svg";
+import logoRoyalVita from "@/assets/logo-royalvita-horizontal.png";
 import logoMark from "@/assets/logo-royalvita-rv.png";
 import { prefetchMyAccount } from "@/App";
 
