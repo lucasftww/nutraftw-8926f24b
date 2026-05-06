@@ -479,7 +479,7 @@ export default function Catalog() {
             className="absolute inset-0 bg-foreground/50 backdrop-blur-[2px] animate-in fade-in"
             onClick={() => setFiltersOpen(false)}
           />
-          <aside className="absolute right-0 top-0 h-full w-[92%] max-w-md bg-background shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
+          <aside className="absolute right-0 top-0 h-full w-full sm:w-[92%] sm:max-w-md bg-background shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
             {/* Header — grande, claro, com contador */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-border">
               <div className="flex items-center gap-3">
@@ -512,7 +512,7 @@ export default function Catalog() {
                 <h3 className="text-[13px] font-bold uppercase tracking-wider text-muted-foreground px-2 mb-2">
                   Ordenar por
                 </h3>
-                <div className="flex flex-wrap gap-2 px-1">
+                <div className="grid grid-cols-2 gap-2 px-1 sm:flex sm:flex-wrap">
                   {SORT_KEYS.map((k) => {
                     const active = sort === k;
                     return (
@@ -521,7 +521,7 @@ export default function Catalog() {
                         type="button"
                         onClick={() => setSort(k)}
                         aria-pressed={active}
-                        className={`inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full text-sm font-medium transition-colors ${
+                        className={`inline-flex items-center justify-center gap-1.5 h-10 px-3 rounded-full text-sm font-medium transition-colors ${
                           active
                             ? "bg-primary text-primary-foreground shadow-sm"
                             : "bg-muted/60 text-foreground hover:bg-muted"
