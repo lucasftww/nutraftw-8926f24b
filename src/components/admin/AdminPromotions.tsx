@@ -107,19 +107,23 @@ export function AdminPromotions() {
   }
 
   async function saveOrder() {
+    if (promos.length === 0) return;
     setSaving(true);
     try {
-      // Atribui offer_order = posição * 10 (espaçado p/ inserções futuras)
-      const updates = promos.map((p, i) =>
-        supabase
+      // Sequencial p/ poder abortar no primeiro erro e mostrar diagnóstico
+      // claro — N produtos em promoção é tipicamente < 30, latência ok.
+      for (let i = 0; i < promos.length; i++) {
+        const targetOrder = (i + 1) * 10;
+        if (promos[i].offer_order === targetOrder) continue; // skip no-op
+        const { error } = await supabase
           .from("products")
-          .update({ offer_order: (i + 1) * 10 } as any)
-          .eq("id", p.id)
-      );
-      const results = await Promise.all(updates);
-      const err = results.find((r) => r.error);
-      if (err?.error) throw err.error;
+          .update({ offer_order: targetOrder } as any)
+          .eq("id", promos[i].id);
+        if (error) throw error;
+      }
       toast.success("Ordem das promoções salva!");
+      // reflete no estado sem refetch
+      setPromos((prev) => prev.map((p, i) => ({ ...p, offer_order: (i + 1) * 10 })));
     } catch (e: any) {
       toast.error("Erro ao salvar: " + (e?.message ?? "desconhecido"));
     } finally {

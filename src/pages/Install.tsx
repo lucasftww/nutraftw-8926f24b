@@ -28,7 +28,7 @@ export default function Install() {
       window.navigator.standalone === true);
 
   useEffect(() => {
-    document.title = "Instalar G Imports no celular";
+    document.title = "Instalar Royal Vita no celular";
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferred(e as BeforeInstallPromptEvent);
@@ -57,7 +57,7 @@ export default function Install() {
           <Smartphone className="h-8 w-8" />
         </div>
         <h1 className="text-3xl font-bold tracking-tight">
-          Instale o G Imports na tela inicial
+          Instale a Royal Vita na tela inicial
         </h1>
         <p className="mt-2 text-muted-foreground">
           Compre mais rápido, com carregamento instantâneo e funcionamento offline.

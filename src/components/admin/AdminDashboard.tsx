@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { Package, ShoppingBag, DollarSign, Users, TrendingUp, Clock, Receipt, Boxes, Sparkles } from "lucide-react";
@@ -161,6 +161,12 @@ export function AdminDashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Banner de boas-vindas com saudação por horário */}
+      <WelcomeBanner
+        revenue={stats.totalRevenue}
+        ordersToday={stats.recentOrders.filter((o) => isToday(o.created_at)).length}
+      />
+
       {hasNoSales && (
         <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5 flex items-start gap-3">
           <div className="h-9 w-9 rounded-xl bg-primary/15 text-primary inline-flex items-center justify-center shrink-0">
@@ -242,6 +248,47 @@ export function AdminDashboard() {
               ))}
             </ul>
           )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function isToday(iso: string): boolean {
+  const d = new Date(iso);
+  const n = new Date();
+  return d.getDate() === n.getDate() && d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear();
+}
+
+function WelcomeBanner({ revenue, ordersToday }: { revenue: number; ordersToday: number }) {
+  const greeting = useMemo(() => {
+    const h = new Date().getHours();
+    if (h < 5) return "Boa madrugada";
+    if (h < 12) return "Bom dia";
+    if (h < 18) return "Boa tarde";
+    return "Boa noite";
+  }, []);
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary via-primary-glow to-brand-cyan p-5 md:p-6 text-primary-foreground shadow-elegant">
+      <div aria-hidden className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
+      <div aria-hidden className="absolute -right-4 -bottom-12 h-32 w-32 rounded-full bg-white/10 blur-3xl" />
+      <div className="relative flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] opacity-80">Painel Royal Vita</p>
+          <h2 className="font-brand text-2xl md:text-3xl font-bold mt-1 tracking-tight">
+            {greeting}, admin
+          </h2>
+          <p className="text-sm opacity-85 mt-1.5 max-w-md">
+            {ordersToday > 0
+              ? `${ordersToday} ${ordersToday === 1 ? "pedido novo" : "pedidos novos"} hoje. Continue assim.`
+              : "Sem pedidos novos ainda hoje. Hora de revisar promoções?"}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-[11px] font-semibold uppercase tracking-wider opacity-80">Receita acumulada</p>
+          <p className="font-display text-2xl md:text-3xl font-extrabold tabular-nums mt-1">
+            {revenue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+          </p>
         </div>
       </div>
     </div>
