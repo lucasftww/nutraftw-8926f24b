@@ -166,13 +166,13 @@ export function Header() {
                     Marca apenas visual (não-clicável) — evita duplicar o
                     destino "/" que já é coberto pelo item "Catálogo" abaixo.
                   */}
-                     <div className="flex items-center min-w-0" aria-hidden="true">
-                      <img 
-                        src={logoRoyalVittaText} 
-                        alt="Royal Vitta" 
-                        className="h-8 sm:h-10 md:h-12 lg:h-14 w-auto object-contain py-2 transition-all duration-300 animate-in fade-in slide-in-from-left-4 duration-500" 
-                      />
-                     </div>
+                      <Link to="/" className="flex items-center min-w-0" onClick={() => setMobileMenuOpen(false)}>
+                        <img 
+                          src={logoRoyalVittaText} 
+                          alt="Royal Vitta" 
+                          className="h-12 sm:h-14 md:h-16 lg:h-18 w-auto object-contain transition-all duration-300 animate-in fade-in slide-in-from-left-4 duration-700" 
+                        />
+                      </Link>
                   <button
                     onClick={() => setMobileMenuOpen(false)}
                     aria-label="Fechar menu"
