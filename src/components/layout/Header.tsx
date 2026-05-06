@@ -72,7 +72,7 @@ export function Header() {
                   loading="eager"
                   decoding="async"
                   fetchPriority="high"
-                  className="h-10 sm:h-11 md:h-12 lg:h-14 w-auto object-contain shrink-0 brightness-[1.02] contrast-[1.05]"
+                  className="h-8 sm:h-9 md:h-10 lg:h-11 w-auto object-contain shrink-0"
                 />
               </Link>
             </div>
@@ -184,7 +184,7 @@ export function Header() {
                       loading="eager"
                       fetchPriority="high"
                       decoding="async"
-                      className="h-16 w-auto object-contain shrink-0"
+                      className="h-10 w-auto object-contain shrink-0"
                     />
                   </div>
                   <button
