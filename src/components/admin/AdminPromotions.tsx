@@ -132,6 +132,14 @@ export function AdminPromotions() {
   }
 
   async function addToPromo(p: Product) {
+    // Sem preço promocional, marcar `is_on_offer=true` mostra o produto na faixa
+    // de promoções com o mesmo preço cheio — confunde o cliente. Avisamos.
+    if (!p.sale_price || p.sale_price <= 0 || p.sale_price >= p.price) {
+      toast.warning("Defina um Preço promocional no produto antes de colocar em destaque.", {
+        description: `"${p.name}" não tem desconto cadastrado.`,
+      });
+      return;
+    }
     const newOrder = (promos.length + 1) * 10;
     const { error } = await supabase
       .from("products")
