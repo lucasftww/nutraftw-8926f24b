@@ -46,7 +46,7 @@ export function Header() {
     <>
       <header className="sticky top-0 left-0 right-0 z-40 w-full glass border-b border-border/50 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-background/70">
         <div className="w-full pl-2 pr-3 sm:pl-3 sm:pr-6 lg:pl-4 lg:pr-10">
-          <div className="flex items-center justify-between h-12 md:h-14 gap-4">
+          <div className="flex items-center justify-between h-16 md:h-20 gap-4">
             {/* Esquerda: menu mobile + logo */}
             <div className="flex items-center gap-2 md:gap-3 min-w-0">
               <button
@@ -64,21 +64,16 @@ export function Header() {
                 </svg>
               </button>
               <Link to="/" className="flex items-center group cursor-pointer min-w-0" aria-label="Royal Vitta">
-                {/* Mobile: só o símbolo. Desktop: lockup horizontal completo. */}
-                <img
-                  src={logoMark}
-                  alt="Royal Vitta"
-                  width={28}
-                  height={28}
-                  loading="eager"
-                  decoding="async"
-                  fetchPriority="high"
-                  className="h-7 w-7 sm:hidden object-contain shrink-0 block my-auto"
-                />
+                {/* Lockup horizontal em todas as larguras — pré-carregado para evitar flash. */}
                 <img
                   src={logoRoyalVita}
                   alt="Royal Vitta"
-                  className="hidden sm:block h-9 md:h-10 w-auto object-contain shrink-0"
+                  width={240}
+                  height={64}
+                  loading="eager"
+                  decoding="async"
+                  fetchPriority="high"
+                  className="h-12 sm:h-14 md:h-16 w-auto object-contain shrink-0"
                 />
               </Link>
             </div>
