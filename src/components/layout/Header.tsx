@@ -64,7 +64,7 @@ export function Header() {
                 </svg>
               </button>
                  <Link to="/" className="flex items-center group cursor-pointer min-w-0 -ml-1 md:-ml-2" aria-label="Home">
-                   <img src={logoRV} alt="RV" className="h-11 md:h-16 w-auto object-contain" />
+                    <img src={logoRV} alt="RV" className="h-10 sm:h-12 md:h-14 lg:h-16 w-auto object-contain transition-all duration-300" />
                  </Link>
             </div>
 
@@ -167,7 +167,7 @@ export function Header() {
                     destino "/" que já é coberto pelo item "Catálogo" abaixo.
                   */}
                      <div className="flex items-center min-w-0" aria-hidden="true">
-                      <img src={logoRoyalVittaText} alt="Royal Vitta" className="h-10 sm:h-12 md:h-14 w-auto object-contain py-1" />
+                      <img src={logoRoyalVittaText} alt="Royal Vitta" className="h-8 sm:h-10 md:h-12 lg:h-14 w-auto object-contain py-2 transition-all duration-300" />
                      </div>
                   <button
                     onClick={() => setMobileMenuOpen(false)}
