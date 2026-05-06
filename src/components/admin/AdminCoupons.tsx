@@ -200,7 +200,7 @@ export function AdminCoupons() {
               <div className="space-y-2"><Label>Expira em</Label>
                 <Input type="datetime-local" value={toLocalInput(editing.expires_at)} onChange={(e) => setEditing({ ...editing, expires_at: e.target.value || null })} />
               </div>
-              <label className="flex items-center gap-2 text-sm pt-7"><input type="checkbox" checked={editing.active !== false} onChange={(e) => setEditing({ ...editing, active: e.target.checked })} /> Ativo</label>
+              <label className="flex items-center gap-2 text-sm sm:pt-7"><input type="checkbox" checked={editing.active !== false} onChange={(e) => setEditing({ ...editing, active: e.target.checked })} /> Ativo</label>
             </div>
             <div className="flex justify-end gap-2 pt-4 border-t border-border">
               <Button type="button" variant="outline" onClick={() => setEditing(null)}>Cancelar</Button>
