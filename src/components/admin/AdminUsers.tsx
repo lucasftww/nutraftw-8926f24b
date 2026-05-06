@@ -161,9 +161,33 @@ export function AdminUsers() {
 
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
-  function exportCsv() {
+  const [exporting, setExporting] = useState(false);
+  async function exportCsv() {
+    // Bug fix: antes exportava apenas a página atual (50 linhas). Agora
+    // pagina via RPC respeitando a busca atual, com teto de segurança.
+    setExporting(true);
+    const MAX = 10000;
+    const BATCH = 500;
+    const all: any[] = [];
+    try {
+      for (let offset = 0; offset < MAX; offset += BATCH) {
+        const { data, error: err } = await supabase.rpc("admin_users_overview", {
+          p_search: debouncedQuery || null,
+          p_limit: BATCH,
+          p_offset: offset,
+        });
+        if (err) throw err;
+        const rows = (data as any[]) || [];
+        all.push(...rows);
+        if (rows.length < BATCH) break;
+      }
+    } catch (err: any) {
+      toast.error(`Falha ao exportar: ${friendlyErrorMessage(err)}`);
+      setExporting(false);
+      return;
+    }
     downloadCsv(
-      `usuarios-${new Date().toISOString().slice(0, 10)}`,
+      `usuarios-${debouncedQuery ? "filtro-" : ""}${new Date().toISOString().slice(0, 10)}`,
       [
         { key: "full_name", label: "nome" },
         { key: "email", label: "email" },
@@ -176,9 +200,14 @@ export function AdminUsers() {
         { key: "ltv", label: "ltv" },
         { key: "last_order_at", label: "ultimo_pedido" },
       ],
-      filtered as any,
+      all as any,
     );
-    toast.success(`${filtered.length} usuários exportados`);
+    setExporting(false);
+    if (all.length >= MAX) {
+      toast.warning(`Exportados ${all.length} usuários (limite atingido — refine a busca para o restante)`);
+    } else {
+      toast.success(`${all.length} usuários exportados`);
+    }
   }
 
   return (
@@ -202,8 +231,8 @@ export function AdminUsers() {
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
-        <Button variant="outline" onClick={exportCsv} disabled={loading || filtered.length === 0} className="shrink-0">
-          <Download className="h-4 w-4" /> <span className="hidden sm:inline">CSV</span>
+        <Button variant="outline" onClick={exportCsv} disabled={loading || exporting || totalCount === 0} className="shrink-0">
+          <Download className="h-4 w-4" /> <span className="hidden sm:inline">{exporting ? "Exportando…" : "CSV"}</span>
         </Button>
       </div>
 
