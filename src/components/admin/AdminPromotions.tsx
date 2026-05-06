@@ -406,13 +406,19 @@ export function AdminPromotions() {
                   Sem histórico de promoções para este produto.
                 </p>
               ) : (
-                historyRows.map((row) => (
+                historyRows.map((row) => {
+                  const pct = Number.isFinite(Number(row.discount_percent)) && Number(row.discount_percent) > 0
+                    ? Math.round(Number(row.discount_percent))
+                    : (row.original_price > 0
+                        ? Math.round(((row.original_price - row.sale_price) / row.original_price) * 100)
+                        : 0);
+                  return (
                   <div
                     key={row.id}
                     className="flex items-center gap-3 p-3 rounded-xl border border-border bg-background"
                   >
                     <div className="w-12 h-12 rounded-lg bg-secondary/15 text-secondary font-bold text-sm flex items-center justify-center shrink-0">
-                      -{Math.round(row.discount_percent)}%
+                      -{pct}%
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold">
@@ -425,7 +431,8 @@ export function AdminPromotions() {
                       </p>
                     </div>
                   </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
