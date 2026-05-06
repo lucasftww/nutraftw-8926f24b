@@ -468,11 +468,16 @@ export function AdminProducts() {
 
   async function exportCsv() {
     toast.info("Gerando CSV…");
-    const { data, error } = await supabase
+    let q = supabase
       .from("products")
       .select("id, name, slug, price, sale_price, stock, is_active, is_featured, is_new_release, is_on_offer, active_principle, composition, description, meta_title, meta_description, category:categories(name)")
       .order("created_at", { ascending: false })
       .limit(5000);
+    if (debouncedQuery) {
+      const safe = debouncedQuery.replace(/[%_,()*:"'\\]/g, " ").trim();
+      q = q.or(`name.ilike.%${safe}%,active_principle.ilike.%${safe}%`);
+    }
+    const { data, error } = await q;
     if (error) { toast.error(error.message); return; }
     const rows = data || [];
     const esc = (v: any) => {
