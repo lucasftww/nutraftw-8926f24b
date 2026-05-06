@@ -31,6 +31,7 @@ import { EmptyState } from "@/components/admin/EmptyState";
 import { queryKeys } from "@/lib/queryKeys";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 import { logAdminAction, shallowDiff } from "@/lib/auditLog";
+import { auditUpdateIntegrity } from "@/lib/integrityAudit";
 import { useNewOrdersNotifier } from "@/hooks/useNewOrdersNotifier";
 import { CommandPalette } from "@/components/admin/CommandPalette";
 import { SortableList, useSortableRow, DragHandle } from "@/components/admin/SortableList";
@@ -524,6 +525,12 @@ function AdminProducts() {
       : await supabase.from("products").insert(payload).select().maybeSingle();
     if (error) {
       logSupabaseError("Guardar produto", error, { id: f.id, name: payload.name });
+      if (f.id) {
+        await auditUpdateIntegrity({
+          table: "products", id: f.id, payload, error,
+          summary: `Produto "${payload.name}"`,
+        });
+      }
       toast.error(error.message);
     } else {
       toast.success("Produto guardado");
@@ -535,6 +542,16 @@ function AdminProducts() {
         summary: `Produto "${payload.name}"`,
         diff: f.id ? shallowDiff(before, saved) : { after: saved },
       });
+      // Auditoria de integridade: relê e detecta divergências silenciosas.
+      if (f.id && saved?.id) {
+        const r = await auditUpdateIntegrity({
+          table: "products", id: saved.id, payload,
+          summary: `Produto "${payload.name}"`,
+        });
+        if (!r.ok) {
+          toast.warning(`Divergência detectada após salvar (${r.divergedKeys.join(", ")}). Veja o log.`);
+        }
+      }
       setEditing(null);
       qc.invalidateQueries({ queryKey: queryKeys.products.all });
       qc.invalidateQueries({ queryKey: queryKeys.products.detailRoot });
