@@ -47,7 +47,7 @@ export function Header() {
         <div className="w-full pl-2 pr-3 sm:pl-3 sm:pr-6 lg:pl-4 lg:pr-10">
           <div className="flex items-center justify-between h-16 md:h-20 gap-4">
             {/* Esquerda: menu mobile + logo */}
-            <div className="flex items-center gap-2 md:gap-3 min-w-0">
+             <div className="flex items-center gap-1 md:gap-2 min-w-0">
               <button
                 aria-label="Menu"
                 aria-expanded={mobileMenuOpen}
@@ -62,7 +62,7 @@ export function Header() {
                   <path d="M4 17h16" />
                 </svg>
               </button>
-                 <Link to="/" className="flex items-center group cursor-pointer min-w-0" aria-label="Home">
+                 <Link to="/" className="flex items-center group cursor-pointer min-w-0 -ml-1 md:-ml-2" aria-label="Home">
                    <img src={logoRV} alt="RV" className="h-11 md:h-16 w-auto object-contain" />
                  </Link>
             </div>
