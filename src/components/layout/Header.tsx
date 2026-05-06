@@ -63,9 +63,11 @@ export function Header() {
                   <path d="M4 17h16" />
                 </svg>
               </button>
-                 <Link to="/" className="flex items-center group cursor-pointer min-w-0 -ml-1 md:-ml-2" aria-label="Home">
-                     <img src={logoRV} alt="RV" className="h-6 sm:h-7 md:h-8 lg:h-10 w-auto object-contain transition-all duration-300" />
-                 </Link>
+                  <Link to="/" className="flex items-center group cursor-pointer min-w-0 -ml-1 md:-ml-2" aria-label="Home">
+                    <div className="relative p-1 rounded-full border border-primary/20 bg-background/50 group-hover:border-primary/40 transition-all duration-300">
+                      <img src={logoRV} alt="RV" className="h-6 sm:h-7 md:h-8 lg:h-10 w-auto object-contain transition-all duration-300 group-hover:scale-105" />
+                    </div>
+                  </Link>
             </div>
 
             {/* Direita: conta + carrinho */}
