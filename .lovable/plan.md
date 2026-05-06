@@ -1,63 +1,86 @@
+## Auditoria visual do /admin
 
-## Escopo da auditoria
+Analisei `Admin.tsx`, `AdminDashboard`, `WeeklyReport`, `AdminAuditLog`, `AdminFunnel`, `AdminWishlist`, `AdminPromotions`, `CommandPalette`, `AdminShipping/Coupons/Affiliates` e os tokens em `index.css`.
 
-Vou cobrir 4 frentes em uma única passada:
+O painel já tem boa base (sidebar agrupada, dark "Luminous Editorial", tipografia Sora+Inter, breadcrumb, ⌘K). Os problemas são pontuais e nascem de **inconsistência de paleta** (mistura tons claros `bg-emerald-50`/`text-blue-700` num tema dark), **emojis ✓/⚠** soltos, e **glow/sombras desigualmente aplicados**.
 
-### 1. Rebranding final → Royal Vita
-Achei resquícios de "G Imports" ainda no código:
-- `src/pages/Install.tsx` (título da página + H1) — trocar para Royal Vita.
-- `src/assets/logo-gimports.svg` — deletar (não é mais referenciado).
-- Varredura final por `gimports/g imports` para garantir zero ocorrência.
+### Problemas encontrados
 
-### 2. Logo + tipografia "Royal Vita"
-A logo SVG atual (monograma RV navy + swoosh ciano) está bonita e legível em 32px no header. Em vez de redesenhar, vou **refinar**:
-- Ajustar pesos/curvas do "R" e "V" (atualmente o "R" tem stroke-linejoin que deixa o pé reto cortado).
-- Adicionar uma **versão horizontal** (monograma + nome "ROYAL VITA" em letras espacadas) para usar no admin e no rodapé — dá mais autoridade que só o ícone.
-- Trocar a fonte do nome no header de **Plus Jakarta Sans semibold** para **Cormorant Garamond / Fraunces** (display serif elegante) ou manter Jakarta com `tracking-[0.18em]` em uppercase. Vou usar **Fraunces** (serif moderna, free no Google Fonts) com pequeno tracking — combina com "Royal" sem virar joalheria datada.
+1. **Cores claras quebrando o tema dark** — vários componentes ainda usam paleta clara (visível porque `.dark` envolve todo `/admin`):
+   - `AdminAuditLog.tsx` linhas 44–50: `bg-blue-50 text-blue-700`, `bg-amber-50 text-amber-700`, `bg-emerald-50 text-emerald-700` → ficam manchas brancas no dark.
+   - `AdminFunnel.tsx` linha 447: `iconBg: bg-emerald-100`, `chipBg: bg-emerald-50` → idem.
+   - `WeeklyReport.tsx` linhas 488, 760, 827: deltas e badge "✓ Tudo bate" com `bg-emerald-50`/`bg-amber-50`.
+   - `AdminDashboard.tsx` linhas 310–312: `text-emerald-600`/`text-amber-600` (tons de tema claro).
 
-### 3. Polish do admin (foco no Funil)
-Funil atual é funcional mas monocromático (tudo em primary/40 a primary/100). Redesenho:
-- **KPIs no topo**: cada card ganha cor própria (visitantes=primary, pedidos=brand-cyan, receita=success, conversão=secondary com gradient). Ícone grande, número em font-display.
-- **Etapas do funil**: troca as barras retangulares por **funil real** (cada etapa mais estreita que a anterior, gradiente do ciano para o verde), com badge de % conversão flutuante.
-- **Drop-off**: highlight em card âmbar separado quando a perda é > 30%, com sugestão acionável ("Veja produtos com baixa conversão abaixo").
-- **Tabela "onde mais perdemos vendas"**: linhas zebradas + mini-barra inline mostrando ratio view→cart→paid.
+2. **Emojis textuais como status** — `✓`, `⚠`, `🛡️`, `⚠️` em `AdminAuditLog` e `WeeklyReport` quebram a estética. Existem ícones Lucide equivalentes (`CheckCircle2`, `AlertTriangle`, `ShieldAlert`).
 
-Polish geral do admin:
-- Banner de boas-vindas no Dashboard com saudação por horário.
-- Cards do dashboard com ícones coloridos consistentes (cada métrica = uma cor da paleta).
-- Espaçamento mais generoso entre seções e títulos com underline ciano sutil.
-- Garantir que todas as referências internas digam "Royal Vita" (já estavam OK, mas confirmo).
+3. **Welcome banner do Dashboard usa gradiente CTA-like** muito vibrante (primary→primary-glow→brand-cyan) mais "marketing" que "painel". Vale tornar mais sóbrio (gradiente discreto + textura sutil), preservando o bloco de receita.
 
-### 4. Auditoria de bugs/falhas
+4. **Inconsistência de cantos/sombras**: cards usam misturas de `rounded-2xl`, `rounded-xl`, `shadow-sm`, `shadow-soft`, `shadow-pop`. Padronizar como `rounded-2xl` + `shadow-soft` em containers, `rounded-xl` em chips/inputs.
 
-Encontrei estes pontos para corrigir:
+5. **Botões "pill" custom espalhados** (toolbar do Reports, filtros) — h-9 px-3 reescritos várias vezes. Há margem para uma utility `.admin-chip` no `index.css`.
 
-| # | Arquivo | Problema |
-|---|---------|----------|
-| 1 | `src/pages/Install.tsx` | "G Imports" no título e H1 |
-| 2 | `src/components/admin/AdminPromotions.tsx` | `Promise.all` no `saveOrder` faz N updates paralelos — ineficiente e sem rollback. Trocar por upsert em lote. |
-| 3 | `src/hooks/useAuth.tsx` | Quando `roleLoading` está true e `loading=false`, o RequireAuth de rotas comuns não trava — OK, mas falta tratamento para sessão expirada (sem refresh automático mostra "carregando…" infinito). Adicionar timeout de 5s. |
-| 4 | `src/components/admin/AdminFunnel.tsx` | `lowVtc` e `lowCtp` não tratam div/0 explicitamente em produtos sem views. Já está safe via `ratio()` mas a condição `views >= 10` evita falsos positivos — manter. |
-| 5 | `src/lib/cart-store.ts` (suspeita) | Verificar se carrinho persiste após logout sem leakar entre usuários. |
-| 6 | Logo SVG | Path do "R" tem stroke aberto que pode renderizar inconsistente em alguns browsers. Refazer com path fechado. |
+6. **Hover/focus no menu lateral**: o indicador esquerdo `box-shadow: 0 0 12px primary/0.6` em cada item é forte para "lista comprida"; reduzir para 6–8px e remover do hover (manter só no item ativo).
 
-Vou ler `cart-store.ts` durante a implementação para confirmar o item 5 antes de mexer.
+7. **Avatar do usuário (sidebar inferior)** mostra duas letras do email — podemos exibir um dot verde de "online" e melhorar contraste do email (atualmente `text-muted-foreground/0.55` mistura com o fundo).
 
-### O que NÃO vou fazer agora
-- **Não vou** mudar a paleta global (azul royal + laranja CTA + verde PIX já testada para conversão).
-- **Não vou** redesenhar páginas da loja (catálogo, produto, checkout) — você só pediu admin + logo + bugs.
-- **Não vou** adicionar features novas além das listadas (sem dashboard novo, sem export, etc.).
+8. **Top bar** — botão de busca tem hover com glow primário; bom. Falta um divisor/sombra sutil ao rolar (já é `sticky` mas funde com o conteúdo). Adicionar `shadow-[0_1px_0_hsl(var(--border))]` quando rolar.
 
-### Entregáveis
-- Logo SVG refinada + variante horizontal para admin/footer.
-- Funil redesenhado com cores e funil visual real.
-- Dashboard admin com banner e cards coloridos.
-- Todas as ocorrências "G Imports" → "Royal Vita".
-- Bugs 1, 2, 3, 6 corrigidos. Item 5 verificado (e corrigido se necessário).
+9. **AdminDashboard "WelcomeBanner"** — bolhas brancas (`bg-white/10`) somem no dark (ok), mas o gradiente é o mesmo do botão CTA. Trocar para gradient `from-primary/15 via-card to-card` com borda fina + glow do primary atrás do título.
 
-## Detalhes técnicos
-- Logo: novo `src/assets/logo-royalvita.svg` (refinado) + novo `src/assets/logo-royalvita-horizontal.svg`.
-- Fonte: adicionar Fraunces ao import do Google Fonts em `index.css`, criar token `font-brand` no Tailwind config, aplicar no `<span>Royal Vita</span>` do Header e ProductFooter.
-- Funil: reescrever `AdminFunnel.tsx` mantendo as RPCs (`funnel_summary`, `funnel_by_product`) — só muda renderização.
-- Promoções: trocar `Promise.all(map(update))` por uma única chamada com `.upsert([...])`.
-- Auth: `setTimeout` em `roleLoading` que força `setRoleLoading(false)` após 5s para evitar tela travada.
+10. **AdminFunnel passos**: ícone com gradiente `text-white` em fundo escuro é ok, mas as cards do passo usam `bg-emerald-50` no chip → quebra. Padronizar pra `/15 + ring`.
+
+11. **Tabs/navegação mobile**: drawer ok; falta micro-animação de entrada (slide-in-right já existe no tailwind config — usar).
+
+12. **Chips de status de pedidos** (`Admin.tsx` 1262–1266) já estão bem (escala emerald/amber/cyan). Replicar o padrão em **toda** a UI (audit, funil, dashboard, wishlist).
+
+### O que vou implementar
+
+1. **Padronizar paleta de status no dark** (criar pequeno helper `STATUS_TONE` em `src/components/admin/statusTone.ts`):
+   ```ts
+   ok:    "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/25"
+   warn:  "bg-amber-500/15  text-amber-400  ring-1 ring-amber-500/25"
+   info:  "bg-primary/15    text-primary    ring-1 ring-primary/25"
+   error: "bg-destructive/15 text-destructive ring-1 ring-destructive/30"
+   muted: "bg-muted text-muted-foreground ring-1 ring-border"
+   ```
+   Aplicar em `AdminAuditLog`, `AdminFunnel`, `AdminDashboard`, `WeeklyReport`.
+
+2. **Trocar emojis por ícones Lucide** em audit log e validação financeira (`CheckCircle2`/`AlertTriangle`/`ShieldAlert`).
+
+3. **Refinar WelcomeBanner**: gradient sóbrio (`from-card via-card to-primary/5`), borda primary/15, halo do primary atrás do título com `blur-2xl`, manter chip "Painel Royal Vita" e tipografia atual.
+
+4. **Acertar `AdminDashboard` Last24h** — chips emerald/amber com tons /400 (não /600).
+
+5. **Refinar sidebar**: reduzir glow do indicador ativo (6px), aumentar contraste do email do user (`text-foreground/70`), adicionar dot online (success).
+
+6. **Top bar com sombra ao rolar** via `useState` + scroll listener (ou border-b já existe — apenas garantir contraste suficiente).
+
+7. **Adicionar utilities em `index.css`** (sem mudar tokens):
+   - `.admin-chip` — pill h-9 px-3 rounded-full border bg-background hover:bg-accent text-xs font-semibold.
+   - `.admin-card` — `bg-card rounded-2xl border border-border shadow-soft`.
+   - `.admin-section-title` — `text-sm font-semibold tracking-tight flex items-center gap-2`.
+   Não vou refatorar todo lugar de uma vez — só onde vou tocar.
+
+8. **AdminFunnel**: trocar `iconBg: bg-emerald-100` etc. por `bg-primary/15 ring-primary/25`. Manter gradiente do número de passo.
+
+9. **AdminWishlist**: chips de estoque já usam `/500/15` — deixar.
+
+### Fora de escopo (peço confirmação se quiser)
+
+- Refazer paleta de cores do tema dark inteiro (alterar tokens `--primary`, `--background`).
+- Reorganizar a IA das abas (já agrupadas em 5 grupos).
+- Trocar a fonte (Sora/Inter já carregadas).
+- Adicionar dark/light toggle no admin (hoje é forçado dark).
+
+### Arquivos que serão editados
+
+- `src/components/admin/statusTone.ts` (novo, ~25 linhas)
+- `src/components/admin/AdminAuditLog.tsx`
+- `src/components/admin/AdminDashboard.tsx`
+- `src/components/admin/AdminFunnel.tsx`
+- `src/components/admin/WeeklyReport.tsx`
+- `src/pages/Admin.tsx` (sidebar refinements)
+- `src/index.css` (3 utilities admin-*)
+
+Sem migrações, sem alteração de comportamento, apenas visual. Aprova?
