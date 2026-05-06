@@ -275,7 +275,7 @@ function WelcomeBanner({ revenue, ordersToday }: { revenue: number; ordersToday:
       <div className="relative flex items-start justify-between gap-4 flex-wrap">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] opacity-80">Painel Royal Vita</p>
-          <h2 className="font-brand text-2xl md:text-3xl font-bold mt-1 tracking-tight">
+          <h2 className="font-brand text-2xl md:text-3xl font-bold mt-1 tracking-tight uppercase">
             {greeting}, admin
           </h2>
           <p className="text-sm opacity-85 mt-1.5 max-w-md">

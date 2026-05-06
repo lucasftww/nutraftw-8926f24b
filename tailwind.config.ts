@@ -13,7 +13,7 @@ export default {
       fontFamily: {
         sans: ["'Plus Jakarta Sans'", "system-ui", "sans-serif"],
         display: ["'Plus Jakarta Sans'", "system-ui", "sans-serif"],
-        brand: ["'Fraunces'", "Georgia", "serif"],
+        brand: ["'Sora'", "'Plus Jakarta Sans'", "system-ui", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",

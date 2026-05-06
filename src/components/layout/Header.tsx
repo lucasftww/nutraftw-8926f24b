@@ -66,11 +66,11 @@ export function Header() {
                 <img
                   src={logoRoyalVita}
                   alt="Royal Vita"
-                  width={32}
-                  height={32}
-                  className="h-7 w-7 md:h-8 md:w-8 object-contain shrink-0"
+                  width={36}
+                  height={36}
+                  className="h-8 w-8 md:h-9 md:w-9 object-contain shrink-0"
                 />
-                <span className="font-brand font-semibold text-[16px] md:text-[17px] tracking-[0.04em] text-primary hidden sm:block truncate leading-none">
+                <span className="font-brand font-bold text-[14px] md:text-[15px] tracking-[0.18em] text-primary hidden sm:block truncate leading-none uppercase">
                   Royal Vita
                 </span>
               </Link>
@@ -175,8 +175,8 @@ export function Header() {
                     destino "/" que já é coberto pelo item "Catálogo" abaixo.
                   */}
                   <div className="flex items-center gap-2 min-w-0" aria-hidden="true">
-                    <img src={logoRoyalVita} alt="" width={32} height={32} className="h-7 w-7 md:h-8 md:w-8 object-contain shrink-0" />
-                    <span className="font-brand font-semibold text-[16px] md:text-[17px] tracking-[0.04em] text-primary truncate leading-none">
+                    <img src={logoRoyalVita} alt="" width={36} height={36} className="h-8 w-8 md:h-9 md:w-9 object-contain shrink-0" />
+                    <span className="font-brand font-bold text-[14px] md:text-[15px] tracking-[0.18em] text-primary truncate leading-none uppercase">
                       Royal Vita
                     </span>
                   </div>
