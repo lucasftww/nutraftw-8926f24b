@@ -167,7 +167,7 @@ export function Header() {
                     destino "/" que já é coberto pelo item "Catálogo" abaixo.
                   */}
                      <div className="flex items-center min-w-0" aria-hidden="true">
-                      <img src={logoRoyalVittaText} alt="Royal Vitta" className="h-8 w-auto object-contain" />
+                       <img src={logoRoyalVittaText} alt="Royal Vitta" className="h-10 md:h-12 w-auto object-contain" />
                      </div>
                   <button
                     onClick={() => setMobileMenuOpen(false)}
