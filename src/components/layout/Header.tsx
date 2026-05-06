@@ -70,7 +70,7 @@ export function Header() {
                   height={32}
                   className="h-7 w-7 md:h-8 md:w-8 object-contain shrink-0"
                 />
-                <span className="font-display font-semibold text-[15px] md:text-base tracking-tight text-primary hidden sm:block truncate">
+                <span className="font-brand font-semibold text-[16px] md:text-[17px] tracking-[0.04em] text-primary hidden sm:block truncate leading-none">
                   Royal Vita
                 </span>
               </Link>
@@ -176,7 +176,7 @@ export function Header() {
                   */}
                   <div className="flex items-center gap-2 min-w-0" aria-hidden="true">
                     <img src={logoRoyalVita} alt="" width={32} height={32} className="h-7 w-7 md:h-8 md:w-8 object-contain shrink-0" />
-                    <span className="font-display font-semibold text-[15px] md:text-base tracking-tight text-primary truncate">
+                    <span className="font-brand font-semibold text-[16px] md:text-[17px] tracking-[0.04em] text-primary truncate leading-none">
                       Royal Vita
                     </span>
                   </div>
