@@ -1137,6 +1137,14 @@ function AdminCategories() {
 }
 
 const STATUSES = ["pending", "paid", "processing", "shipped", "delivered", "cancelled", "refunded"];
+// Rótulos amigáveis para `payment_method` (enum no DB: pix | credit_card | boleto)
+function paymentLabel(pm: string | null | undefined): string {
+  if (!pm) return "—";
+  if (pm === "pix") return "PIX";
+  if (pm === "credit_card") return "Cartão";
+  if (pm === "boleto") return "Boleto";
+  return pm;
+}
 // Cores compatíveis com o tema dark do admin (sem fundos brancos pastéis).
 const STATUS_COLORS: Record<string, string> = {
   pending:    "bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/25",
