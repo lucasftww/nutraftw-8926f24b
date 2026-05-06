@@ -68,7 +68,12 @@ export function Header() {
                 <img
                   src={logoMark}
                   alt="Royal Vita"
-                  className="h-7 w-auto sm:hidden object-contain shrink-0 block"
+                  width={28}
+                  height={28}
+                  loading="eager"
+                  decoding="async"
+                  fetchPriority="high"
+                  className="h-7 w-7 sm:hidden object-contain shrink-0 block my-auto"
                 />
                 <img
                   src={logoRoyalVita}
@@ -177,7 +182,15 @@ export function Header() {
                     destino "/" que já é coberto pelo item "Catálogo" abaixo.
                   */}
                   <div className="flex items-center min-w-0" aria-hidden="true">
-                    <img src={logoRoyalVita} alt="" className="h-9 w-auto object-contain shrink-0" />
+                    <img
+                      src={logoMark}
+                      alt=""
+                      width={28}
+                      height={28}
+                      loading="eager"
+                      decoding="async"
+                      className="h-7 w-7 object-contain shrink-0"
+                    />
                   </div>
                   <button
                     onClick={() => setMobileMenuOpen(false)}
