@@ -23,6 +23,8 @@ export type AdminAction =
   | "status_change"
   | "affiliate.release_due"
   | "affiliate.mark_paid";
+  | "update_failed"
+  | "divergence_detected";
 
 export type AdminEntity =
   | "products"
