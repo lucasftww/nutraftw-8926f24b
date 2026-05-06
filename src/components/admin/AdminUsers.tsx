@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Shield, ShieldOff, Loader2, Download } from "lucide-react";
+import { Search, Shield, ShieldOff, Loader2, Download, Phone, Mail, MapPin, ShoppingBag } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,6 +20,10 @@ interface UserRow {
   orders_count: number;
   ltv: number;
   last_order_at: string | null;
+  phone: string | null;
+  cpf: string | null;
+  city: string | null;
+  state: string | null;
 }
 
 /**
@@ -47,7 +51,7 @@ export function AdminUsers() {
     const [profilesRes, rolesRes, ordersRes] = await Promise.all([
       supabase
         .from("profiles")
-        .select("user_id, email, full_name, created_at")
+        .select("user_id, email, full_name, created_at, phone, cpf, address_city, address_state")
         .order("created_at", { ascending: false }),
       supabase.from("user_roles").select("user_id, role").eq("role", "admin"),
       supabase
@@ -91,7 +95,14 @@ export function AdminUsers() {
       ((profilesRes.data as any[]) || []).map((p) => {
         const s = stats.get(p.user_id);
         return {
-          ...p,
+          user_id: p.user_id,
+          email: p.email,
+          full_name: p.full_name,
+          created_at: p.created_at,
+          phone: p.phone ?? null,
+          cpf: p.cpf ?? null,
+          city: p.address_city ?? null,
+          state: p.address_state ?? null,
           is_admin: adminIds.has(p.user_id),
           orders_count: s?.count ?? 0,
           ltv: s?.ltv ?? 0,
@@ -163,7 +174,9 @@ export function AdminUsers() {
     if (!q) return true;
     return (
       u.email.toLowerCase().includes(q) ||
-      (u.full_name || "").toLowerCase().includes(q)
+      (u.full_name || "").toLowerCase().includes(q) ||
+      (u.phone || "").toLowerCase().includes(q) ||
+      (u.city || "").toLowerCase().includes(q)
     );
   });
 
@@ -184,6 +197,9 @@ export function AdminUsers() {
       [
         { key: "full_name", label: "nome" },
         { key: "email", label: "email" },
+        { key: "phone", label: "telefone" },
+        { key: "city", label: "cidade" },
+        { key: "state", label: "uf" },
         { key: "created_at", label: "cadastro" },
         { key: "is_admin", label: "admin" },
         { key: "orders_count", label: "pedidos" },
@@ -196,105 +212,207 @@ export function AdminUsers() {
   }
 
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <div className="relative flex-1 min-w-[200px] max-w-md">
+    <div className="space-y-4">
+      {/* Stats compactos */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+        <StatCard label="Usuários" value={items.length.toString()} />
+        <StatCard label="Admins" value={items.filter((u) => u.is_admin).length.toString()} accent="primary" />
+        <StatCard label="Compradores" value={totals.buyers.toString()} accent="success" />
+        <StatCard label="LTV médio" value={formatBRL(totals.avgLtv)} />
+      </div>
+
+      {/* Toolbar */}
+      <div className="flex gap-2 items-stretch">
+        <div className="relative flex-1 min-w-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             className="pl-9"
-            placeholder="Buscar por nome ou e-mail…"
+            placeholder="Buscar por nome, e-mail, telefone ou cidade…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
-        <p className="text-xs sm:text-sm text-muted-foreground basis-full sm:basis-auto leading-relaxed">
-          {items.length} {items.length === 1 ? "usuário" : "usuários"} ·{" "}
-          {items.filter((u) => u.is_admin).length} admin · {totals.buyers} compradores ·{" "}
-          <span className="whitespace-nowrap">LTV médio {formatBRL(totals.avgLtv)}</span>
-        </p>
-        <Button variant="outline" size="sm" onClick={exportCsv} disabled={loading || filtered.length === 0}>
-          <Download className="h-4 w-4" /> CSV
+        <Button variant="outline" onClick={exportCsv} disabled={loading || filtered.length === 0} className="shrink-0">
+          <Download className="h-4 w-4" /> <span className="hidden sm:inline">CSV</span>
         </Button>
       </div>
 
-      <div className="bg-card rounded-2xl border border-border overflow-hidden">
-        <div className="overflow-x-auto">
-        <table className="w-full text-sm min-w-[640px]">
-          <thead className="bg-muted/50 text-xs uppercase tracking-wide">
-            <tr>
-              <th className="text-left px-4 py-3">Nome</th>
-              <th className="text-left px-4 py-3">E-mail</th>
-              <th className="text-left px-4 py-3 hidden md:table-cell">Cadastro</th>
-              <th className="text-right px-4 py-3 hidden md:table-cell">Pedidos</th>
-              <th className="text-right px-4 py-3">LTV</th>
-              <th className="text-left px-4 py-3 hidden lg:table-cell">Último pedido</th>
-              <th className="text-left px-4 py-3">Papel</th>
-              <th className="px-4 py-3"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading && (
-              <tr>
-                <td colSpan={8} className="text-center py-12 text-muted-foreground">
-                  <Loader2 className="h-5 w-5 animate-spin inline mr-2" />
-                  Carregando…
-                </td>
-              </tr>
-            )}
-            {!loading && filtered.map((u) => (
-              <tr key={u.user_id} className="border-t border-border">
-                <td className="px-4 py-3 font-medium">{u.full_name || "—"}</td>
-                <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
-                <td className="px-4 py-3 hidden md:table-cell text-xs text-muted-foreground">
-                  {new Date(u.created_at).toLocaleDateString("pt-BR")}
-                </td>
-                <td className="px-4 py-3 hidden md:table-cell text-right tabular-nums">{u.orders_count}</td>
-                <td className="px-4 py-3 text-right font-semibold tabular-nums">{formatBRL(u.ltv)}</td>
-                <td className="px-4 py-3 hidden lg:table-cell text-xs text-muted-foreground">
-                  {u.last_order_at ? new Date(u.last_order_at).toLocaleDateString("pt-BR") : "—"}
-                </td>
-                <td className="px-4 py-3">
-                  {u.is_admin ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
-                      <Shield className="h-3 w-3" /> Admin
+      {/* Mobile: cards */}
+      <ul className="md:hidden space-y-2">
+        {loading && Array.from({ length: 5 }).map((_, i) => (
+          <li key={i} className="h-28 bg-muted/40 rounded-2xl animate-pulse" />
+        ))}
+        {!loading && filtered.map((u) => (
+          <li key={u.user_id} className="bg-card rounded-2xl border border-border p-3">
+            <div className="flex items-start gap-3">
+              <Avatar name={u.full_name || u.email} admin={u.is_admin} />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-sm truncate">{u.full_name || "—"}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">{u.email}</p>
+                  </div>
+                  {u.is_admin && (
+                    <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-semibold">
+                      <Shield className="h-2.5 w-2.5" /> Admin
                     </span>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">Cliente</span>
                   )}
-                </td>
-                <td className="px-4 py-3 text-right">
+                </div>
+                <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5 text-[11px] text-muted-foreground">
+                  {u.phone && (
+                    <a href={whatsappLink(u.phone)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-success hover:underline">
+                      <Phone className="h-3 w-3" /> {formatPhone(u.phone)}
+                    </a>
+                  )}
+                  {(u.city || u.state) && (
+                    <span className="inline-flex items-center gap-1">
+                      <MapPin className="h-3 w-3" /> {[u.city, u.state].filter(Boolean).join("/")}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-border/60">
+                  <div className="text-[11px] text-muted-foreground inline-flex items-center gap-1">
+                    <ShoppingBag className="h-3 w-3" />
+                    <span className="tabular-nums">{u.orders_count}</span>
+                    <span className="mx-1">·</span>
+                    <span className="font-semibold text-foreground tabular-nums">{formatBRL(u.ltv)}</span>
+                  </div>
                   <Button
                     variant="outline"
                     size="sm"
+                    className="h-7 text-[11px] px-2"
                     disabled={busy === u.user_id || u.user_id === me?.id}
                     onClick={() => toggleAdmin(u)}
                   >
-                    {busy === u.user_id ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : u.is_admin ? (
-                      <>
-                        <ShieldOff className="h-3.5 w-3.5" /> Remover admin
-                      </>
-                    ) : (
-                      <>
-                        <Shield className="h-3.5 w-3.5" /> Tornar admin
-                      </>
-                    )}
+                    {busy === u.user_id ? <Loader2 className="h-3 w-3 animate-spin" /> : u.is_admin ? <><ShieldOff className="h-3 w-3" /> Remover</> : <><Shield className="h-3 w-3" /> Promover</>}
                   </Button>
-                </td>
-              </tr>
-            ))}
-            {!loading && filtered.length === 0 && (
+                </div>
+              </div>
+            </div>
+          </li>
+        ))}
+        {!loading && filtered.length === 0 && (
+          <li className="bg-card rounded-2xl border border-border p-8 text-center text-sm text-muted-foreground">
+            Nenhum usuário encontrado.
+          </li>
+        )}
+      </ul>
+
+      {/* Desktop: tabela */}
+      <div className="hidden md:block bg-card rounded-2xl border border-border overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[820px]">
+            <thead className="bg-muted/40 text-[11px] uppercase tracking-wider text-muted-foreground">
               <tr>
-                <td colSpan={8} className="text-center py-12 text-muted-foreground">
-                  Nenhum usuário encontrado.
-                </td>
+                <th className="text-left px-4 py-3 font-medium">Cliente</th>
+                <th className="text-left px-4 py-3 font-medium">Contato</th>
+                <th className="text-left px-4 py-3 font-medium hidden lg:table-cell">Localização</th>
+                <th className="text-right px-4 py-3 font-medium">Pedidos</th>
+                <th className="text-right px-4 py-3 font-medium">LTV</th>
+                <th className="text-left px-4 py-3 font-medium hidden lg:table-cell">Último</th>
+                <th className="px-4 py-3"></th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {loading && (
+                <tr><td colSpan={7} className="text-center py-12 text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin inline mr-2" />Carregando…</td></tr>
+              )}
+              {!loading && filtered.map((u) => (
+                <tr key={u.user_id} className="border-t border-border hover:bg-muted/20 transition-colors">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Avatar name={u.full_name || u.email} admin={u.is_admin} />
+                      <div className="min-w-0">
+                        <p className="font-medium truncate flex items-center gap-1.5">
+                          {u.full_name || "—"}
+                          {u.is_admin && <Shield className="h-3 w-3 text-primary shrink-0" />}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">
+                          Cadastro {new Date(u.created_at).toLocaleDateString("pt-BR")}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <a href={`mailto:${u.email}`} className="text-xs inline-flex items-center gap-1.5 text-foreground hover:text-primary truncate max-w-[200px]">
+                      <Mail className="h-3 w-3 shrink-0 text-muted-foreground" />
+                      <span className="truncate">{u.email}</span>
+                    </a>
+                    {u.phone ? (
+                      <a href={whatsappLink(u.phone)} target="_blank" rel="noreferrer" className="mt-0.5 text-xs inline-flex items-center gap-1.5 text-success hover:underline">
+                        <Phone className="h-3 w-3" /> {formatPhone(u.phone)}
+                      </a>
+                    ) : (
+                      <p className="mt-0.5 text-xs text-muted-foreground/60">Sem telefone</p>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 hidden lg:table-cell text-xs text-muted-foreground">
+                    {(u.city || u.state) ? (
+                      <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {[u.city, u.state].filter(Boolean).join("/")}</span>
+                    ) : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-right tabular-nums">{u.orders_count}</td>
+                  <td className="px-4 py-3 text-right font-semibold tabular-nums">{formatBRL(u.ltv)}</td>
+                  <td className="px-4 py-3 hidden lg:table-cell text-xs text-muted-foreground">
+                    {u.last_order_at ? new Date(u.last_order_at).toLocaleDateString("pt-BR") : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={busy === u.user_id || u.user_id === me?.id}
+                      onClick={() => toggleAdmin(u)}
+                    >
+                      {busy === u.user_id ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : u.is_admin ? (
+                        <><ShieldOff className="h-3.5 w-3.5" /> Remover admin</>
+                      ) : (
+                        <><Shield className="h-3.5 w-3.5" /> Tornar admin</>
+                      )}
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+              {!loading && filtered.length === 0 && (
+                <tr><td colSpan={7} className="text-center py-12 text-muted-foreground">Nenhum usuário encontrado.</td></tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
   );
+}
+
+function StatCard({ label, value, accent }: { label: string; value: string; accent?: "primary" | "success" }) {
+  const accentCls = accent === "primary" ? "text-primary" : accent === "success" ? "text-success" : "text-foreground";
+  return (
+    <div className="bg-card rounded-2xl border border-border p-3.5">
+      <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
+      <p className={`mt-1 font-display text-lg md:text-xl font-semibold tabular-nums ${accentCls}`}>{value}</p>
+    </div>
+  );
+}
+
+function Avatar({ name, admin }: { name: string; admin: boolean }) {
+  const initials = name.trim().split(/\s+/).slice(0, 2).map((s) => s[0]?.toUpperCase()).join("") || "?";
+  return (
+    <div className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-xs font-semibold ring-1 ${admin ? "bg-primary/15 text-primary ring-primary/25" : "bg-muted text-foreground/80 ring-border"}`}>
+      {initials}
+    </div>
+  );
+}
+
+function onlyDigits(s: string) { return s.replace(/\D/g, ""); }
+function formatPhone(raw: string) {
+  const d = onlyDigits(raw);
+  if (d.length === 11) return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+  if (d.length === 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return raw;
+}
+function whatsappLink(raw: string) {
+  const d = onlyDigits(raw);
+  const withCountry = d.startsWith("55") ? d : `55${d}`;
+  return `https://wa.me/${withCountry}`;
 }
