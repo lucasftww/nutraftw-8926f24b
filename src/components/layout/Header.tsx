@@ -46,7 +46,7 @@ export function Header() {
     <>
       <header className="sticky top-0 left-0 right-0 z-40 w-full glass border-b border-border/50 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-background/70">
         <div className="w-full pl-2 pr-3 sm:pl-3 sm:pr-6 lg:pl-4 lg:pr-10">
-                  <div className="flex items-center justify-between h-16 md:h-20 gap-4">
+                  <div className="flex items-center justify-center h-16 md:h-20 relative gap-4">
             {/* Esquerda: menu mobile + logo */}
              <div className="flex items-center gap-1 md:gap-2 min-w-0">
               <button
@@ -166,7 +166,7 @@ export function Header() {
                     Marca apenas visual (não-clicável) — evita duplicar o
                     destino "/" que já é coberto pelo item "Catálogo" abaixo.
                   */}
-                      <Link to="/" className="flex items-center min-w-0" onClick={() => setMobileMenuOpen(false)}>
+                      <Link to="/" className="flex items-center justify-center min-w-0" onClick={() => setMobileMenuOpen(false)}>
                         <img
                           src={logoRoyalVittaText}
                           alt="Royal Vitta"
@@ -176,7 +176,7 @@ export function Header() {
                   <button
                     onClick={() => setMobileMenuOpen(false)}
                     aria-label="Fechar menu"
-                    className="inline-flex items-center justify-center h-9 w-9 -mr-1 rounded-full text-primary hover:bg-primary/5 transition-colors"
+                    className="absolute right-4 inline-flex items-center justify-center h-9 w-9 rounded-full text-primary hover:bg-primary/5 transition-colors"
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="w-5 h-5">
                       <path d="M6 6l12 12" />
