@@ -80,16 +80,6 @@ export function Header() {
                   alt="Royal Vitta"
                   className="hidden sm:block h-9 md:h-10 w-auto object-contain shrink-0"
                 />
-                <img
-                  src={logoRoyalVita}
-                  alt="Royal Vitta"
-                  width={220}
-                  height={56}
-                  loading="eager"
-                  fetchPriority="high"
-                  decoding="async"
-                  className="hidden sm:block h-12 md:h-14 w-auto object-contain shrink-0"
-                />
               </Link>
             </div>
 
