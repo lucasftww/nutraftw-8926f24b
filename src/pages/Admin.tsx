@@ -340,6 +340,80 @@ function AdminInner() {
   );
 }
 
+// ===================== Linhas reutilizáveis (com suporte a drag) =====================
+
+function ProductMobileRow({ p, sortable, selected, toggleSel, setEditing, duplicate, del }: any) {
+  const sort = sortable ? useSortableRow(p.id) : null;
+  return (
+    <li
+      ref={sort?.setNodeRef}
+      style={sort?.style}
+      className={`bg-card rounded-2xl border p-3 flex gap-2 ${selected.has(p.id) ? "border-primary ring-2 ring-primary/20" : "border-border"}`}
+    >
+      {sortable && <DragHandle handleProps={sort!.handleProps} />}
+      <label className="shrink-0 mt-1 inline-flex items-center justify-center w-5 h-5 rounded border border-input cursor-pointer">
+        <input type="checkbox" checked={selected.has(p.id)} onChange={() => toggleSel(p.id)} className="sr-only" aria-label={`Selecionar ${p.name}`} />
+        {selected.has(p.id) && <Check className="h-3.5 w-3.5 text-primary" />}
+      </label>
+      <ProductThumb src={p.image_url} size="lg" alt={p.name} />
+      <div className="flex-1 min-w-0">
+        <p className="font-semibold text-sm leading-snug line-clamp-2">{p.name}</p>
+        <p className="text-xs text-muted-foreground truncate">{p.category?.name || "Sem categoria"}</p>
+        <div className="flex items-center justify-between mt-1.5">
+          <span className="font-bold text-primary text-sm">{formatBRL(p.price)}</span>
+          <StockBadge stock={p.stock} />
+        </div>
+      </div>
+      <div className="flex flex-col gap-1 shrink-0">
+        <button onClick={() => setEditing(p)} aria-label="Editar" title="Editar" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted"><Pencil className="h-4 w-4" /></button>
+        <button onClick={() => duplicate(p)} aria-label="Duplicar" title="Duplicar" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted"><Copy className="h-4 w-4" /></button>
+        <button onClick={() => del(p.id)} aria-label="Remover" title="Remover" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="h-4 w-4" /></button>
+      </div>
+    </li>
+  );
+}
+
+function ProductTableRow({ p, sortable, selected, toggleSel, setEditing, duplicate, del }: any) {
+  const sort = sortable ? useSortableRow(p.id) : null;
+  return (
+    <tr
+      ref={sort?.setNodeRef as any}
+      style={sort?.style}
+      className={`border-t border-border ${selected.has(p.id) ? "bg-primary/5" : ""} ${sort?.isDragging ? "bg-muted/50" : ""}`}
+    >
+      <td className="px-2 py-3 w-10">
+        {sortable ? (
+          <DragHandle handleProps={sort!.handleProps} />
+        ) : (
+          <span className="inline-block w-8" />
+        )}
+      </td>
+      <td className="px-3 py-3">
+        <input type="checkbox" aria-label={`Selecionar ${p.name}`} checked={selected.has(p.id)} onChange={() => toggleSel(p.id)} />
+      </td>
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-3">
+          <ProductThumb src={p.image_url} size="sm" alt={p.name} />
+          <div>
+            <p className="font-medium">{p.name}</p>
+            {!p.is_active && <span className="text-xs text-muted-foreground">Inativo</span>}
+          </div>
+        </div>
+      </td>
+      <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{p.category?.name || "—"}</td>
+      <td className="px-4 py-3 text-right font-semibold">{formatBRL(p.price)}</td>
+      <td className="px-4 py-3 text-right hidden md:table-cell">
+        <StockBadge stock={p.stock} />
+      </td>
+      <td className="px-4 py-3 text-right whitespace-nowrap">
+        <button onClick={() => setEditing(p)} aria-label="Editar" title="Editar" className="p-1.5 hover:bg-muted rounded mr-1"><Pencil className="h-4 w-4" /></button>
+        <button onClick={() => duplicate(p)} aria-label="Duplicar" title="Duplicar" className="p-1.5 hover:bg-muted rounded mr-1"><Copy className="h-4 w-4" /></button>
+        <button onClick={() => del(p.id)} aria-label="Remover" title="Remover" className="p-1.5 hover:bg-destructive/10 text-destructive rounded"><Trash2 className="h-4 w-4" /></button>
+      </td>
+    </tr>
+  );
+}
+
 function AdminProducts() {
   const [items, setItems] = useState<any[]>([]);
   const [cats, setCats] = useState<any[]>([]);
