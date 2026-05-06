@@ -284,7 +284,6 @@ function AdminInner() {
           {tab === "shipping" && <AdminShipping />}
           {tab === "users" && <AdminUsers />}
           {tab === "affiliates" && <AdminAffiliates />}
-          {tab === "resends" && <AdminResends />}
           {tab === "settings" && <AdminSettings />}
           {tab === "diagnostics" && <AdminDiagnostics />}
           {tab === "audit" && <AdminAuditLog />}
