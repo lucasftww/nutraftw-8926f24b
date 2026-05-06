@@ -15,6 +15,11 @@
   html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
+    /* Bloqueia rolagem horizontal residual em Androids (Redmi/MIUI) que
+       ignoram overflow-x apenas em divs internas — força o viewport a nunca
+       mostrar barra/área extra à direita. */
+    overflow-x: hidden;
+    max-width: 100%;
     /* scroll-behavior: smooth removido — causava efeito "kicking" no mobile
        quando imagens lazy/conteúdo acima carregavam após F5 e o navegador
        animava o reajuste do scroll. Mantemos smooth só em âncoras (:target). */
@@ -23,6 +28,8 @@
     -webkit-tap-highlight-color: transparent;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+    max-width: 100%;
     /* Evita que o navegador "puxe" o scroll quando elementos acima da
        viewport mudam de altura (lazy images, banners, etc.) — principal
        causa do efeito de kicking no mobile durante o carregamento. */
