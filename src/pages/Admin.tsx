@@ -495,7 +495,10 @@ function AdminProducts() {
   async function save(e: React.FormEvent) {
     e.preventDefault();
     const f = editing;
-    const payload = {
+    // Campos editáveis no modal. sale_price/is_on_offer/offer_order são
+    // gerenciados exclusivamente pela aba Promoções (com histórico) — não
+    // enviamos aqui para evitar sobrescrever uma promoção ativa.
+    const basePayload = {
       name: f.name,
       slug: f.slug || slugify(f.name),
       description: f.description || null,
@@ -504,18 +507,17 @@ function AdminProducts() {
       meta_title: f.meta_title?.trim() || null,
       meta_description: f.meta_description?.trim() || null,
       price: Number(f.price) || 0,
-      sale_price:
-        f.sale_price === "" || f.sale_price == null
-          ? null
-          : Number(f.sale_price),
       stock: Number(f.stock) || 0,
       image_url: f.image_url || null,
       category_id: f.category_id || null,
       is_featured: !!f.is_featured,
       is_new_release: !!f.is_new_release,
-      is_on_offer: !!f.is_on_offer,
       is_active: f.is_active !== false,
     };
+    // No insert (produto novo) garantimos que nasce sem promoção ativa.
+    const payload: any = f.id
+      ? basePayload
+      : { ...basePayload, sale_price: null, is_on_offer: false };
     const before = f.id ? items.find((p) => p.id === f.id) : null;
     const { data, error } = f.id
       ? await supabase.from("products").update(payload).eq("id", f.id).select().maybeSingle()
