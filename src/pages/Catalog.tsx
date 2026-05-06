@@ -781,7 +781,7 @@ const ProductCard = memo(function ProductCard({
                       width={400}
                       height={400}
                       onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
-                      className="max-w-[88%] max-h-[88%] w-auto h-auto object-contain mx-auto"
+                      className="max-w-[84%] max-h-[84%] w-auto h-auto object-contain mx-auto"
                     />
                   );
                 })()}
@@ -847,7 +847,7 @@ const ProductCard = memo(function ProductCard({
                 </h3>
                 {/* Bloco de preço com altura mínima reservada para a linha
                     "de R$" — alinha cards com e sem desconto na mesma altura. */}
-                <div className="mt-1.5 sm:mt-2 leading-tight sm:min-h-[64px] flex flex-col sm:justify-end">
+                <div className="mt-2 sm:mt-2 leading-tight sm:min-h-[64px] flex flex-col sm:justify-end">
                   {hasRealSale ? (
                     <div className="text-xs text-oldPrice font-medium line-through tabular-nums">
                       de {formatBRL(priceNum)}
@@ -876,7 +876,7 @@ const ProductCard = memo(function ProductCard({
                     // 40+ que pode não perceber que o card inteiro é clicável.
                   }}
                   aria-label={`Ver detalhes de ${p.name}`}
-                  className="inline-flex items-center justify-center h-8 sm:h-9 w-full rounded-full text-primary/80 text-[12px] sm:text-[13px] font-medium underline-offset-4 hover:underline hover:text-primary transition-colors"
+                  className="inline-flex items-center justify-center h-8 sm:h-9 w-full rounded-full border border-primary/25 bg-background text-primary text-[12px] sm:text-[13px] font-semibold hover:bg-primary/5 hover:border-primary/40 active:scale-[0.98] transition-all"
                 >
                   Ver produto
                 </button>
