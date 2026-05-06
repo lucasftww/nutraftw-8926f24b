@@ -203,82 +203,8 @@ export function AdminFunnel() {
             />
           </div>
 
-          {/* Funil visual: SVG real (trapezoides empilhados) + detalhes ao lado */}
-          <div className="rounded-2xl border border-border bg-gradient-to-br from-card via-card to-muted/30 p-5 md:p-7 shadow-card">
-            <header className="mb-6 flex items-start justify-between gap-3 flex-wrap">
-              <div>
-                <h3 className="font-bold text-base md:text-lg">Etapas do funil</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Cada faixa representa o volume real da etapa.
-                </p>
-              </div>
-              <span className="badge-pill bg-gradient-to-r from-primary to-brand-cyan text-primary-foreground border-0 shadow-sm">
-                {pct(overallConversion)} ponta-a-ponta
-              </span>
-            </header>
-
-            <div className="grid lg:grid-cols-[minmax(0,1fr)_1.1fr] gap-6 lg:gap-8 lg:items-center">
-              {/* SVG do funil */}
-              <FunnelSVG stages={stages} />
-
-              {/* Lista de etapas com métricas */}
-              <ol className="space-y-2">
-                {stages.map((s, i) => {
-                  const prev = i > 0 ? stages[i - 1] : null;
-                  const stepConv = prev ? ratio(s.value, prev.value) : 1;
-                  const dropPct = prev ? Math.max(0, 1 - stepConv) : 0;
-                  const showDrop = !!prev && dropPct > 0.3 && (prev.value - s.value) >= 5;
-                  const Icon = s.icon;
-                  return (
-                    <li
-                      key={s.key}
-                      className="group relative flex items-center gap-3 rounded-xl border border-border bg-card hover:bg-muted/30 transition-colors px-3 py-2.5"
-                    >
-                      <span
-                        aria-hidden
-                        className={`inline-flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br ${s.gradient} text-white shadow-sm shrink-0`}
-                      >
-                        <Icon className="h-4 w-4" />
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[11px] uppercase tracking-wider text-muted-foreground leading-none">
-                          {i + 1}. {s.label}
-                        </p>
-                        <p className="font-display text-lg font-extrabold tabular-nums leading-tight mt-0.5 text-foreground">
-                          {s.value.toLocaleString("pt-BR")}
-                        </p>
-                      </div>
-                      {prev ? (
-                        <div className="text-right shrink-0">
-                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground leading-none">
-                            Conversão
-                          </p>
-                          <p className={`font-bold text-sm tabular-nums leading-tight mt-0.5 ${showDrop ? "text-amber-600" : "text-foreground"}`}>
-                            {pct(stepConv)}
-                          </p>
-                        </div>
-                      ) : (
-                        <span className="badge-pill bg-muted text-muted-foreground shrink-0">Topo</span>
-                      )}
-                      {showDrop && (
-                        <span
-                          aria-hidden
-                          title={`${pct(dropPct)} abandona aqui`}
-                          className="absolute -right-1 -top-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-white shadow ring-2 ring-background"
-                        >
-                          <AlertTriangle className="h-3 w-3" />
-                        </span>
-                      )}
-                    </li>
-                  );
-                })}
-              </ol>
-            </div>
-
-            <p className="mt-5 pt-4 border-t border-border/60 text-[11px] text-muted-foreground/80 leading-relaxed">
-              Etapas de origens diferentes (analytics × pedidos) podem variar. Foque na tendência relativa, não no número absoluto.
-            </p>
-          </div>
+          {/* Funil visual redesenhado: cards conectados com fluxo de drop */}
+          <FunnelFlow stages={stages} overallConversion={overallConversion} />
 
           {/* Breakdown por produto */}
           <div className="rounded-2xl border border-border bg-card overflow-hidden">
