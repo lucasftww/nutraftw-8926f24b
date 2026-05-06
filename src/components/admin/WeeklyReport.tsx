@@ -501,8 +501,10 @@ export function WeeklyReport() {
       {/* Daily revenue area chart */}
       <div className="bg-card rounded-2xl border border-border p-4 md:p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold">Receita diária</h3>
-          <span className="text-xs text-muted-foreground">{dailySeries.length} dias</span>
+          <h3 className="font-bold">{isHourly ? "Receita por hora" : "Receita diária"}</h3>
+          <span className="text-xs text-muted-foreground">
+            {isHourly ? "24 horas" : `${dailySeries.length} dias`}
+          </span>
         </div>
         <div className="h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
@@ -530,7 +532,7 @@ export function WeeklyReport() {
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Orders per weekday */}
         <div className="bg-card rounded-2xl border border-border p-4 md:p-6">
-          <h3 className="font-bold mb-4">Pedidos por dia</h3>
+          <h3 className="font-bold mb-4">{isHourly ? "Pedidos por hora" : "Pedidos por dia"}</h3>
           <div className="h-56 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dailySeries} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
