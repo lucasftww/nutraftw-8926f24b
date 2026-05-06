@@ -14,12 +14,14 @@ import { useProducts, useCategories, type ProductRow } from "@/hooks/useProducts
 
 type Product = ProductRow;
 
-const SORT_KEYS = ["categoria", "recentes", "az"] as const;
+const SORT_KEYS = ["categoria", "recentes", "az", "preco_asc", "preco_desc"] as const;
 type SortKey = (typeof SORT_KEYS)[number];
 const SORT_LABELS: Record<SortKey, string> = {
   categoria: "Por categoria",
   recentes: "Mais recentes",
   az: "A–Z",
+  preco_asc: "Menor preço",
+  preco_desc: "Maior preço",
 };
 
 // Helpers puros — declarados fora do componente para não serem recriados
@@ -264,6 +266,15 @@ export default function Catalog() {
     if (sort === "recentes") {
       return (a: Product, b: Product) =>
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    }
+    if (sort === "preco_asc" || sort === "preco_desc") {
+      const eff = (p: Product) => {
+        const pr = Number(p.price) || 0;
+        const sp = p.sale_price != null ? Number(p.sale_price) : 0;
+        return sp > 0 && sp < pr ? sp : pr;
+      };
+      const dir = sort === "preco_asc" ? 1 : -1;
+      return (a: Product, b: Product) => (eff(a) - eff(b)) * dir;
     }
     // "categoria" (curadoria): mais desconto primeiro, desempate por score
     return (a: Product, b: Product) => {
