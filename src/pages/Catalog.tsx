@@ -901,7 +901,7 @@ const ProductCard = memo(function ProductCard({
                   }}
                   disabled={isOut}
                   aria-label={isOut ? "Esgotado" : `Adicionar ${p.name} ao carrinho`}
-                  className="mt-auto pt-3 inline-flex items-center justify-center gap-1 h-[calc(2.25rem+0.75rem)] sm:h-[calc(2.5rem+0.75rem)] w-full rounded-full bg-secondary text-secondary-foreground text-sm font-semibold hover:bg-secondary/90 active:scale-[0.98] transition-all shadow-sm shadow-secondary/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
+                  className="mt-3 inline-flex items-center justify-center gap-1 h-9 sm:h-10 w-full rounded-full bg-secondary text-secondary-foreground text-sm font-semibold hover:bg-secondary/90 active:scale-[0.98] transition-all shadow-sm shadow-secondary/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
                 >
                   <ShoppingCart className="h-3.5 w-3.5" strokeWidth={2.2} />
                   Comprar
