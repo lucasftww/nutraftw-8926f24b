@@ -231,9 +231,9 @@ export function AdminPromotions() {
         </Button>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-4">
+      <div className="grid lg:grid-cols-2 gap-4 min-w-0">
         {/* Coluna 1: Promoções ativas (drag-and-drop) */}
-        <div className="bg-card rounded-2xl border border-border p-4">
+        <div className="bg-card rounded-2xl border border-border p-4 min-w-0 overflow-hidden">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-bold text-sm uppercase tracking-wide text-muted-foreground">
               Em promoção ({promos.length})
@@ -306,7 +306,7 @@ export function AdminPromotions() {
         </div>
 
         {/* Coluna 2: Disponíveis */}
-        <div className="bg-card rounded-2xl border border-border p-4">
+        <div className="bg-card rounded-2xl border border-border p-4 min-w-0 overflow-hidden">
           <div className="flex items-center justify-between mb-3 gap-2">
             <h3 className="font-bold text-sm uppercase tracking-wide text-muted-foreground">
               Disponíveis ({filteredAvailable.length})
