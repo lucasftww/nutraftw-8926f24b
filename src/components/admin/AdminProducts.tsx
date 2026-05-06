@@ -103,7 +103,7 @@ export function AdminProducts() {
   const [error, setError] = useState<AdminErrorInfo | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
-  const [bulkAction, setBulkAction] = useState<"" | "activate" | "deactivate" | "feature" | "unfeature" | "stock_set" | "stock_inc" | "delete">("");
+  const [bulkAction, setBulkAction] = useState<"" | "activate" | "deactivate" | "feature" | "unfeature" | "stock_set" | "stock_inc" | "price_set" | "price_inc_pct" | "delete">("");
   const [bulkValue, setBulkValue] = useState<string>("");
   const PAGE_SIZE = 30;
   const qc = useQueryClient();
@@ -302,7 +302,7 @@ export function AdminProducts() {
   async function runBulk() {
     if (!bulkAction || selected.size === 0) return;
     const ids = Array.from(selected);
-    let payload: Partial<{ is_active: boolean; is_featured: boolean; stock: number }> = {};
+    let payload: Partial<{ is_active: boolean; is_featured: boolean; stock: number; price: number }> = {};
     let needsConfirm = false;
     let summary = "";
     if (bulkAction === "activate") { payload = { is_active: true }; summary = "ativados"; }
@@ -314,6 +314,39 @@ export function AdminProducts() {
       const v = parseInt(bulkValue, 10);
       if (Number.isNaN(v) || v < 0) { toast.error("Informe um stock válido (≥ 0)"); return; }
       payload = { stock: v }; summary = `stock = ${v}`;
+    } else if (bulkAction === "price_set") {
+      needsConfirm = true;
+      const v = Number(String(bulkValue).replace(",", "."));
+      if (!Number.isFinite(v) || v < 0) { toast.error("Informe um preço válido (≥ 0)"); return; }
+      payload = { price: v }; summary = `preço = ${formatBRL(v)}`;
+    } else if (bulkAction === "price_inc_pct") {
+      const pct = Number(String(bulkValue).replace(",", "."));
+      if (!Number.isFinite(pct)) { toast.error("Informe % (ex: 10 ou -5)"); return; }
+      const ok = await confirm({
+        title: `Reajustar preço de ${ids.length} produto${ids.length === 1 ? "" : "s"}?`,
+        description: `Cada preço será multiplicado por ${(1 + pct / 100).toFixed(4)} (${pct >= 0 ? "+" : ""}${pct}%). Arredondado a 2 casas.`,
+      });
+      if (!ok) return;
+      setBulkBusy(true);
+      let okC = 0, fail = 0;
+      for (const id of ids) {
+        const cur = Number(items.find((p) => p.id === id)?.price ?? 0);
+        const next = Math.max(0, Math.round(cur * (1 + pct / 100) * 100) / 100);
+        const { error } = await supabase.from("products").update({ price: next }).eq("id", id);
+        if (error) fail++; else okC++;
+      }
+      setBulkBusy(false);
+      logAdminAction({
+        action: "update", entity: "products", entityId: null,
+        summary: `Preço reajustado em ${okC} produtos (${pct >= 0 ? "+" : ""}${pct}%)`,
+        diff: { ids, pct },
+      });
+      if (okC) toast.success(`${okC} produto${okC === 1 ? "" : "s"} reajustado${okC === 1 ? "" : "s"}`);
+      if (fail) toast.error(`${fail} falharam`);
+      setSelected(new Set()); setBulkAction(""); setBulkValue("");
+      qc.invalidateQueries({ queryKey: queryKeys.products.all });
+      load();
+      return;
     } else if (bulkAction === "stock_inc") {
       const delta = parseInt(bulkValue, 10);
       if (Number.isNaN(delta)) { toast.error("Informe um valor inteiro (positivo ou negativo)"); return; }
@@ -481,15 +514,23 @@ export function AdminProducts() {
               <option value="unfeature">Remover destaque</option>
               <option value="stock_set">Definir estoque</option>
               <option value="stock_inc">Somar ao estoque (±)</option>
+              <option value="price_set">Definir preço</option>
+              <option value="price_inc_pct">Reajustar preço (%)</option>
               <option value="delete">Remover</option>
             </select>
-            {(bulkAction === "stock_set" || bulkAction === "stock_inc") && (
+            {(bulkAction === "stock_set" || bulkAction === "stock_inc" || bulkAction === "price_set" || bulkAction === "price_inc_pct") && (
               <Input
                 type="number"
-                inputMode="numeric"
+                inputMode="decimal"
+                step="0.01"
                 value={bulkValue}
                 onChange={(e) => setBulkValue(e.target.value)}
-                placeholder={bulkAction === "stock_set" ? "Novo stock" : "+/− qtd"}
+                placeholder={
+                  bulkAction === "stock_set" ? "Novo stock" :
+                  bulkAction === "stock_inc" ? "+/− qtd" :
+                  bulkAction === "price_set" ? "Novo preço (R$)" :
+                  "% (ex: 10 ou -5)"
+                }
                 className="h-9 w-28"
               />
             )}
