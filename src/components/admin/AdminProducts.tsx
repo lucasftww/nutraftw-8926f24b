@@ -573,7 +573,8 @@ export function AdminProducts() {
       </ul>
 
       <div className="hidden md:block bg-card rounded-2xl border border-border overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[720px]">
           <thead className="bg-muted/50 text-xs uppercase tracking-wide">
             <tr>
               <th className="px-2 py-3 w-10"></th>
@@ -627,6 +628,7 @@ export function AdminProducts() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {totalPages && totalPages > 1 && (
