@@ -1,13 +1,13 @@
 {
-   "name": "Importação Farmacêutica",
-   "short_name": "Farmacêutica",
+  "name": "Royal Vita - Farmácia Internacional",
+  "short_name": "Royal Vita",
   "description": "Importe medicamentos, peptídeos e produtos farmacêuticos com rapidez, segurança e preço justo.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#ffffff",
-  "theme_color": "#0f2a5c",
+  "theme_color": "#0B1F6B",
   "lang": "pt-BR",
   "icons": [
     {
