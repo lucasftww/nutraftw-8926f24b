@@ -862,6 +862,7 @@ function AdminProducts() {
         <table className="w-full text-sm">
           <thead className="bg-muted/50 text-xs uppercase tracking-wide">
             <tr>
+              <th className="px-2 py-3 w-10"></th>
               <th className="px-3 py-3 w-8">
                 <input
                   type="checkbox"
