@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queryKeys";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { GripVertical, Search, Tag, Plus, X, Loader2, History, RotateCcw } from "lucide-react";
@@ -35,6 +37,7 @@ type PromoHistoryRow = {
  * - A ordem dos produtos em promoção define a ordem do topo no catálogo público.
  */
 export function AdminPromotions() {
+  const qc = useQueryClient();
   const [promos, setPromos] = useState<Product[]>([]);
   const [available, setAvailable] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -124,6 +127,7 @@ export function AdminPromotions() {
       toast.success("Ordem das promoções salva!");
       // reflete no estado sem refetch
       setPromos((prev) => prev.map((p, i) => ({ ...p, offer_order: (i + 1) * 10 })));
+      qc.invalidateQueries({ queryKey: queryKeys.products.all });
     } catch (e: any) {
       toast.error("Erro ao salvar: " + (e?.message ?? "desconhecido"));
     } finally {
@@ -148,6 +152,7 @@ export function AdminPromotions() {
     if (error) { toast.error(error.message); return; }
     setAvailable((prev) => prev.filter((x) => x.id !== p.id));
     setPromos((prev) => [...prev, { ...p, is_on_offer: true, offer_order: newOrder }]);
+    qc.invalidateQueries({ queryKey: queryKeys.products.all });
     toast.success(`"${p.name}" adicionado às promoções`);
   }
 
@@ -161,6 +166,7 @@ export function AdminPromotions() {
       return;
     }
     toast.success(`Promoção reaplicada: ${formatBRL(Number(data))}`);
+    qc.invalidateQueries({ queryKey: queryKeys.products.all });
     await load();
   }
 
@@ -185,6 +191,7 @@ export function AdminPromotions() {
     if (error) { toast.error(error.message); return; }
     setPromos((prev) => prev.filter((x) => x.id !== p.id));
     setAvailable((prev) => [...prev, { ...p, is_on_offer: false }].sort((a, b) => a.name.localeCompare(b.name)));
+    qc.invalidateQueries({ queryKey: queryKeys.products.all });
     toast.success("Removido das promoções");
   }
 
