@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, RefreshCw, ChevronDown, ChevronRight, Plus, Pencil, Trash2, Settings as SettingsIcon, ArrowRightCircle } from "lucide-react";
+import { Search, RefreshCw, ChevronDown, ChevronRight, Plus, Pencil, Trash2, Settings as SettingsIcon, ArrowRightCircle, AlertTriangle, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "./AdminErrorBanner";
 
@@ -36,6 +36,8 @@ const ACTIONS = [
   { value: "delete", label: "Remoção" },
   { value: "status_change", label: "Mudança de estado" },
   { value: "settings_save", label: "Configurações" },
+  { value: "update_failed", label: "Falha de update" },
+  { value: "divergence_detected", label: "Divergência" },
 ];
 
 const ACTION_META: Record<string, { icon: any; color: string; bg: string; label: string }> = {
@@ -44,6 +46,8 @@ const ACTION_META: Record<string, { icon: any; color: string; bg: string; label:
   delete:        { icon: Trash2,          color: "text-destructive", bg: "bg-destructive/10", label: "Removeu" },
   status_change: { icon: ArrowRightCircle,color: "text-amber-700",   bg: "bg-amber-50",       label: "Mudou estado" },
   settings_save: { icon: SettingsIcon,    color: "text-slate-700",   bg: "bg-slate-100",      label: "Salvou config" },
+  update_failed:       { icon: AlertTriangle, color: "text-destructive", bg: "bg-destructive/10", label: "Update falhou" },
+  divergence_detected: { icon: ShieldAlert,   color: "text-amber-700",   bg: "bg-amber-50",       label: "Divergência" },
 };
 
 const PAGE_SIZE = 50;
