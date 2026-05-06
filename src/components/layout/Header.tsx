@@ -46,7 +46,7 @@ export function Header() {
     <>
       <header className="sticky top-0 left-0 right-0 z-40 w-full glass border-b border-border/50 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-background/70">
         <div className="w-full pl-2 pr-3 sm:pl-3 sm:pr-6 lg:pl-4 lg:pr-10">
-                  <div className="flex items-center justify-center h-16 md:h-20 relative gap-4">
+          <div className="flex items-center justify-between h-16 md:h-20 gap-4">
             {/* Esquerda: menu mobile + logo */}
              <div className="flex items-center gap-1 md:gap-2 min-w-0">
               <button
@@ -160,8 +160,8 @@ export function Header() {
           >
             {/* Cabeçalho — mesmas medidas, padding e tipografia do header fixo */}
              <div className="w-full glass border-b border-border/50 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-background/70 min-h-[72px]">
-               <div className="w-full px-4 sm:px-6">
-                 <div className="flex items-center justify-between h-16 md:h-20 gap-4">
+                <div className="w-full px-4 sm:px-6">
+                  <div className="flex items-center justify-center h-16 md:h-20 relative gap-4">
                   {/*
                     Marca apenas visual (não-clicável) — evita duplicar o
                     destino "/" que já é coberto pelo item "Catálogo" abaixo.
