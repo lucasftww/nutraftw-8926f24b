@@ -25,24 +25,28 @@ function ProductMobileRow({ p, sortable, selected, toggleSel, setEditing, duplic
     <li
       ref={sortable ? sort.setNodeRef : undefined}
       style={sortable ? sort.style : undefined}
-      className={`bg-card rounded-2xl border p-3 flex gap-2 ${selected.has(p.id) ? "border-primary ring-2 ring-primary/20" : "border-border"}`}
+      className={`bg-card rounded-2xl border p-3 ${selected.has(p.id) ? "border-primary ring-2 ring-primary/20" : "border-border"}`}
     >
-      {sortable && <DragHandle handleProps={sort.handleProps} />}
-      <label className="shrink-0 mt-1 inline-flex items-center justify-center w-5 h-5 rounded border border-input cursor-pointer">
-        <input type="checkbox" checked={selected.has(p.id)} onChange={() => toggleSel(p.id)} className="sr-only" aria-label={`Selecionar ${p.name}`} />
-        {selected.has(p.id) && <Check className="h-3.5 w-3.5 text-primary" />}
-      </label>
-      <ProductThumb src={p.image_url} size="lg" alt={p.name} />
-      <div className="flex-1 min-w-0">
-        <p className="font-semibold text-sm leading-snug line-clamp-2">{p.name}</p>
-        <p className="text-xs text-muted-foreground truncate">{p.category?.name || "Sem categoria"}</p>
-        <div className="flex items-center justify-between mt-1.5">
-          <span className="font-bold text-primary text-sm">{formatBRL(p.price)}</span>
-          <StockBadge stock={p.stock} />
+      <div className="flex gap-3 items-start">
+        <div className="flex flex-col items-center gap-1.5 shrink-0 pt-0.5">
+          {sortable && <DragHandle handleProps={sort.handleProps} />}
+          <label className="inline-flex items-center justify-center w-5 h-5 rounded border border-input cursor-pointer">
+            <input type="checkbox" checked={selected.has(p.id)} onChange={() => toggleSel(p.id)} className="sr-only" aria-label={`Selecionar ${p.name}`} />
+            {selected.has(p.id) && <Check className="h-3.5 w-3.5 text-primary" />}
+          </label>
+        </div>
+        <ProductThumb src={p.image_url} size="lg" alt={p.name} />
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-sm leading-snug line-clamp-2">{p.name}</p>
+          <p className="text-xs text-muted-foreground truncate mt-0.5">{p.category?.name || "Sem categoria"}</p>
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
+            <span className="font-bold text-primary text-sm">{formatBRL(p.price)}</span>
+            <StockBadge stock={p.stock} />
+          </div>
         </div>
       </div>
-      <div className="flex flex-col gap-1 shrink-0">
-        <button onClick={() => setEditing(p)} aria-label="Editar" title="Editar" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted"><Pencil className="h-4 w-4" /></button>
+      <div className="flex items-center justify-end gap-1 mt-2.5 pt-2.5 border-t border-border/60">
+        <button onClick={() => setEditing(p)} aria-label="Editar" title="Editar" className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg hover:bg-muted text-xs"><Pencil className="h-3.5 w-3.5" /> Editar</button>
         <button onClick={() => duplicate(p)} aria-label="Duplicar" title="Duplicar" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted"><Copy className="h-4 w-4" /></button>
         <button onClick={() => del(p.id)} aria-label="Remover" title="Remover" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="h-4 w-4" /></button>
       </div>
@@ -481,19 +485,19 @@ export function AdminProducts() {
 
   return (
     <>
-      <div className="flex justify-between items-center mb-4 gap-3 flex-wrap">
-        <div className="relative flex-1 min-w-[200px] max-w-md">
+      <div className="mb-4 space-y-2.5">
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input className="pl-9" placeholder="Buscar produto ou princípio ativo…" value={query} onChange={(e) => setQuery(e.target.value)} />
+          <Input className="pl-9 pr-24" placeholder="Buscar produto ou princípio ativo…" value={query} onChange={(e) => setQuery(e.target.value)} />
+          {totalCount != null && (
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-muted-foreground tabular-nums pointer-events-none">
+              {totalCount} {totalCount === 1 ? "produto" : "produtos"}
+            </span>
+          )}
         </div>
-        {totalCount != null && (
-          <span className="text-xs text-muted-foreground">
-            {totalCount} {totalCount === 1 ? "produto" : "produtos"}
-          </span>
-        )}
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={exportCsv} title="Exportar todos os produtos para CSV"><Download className="h-4 w-4" /> CSV</Button>
-          <Button onClick={() => setEditing({ is_active: true })}><Plus className="h-4 w-4" /> Novo produto</Button>
+          <Button variant="outline" onClick={exportCsv} title="Exportar todos os produtos para CSV" className="flex-1 sm:flex-none"><Download className="h-4 w-4" /> CSV</Button>
+          <Button onClick={() => setEditing({ is_active: true })} className="flex-1 sm:flex-none"><Plus className="h-4 w-4" /> Novo produto</Button>
         </div>
       </div>
 
