@@ -113,11 +113,44 @@ export function AdminShipping() {
 
   return (
     <>
-      <div className="flex justify-between items-center mb-4">
-        <p className="text-sm text-muted-foreground">Defina o valor de frete e prazo por estado.</p>
+      <div className="flex justify-between items-center gap-3 mb-4 flex-wrap">
+        <p className="text-sm text-muted-foreground flex-1 min-w-[180px]">Defina o valor de frete e prazo por estado.</p>
         <Button onClick={() => setEditing({ active: true, label: "Padrão" })}><Plus className="h-4 w-4" /> Novo frete</Button>
       </div>
-      <div className="bg-card rounded-2xl border border-border overflow-hidden">
+
+      {/* Mobile: cards compactos */}
+      <ul className="md:hidden space-y-2">
+        {items.map((s) => (
+          <li key={s.id} className="bg-card rounded-2xl border border-border p-3 flex items-center gap-3">
+            <div className="shrink-0 h-11 w-11 rounded-xl bg-primary/10 text-primary font-bold inline-flex items-center justify-center text-sm tracking-wide">
+              {s.state}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm truncate">{s.label}</p>
+              <p className="text-[11px] text-muted-foreground">
+                {s.delivery_days_min && s.delivery_days_max ? `${s.delivery_days_min}–${s.delivery_days_max} dias` : "Prazo —"}
+                {" · "}
+                <span className={s.active ? "text-emerald-400" : "text-muted-foreground"}>{s.active ? "Ativo" : "Inativo"}</span>
+              </p>
+            </div>
+            <div className="text-right shrink-0">
+              <p className="font-bold text-sm tabular-nums">R$ {Number(s.price).toFixed(2)}</p>
+              <div className="flex justify-end gap-0.5 mt-1">
+                <button onClick={() => setEditing(s)} aria-label="Editar" className="p-1.5 hover:bg-muted rounded"><Pencil className="h-4 w-4" /></button>
+                <button onClick={() => del(s.id)} aria-label="Remover" className="p-1.5 hover:bg-destructive/10 text-destructive rounded"><Trash2 className="h-4 w-4" /></button>
+              </div>
+            </div>
+          </li>
+        ))}
+        {items.length === 0 && (
+          <li className="text-center py-10 text-muted-foreground text-sm bg-card rounded-2xl border border-border">
+            Nenhum frete cadastrado.
+          </li>
+        )}
+      </ul>
+
+      {/* Desktop / tablet: tabela */}
+      <div className="hidden md:block bg-card rounded-2xl border border-border overflow-hidden">
         <div className="overflow-x-auto">
         <table className="w-full text-sm min-w-[640px]">
           <thead className="bg-muted/50 text-xs uppercase tracking-wide">
