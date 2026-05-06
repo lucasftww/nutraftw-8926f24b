@@ -121,7 +121,8 @@ export function AdminCoupons() {
         <Button onClick={() => setEditing({ active: true, discount_type: "percent" })}><Plus className="h-4 w-4" /> Novo cupom</Button>
       </div>
       <div className="bg-card rounded-2xl border border-border overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[640px]">
           <thead className="bg-muted/50 text-xs uppercase tracking-wide">
             <tr>
               <th className="text-left px-4 py-3">Código</th>
@@ -168,6 +169,7 @@ export function AdminCoupons() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       <AdminModal open={!!editing} onClose={() => setEditing(null)} title={editing?.id ? "Editar cupom" : "Novo cupom"} size="md">
