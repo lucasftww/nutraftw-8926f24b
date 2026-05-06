@@ -12,13 +12,12 @@ export default defineConfig(() => ({
       injectRegister: null,
       devOptions: { enabled: false },
       includeAssets: [
-        "favicon.svg",
         "apple-touch-icon.png",
-        "logo-gimports.webp",
+        "logo-royalvita.png",
       ],
       manifest: {
-        name: "G Imports - Farmácia Internacional",
-        short_name: "G Imports",
+        name: "Royal Vita - Farmácia Internacional",
+        short_name: "Royal Vita",
         description:
           "Importação de medicamentos com segurança, rapidez e preço justo.",
         lang: "pt-BR",
@@ -27,7 +26,7 @@ export default defineConfig(() => ({
         display: "standalone",
         orientation: "portrait",
         background_color: "#ffffff",
-        theme_color: "#0f2a5c",
+        theme_color: "#0B1F6B",
         categories: ["shopping", "medical", "health"],
         icons: [
           { src: "/pwa-192.png", sizes: "192x192", type: "image/png" },
@@ -80,7 +79,7 @@ export default defineConfig(() => ({
             urlPattern: ({ request }) => request.mode === "navigate",
             handler: "NetworkFirst",
             options: {
-              cacheName: "gimports-html",
+              cacheName: "royalvita-html",
               networkTimeoutSeconds: 3,
               expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 },
               cacheableResponse: { statuses: [0, 200] },
@@ -90,7 +89,7 @@ export default defineConfig(() => ({
             urlPattern: ({ request }) => request.destination === "image",
             handler: "CacheFirst",
             options: {
-              cacheName: "gimports-images",
+              cacheName: "royalvita-images",
               expiration: {
                 maxEntries: 200,
                 maxAgeSeconds: 60 * 60 * 24 * 30,
@@ -107,7 +106,7 @@ export default defineConfig(() => ({
               url.origin === self.location.origin,
             handler: "StaleWhileRevalidate",
             options: {
-              cacheName: "gimports-assets",
+              cacheName: "royalvita-assets",
               expiration: {
                 maxEntries: 120,
                 maxAgeSeconds: 60 * 60 * 24 * 7,
@@ -133,7 +132,7 @@ export default defineConfig(() => ({
               url.hostname.endsWith("supabase.co"),
             handler: "NetworkFirst",
             options: {
-              cacheName: "gimports-api",
+              cacheName: "royalvita-api",
               networkTimeoutSeconds: 4,
               expiration: {
                 maxEntries: 80,
