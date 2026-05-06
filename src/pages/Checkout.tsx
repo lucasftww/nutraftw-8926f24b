@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { calcTotals } from "@/lib/checkoutMath";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -502,10 +503,22 @@ export default function Checkout() {
   // se a UF não tem tarifa cadastrada, o RPC `create_order` rejeita o pedido
   // — mostrar um valor estimado no resumo só confunde o cliente.
   const cepFilled = onlyDigits(form.zip).length === 8 && form.state.trim().length === 2;
-  const shippingValue = selectedShipping ? Number(selectedShipping.price) : 0;
-  const shippingKnown = !!selectedShipping;
-  const insurance = insuranceOn ? Math.round(total * INSURANCE_RATE * 100) / 100 : 0;
   const cepReady = onlyDigits(form.zip).length === 8 && form.state.trim().length === 2;
+  // Centralizado em src/lib/checkoutMath.ts — paridade testada com o RPC
+  // create_order. Mantém o mesmo comportamento (sem fallback de frete,
+  // PIX 5%, seguro 10%, cupom percentual ou fixo limitado ao subtotal).
+  const _totals = calcTotals({
+    subtotal: total,
+    shipping: selectedShipping ? Number(selectedShipping.price) : null,
+    insurance: insuranceOn,
+    coupon: coupon
+      ? { type: coupon.discount_type === "percent" ? "percent" : "fixed", value: Number(coupon.discount_value || 0) }
+      : null,
+    paymentMethod: form.payment_method as "pix" | "credit_card",
+  });
+  const shippingValue = _totals.shipping;
+  const shippingKnown = _totals.shippingKnown;
+  const insurance = _totals.insurance;
 
   // === Progresso das etapas (derivado, sem novo state) ===
   // Cada etapa "concluída" exige seus campos mínimos válidos.
@@ -544,14 +557,13 @@ export default function Checkout() {
   // resumo mostrava um desconto desalinhado do que o servidor cobraria.
   // Recalcular client-side com a mesma fórmula garante paridade visual
   // com o pedido criado.
-  const couponDiscount = !coupon
-    ? 0
-    : coupon.discount_type === "percent"
-      ? Math.round((total * Number(coupon.discount_value || 0)) / 100 * 100) / 100
-      : Math.min(Number(coupon.discount_value || 0), total);
+  // Mantemos os mesmos nomes de variáveis para não tocar na UI; valores
+  // vêm do helper centralizado em `calcTotals` (paridade com create_order).
+  const couponDiscount = _totals.couponDiscount;
+  const pixDiscount = _totals.pixDiscount;
+  const grandTotal = _totals.total;
+  // baseTotal mantido para a UI legada (parcelas/“ou em x vezes”).
   const baseTotal = total + shippingValue + insurance - couponDiscount;
-  const pixDiscount = form.payment_method === "pix" ? Math.round(baseTotal * PIX_DISCOUNT * 100) / 100 : 0;
-  const grandTotal = baseTotal - pixDiscount;
 
   // Lista de itens no resumo — memoizada porque depende só de `lines`,
   // que raramente muda durante o checkout. Sem isso, cada keystroke do
