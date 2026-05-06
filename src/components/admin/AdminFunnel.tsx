@@ -368,7 +368,7 @@ function EmptyStateInline() {
  */
 function FunnelSVG({ stages }: { stages: Array<{ key: string; label: string; value: number; gradient: string }> }) {
   const W = 520;
-  const H = 360;
+  const H = Math.max(320, stages.length * 78);
   const top = stages[0]?.value || 1;
   const minWidthRatio = 0.18; // garante que a última faixa nunca fique invisível
   const widths = stages.map((s) => {
