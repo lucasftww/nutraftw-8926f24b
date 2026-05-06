@@ -159,15 +159,15 @@ export function Header() {
             className="absolute left-0 right-0 top-0 w-full bg-background shadow-2xl flex flex-col animate-in slide-in-from-top duration-300 max-h-[100dvh] outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
           >
             {/* Cabeçalho — mesmas medidas, padding e tipografia do header fixo */}
-            <div className="w-full glass border-b border-border/50 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-background/70">
-              <div className="w-full pl-2 pr-3 sm:pl-3 sm:pr-6">
-                <div className="flex items-center justify-between h-16 gap-4">
+             <div className="w-full glass border-b border-border/50 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-background/70 min-h-[72px]">
+               <div className="w-full px-4 sm:px-6">
+                 <div className="flex items-center justify-between h-18 md:h-20 gap-4">
                   {/*
                     Marca apenas visual (não-clicável) — evita duplicar o
                     destino "/" que já é coberto pelo item "Catálogo" abaixo.
                   */}
                      <div className="flex items-center min-w-0" aria-hidden="true">
-                      <img src={logoRoyalVittaText} alt="Royal Vitta" className="h-12 md:h-14 w-auto object-contain" />
+                      <img src={logoRoyalVittaText} alt="Royal Vitta" className="h-10 sm:h-12 md:h-14 w-auto object-contain py-1" />
                      </div>
                   <button
                     onClick={() => setMobileMenuOpen(false)}
