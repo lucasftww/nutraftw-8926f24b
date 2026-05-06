@@ -61,11 +61,8 @@ export function Header() {
                   <path d="M4 17h16" />
                 </svg>
               </button>
-               <Link to="/" className="flex items-center group cursor-pointer min-w-0" aria-label="Royal Vitta">
-                 <span className="text-xl md:text-2xl font-bold tracking-tight text-primary">
-                   ROYAL VITTA
-                 </span>
-               </Link>
+                <Link to="/" className="flex items-center group cursor-pointer min-w-0" aria-label="Home">
+                </Link>
             </div>
 
             {/* Direita: conta + carrinho */}
@@ -166,11 +163,8 @@ export function Header() {
                     Marca apenas visual (não-clicável) — evita duplicar o
                     destino "/" que já é coberto pelo item "Catálogo" abaixo.
                   */}
-                   <div className="flex items-center min-w-0" aria-hidden="true">
-                     <span className="text-xl font-bold tracking-tight text-primary">
-                       ROYAL VITTA
-                     </span>
-                   </div>
+                    <div className="flex items-center min-w-0" aria-hidden="true">
+                    </div>
                   <button
                     onClick={() => setMobileMenuOpen(false)}
                     aria-label="Fechar menu"
