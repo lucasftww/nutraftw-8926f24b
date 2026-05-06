@@ -25,6 +25,7 @@ type Row = {
 };
 
 const PERIODS = [
+  { id: 1,   label: "24h" },
   { id: 7,   label: "7 dias" },
   { id: 30,  label: "30 dias" },
   { id: 90,  label: "90 dias" },
