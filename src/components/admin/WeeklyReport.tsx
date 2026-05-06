@@ -40,6 +40,8 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  CheckCircle2,
+  AlertTriangle,
 } from "lucide-react";
 
 type Range = "24h" | "7d" | "14d" | "30d";
@@ -485,7 +487,7 @@ export function WeeklyReport() {
                   <c.icon className="h-4 w-4" />
                 </div>
                 {c.delta !== null && !loading && (
-                  <span className={`inline-flex items-center gap-0.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full ${positive ? "text-emerald-700 bg-emerald-50" : "text-destructive bg-destructive/10"}`}>
+                  <span className={`inline-flex items-center gap-0.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full ring-1 ${positive ? "text-emerald-400 bg-emerald-500/15 ring-emerald-500/25" : "text-destructive bg-destructive/10 ring-destructive/30"}`}>
                     {positive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                     {Math.abs(c.delta).toFixed(0)}%
                   </span>
@@ -757,12 +759,12 @@ export function WeeklyReport() {
           <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
             <h3 className="font-bold">Validação financeira</h3>
             {reconciliation.totalMismatches.length === 0 && reconciliation.itemsMismatches.length === 0 ? (
-              <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700">
-                ✓ Tudo bate ({reconciliation.ordersChecked} pedidos)
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/25">
+                <CheckCircle2 className="h-3.5 w-3.5" /> Tudo bate ({reconciliation.ordersChecked} pedidos)
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-destructive/10 text-destructive">
-                ⚠ {reconciliation.totalMismatches.length + reconciliation.itemsMismatches.length} divergência(s)
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-destructive/15 text-destructive ring-1 ring-destructive/30">
+                <AlertTriangle className="h-3.5 w-3.5" /> {reconciliation.totalMismatches.length + reconciliation.itemsMismatches.length} divergência(s)
               </span>
             )}
           </div>
@@ -824,8 +826,8 @@ export function WeeklyReport() {
                 </details>
               )}
               {reconciliation.itemsMismatches.length > 0 && (
-                <details className="rounded-lg border border-amber-300 bg-amber-50 p-3">
-                  <summary className="text-xs font-bold text-amber-800 cursor-pointer">
+                <details className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
+                  <summary className="text-xs font-bold text-amber-400 cursor-pointer">
                     Pedidos com subtotal ≠ soma dos itens ({reconciliation.itemsMismatches.length})
                   </summary>
                   <div className="mt-2 overflow-x-auto">

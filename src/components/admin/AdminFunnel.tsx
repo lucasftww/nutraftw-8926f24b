@@ -441,11 +441,11 @@ function KpiCard({
   tone: KpiTone; highlight?: boolean;
 }) {
   // Tom = ícone + barra lateral colorida; o card em si é claro p/ legibilidade.
-  const toneMap: Record<KpiTone, { bar: string; iconBg: string; iconFg: string; chipBg: string }> = {
-    cyan:      { bar: "bg-gradient-to-b from-sky-400 to-cyan-500", iconBg: "bg-sky-100",       iconFg: "text-sky-600",       chipBg: "bg-sky-50" },
-    primary:   { bar: "bg-gradient-to-b from-primary to-primary-glow", iconBg: "bg-primary/10", iconFg: "text-primary",     chipBg: "bg-primary/5" },
-    success:   { bar: "bg-gradient-to-b from-emerald-500 to-success", iconBg: "bg-emerald-100", iconFg: "text-emerald-700", chipBg: "bg-emerald-50" },
-    secondary: { bar: "bg-gradient-to-b from-secondary to-amber-500", iconBg: "bg-secondary/10", iconFg: "text-secondary",  chipBg: "bg-secondary/5" },
+  const toneMap: Record<KpiTone, { bar: string; iconBg: string; iconFg: string }> = {
+    cyan:      { bar: "bg-gradient-to-b from-brand-cyan to-primary",         iconBg: "bg-brand-cyan/15 ring-1 ring-brand-cyan/25", iconFg: "text-brand-cyan" },
+    primary:   { bar: "bg-gradient-to-b from-primary to-primary-glow",        iconBg: "bg-primary/15 ring-1 ring-primary/25",       iconFg: "text-primary" },
+    success:   { bar: "bg-gradient-to-b from-emerald-400 to-emerald-600",     iconBg: "bg-emerald-500/15 ring-1 ring-emerald-500/25", iconFg: "text-emerald-400" },
+    secondary: { bar: "bg-gradient-to-b from-secondary to-secondary-glow",    iconBg: "bg-secondary/15 ring-1 ring-secondary/25",   iconFg: "text-secondary" },
   };
   const t = toneMap[tone];
   return (
