@@ -200,82 +200,80 @@ export function AdminFunnel() {
             />
           </div>
 
-          {/* Funil visual com trapézios coloridos (forma de funil real) */}
-          <div className="rounded-2xl border border-border bg-gradient-to-b from-card to-muted/20 p-5 md:p-7 shadow-card">
-            <header className="mb-5 flex items-start justify-between gap-3 flex-wrap">
+          {/* Funil visual: SVG real (trapezoides empilhados) + detalhes ao lado */}
+          <div className="rounded-2xl border border-border bg-gradient-to-br from-card via-card to-muted/30 p-5 md:p-7 shadow-card">
+            <header className="mb-6 flex items-start justify-between gap-3 flex-wrap">
               <div>
                 <h3 className="font-bold text-base md:text-lg">Etapas do funil</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Cada etapa mostra o volume e a conversão a partir da anterior.
+                  Cada faixa representa o volume real da etapa.
                 </p>
               </div>
-              <span className="badge-pill bg-primary/10 text-primary">
+              <span className="badge-pill bg-gradient-to-r from-primary to-brand-cyan text-primary-foreground border-0 shadow-sm">
                 {pct(overallConversion)} ponta-a-ponta
               </span>
             </header>
-            <ul className="space-y-2.5">
-              {stages.map((s, i) => {
-                const top = stages[0].value || 1;
-                const widthPct = Math.max(18, (s.value / top) * 100);
-                const prev = i > 0 ? stages[i - 1] : null;
-                const stepConv = prev ? ratio(s.value, prev.value) : 1;
-                const dropPct = prev ? Math.max(0, 1 - stepConv) : 0;
-                const showDrop = prev && dropPct > 0.3 && (prev.value - s.value) >= 5;
-                const Icon = s.icon;
-                return (
-                  <li key={s.key} className="relative">
-                    {/* Linha conectora vertical entre etapas */}
-                    {i > 0 && (
-                      <span aria-hidden className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-px h-2.5 bg-border" />
-                    )}
-                    <div
-                      className="mx-auto relative flex items-center gap-3 px-4 py-3 rounded-xl text-white shadow-elegant transition-all hover:scale-[1.01]"
-                      style={{
-                        width: `${widthPct}%`,
-                        minWidth: 240,
-                        background: `linear-gradient(90deg, hsl(var(--primary) / 0.0) 0%, transparent 0%)`,
-                      }}
+
+            <div className="grid lg:grid-cols-[minmax(0,1fr)_1.1fr] gap-6 lg:gap-8 items-center">
+              {/* SVG do funil */}
+              <FunnelSVG stages={stages} />
+
+              {/* Lista de etapas com métricas */}
+              <ol className="space-y-2">
+                {stages.map((s, i) => {
+                  const prev = i > 0 ? stages[i - 1] : null;
+                  const stepConv = prev ? ratio(s.value, prev.value) : 1;
+                  const dropPct = prev ? Math.max(0, 1 - stepConv) : 0;
+                  const showDrop = !!prev && dropPct > 0.3 && (prev.value - s.value) >= 5;
+                  const Icon = s.icon;
+                  return (
+                    <li
+                      key={s.key}
+                      className="group relative flex items-center gap-3 rounded-xl border border-border bg-card hover:bg-muted/30 transition-colors px-3 py-2.5"
                     >
-                      <div
+                      <span
                         aria-hidden
-                        className={`absolute inset-0 rounded-xl bg-gradient-to-r ${s.gradient} opacity-95`}
-                      />
-                      <div className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white/20 backdrop-blur-sm shrink-0">
-                        <Icon className="h-4 w-4 text-white" />
-                      </div>
-                      <div className="relative min-w-0 flex-1">
-                        <p className="text-[11px] uppercase tracking-wider opacity-85 leading-none">
-                          {s.label}
+                        className={`inline-flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br ${s.gradient} text-white shadow-sm shrink-0`}
+                      >
+                        <Icon className="h-4 w-4" />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11px] uppercase tracking-wider text-muted-foreground leading-none">
+                          {i + 1}. {s.label}
                         </p>
-                        <p className="font-display text-xl font-extrabold tabular-nums leading-tight mt-0.5">
+                        <p className="font-display text-lg font-extrabold tabular-nums leading-tight mt-0.5 text-foreground">
                           {s.value.toLocaleString("pt-BR")}
                         </p>
                       </div>
-                      {prev && (
-                        <div className="relative shrink-0 text-right">
-                          <p className="text-[10px] uppercase tracking-wider opacity-80 leading-none">
+                      {prev ? (
+                        <div className="text-right shrink-0">
+                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground leading-none">
                             Conversão
                           </p>
-                          <p className="font-bold text-sm tabular-nums leading-tight mt-0.5">
+                          <p className={`font-bold text-sm tabular-nums leading-tight mt-0.5 ${showDrop ? "text-amber-600" : "text-foreground"}`}>
                             {pct(stepConv)}
                           </p>
                         </div>
+                      ) : (
+                        <span className="badge-pill bg-muted text-muted-foreground shrink-0">Topo</span>
                       )}
-                    </div>
-                    {showDrop && (
-                      <div className="mt-1.5 mx-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-medium w-fit">
-                        <AlertTriangle className="h-3 w-3 shrink-0" />
-                        <span>
-                          {pct(dropPct)} abandona aqui · {(prev!.value - s.value).toLocaleString("pt-BR")} pessoas perdidas
+                      {showDrop && (
+                        <span
+                          aria-hidden
+                          title={`${pct(dropPct)} abandona aqui`}
+                          className="absolute -right-1 -top-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-white shadow ring-2 ring-background"
+                        >
+                          <AlertTriangle className="h-3 w-3" />
                         </span>
-                      </div>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
+                      )}
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+
             <p className="mt-5 pt-4 border-t border-border/60 text-[11px] text-muted-foreground/80 leading-relaxed">
-              Etapas de origens diferentes (analytics × pedidos) podem variar. Pequenas inconsistências são esperadas — foque na tendência relativa.
+              Etapas de origens diferentes (analytics × pedidos) podem variar. Foque na tendência relativa, não no número absoluto.
             </p>
           </div>
 
@@ -357,6 +355,91 @@ function EmptyStateInline() {
       <p className="text-xs text-muted-foreground mt-1.5">
         Altere o período acima ou aguarde novos eventos para ver o funil.
       </p>
+    </div>
+  );
+}
+
+/**
+ * Funil em SVG: trapezoides empilhados, largura proporcional ao valor da etapa.
+ * Cada faixa tem gradiente próprio. Renderiza valor + label dentro da faixa.
+ */
+function FunnelSVG({ stages }: { stages: Array<{ key: string; label: string; value: number; gradient: string }> }) {
+  const W = 520;
+  const H = 360;
+  const top = stages[0]?.value || 1;
+  const minWidthRatio = 0.18; // garante que a última faixa nunca fique invisível
+  const widths = stages.map((s) => {
+    const r = top > 0 ? s.value / top : 0;
+    return Math.max(minWidthRatio, r);
+  });
+  const bandH = H / stages.length;
+  // Mapeia o gradient tailwind do stage para stops HSL. Mantemos pares fixos
+  // pra garantir consistência sem depender do compilador Tailwind no SVG.
+  const palette: Record<string, [string, string]> = {
+    views: ["#7DD3FC", "#06B6D4"],
+    wishlist: ["#22D3EE", "#0B1F6B"],
+    cart: ["#0B1F6B", "#1E63C8"],
+    checkout: ["#F97316", "#F59E0B"],
+    paid: ["#10B981", "#16A34A"],
+  };
+  return (
+    <div className="w-full">
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label="Funil de conversão">
+        <defs>
+          {stages.map((s) => {
+            const [c1, c2] = palette[s.key] || ["#0B1F6B", "#3FC1E5"];
+            return (
+              <linearGradient key={s.key} id={`fnl-${s.key}`} x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stopColor={c1} />
+                <stop offset="1" stopColor={c2} />
+              </linearGradient>
+            );
+          })}
+          <filter id="fnl-shadow" x="-10%" y="-10%" width="120%" height="120%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#0B1F6B" floodOpacity="0.18" />
+          </filter>
+        </defs>
+        {stages.map((s, i) => {
+          const wTop = widths[i] * W;
+          const wBot = (widths[i + 1] ?? widths[i] * 0.85) * W;
+          const y0 = i * bandH;
+          const y1 = y0 + bandH - 6; // gap entre faixas
+          const xTopL = (W - wTop) / 2;
+          const xTopR = xTopL + wTop;
+          const xBotL = (W - wBot) / 2;
+          const xBotR = xBotL + wBot;
+          const d = `M${xTopL},${y0} L${xTopR},${y0} L${xBotR},${y1} L${xBotL},${y1} Z`;
+          const cx = W / 2;
+          const cy = y0 + bandH / 2 - 3;
+          return (
+            <g key={s.key} filter="url(#fnl-shadow)">
+              <path d={d} fill={`url(#fnl-${s.key})`} />
+              <text
+                x={cx}
+                y={cy - 4}
+                textAnchor="middle"
+                fontSize="11"
+                fontWeight="600"
+                fill="#FFFFFF"
+                opacity="0.92"
+                style={{ letterSpacing: "0.08em", textTransform: "uppercase" }}
+              >
+                {s.label}
+              </text>
+              <text
+                x={cx}
+                y={cy + 16}
+                textAnchor="middle"
+                fontSize="20"
+                fontWeight="800"
+                fill="#FFFFFF"
+              >
+                {s.value.toLocaleString("pt-BR")}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
     </div>
   );
 }
