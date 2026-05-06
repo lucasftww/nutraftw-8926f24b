@@ -440,6 +440,50 @@ export type Database = {
           },
         ]
       }
+      product_promo_history: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          discount_percent: number | null
+          ended_at: string | null
+          id: string
+          original_price: number
+          product_id: string
+          sale_price: number
+          started_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          discount_percent?: number | null
+          ended_at?: string | null
+          id?: string
+          original_price: number
+          product_id: string
+          sale_price: number
+          started_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          discount_percent?: number | null
+          ended_at?: string | null
+          id?: string
+          original_price?: number
+          product_id?: string
+          sale_price?: number
+          started_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_promo_history_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           active_principle: string | null
@@ -764,6 +808,7 @@ export type Database = {
       }
       affiliate_commission_rate: { Args: never; Returns: number }
       affiliate_release_days: { Args: never; Returns: number }
+      apply_last_promo: { Args: { p_product_id: string }; Returns: number }
       create_order:
         | {
             Args: {
