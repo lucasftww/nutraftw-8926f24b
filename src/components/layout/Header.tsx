@@ -6,8 +6,8 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { prefetchMyAccount } from "@/App";
-import logoRV from "@/assets/logo-rv.png";
-import logoRoyalVittaText from "@/assets/logo-royalvitta-text.png";
+import logoRV from "@/assets/logo-rv.webp";
+import logoRoyalVittaText from "@/assets/logo-royalvitta-text.webp";
 
 export function Header() {
   const { user, isAdmin } = useAuth();
@@ -65,7 +65,7 @@ export function Header() {
               </button>
                   <Link to="/" className="flex items-center group cursor-pointer min-w-0 -ml-1 md:-ml-2" aria-label="Home">
                     <div className="relative p-1 rounded-full bg-background/50 transition-all duration-300">
-                      <img src={logoRV} alt="RV" className="h-6 sm:h-7 md:h-8 lg:h-10 w-auto object-contain transition-all duration-300 group-hover:scale-105" />
+                      <img src={logoRV} alt="RV" width={80} height={80} decoding="async" fetchPriority="high" className="h-6 sm:h-7 md:h-8 lg:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105" />
                     </div>
                   </Link>
             </div>
