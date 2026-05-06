@@ -548,7 +548,7 @@ export default function Catalog() {
                   </button>
                 )}
               </div>
-              <ul className="flex flex-col gap-1.5 pb-8">
+              <ul className="flex flex-col gap-1.5 pb-24">
                 {[...categories].sort((a, b) => {
                   const aTirz = isTirzepatidaCategory(a) ? 0 : 1;
                   const bTirz = isTirzepatidaCategory(b) ? 0 : 1;
