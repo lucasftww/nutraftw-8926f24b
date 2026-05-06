@@ -60,6 +60,29 @@ export function calcCheckout(input: CheckoutInput): CheckoutBreakdown {
   const subtotal = round2(
     input.items.reduce((s, it) => s + Math.max(0, it.price) * Math.max(0, it.quantity), 0),
   );
+  return calcTotals({
+    subtotal,
+    shipping: input.shipping,
+    insurance: input.insurance,
+    coupon: input.coupon ?? null,
+    paymentMethod: input.paymentMethod,
+  });
+}
+
+export interface CheckoutTotalsInput {
+  subtotal: number;
+  shipping: number | null;
+  insurance: boolean;
+  coupon?: { type: "percent" | "fixed"; value: number } | null;
+  paymentMethod: "pix" | "credit_card";
+}
+
+/**
+ * Variante usada quando o subtotal já vem pronto (ex.: do carrinho).
+ * Mesma regra do RPC `create_order`.
+ */
+export function calcTotals(input: CheckoutTotalsInput): CheckoutBreakdown {
+  const subtotal = Math.max(0, Number(input.subtotal) || 0);
   const shippingKnown = input.shipping != null;
   const shipping = shippingKnown ? Math.max(0, Number(input.shipping)) : 0;
   const insurance = input.insurance ? round2(subtotal * 0.10) : 0;
