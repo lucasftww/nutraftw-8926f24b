@@ -867,6 +867,19 @@ const ProductCard = memo(function ProductCard({
                     ou 3x de {formatBRL(finalPrice / 3)}
                   </div>
                 </div>
+                <div className="mt-auto flex flex-col gap-1.5">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    // Deixa o Link do card cuidar da navegação — apenas
+                    // garantimos foco/clique explícito acessível para o nicho
+                    // 40+ que pode não perceber que o card inteiro é clicável.
+                  }}
+                  aria-label={`Ver detalhes de ${p.name}`}
+                  className="inline-flex items-center justify-center h-9 sm:h-10 w-full rounded-full border border-primary/30 bg-background text-primary text-sm font-semibold hover:bg-primary/5 active:scale-[0.98] transition-all"
+                >
+                  Ver produto
+                </button>
                 <button
                   onClick={(e) => {
                     e.preventDefault();
@@ -876,11 +889,12 @@ const ProductCard = memo(function ProductCard({
                   }}
                   disabled={isOut}
                   aria-label={isOut ? "Esgotado" : `Adicionar ${p.name} ao carrinho`}
-                  className="mt-auto inline-flex items-center justify-center gap-1 h-9 sm:h-10 w-full rounded-full bg-secondary text-secondary-foreground text-sm font-semibold hover:bg-secondary/90 active:scale-[0.98] transition-all shadow-sm shadow-secondary/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
+                  className="inline-flex items-center justify-center gap-1 h-9 sm:h-10 w-full rounded-full bg-secondary text-secondary-foreground text-sm font-semibold hover:bg-secondary/90 active:scale-[0.98] transition-all shadow-sm shadow-secondary/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
                 >
                   <ShoppingCart className="h-3.5 w-3.5" strokeWidth={2.2} />
                   Comprar
                 </button>
+                </div>
               </div>
             </Link>
           );
