@@ -28,7 +28,7 @@ export default function Wishlist() {
   const [loading, setLoading] = useState(true);
 
   useSEO({
-    title: "Meus favoritos | Royal Vita",
+    title: "Meus favoritos | Royal Vitta",
     description: "Produtos que você salvou para depois.",
   });
 

@@ -63,11 +63,11 @@ export function Header() {
                   <path d="M4 17h16" />
                 </svg>
               </button>
-              <Link to="/" className="flex items-center group cursor-pointer min-w-0" aria-label="Royal Vita">
+              <Link to="/" className="flex items-center group cursor-pointer min-w-0" aria-label="Royal Vitta">
                 {/* Mobile: só o símbolo. Desktop: lockup horizontal completo. */}
                 <img
                   src={logoMark}
-                  alt="Royal Vita"
+                  alt="Royal Vitta"
                   width={28}
                   height={28}
                   loading="eager"
@@ -77,7 +77,7 @@ export function Header() {
                 />
                 <img
                   src={logoRoyalVita}
-                  alt="Royal Vita"
+                  alt="Royal Vitta"
                   className="hidden sm:block h-9 md:h-10 w-auto object-contain shrink-0"
                 />
               </Link>
@@ -184,7 +184,7 @@ export function Header() {
                   <div className="flex items-center min-w-0" aria-hidden="true">
                     <img
                       src={logoRoyalVita}
-                      alt="Royal Vita"
+                      alt="Royal Vitta"
                       width={200}
                       height={48}
                       loading="eager"

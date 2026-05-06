@@ -719,7 +719,7 @@ export function AdminProducts() {
                 <Input
                   maxLength={70}
                   value={editing.meta_title || ""}
-                  placeholder={editing.name ? `${editing.name} | Royal Vita` : "Use o nome do produto se vazio"}
+                  placeholder={editing.name ? `${editing.name} | Royal Vitta` : "Use o nome do produto se vazio"}
                   onChange={(e) => setEditing({ ...editing, meta_title: e.target.value })}
                 />
                 <p className="text-[11px] text-muted-foreground">{(editing.meta_title || "").length}/60</p>

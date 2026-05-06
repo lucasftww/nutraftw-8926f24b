@@ -120,7 +120,7 @@ function AdminInner() {
       <aside className="hidden lg:flex w-56 shrink-0 flex-col border-r border-border bg-card/30 sticky top-0 h-screen overflow-y-auto scrollbar-thin">
         <div className="px-5 pt-6 pb-7">
           <div className="text-lg font-medium tracking-tight text-foreground">
-            Royal Vita<span className="text-primary">.</span>
+            Royal Vitta<span className="text-primary">.</span>
           </div>
           <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mt-1">Painel admin</p>
         </div>
@@ -193,7 +193,7 @@ function AdminInner() {
           <aside className="relative w-72 max-w-[85vw] bg-card border-r border-border flex flex-col overflow-y-auto">
             <div className="flex items-center justify-between px-5 py-4 border-b border-border">
               <div className="text-lg font-medium tracking-tight">
-                Royal Vita<span className="text-primary">.</span>
+                Royal Vitta<span className="text-primary">.</span>
               </div>
               <button onClick={() => setMobileNavOpen(false)} className="p-2 text-muted-foreground">
                 <X className="h-5 w-5" />
