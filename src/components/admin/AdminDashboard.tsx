@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
-import { Package, ShoppingBag, DollarSign, Users, TrendingUp, Clock, Receipt, Boxes, Sparkles } from "lucide-react";
+import { Package, ShoppingBag, DollarSign, Users, TrendingUp, Clock, Receipt, Boxes, Sparkles, Eye, Heart, ShoppingCart, CreditCard, CheckCircle2, Zap } from "lucide-react";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "./AdminErrorBanner";
 import { ProductThumb } from "./ProductThumb";
 import { EmptyState } from "./EmptyState";
@@ -21,8 +21,20 @@ type Stats = {
   topProducts: any[];
 };
 
+type Last24h = {
+  ordersCount: number;
+  paidCount: number;
+  revenue: number;
+  views: number;
+  wishlist: number;
+  cartAdds: number;
+  checkoutStarted: number;
+  recentSales: Array<{ id: string; total: number; status: string; created_at: string; shipping_full_name: string | null }>;
+};
+
 export function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
+  const [last24h, setLast24h] = useState<Last24h | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<AdminErrorInfo | null>(null);
 
@@ -114,6 +126,36 @@ export function AdminDashboard() {
         recentOrders: (orders || []).slice(0, 5),
         topProducts,
       });
+
+      // ===== Últimas 24h: vendas + mini funil =====
+      const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+      const last24Orders = (orders || []).filter((o) => o.created_at >= since);
+      const last24Paid = last24Orders.filter((o) => ["paid", "processing", "shipped", "delivered"].includes(o.status));
+      const recentSales = last24Orders
+        .slice()
+        .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
+        .slice(0, 6);
+
+      const [ev24, wl24, ci24] = await Promise.all([
+        supabase.from("product_events").select("event_type", { head: false, count: "exact" }).gte("created_at", since),
+        supabase.from("wishlists").select("id", { head: true, count: "exact" }).gte("created_at", since),
+        supabase.from("cart_items").select("id", { head: true, count: "exact" }).gte("created_at", since),
+      ]);
+      const events = (ev24.data as Array<{ event_type: string }> | null) || [];
+      const views = events.filter((e) => e.event_type === "view").length;
+      const checkoutStarted = events.filter((e) => e.event_type === "checkout_started").length;
+
+      setLast24h({
+        ordersCount: last24Orders.length,
+        paidCount: last24Paid.length,
+        revenue: last24Paid.reduce((s, o) => s + Number(o.total || 0), 0),
+        views,
+        wishlist: wl24.count || 0,
+        cartAdds: ci24.count || 0,
+        checkoutStarted,
+        recentSales,
+      });
+
       setLoading(false);
     } catch (e: any) {
       const info = logSupabaseError("Dashboard", e);
@@ -166,6 +208,8 @@ export function AdminDashboard() {
         revenue={stats.totalRevenue}
         ordersToday={stats.recentOrders.filter((o) => isToday(o.created_at)).length}
       />
+
+      {last24h && <Last24hPanel data={last24h} />}
 
       {hasNoSales && (
         <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5 flex items-start gap-3">
@@ -290,6 +334,117 @@ function WelcomeBanner({ revenue, ordersToday }: { revenue: number; ordersToday:
             {revenue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
           </p>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function timeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "agora";
+  if (m < 60) return `${m} min atrás`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h} h atrás`;
+  const d = Math.floor(h / 24);
+  return `${d} d atrás`;
+}
+
+function Last24hPanel({ data }: { data: Last24h }) {
+  const stages = [
+    { label: "Views",     value: data.views,           icon: Eye,         color: "from-sky-400 to-cyan-500" },
+    { label: "Favoritos", value: data.wishlist,        icon: Heart,       color: "from-cyan-500 to-primary" },
+    { label: "Carrinho",  value: data.cartAdds,        icon: ShoppingCart,color: "from-primary to-primary-glow" },
+    { label: "Checkout",  value: data.checkoutStarted, icon: CreditCard,  color: "from-secondary to-amber-500" },
+    { label: "Pagos",     value: data.paidCount,       icon: CheckCircle2,color: "from-emerald-500 to-success" },
+  ];
+  const top = stages[0].value || 1;
+  const conv = data.views > 0 ? (data.paidCount / data.views) * 100 : 0;
+
+  return (
+    <div className="grid lg:grid-cols-[1.1fr_1fr] gap-4">
+      {/* Vendas das últimas 24h */}
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-soft">
+        <header className="flex items-center justify-between gap-3 mb-4">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-success text-white shadow-sm">
+              <Zap className="h-4 w-4" />
+            </span>
+            <div>
+              <h3 className="font-bold text-sm">Últimas 24h · Vendas</h3>
+              <p className="text-[11px] text-muted-foreground">
+                {data.ordersCount} {data.ordersCount === 1 ? "pedido" : "pedidos"} · {data.paidCount} pagos · {formatBRL(data.revenue)}
+              </p>
+            </div>
+          </div>
+        </header>
+        {data.recentSales.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-6 text-center">Nenhuma venda nas últimas 24 horas.</p>
+        ) : (
+          <ul className="divide-y divide-border">
+            {data.recentSales.map((o) => (
+              <li key={o.id} className="py-2.5 flex items-center justify-between gap-3 text-sm">
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium truncate">{o.shipping_full_name || "Cliente"}</p>
+                  <p className="text-[11px] text-muted-foreground font-mono">
+                    #{o.id.slice(0, 8)} · {timeAgo(o.created_at)}
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="font-bold tabular-nums">{formatBRL(o.total)}</p>
+                  <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full mt-0.5 ${
+                    ["paid","processing","shipped","delivered"].includes(o.status)
+                      ? "bg-emerald-500/15 text-emerald-600"
+                      : o.status === "pending"
+                      ? "bg-amber-500/15 text-amber-600"
+                      : "bg-muted text-muted-foreground"
+                  }`}>
+                    {o.status}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* Funil 24h */}
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-soft">
+        <header className="flex items-center justify-between gap-3 mb-4">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-brand-cyan text-primary-foreground shadow-sm">
+              <TrendingUp className="h-4 w-4" />
+            </span>
+            <div>
+              <h3 className="font-bold text-sm">Últimas 24h · Funil</h3>
+              <p className="text-[11px] text-muted-foreground">
+                Conversão geral: <span className="font-semibold text-foreground">{conv.toFixed(1)}%</span>
+              </p>
+            </div>
+          </div>
+        </header>
+        <ul className="space-y-2">
+          {stages.map((s) => {
+            const w = Math.max(8, (s.value / top) * 100);
+            const Icon = s.icon;
+            return (
+              <li key={s.label} className="flex items-center gap-2.5">
+                <span className={`inline-flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br ${s.color} text-white shrink-0`}>
+                  <Icon className="h-3.5 w-3.5" />
+                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className="text-xs font-medium">{s.label}</span>
+                    <span className="text-xs font-bold tabular-nums">{s.value.toLocaleString("pt-BR")}</span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                    <div className={`h-full rounded-full bg-gradient-to-r ${s.color}`} style={{ width: `${w}%` }} />
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
       </div>
     </div>
   );
