@@ -359,6 +359,91 @@ function EmptyStateInline() {
   );
 }
 
+/**
+ * Funil em SVG: trapezoides empilhados, largura proporcional ao valor da etapa.
+ * Cada faixa tem gradiente próprio. Renderiza valor + label dentro da faixa.
+ */
+function FunnelSVG({ stages }: { stages: Array<{ key: string; label: string; value: number; gradient: string }> }) {
+  const W = 520;
+  const H = 360;
+  const top = stages[0]?.value || 1;
+  const minWidthRatio = 0.18; // garante que a última faixa nunca fique invisível
+  const widths = stages.map((s) => {
+    const r = top > 0 ? s.value / top : 0;
+    return Math.max(minWidthRatio, r);
+  });
+  const bandH = H / stages.length;
+  // Mapeia o gradient tailwind do stage para stops HSL. Mantemos pares fixos
+  // pra garantir consistência sem depender do compilador Tailwind no SVG.
+  const palette: Record<string, [string, string]> = {
+    views: ["#7DD3FC", "#06B6D4"],
+    wishlist: ["#22D3EE", "#0B1F6B"],
+    cart: ["#0B1F6B", "#1E63C8"],
+    checkout: ["#F97316", "#F59E0B"],
+    paid: ["#10B981", "#16A34A"],
+  };
+  return (
+    <div className="w-full">
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label="Funil de conversão">
+        <defs>
+          {stages.map((s) => {
+            const [c1, c2] = palette[s.key] || ["#0B1F6B", "#3FC1E5"];
+            return (
+              <linearGradient key={s.key} id={`fnl-${s.key}`} x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stopColor={c1} />
+                <stop offset="1" stopColor={c2} />
+              </linearGradient>
+            );
+          })}
+          <filter id="fnl-shadow" x="-10%" y="-10%" width="120%" height="120%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#0B1F6B" floodOpacity="0.18" />
+          </filter>
+        </defs>
+        {stages.map((s, i) => {
+          const wTop = widths[i] * W;
+          const wBot = (widths[i + 1] ?? widths[i] * 0.85) * W;
+          const y0 = i * bandH;
+          const y1 = y0 + bandH - 6; // gap entre faixas
+          const xTopL = (W - wTop) / 2;
+          const xTopR = xTopL + wTop;
+          const xBotL = (W - wBot) / 2;
+          const xBotR = xBotL + wBot;
+          const d = `M${xTopL},${y0} L${xTopR},${y0} L${xBotR},${y1} L${xBotL},${y1} Z`;
+          const cx = W / 2;
+          const cy = y0 + bandH / 2 - 3;
+          return (
+            <g key={s.key} filter="url(#fnl-shadow)">
+              <path d={d} fill={`url(#fnl-${s.key})`} />
+              <text
+                x={cx}
+                y={cy - 4}
+                textAnchor="middle"
+                fontSize="11"
+                fontWeight="600"
+                fill="#FFFFFF"
+                opacity="0.92"
+                style={{ letterSpacing: "0.08em", textTransform: "uppercase" }}
+              >
+                {s.label}
+              </text>
+              <text
+                x={cx}
+                y={cy + 16}
+                textAnchor="middle"
+                fontSize="20"
+                fontWeight="800"
+                fill="#FFFFFF"
+              >
+                {s.value.toLocaleString("pt-BR")}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
 type KpiTone = "cyan" | "primary" | "success" | "secondary";
 
 function KpiCard({
