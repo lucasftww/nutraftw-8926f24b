@@ -200,82 +200,80 @@ export function AdminFunnel() {
             />
           </div>
 
-          {/* Funil visual com trapézios coloridos (forma de funil real) */}
-          <div className="rounded-2xl border border-border bg-gradient-to-b from-card to-muted/20 p-5 md:p-7 shadow-card">
-            <header className="mb-5 flex items-start justify-between gap-3 flex-wrap">
+          {/* Funil visual: SVG real (trapezoides empilhados) + detalhes ao lado */}
+          <div className="rounded-2xl border border-border bg-gradient-to-br from-card via-card to-muted/30 p-5 md:p-7 shadow-card">
+            <header className="mb-6 flex items-start justify-between gap-3 flex-wrap">
               <div>
                 <h3 className="font-bold text-base md:text-lg">Etapas do funil</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Cada etapa mostra o volume e a conversão a partir da anterior.
+                  Cada faixa representa o volume real da etapa.
                 </p>
               </div>
-              <span className="badge-pill bg-primary/10 text-primary">
+              <span className="badge-pill bg-gradient-to-r from-primary to-brand-cyan text-primary-foreground border-0 shadow-sm">
                 {pct(overallConversion)} ponta-a-ponta
               </span>
             </header>
-            <ul className="space-y-2.5">
-              {stages.map((s, i) => {
-                const top = stages[0].value || 1;
-                const widthPct = Math.max(18, (s.value / top) * 100);
-                const prev = i > 0 ? stages[i - 1] : null;
-                const stepConv = prev ? ratio(s.value, prev.value) : 1;
-                const dropPct = prev ? Math.max(0, 1 - stepConv) : 0;
-                const showDrop = prev && dropPct > 0.3 && (prev.value - s.value) >= 5;
-                const Icon = s.icon;
-                return (
-                  <li key={s.key} className="relative">
-                    {/* Linha conectora vertical entre etapas */}
-                    {i > 0 && (
-                      <span aria-hidden className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-px h-2.5 bg-border" />
-                    )}
-                    <div
-                      className="mx-auto relative flex items-center gap-3 px-4 py-3 rounded-xl text-white shadow-elegant transition-all hover:scale-[1.01]"
-                      style={{
-                        width: `${widthPct}%`,
-                        minWidth: 240,
-                        background: `linear-gradient(90deg, hsl(var(--primary) / 0.0) 0%, transparent 0%)`,
-                      }}
+
+            <div className="grid lg:grid-cols-[minmax(0,1fr)_1.1fr] gap-6 lg:gap-8 items-center">
+              {/* SVG do funil */}
+              <FunnelSVG stages={stages} />
+
+              {/* Lista de etapas com métricas */}
+              <ol className="space-y-2">
+                {stages.map((s, i) => {
+                  const prev = i > 0 ? stages[i - 1] : null;
+                  const stepConv = prev ? ratio(s.value, prev.value) : 1;
+                  const dropPct = prev ? Math.max(0, 1 - stepConv) : 0;
+                  const showDrop = !!prev && dropPct > 0.3 && (prev.value - s.value) >= 5;
+                  const Icon = s.icon;
+                  return (
+                    <li
+                      key={s.key}
+                      className="group relative flex items-center gap-3 rounded-xl border border-border bg-card hover:bg-muted/30 transition-colors px-3 py-2.5"
                     >
-                      <div
+                      <span
                         aria-hidden
-                        className={`absolute inset-0 rounded-xl bg-gradient-to-r ${s.gradient} opacity-95`}
-                      />
-                      <div className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white/20 backdrop-blur-sm shrink-0">
-                        <Icon className="h-4 w-4 text-white" />
-                      </div>
-                      <div className="relative min-w-0 flex-1">
-                        <p className="text-[11px] uppercase tracking-wider opacity-85 leading-none">
-                          {s.label}
+                        className={`inline-flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br ${s.gradient} text-white shadow-sm shrink-0`}
+                      >
+                        <Icon className="h-4 w-4" />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11px] uppercase tracking-wider text-muted-foreground leading-none">
+                          {i + 1}. {s.label}
                         </p>
-                        <p className="font-display text-xl font-extrabold tabular-nums leading-tight mt-0.5">
+                        <p className="font-display text-lg font-extrabold tabular-nums leading-tight mt-0.5 text-foreground">
                           {s.value.toLocaleString("pt-BR")}
                         </p>
                       </div>
-                      {prev && (
-                        <div className="relative shrink-0 text-right">
-                          <p className="text-[10px] uppercase tracking-wider opacity-80 leading-none">
+                      {prev ? (
+                        <div className="text-right shrink-0">
+                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground leading-none">
                             Conversão
                           </p>
-                          <p className="font-bold text-sm tabular-nums leading-tight mt-0.5">
+                          <p className={`font-bold text-sm tabular-nums leading-tight mt-0.5 ${showDrop ? "text-amber-600" : "text-foreground"}`}>
                             {pct(stepConv)}
                           </p>
                         </div>
+                      ) : (
+                        <span className="badge-pill bg-muted text-muted-foreground shrink-0">Topo</span>
                       )}
-                    </div>
-                    {showDrop && (
-                      <div className="mt-1.5 mx-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-medium w-fit">
-                        <AlertTriangle className="h-3 w-3 shrink-0" />
-                        <span>
-                          {pct(dropPct)} abandona aqui · {(prev!.value - s.value).toLocaleString("pt-BR")} pessoas perdidas
+                      {showDrop && (
+                        <span
+                          aria-hidden
+                          title={`${pct(dropPct)} abandona aqui`}
+                          className="absolute -right-1 -top-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-white shadow ring-2 ring-background"
+                        >
+                          <AlertTriangle className="h-3 w-3" />
                         </span>
-                      </div>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
+                      )}
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+
             <p className="mt-5 pt-4 border-t border-border/60 text-[11px] text-muted-foreground/80 leading-relaxed">
-              Etapas de origens diferentes (analytics × pedidos) podem variar. Pequenas inconsistências são esperadas — foque na tendência relativa.
+              Etapas de origens diferentes (analytics × pedidos) podem variar. Foque na tendência relativa, não no número absoluto.
             </p>
           </div>
 
