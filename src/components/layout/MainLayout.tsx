@@ -11,7 +11,7 @@ export function MainLayout() {
   useCaptureAffiliateRef();
   return (
     <CurrentProductProvider>
-      <div className="min-h-screen flex flex-col overflow-x-hidden bg-background [&_:target]:scroll-mt-16 md:[&_:target]:scroll-mt-20">
+      <div className="min-h-screen flex flex-col bg-background [&_:target]:scroll-mt-16 md:[&_:target]:scroll-mt-20">
         <Header />
         <main className="flex-1 flex flex-col">
           <Outlet />
