@@ -264,12 +264,12 @@ function AdminInner() {
         </header>
 
         {/* Page content */}
-        <div className="flex-1 px-4 md:px-8 py-6 md:py-8">
+        <div className="flex-1 px-3 sm:px-4 md:px-8 py-4 md:py-8">
           {/* Page title */}
-          <div className="mb-5 md:mb-7">
-            <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-1.5">{currentGroup?.label}</p>
-            <h1 className="text-xl md:text-2xl font-medium tracking-tight text-foreground flex items-center gap-2.5">
-              {currentTab?.icon && <currentTab.icon className="h-5 w-5 text-primary" />}
+          <div className="mb-4 md:mb-7">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-1">{currentGroup?.label}</p>
+            <h1 className="text-lg md:text-2xl font-medium tracking-tight text-foreground flex items-center gap-2">
+              {currentTab?.icon && <currentTab.icon className="h-4 w-4 md:h-5 md:w-5 text-primary" />}
               {currentTab?.label ?? "Dashboard"}
             </h1>
           </div>

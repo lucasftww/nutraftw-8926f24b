@@ -125,7 +125,7 @@ export function AdminDashboard() {
   const hasNoSales = stats.totalOrders === 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Banner de boas-vindas com saudação por horário */}
       <WelcomeBanner
         revenue={stats.totalRevenue}
@@ -135,11 +135,11 @@ export function AdminDashboard() {
       {last24h && <Last24hPanel data={last24h} />}
 
       {hasNoSales && (
-        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5 flex items-start gap-3">
+        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 md:p-5 flex items-start gap-3">
           <div className="h-9 w-9 rounded-xl bg-primary/15 text-primary inline-flex items-center justify-center shrink-0">
             <Sparkles className="h-4 w-4" />
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="font-semibold text-sm">Tudo pronto para o primeiro pedido</p>
             <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
               As métricas começam a popular assim que houver vendas. Verifique o catálogo e configure cupons em <strong>Vendas → Cupons</strong>.
@@ -148,20 +148,22 @@ export function AdminDashboard() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 md:gap-3">
         {cards.map((c) => (
-          <div key={c.label} className="bg-card rounded-2xl border border-border p-4 hover:border-border/80 transition-colors">
-            <div className={`inline-flex p-2 rounded-lg ${TONE[c.tone]} mb-3`}>
-              <c.icon className="h-3.5 w-3.5" />
+          <div key={c.label} className="bg-card rounded-2xl border border-border p-3.5 md:p-4 hover:border-border/80 transition-colors flex flex-col min-h-[104px]">
+            <div className="flex items-center justify-between mb-2.5">
+              <span className={`inline-flex p-1.5 rounded-lg ${TONE[c.tone]}`}>
+                <c.icon className="h-3.5 w-3.5" />
+              </span>
             </div>
-            <p className="text-[11px] uppercase tracking-wider text-muted-foreground/80 font-medium">{c.label}</p>
-            <p className="text-xl font-semibold mt-1 tabular-nums">{c.value}</p>
+            <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/80 font-medium leading-tight">{c.label}</p>
+            <p className="text-lg md:text-xl font-semibold mt-1 tabular-nums truncate">{c.value}</p>
           </div>
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
-        <div className="bg-card rounded-2xl border border-border p-5">
+      <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
+        <div className="bg-card rounded-2xl border border-border p-4 md:p-5">
           <h3 className="font-semibold text-sm mb-4 flex items-center gap-2">
             <ShoppingBag className="h-4 w-4 text-primary" /> Pedidos recentes
           </h3>
@@ -190,7 +192,7 @@ export function AdminDashboard() {
           )}
         </div>
 
-        <div className="bg-card rounded-2xl border border-border p-5">
+        <div className="bg-card rounded-2xl border border-border p-4 md:p-5">
           <h3 className="font-semibold text-sm mb-4 flex items-center gap-2">
             <Boxes className="h-4 w-4 text-primary" /> Produtos mais vendidos
           </h3>
@@ -236,24 +238,24 @@ function WelcomeBanner({ revenue, ordersToday }: { revenue: number; ordersToday:
     return "Boa noite";
   }, []);
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-card via-card to-primary/10 p-5 md:p-6 text-foreground shadow-soft">
+    <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-card via-card to-primary/10 p-4 md:p-6 text-foreground shadow-soft">
       <div aria-hidden className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/15 blur-3xl" />
       <div aria-hidden className="absolute -left-12 -bottom-16 h-40 w-40 rounded-full bg-brand-cyan/10 blur-3xl" />
-      <div className="relative flex items-start justify-between gap-4 flex-wrap">
-        <div>
+      <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-3 md:gap-4">
+        <div className="min-w-0">
           <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary/80">Painel Royal Vita</p>
-          <h2 className="font-brand text-2xl md:text-3xl font-bold mt-1.5 tracking-tight uppercase text-foreground">
+          <h2 className="font-brand text-xl md:text-3xl font-bold mt-1.5 tracking-tight uppercase text-foreground leading-tight">
             {greeting}, admin
           </h2>
-          <p className="text-sm text-muted-foreground mt-1.5 max-w-md">
+          <p className="text-xs md:text-sm text-muted-foreground mt-1.5 max-w-md">
             {ordersToday > 0
               ? `${ordersToday} ${ordersToday === 1 ? "pedido novo" : "pedidos novos"} hoje. Continue assim.`
               : "Sem pedidos novos ainda hoje. Hora de revisar promoções?"}
           </p>
         </div>
-        <div className="text-right">
+        <div className="md:text-right shrink-0">
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Receita acumulada</p>
-          <p className="font-display text-2xl md:text-3xl font-extrabold tabular-nums mt-1 text-primary">
+          <p className="font-display text-2xl md:text-3xl font-extrabold tabular-nums mt-1 text-primary leading-none">
             {revenue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
           </p>
         </div>
