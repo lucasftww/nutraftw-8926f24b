@@ -64,7 +64,7 @@ export function Header() {
                 </svg>
               </button>
                  <Link to="/" className="flex items-center group cursor-pointer min-w-0 -ml-1 md:-ml-2" aria-label="Home">
-                     <img src={logoRV} alt="RV" className="h-8 sm:h-9 md:h-10 lg:h-12 w-auto object-contain transition-all duration-300" />
+                     <img src={logoRV} alt="RV" className="h-6 sm:h-7 md:h-8 lg:h-10 w-auto object-contain transition-all duration-300" />
                  </Link>
             </div>
 
