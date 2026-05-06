@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Shield, ShieldOff, Loader2, Download, Phone, Mail, MapPin, ShoppingBag } from "lucide-react";
+import { Search, Shield, ShieldOff, Loader2, Download, Phone, Mail, MapPin, ShoppingBag, ChevronLeft, ChevronRight } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -10,6 +10,7 @@ import { logAdminAction } from "@/lib/auditLog";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 import { useConfirm } from "@/components/admin/ConfirmDialog";
 import { downloadCsv } from "@/lib/exportCsv";
+import { friendlyErrorMessage } from "@/lib/friendlyError";
 
 interface UserRow {
   user_id: string;
@@ -35,87 +36,61 @@ export function AdminUsers() {
   const { user: me } = useAuth();
   const [items, setItems] = useState<UserRow[]>([]);
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<AdminErrorInfo | null>(null);
   const { confirm } = useConfirm();
+  const PAGE_SIZE = 50;
+  const [page, setPage] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+
+  useEffect(() => {
+    const t = window.setTimeout(() => setDebouncedQuery(query.trim()), 300);
+    return () => window.clearTimeout(t);
+  }, [query]);
+  useEffect(() => { setPage(0); }, [debouncedQuery]);
 
   async function load() {
     setLoading(true);
     setError(null);
-    // Bug fix: sem .range/.limit explícito, o Supabase corta em 1000 linhas
-    // silenciosamente. Em loja com volume, isso quebra LTV e contagem de
-    // pedidos. Aumentamos para 5000 (suficiente para 99% dos casos) e
-    // alertamos se for atingido — sinal de que precisamos paginar.
-    const ORDERS_LIMIT = 5000;
-    const [profilesRes, rolesRes, ordersRes] = await Promise.all([
-      supabase
-        .from("profiles")
-        .select("user_id, email, full_name, created_at, phone, cpf, address_city, address_state")
-        .order("created_at", { ascending: false }),
-      supabase.from("user_roles").select("user_id, role").eq("role", "admin"),
-      supabase
-        .from("orders")
-        .select("user_id, total, status, created_at")
-        .in("status", ["paid", "processing", "shipped", "delivered"])
-        .order("created_at", { ascending: false })
-        .limit(ORDERS_LIMIT),
-    ]);
-    if (profilesRes.error) {
-      const info = logSupabaseError("Carregar usuários", profilesRes.error, { table: "profiles" });
+    // Server-side: agrega LTV/pedidos no Postgres, retorna paginado.
+    // Elimina o limite silencioso de 5000 pedidos do cliente.
+    const { data, error: err } = await supabase.rpc("admin_users_overview", {
+      p_search: debouncedQuery || null,
+      p_limit: PAGE_SIZE,
+      p_offset: page * PAGE_SIZE,
+    });
+    if (err) {
+      const info = logSupabaseError("Carregar usuários", err, { rpc: "admin_users_overview", page });
       setError(info);
-      toast.error(`Usuários: ${info.message}`);
+      toast.error(`Usuários: ${friendlyErrorMessage(err)}`);
       setLoading(false);
       return;
     }
-    if (rolesRes.error) {
-      const info = logSupabaseError("Carregar papéis", rolesRes.error, { table: "user_roles" });
-      setError(info);
-      toast.error(`Papéis: ${info.message}`);
-      setLoading(false);
-      return;
-    }
-    if ((ordersRes.data?.length ?? 0) === ORDERS_LIMIT) {
-      // Avisa em console — usuário admin saberá que números podem subestimar.
-      console.warn(
-        `[AdminUsers] LTV calculado sobre os ${ORDERS_LIMIT} pedidos mais recentes. ` +
-        "Considere implementar paginação/agregação server-side.",
-      );
-    }
-    const adminIds = new Set((rolesRes.data || []).map((r: any) => r.user_id));
-    const stats = new Map<string, { count: number; ltv: number; last: string | null }>();
-    for (const o of ((ordersRes.data as any[]) || [])) {
-      const cur = stats.get(o.user_id) || { count: 0, ltv: 0, last: null };
-      cur.count += 1;
-      cur.ltv += Number(o.total || 0);
-      if (!cur.last || new Date(o.created_at) > new Date(cur.last)) cur.last = o.created_at;
-      stats.set(o.user_id, cur);
-    }
-    setItems(
-      ((profilesRes.data as any[]) || []).map((p) => {
-        const s = stats.get(p.user_id);
-        return {
-          user_id: p.user_id,
-          email: p.email,
-          full_name: p.full_name,
-          created_at: p.created_at,
-          phone: p.phone ?? null,
-          cpf: p.cpf ?? null,
-          city: p.address_city ?? null,
-          state: p.address_state ?? null,
-          is_admin: adminIds.has(p.user_id),
-          orders_count: s?.count ?? 0,
-          ltv: s?.ltv ?? 0,
-          last_order_at: s?.last ?? null,
-        };
-      }),
-    );
+    const rows = (data as any[]) || [];
+    setTotalCount(Number(rows[0]?.total_count ?? 0));
+    setItems(rows.map((p) => ({
+      user_id: p.user_id,
+      email: p.email,
+      full_name: p.full_name,
+      created_at: p.created_at,
+      phone: p.phone ?? null,
+      cpf: p.cpf ?? null,
+      city: p.city ?? null,
+      state: p.state ?? null,
+      is_admin: !!p.is_admin,
+      orders_count: Number(p.orders_count ?? 0),
+      ltv: Number(p.ltv ?? 0),
+      last_order_at: p.last_order_at ?? null,
+    })));
     setLoading(false);
   }
 
   useEffect(() => {
     load();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, debouncedQuery]);
 
   async function toggleAdmin(u: UserRow) {
     if (u.user_id === me?.id) {
@@ -138,7 +113,7 @@ export function AdminUsers() {
         .eq("user_id", u.user_id)
         .eq("role", "admin");
       if (error) {
-        toast.error(error.message);
+        toast.error(friendlyErrorMessage(error));
       } else {
         toast.success("Admin removido");
         logAdminAction({
@@ -154,7 +129,7 @@ export function AdminUsers() {
         .from("user_roles")
         .insert({ user_id: u.user_id, role: "admin" as any });
       if (error) {
-        toast.error(error.message);
+        toast.error(friendlyErrorMessage(error));
       } else {
         toast.success("Promovido a admin");
         logAdminAction({
@@ -169,16 +144,9 @@ export function AdminUsers() {
     setBusy(null);
   }
 
-  const filtered = items.filter((u) => {
-    const q = query.trim().toLowerCase();
-    if (!q) return true;
-    return (
-      u.email.toLowerCase().includes(q) ||
-      (u.full_name || "").toLowerCase().includes(q) ||
-      (u.phone || "").toLowerCase().includes(q) ||
-      (u.city || "").toLowerCase().includes(q)
-    );
-  });
+  // Busca já é server-side (debouncedQuery). `filtered` mantido para refinos
+  // dentro da página atual (caso o admin digite após carregar).
+  const filtered = items;
 
   const totals = useMemo(() => {
     const buyers = items.filter((u) => u.orders_count > 0);
@@ -190,6 +158,8 @@ export function AdminUsers() {
   }, [items]);
 
   if (error) return <AdminErrorBanner error={error} onRetry={load} />;
+
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
   function exportCsv() {
     downloadCsv(
