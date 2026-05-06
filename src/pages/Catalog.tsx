@@ -771,7 +771,7 @@ const ProductCard = memo(function ProductCard({
               to={`/produto/${p.slug}`}
               onMouseEnter={() => onPrefetch?.(p.slug)}
               onTouchStart={() => onPrefetch?.(p.slug)}
-              className={`group relative flex flex-col h-full rounded-2xl bg-card overflow-hidden border border-border/50 hover:border-primary/30 hover:shadow-[var(--shadow-card)] transition-all ${isOut ? "opacity-70" : ""}`}
+              className={`group relative flex flex-col h-full rounded-2xl bg-card overflow-hidden border border-border/50 ${isOut ? "opacity-70" : ""}`}
             >
               {/* Imagem — aspect quadrado + padding interno para uniformizar
                   produtos com recortes/proporções diferentes nos assets. */}
@@ -806,7 +806,7 @@ const ProductCard = memo(function ProductCard({
                       width={400}
                       height={400}
                       onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
-                      className="w-full h-full object-contain group-hover:scale-[1.03] transition-transform duration-300"
+                      className="w-full h-full object-contain"
                     />
                   );
                 })()}
