@@ -22,7 +22,9 @@ export type AdminAction =
   | "settings_save"
   | "status_change"
   | "affiliate.release_due"
-  | "affiliate.mark_paid";
+  | "affiliate.mark_paid"
+  | "update_failed"
+  | "divergence_detected";
 
 export type AdminEntity =
   | "products"
