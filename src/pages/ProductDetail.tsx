@@ -129,7 +129,7 @@ export default function ProductDetail() {
   const discountPct = hasSale ? rawDiscountPct : 0;
 
   return (
-    <section className="py-5 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full pb-24 sm:pb-10">
+    <section className="py-5 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full pb-40 sm:pb-10">
       {/* Botão Voltar — mobile-first, discreto mas sempre visível */}
       <button
         type="button"
