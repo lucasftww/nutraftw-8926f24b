@@ -274,18 +274,8 @@ function timeAgo(iso: string): string {
 }
 
 function Last24hPanel({ data }: { data: Last24h }) {
-  const stages = [
-    { label: "Views",     value: data.views,           icon: Eye,         color: "from-sky-400 to-cyan-500" },
-    { label: "Favoritos", value: data.wishlist,        icon: Heart,       color: "from-cyan-500 to-primary" },
-    { label: "Carrinho",  value: data.cartAdds,        icon: ShoppingCart,color: "from-primary to-primary-glow" },
-    { label: "Checkout",  value: data.checkoutStarted, icon: CreditCard,  color: "from-secondary to-amber-500" },
-    { label: "Pagos",     value: data.paidCount,       icon: CheckCircle2,color: "from-emerald-500 to-success" },
-  ];
-  const top = stages[0].value || 1;
-  const conv = data.views > 0 ? (data.paidCount / data.views) * 100 : 0;
-
   return (
-    <div className="grid lg:grid-cols-[1.1fr_1fr] gap-4">
+    <div className="grid grid-cols-1 gap-4">
       {/* Vendas das últimas 24h */}
       <div className="rounded-2xl border border-border bg-card p-5 shadow-soft">
         <header className="flex items-center justify-between gap-3 mb-4">
@@ -329,45 +319,6 @@ function Last24hPanel({ data }: { data: Last24h }) {
             ))}
           </ul>
         )}
-      </div>
-
-      {/* Funil 24h */}
-      <div className="rounded-2xl border border-border bg-card p-5 shadow-soft">
-        <header className="flex items-center justify-between gap-3 mb-4">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-brand-cyan text-primary-foreground shadow-sm">
-              <TrendingUp className="h-4 w-4" />
-            </span>
-            <div>
-              <h3 className="font-bold text-sm">Últimas 24h · Funil</h3>
-              <p className="text-[11px] text-muted-foreground">
-                Conversão geral: <span className="font-semibold text-foreground">{conv.toFixed(1)}%</span>
-              </p>
-            </div>
-          </div>
-        </header>
-        <ul className="space-y-2">
-          {stages.map((s) => {
-            const w = Math.max(8, (s.value / top) * 100);
-            const Icon = s.icon;
-            return (
-              <li key={s.label} className="flex items-center gap-2.5">
-                <span className={`inline-flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br ${s.color} text-white shrink-0`}>
-                  <Icon className="h-3.5 w-3.5" />
-                </span>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2 mb-1">
-                    <span className="text-xs font-medium">{s.label}</span>
-                    <span className="text-xs font-bold tabular-nums">{s.value.toLocaleString("pt-BR")}</span>
-                  </div>
-                  <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                    <div className={`h-full rounded-full bg-gradient-to-r ${s.color}`} style={{ width: `${w}%` }} />
-                  </div>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
       </div>
     </div>
   );
