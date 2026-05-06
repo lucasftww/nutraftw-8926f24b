@@ -185,10 +185,10 @@ export function AdminUsers() {
     <div className="space-y-4">
       {/* Stats compactos */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-        <StatCard label="Usuários" value={items.length.toString()} />
-        <StatCard label="Admins" value={items.filter((u) => u.is_admin).length.toString()} accent="primary" />
-        <StatCard label="Compradores" value={totals.buyers.toString()} accent="success" />
-        <StatCard label="LTV médio" value={formatBRL(totals.avgLtv)} />
+        <StatCard label="Usuários (total)" value={totalCount.toString()} />
+        <StatCard label="Admins (página)" value={items.filter((u) => u.is_admin).length.toString()} accent="primary" />
+        <StatCard label="Compradores (página)" value={totals.buyers.toString()} accent="success" />
+        <StatCard label="LTV médio (página)" value={formatBRL(totals.avgLtv)} />
       </div>
 
       {/* Toolbar */}
