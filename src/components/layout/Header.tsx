@@ -183,13 +183,14 @@ export function Header() {
                   */}
                   <div className="flex items-center min-w-0" aria-hidden="true">
                     <img
-                      src={logoMark}
+                      src={logoRoyalVita}
                       alt=""
-                      width={28}
-                      height={28}
+                      width={140}
+                      height={32}
                       loading="eager"
+                      fetchPriority="high"
                       decoding="async"
-                      className="h-7 w-7 object-contain shrink-0"
+                      className="h-7 w-auto object-contain shrink-0"
                     />
                   </div>
                   <button
