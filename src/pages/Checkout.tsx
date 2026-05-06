@@ -502,9 +502,7 @@ export default function Checkout() {
   // se a UF não tem tarifa cadastrada, o RPC `create_order` rejeita o pedido
   // — mostrar um valor estimado no resumo só confunde o cliente.
   const cepFilled = onlyDigits(form.zip).length === 8 && form.state.trim().length === 2;
-  const shippingValue = selectedShipping ? Number(selectedShipping.price) : 0;
   const shippingKnown = !!selectedShipping;
-  const insurance = insuranceOn ? Math.round(total * INSURANCE_RATE * 100) / 100 : 0;
   const cepReady = onlyDigits(form.zip).length === 8 && form.state.trim().length === 2;
 
   // === Progresso das etapas (derivado, sem novo state) ===
