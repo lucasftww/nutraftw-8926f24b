@@ -497,46 +497,30 @@ export default function Catalog() {
             className="absolute inset-0 bg-foreground/50 backdrop-blur-[2px] animate-in fade-in"
             onClick={() => setFiltersOpen(false)}
           />
-          <aside style={{ fontFamily: "'Poppins', system-ui, sans-serif" }} className="absolute right-0 top-0 h-full w-full sm:w-[420px] bg-[hsl(40_20%_99%)] shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
-            {/* Header — premium farma clean: faixa branca pura com fina linha cyan */}
-            <div className="relative bg-white px-7 pt-7 pb-5">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[hsl(var(--brand-cyan))] mb-1.5">
-                    Refinar busca
-                  </p>
-                  <div className="flex items-baseline gap-2.5">
-                    <h2 className="text-[26px] font-semibold text-primary tracking-tight leading-none">
-                      Filtros
-                    </h2>
-                    {(selectedCats.size + selectedBrands.size) > 0 && (
-                      <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-primary text-primary-foreground text-[10.5px] font-semibold tabular-nums leading-none">
-                        {selectedCats.size + selectedBrands.size}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <button
-                  onClick={() => setFiltersOpen(false)}
-                  className="h-10 w-10 -mr-2 -mt-1 inline-flex items-center justify-center rounded-full hover:bg-muted text-muted-foreground hover:text-primary transition-colors"
-                  aria-label="Fechar filtros"
-                >
-                  <X className="h-[18px] w-[18px]" />
-                </button>
+          <aside style={{ fontFamily: "'Poppins', system-ui, sans-serif" }} className="absolute right-0 top-0 h-full w-full sm:w-[420px] bg-white flex flex-col animate-in slide-in-from-right duration-200 border-l border-border/60">
+            {/* Header minimalista */}
+            <div className="flex items-start justify-between px-7 pt-7 pb-5 border-b border-border/60">
+              <div>
+                <h2 className="text-[22px] font-semibold text-foreground tracking-tight leading-none mb-1.5">
+                  Filtros
+                </h2>
+                <p className="text-[13px] text-muted-foreground/80 leading-snug">
+                  Refine sua busca usando os filtros abaixo
+                </p>
               </div>
-              {/* Linha gradiente sutil — accent farma */}
-              <div className="absolute bottom-0 left-7 right-7 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+              <button
+                onClick={() => setFiltersOpen(false)}
+                className="h-9 w-9 -mr-1 -mt-1 inline-flex items-center justify-center rounded-lg border border-border/70 hover:border-foreground/40 text-muted-foreground hover:text-foreground transition-colors bg-white"
+                aria-label="Fechar filtros"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-7 pb-6 scrollbar-thin">
-              {/* Ordenação */}
-              <section className="pt-6 pb-7">
-                <div className="flex items-center gap-2 mb-3.5">
-                  <span className="h-3.5 w-[3px] rounded-full bg-primary" />
-                  <h3 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary/80">
-                    Ordenar por
-                  </h3>
-                </div>
+            <div className="flex-1 overflow-y-auto px-7 py-6 scrollbar-thin space-y-7">
+              {/* Ordenar */}
+              <section>
+                <h3 className="text-[13px] font-semibold text-foreground mb-2.5">Ordenar</h3>
                 <div className="flex flex-wrap gap-1.5">
                   {SORT_KEYS.map((k) => {
                     const active = sort === k;
@@ -546,13 +530,12 @@ export default function Catalog() {
                         type="button"
                         onClick={() => setSort(k)}
                         aria-pressed={active}
-                        className={`inline-flex items-center gap-1.5 h-9 px-4 rounded-full text-[12.5px] font-medium border transition-all ${
+                        className={`inline-flex items-center h-8 px-3 rounded-md text-[12.5px] transition-colors ${
                           active
-                            ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20"
-                            : "bg-white text-muted-foreground border-border/80 hover:border-primary/40 hover:text-primary"
+                            ? "bg-foreground text-background"
+                            : "bg-white text-muted-foreground border border-border/70 hover:border-foreground/40 hover:text-foreground"
                         }`}
                       >
-                        {active && <ArrowUpDown className="h-3 w-3" />}
                         {SORT_LABELS[k]}
                       </button>
                     );
@@ -560,27 +543,20 @@ export default function Catalog() {
                 </div>
               </section>
 
-              <div className="h-px bg-border/50 mb-7" />
-
               {/* Categorias */}
-              <section className="pb-7">
-                <div className="flex items-center justify-between mb-3.5">
-                  <div className="flex items-center gap-2">
-                    <span className="h-3.5 w-[3px] rounded-full bg-primary" />
-                    <h3 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary/80">
-                      Categorias
-                    </h3>
-                  </div>
+              <section>
+                <div className="flex items-center justify-between mb-2.5">
+                  <h3 className="text-[13px] font-semibold text-foreground">Categoria</h3>
                   {selectedCats.size > 0 && (
                     <button
                       onClick={() => setSelectedCats(new Set())}
-                      className="text-[11px] font-medium text-muted-foreground hover:text-primary transition-colors underline-offset-2 hover:underline"
+                      className="text-[12px] text-muted-foreground hover:text-foreground transition-colors"
                     >
                       Limpar
                     </button>
                   )}
                 </div>
-                <ul className="flex flex-col gap-0.5">
+                <ul className="flex flex-col border-y border-border/50 divide-y divide-border/40">
                   {[...displayedCategories].sort((a, b) => {
                     const aTirz = isTirzepatidaCategory(a) ? 0 : 1;
                     const bTirz = isTirzepatidaCategory(b) ? 0 : 1;
@@ -594,11 +570,7 @@ export default function Catalog() {
                     return (
                       <li key={c.id}>
                         <label
-                          className={`group flex items-center gap-3 cursor-pointer h-11 px-3 rounded-xl transition-all ${
-                            checked
-                              ? "bg-white shadow-sm border border-primary/15"
-                              : "border border-transparent hover:bg-white hover:border-border/60"
-                          }`}
+                          className="group flex items-center gap-3 cursor-pointer h-11 transition-colors hover:bg-muted/30"
                         >
                           <input
                             type="checkbox"
@@ -607,21 +579,21 @@ export default function Catalog() {
                             className="sr-only"
                           />
                           <div
-                            className={`h-[18px] w-[18px] rounded-md border flex items-center justify-center shrink-0 transition-all ${
-                              checked ? "bg-primary border-primary" : "border-border/80 bg-white group-hover:border-primary/50"
+                            className={`h-[16px] w-[16px] rounded border flex items-center justify-center shrink-0 transition-colors ml-1 ${
+                              checked ? "bg-foreground border-foreground" : "border-border bg-white group-hover:border-foreground/50"
                             }`}
                             aria-hidden="true"
                           >
                             {checked && (
-                              <svg className="h-2.5 w-2.5 text-primary-foreground" fill="none" stroke="currentColor" strokeWidth="3.5" viewBox="0 0 24 24">
+                              <svg className="h-2.5 w-2.5 text-background" fill="none" stroke="currentColor" strokeWidth="3.5" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                               </svg>
                             )}
                           </div>
-                          <span className={`flex-1 text-[13.5px] ${checked ? "text-primary font-semibold" : "text-foreground/80 font-normal"}`}>
+                          <span className={`flex-1 text-[13.5px] ${checked ? "text-foreground font-medium" : "text-foreground/80"}`}>
                             {c.name}
                           </span>
-                          <span className={`text-[11px] tabular-nums px-1.5 py-0.5 rounded-md ${checked ? "bg-primary/10 text-primary font-semibold" : "text-muted-foreground/60"}`}>
+                          <span className="text-[11.5px] tabular-nums text-muted-foreground/60 mr-1">
                             {count}
                           </span>
                         </label>
@@ -631,18 +603,11 @@ export default function Catalog() {
                 </ul>
               </section>
 
-              {brands.length > 0 && <div className="h-px bg-border/50 mb-7" />}
-
               {/* Marcas */}
               {brands.length > 0 && (
-                <section className="pb-24">
-                  <div className="flex items-center justify-between mb-3.5">
-                    <div className="flex items-center gap-2">
-                      <span className="h-3.5 w-[3px] rounded-full bg-primary" />
-                      <h3 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary/80">
-                        Marcas
-                      </h3>
-                    </div>
+                <section className="pb-4">
+                  <div className="flex items-center justify-between mb-2.5">
+                    <h3 className="text-[13px] font-semibold text-foreground">Marca</h3>
                     {selectedBrands.size > 0 && (
                       <button
                         onClick={() => {
@@ -653,7 +618,7 @@ export default function Catalog() {
                             return params;
                           }, { replace: true });
                         }}
-                        className="text-[11px] font-medium text-muted-foreground hover:text-primary transition-colors underline-offset-2 hover:underline"
+                        className="text-[12px] text-muted-foreground hover:text-foreground transition-colors"
                       >
                         Limpar
                       </button>
@@ -671,17 +636,17 @@ export default function Catalog() {
                           onClick={() => toggleBrand(b.slug)}
                           aria-pressed={checked}
                           disabled={dim}
-                          className={`inline-flex items-center gap-1.5 h-9 px-4 rounded-full text-[12.5px] font-medium border transition-all ${
+                          className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-[12.5px] transition-colors ${
                             checked
-                              ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20"
+                              ? "bg-foreground text-background"
                               : dim
-                                ? "bg-transparent text-muted-foreground/40 border-border/40 cursor-not-allowed"
-                                : "bg-white text-muted-foreground border-border/80 hover:border-primary/40 hover:text-primary"
+                                ? "bg-transparent text-muted-foreground/40 border border-border/40 cursor-not-allowed"
+                                : "bg-white text-muted-foreground border border-border/70 hover:border-foreground/40 hover:text-foreground"
                           }`}
                         >
                           {b.name}
                           {count > 0 && (
-                            <span className={`text-[10.5px] tabular-nums ${checked ? "text-primary-foreground/70" : "text-muted-foreground/60"}`}>
+                            <span className={`text-[10.5px] tabular-nums ${checked ? "text-background/70" : "text-muted-foreground/60"}`}>
                               {count}
                             </span>
                           )}
@@ -694,10 +659,10 @@ export default function Catalog() {
             </div>
 
             <div
-              className="px-7 py-4 border-t border-border/60 bg-white/95 backdrop-blur-md"
+              className="px-7 py-4 border-t border-border/60 bg-white"
               style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)" }}
             >
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center justify-end gap-2">
                 <button
                   onClick={() => {
                     setSelectedCats(new Set());
@@ -709,15 +674,15 @@ export default function Catalog() {
                       return params;
                     }, { replace: true });
                   }}
-                  className="h-12 px-5 rounded-full text-[13px] font-medium text-muted-foreground hover:text-primary hover:bg-muted transition-colors"
+                  className="h-10 px-5 rounded-md text-[13px] font-medium text-foreground bg-white border border-border/70 hover:border-foreground/40 transition-colors"
                 >
-                  Limpar
+                  Limpar Filtros
                 </button>
                 <button
                   onClick={() => setFiltersOpen(false)}
-                  className="flex-1 h-12 rounded-full bg-secondary text-secondary-foreground text-[14px] font-semibold tracking-tight hover:bg-secondary/90 active:scale-[0.99] shadow-lg shadow-secondary/30 transition-all"
+                  className="h-10 px-5 rounded-md bg-foreground text-background text-[13px] font-semibold tracking-tight hover:bg-foreground/90 active:scale-[0.99] transition-all"
                 >
-                  Ver {filtered.length} {filtered.length === 1 ? "produto" : "produtos"}
+                  Aplicar Filtros
                 </button>
               </div>
             </div>
