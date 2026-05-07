@@ -154,6 +154,33 @@ export type Database = {
         }
         Relationships: []
       }
+      brands: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cart_items: {
         Row: {
           created_at: string
@@ -526,6 +553,7 @@ export type Database = {
       products: {
         Row: {
           active_principle: string | null
+          brand_id: string | null
           category_id: string | null
           composition: string | null
           created_at: string
@@ -549,6 +577,7 @@ export type Database = {
         }
         Insert: {
           active_principle?: string | null
+          brand_id?: string | null
           category_id?: string | null
           composition?: string | null
           created_at?: string
@@ -572,6 +601,7 @@ export type Database = {
         }
         Update: {
           active_principle?: string | null
+          brand_id?: string | null
           category_id?: string | null
           composition?: string | null
           created_at?: string
@@ -594,6 +624,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "products_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "products_category_id_fkey"
             columns: ["category_id"]
