@@ -497,34 +497,46 @@ export default function Catalog() {
             className="absolute inset-0 bg-foreground/50 backdrop-blur-[2px] animate-in fade-in"
             onClick={() => setFiltersOpen(false)}
           />
-          <aside className="absolute right-0 top-0 h-full w-full sm:w-[88%] sm:max-w-sm bg-background shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
-            {/* Header refinado — tipografia editorial, sem bordas pesadas */}
-            <div className="flex items-center justify-between px-6 pt-6 pb-4">
-              <div className="flex items-baseline gap-2.5">
-                <h2 className="text-[20px] font-semibold text-foreground tracking-tight leading-none">
-                  Filtros
-                </h2>
-                {(selectedCats.size + selectedBrands.size) > 0 && (
-                  <span className="text-[12px] font-medium tabular-nums text-primary leading-none">
-                    · {selectedCats.size + selectedBrands.size}
-                  </span>
-                )}
+          <aside style={{ fontFamily: "'Poppins', system-ui, sans-serif" }} className="absolute right-0 top-0 h-full w-full sm:w-[420px] bg-[hsl(40_20%_99%)] shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
+            {/* Header — premium farma clean: faixa branca pura com fina linha cyan */}
+            <div className="relative bg-white px-7 pt-7 pb-5">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[hsl(var(--brand-cyan))] mb-1.5">
+                    Refinar busca
+                  </p>
+                  <div className="flex items-baseline gap-2.5">
+                    <h2 className="text-[26px] font-semibold text-primary tracking-tight leading-none">
+                      Filtros
+                    </h2>
+                    {(selectedCats.size + selectedBrands.size) > 0 && (
+                      <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-primary text-primary-foreground text-[10.5px] font-semibold tabular-nums leading-none">
+                        {selectedCats.size + selectedBrands.size}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setFiltersOpen(false)}
+                  className="h-10 w-10 -mr-2 -mt-1 inline-flex items-center justify-center rounded-full hover:bg-muted text-muted-foreground hover:text-primary transition-colors"
+                  aria-label="Fechar filtros"
+                >
+                  <X className="h-[18px] w-[18px]" />
+                </button>
               </div>
-              <button
-                onClick={() => setFiltersOpen(false)}
-                className="h-9 w-9 -mr-2 inline-flex items-center justify-center rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Fechar filtros"
-              >
-                <X className="h-[18px] w-[18px]" />
-              </button>
+              {/* Linha gradiente sutil — accent farma */}
+              <div className="absolute bottom-0 left-7 right-7 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
             </div>
 
-            <div className="flex-1 overflow-y-auto px-6 pb-6">
-              {/* Ordenação — chips finos */}
-              <section className="pt-2 pb-6">
-                <h3 className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/70 mb-3">
-                  Ordenar
-                </h3>
+            <div className="flex-1 overflow-y-auto px-7 pb-6 scrollbar-thin">
+              {/* Ordenação */}
+              <section className="pt-6 pb-7">
+                <div className="flex items-center gap-2 mb-3.5">
+                  <span className="h-3.5 w-[3px] rounded-full bg-primary" />
+                  <h3 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary/80">
+                    Ordenar por
+                  </h3>
+                </div>
                 <div className="flex flex-wrap gap-1.5">
                   {SORT_KEYS.map((k) => {
                     const active = sort === k;
@@ -534,10 +546,10 @@ export default function Catalog() {
                         type="button"
                         onClick={() => setSort(k)}
                         aria-pressed={active}
-                        className={`inline-flex items-center gap-1 h-8 px-3.5 rounded-full text-[12.5px] font-medium border transition-all ${
+                        className={`inline-flex items-center gap-1.5 h-9 px-4 rounded-full text-[12.5px] font-medium border transition-all ${
                           active
-                            ? "bg-foreground text-background border-foreground shadow-sm"
-                            : "bg-background text-muted-foreground border-border/70 hover:border-foreground/30 hover:text-foreground"
+                            ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20"
+                            : "bg-white text-muted-foreground border-border/80 hover:border-primary/40 hover:text-primary"
                         }`}
                       >
                         {active && <ArrowUpDown className="h-3 w-3" />}
@@ -548,25 +560,27 @@ export default function Catalog() {
                 </div>
               </section>
 
-              {/* Separador sutil */}
-              <div className="h-px bg-border/60 mb-6" />
+              <div className="h-px bg-border/50 mb-7" />
 
-              {/* Categorias — lista compacta */}
-              <section className="pb-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/70">
-                    Categorias
-                  </h3>
+              {/* Categorias */}
+              <section className="pb-7">
+                <div className="flex items-center justify-between mb-3.5">
+                  <div className="flex items-center gap-2">
+                    <span className="h-3.5 w-[3px] rounded-full bg-primary" />
+                    <h3 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary/80">
+                      Categorias
+                    </h3>
+                  </div>
                   {selectedCats.size > 0 && (
                     <button
                       onClick={() => setSelectedCats(new Set())}
-                      className="text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+                      className="text-[11px] font-medium text-muted-foreground hover:text-primary transition-colors underline-offset-2 hover:underline"
                     >
                       Limpar
                     </button>
                   )}
                 </div>
-                <ul className="flex flex-col -mx-2">
+                <ul className="flex flex-col gap-0.5">
                   {[...displayedCategories].sort((a, b) => {
                     const aTirz = isTirzepatidaCategory(a) ? 0 : 1;
                     const bTirz = isTirzepatidaCategory(b) ? 0 : 1;
@@ -580,8 +594,10 @@ export default function Catalog() {
                     return (
                       <li key={c.id}>
                         <label
-                          className={`flex items-center gap-3 cursor-pointer h-10 px-2 rounded-lg transition-colors ${
-                            checked ? "bg-muted/60" : "hover:bg-muted/40"
+                          className={`group flex items-center gap-3 cursor-pointer h-11 px-3 rounded-xl transition-all ${
+                            checked
+                              ? "bg-white shadow-sm border border-primary/15"
+                              : "border border-transparent hover:bg-white hover:border-border/60"
                           }`}
                         >
                           <input
@@ -591,21 +607,21 @@ export default function Catalog() {
                             className="sr-only"
                           />
                           <div
-                            className={`h-[17px] w-[17px] rounded-[5px] border flex items-center justify-center shrink-0 transition-all ${
-                              checked ? "bg-foreground border-foreground" : "border-border bg-background"
+                            className={`h-[18px] w-[18px] rounded-md border flex items-center justify-center shrink-0 transition-all ${
+                              checked ? "bg-primary border-primary" : "border-border/80 bg-white group-hover:border-primary/50"
                             }`}
                             aria-hidden="true"
                           >
                             {checked && (
-                              <svg className="h-2.5 w-2.5 text-background" fill="none" stroke="currentColor" strokeWidth="3.5" viewBox="0 0 24 24">
+                              <svg className="h-2.5 w-2.5 text-primary-foreground" fill="none" stroke="currentColor" strokeWidth="3.5" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                               </svg>
                             )}
                           </div>
-                          <span className={`flex-1 text-[13.5px] ${checked ? "text-foreground font-semibold" : "text-foreground/85 font-normal"}`}>
+                          <span className={`flex-1 text-[13.5px] ${checked ? "text-primary font-semibold" : "text-foreground/80 font-normal"}`}>
                             {c.name}
                           </span>
-                          <span className="text-[11px] tabular-nums text-muted-foreground/70">
+                          <span className={`text-[11px] tabular-nums px-1.5 py-0.5 rounded-md ${checked ? "bg-primary/10 text-primary font-semibold" : "text-muted-foreground/60"}`}>
                             {count}
                           </span>
                         </label>
@@ -615,16 +631,18 @@ export default function Catalog() {
                 </ul>
               </section>
 
-              {/* Separador sutil */}
-              {brands.length > 0 && <div className="h-px bg-border/60 mb-6" />}
+              {brands.length > 0 && <div className="h-px bg-border/50 mb-7" />}
 
-              {/* Marcas — chips compactos (estilo KA Imports) */}
+              {/* Marcas */}
               {brands.length > 0 && (
                 <section className="pb-24">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/70">
-                      Marcas
-                    </h3>
+                  <div className="flex items-center justify-between mb-3.5">
+                    <div className="flex items-center gap-2">
+                      <span className="h-3.5 w-[3px] rounded-full bg-primary" />
+                      <h3 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary/80">
+                        Marcas
+                      </h3>
+                    </div>
                     {selectedBrands.size > 0 && (
                       <button
                         onClick={() => {
@@ -635,7 +653,7 @@ export default function Catalog() {
                             return params;
                           }, { replace: true });
                         }}
-                        className="text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+                        className="text-[11px] font-medium text-muted-foreground hover:text-primary transition-colors underline-offset-2 hover:underline"
                       >
                         Limpar
                       </button>
@@ -653,17 +671,17 @@ export default function Catalog() {
                           onClick={() => toggleBrand(b.slug)}
                           aria-pressed={checked}
                           disabled={dim}
-                          className={`inline-flex items-center gap-1.5 h-8 px-3.5 rounded-full text-[12.5px] font-medium border transition-all ${
+                          className={`inline-flex items-center gap-1.5 h-9 px-4 rounded-full text-[12.5px] font-medium border transition-all ${
                             checked
-                              ? "bg-foreground text-background border-foreground shadow-sm"
+                              ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20"
                               : dim
-                                ? "bg-transparent text-muted-foreground/50 border-border/50 cursor-not-allowed"
-                                : "bg-background text-muted-foreground border-border/70 hover:border-foreground/30 hover:text-foreground"
+                                ? "bg-transparent text-muted-foreground/40 border-border/40 cursor-not-allowed"
+                                : "bg-white text-muted-foreground border-border/80 hover:border-primary/40 hover:text-primary"
                           }`}
                         >
                           {b.name}
                           {count > 0 && (
-                            <span className={`text-[10.5px] tabular-nums ${checked ? "text-background/60" : "text-muted-foreground/60"}`}>
+                            <span className={`text-[10.5px] tabular-nums ${checked ? "text-primary-foreground/70" : "text-muted-foreground/60"}`}>
                               {count}
                             </span>
                           )}
@@ -675,11 +693,8 @@ export default function Catalog() {
               )}
             </div>
 
-            {/* Rodapé com CTA grande — "Ver produtos" em laranja (CTA de avanço),
-                "Limpar" discreto como link/outline. Regra de conversão:
-                laranja = avançar, neutro = secundário. */}
             <div
-              className="px-6 py-4 border-t border-border/60 bg-background/95 backdrop-blur-md"
+              className="px-7 py-4 border-t border-border/60 bg-white/95 backdrop-blur-md"
               style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)" }}
             >
               <div className="flex items-center gap-2.5">
@@ -694,13 +709,13 @@ export default function Catalog() {
                       return params;
                     }, { replace: true });
                   }}
-                  className="h-12 px-5 rounded-full text-[13px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                  className="h-12 px-5 rounded-full text-[13px] font-medium text-muted-foreground hover:text-primary hover:bg-muted transition-colors"
                 >
                   Limpar
                 </button>
                 <button
                   onClick={() => setFiltersOpen(false)}
-                  className="flex-1 h-12 rounded-full bg-secondary text-secondary-foreground text-[14px] font-semibold tracking-tight hover:bg-secondary/90 active:scale-[0.99] shadow-lg shadow-secondary/25 transition-all"
+                  className="flex-1 h-12 rounded-full bg-secondary text-secondary-foreground text-[14px] font-semibold tracking-tight hover:bg-secondary/90 active:scale-[0.99] shadow-lg shadow-secondary/30 transition-all"
                 >
                   Ver {filtered.length} {filtered.length === 1 ? "produto" : "produtos"}
                 </button>
