@@ -15,6 +15,7 @@ const loadAdminWishlist = () => import("@/components/admin/AdminWishlist");
 const loadWeeklyReport = () => import("@/components/admin/WeeklyReport");
 const loadAdminProducts = () => import("@/components/admin/AdminProducts");
 const loadAdminCategories = () => import("@/components/admin/AdminCategories");
+const loadAdminBrands = () => import("@/components/admin/AdminBrands");
 const loadAdminPromotions = () => import("@/components/admin/AdminPromotions");
 const loadAdminOrders = () => import("@/components/admin/AdminOrders");
 const loadAdminCoupons = () => import("@/components/admin/AdminCoupons");
@@ -32,6 +33,7 @@ const tabPreloaders: Record<Tab, () => Promise<unknown>> = {
   reports: loadWeeklyReport,
   products: loadAdminProducts,
   categories: loadAdminCategories,
+  brands: loadAdminBrands,
   promotions: loadAdminPromotions,
   orders: loadAdminOrders,
   coupons: loadAdminCoupons,
@@ -50,6 +52,7 @@ const tabComponents: Record<Tab, ComponentType> = {
   reports: lazy(async () => ({ default: (await loadWeeklyReport()).WeeklyReport })),
   products: lazy(async () => ({ default: (await loadAdminProducts()).AdminProducts })),
   categories: lazy(async () => ({ default: (await loadAdminCategories()).AdminCategories })),
+  brands: lazy(async () => ({ default: (await loadAdminBrands()).AdminBrands })),
   promotions: lazy(async () => ({ default: (await loadAdminPromotions()).AdminPromotions })),
   orders: lazy(async () => ({ default: (await loadAdminOrders()).AdminOrders })),
   coupons: lazy(async () => ({ default: (await loadAdminCoupons()).AdminCoupons })),
