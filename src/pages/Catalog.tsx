@@ -48,6 +48,9 @@ export default function Catalog() {
     setSelectedCats(urlCategoria ? new Set([urlCategoria]) : new Set());
   }, [urlCategoria]);
   useEffect(() => {
+    setSelectedBrands(urlMarca ? new Set(urlMarca.split(",").filter(Boolean)) : new Set());
+  }, [urlMarca]);
+  useEffect(() => {
     if (query === urlQuery) return;
     const t = setTimeout(() => {
       // Lê searchParams via setter funcional para evitar sobrescrever
