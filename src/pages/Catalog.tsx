@@ -238,7 +238,7 @@ export default function Catalog() {
         return nameCompact.includes(qCompact) || descCompact.includes(qCompact);
       });
     },
-    [products, selectedCats, query]
+    [products, selectedCats, selectedBrands, query]
   );
 
   // Comparator único — usado tanto em Promoções quanto em cada Categoria,
