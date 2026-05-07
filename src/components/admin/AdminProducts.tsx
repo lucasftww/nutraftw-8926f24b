@@ -140,9 +140,10 @@ export function AdminProducts() {
       const safe = debouncedQuery.replace(/[%_,()*:"'\\]/g, " ").trim();
       q = q.or(`name.ilike.%${safe}%,active_principle.ilike.%${safe}%`);
     }
-    const [pr, cr] = await Promise.all([
+    const [pr, cr, br] = await Promise.all([
       q,
       supabase.from("categories").select("*").order("display_order"),
+      supabase.from("brands").select("*").order("display_order").order("name"),
     ]);
     if (requestId !== loadReqRef.current) return;
     if (pr.error) {
@@ -162,6 +163,7 @@ export function AdminProducts() {
     setItems(pr.data || []);
     setTotalCount(pr.count ?? null);
     setCats(cr.data || []);
+    setBrands(br.data || []);
     setLoading(false);
   }
   useEffect(() => { load(); }, [page, debouncedQuery]);
@@ -200,6 +202,7 @@ export function AdminProducts() {
       stock: stockNum,
       image_url: f.image_url || null,
       category_id: f.category_id || null,
+      brand_id: f.brand_id || null,
       is_featured: !!f.is_featured,
       is_new_release: !!f.is_new_release,
       is_active: f.is_active !== false,
