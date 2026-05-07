@@ -380,22 +380,28 @@ export default function Catalog() {
             o espaço vazio entre header e conteúdo.
           - Chips logo abaixo da busca formam a "barra de filtros"
             principal, sempre visível durante o scroll. */}
-      <div className="bg-background border-b border-border/40 py-2 md:py-3">
+      <div className="sticky top-[64px] md:top-[80px] z-30 bg-background/95 backdrop-blur-md border-b border-border/40 py-2.5 md:py-3.5 transition-all">
         <div className="container mx-auto px-4">
-          <div className="w-full space-y-1.5 md:space-y-2">
-          <h1 className="text-lg md:text-2xl font-extrabold tracking-tight text-foreground leading-none">
-            Catálogo
-          </h1>
-          {/* Linha 1: busca + ícone de filtros (drawer com ordenação e
-              multi-seleção avançada). Mais limpa: 1 input grande + 1 ícone. */}
-          <div className="flex gap-2">
+          <div className="w-full flex items-center justify-between gap-3 md:gap-6">
+            <div className="flex flex-col min-w-0">
+              <h1 className="text-lg md:text-2xl font-extrabold tracking-tight text-foreground leading-none truncate">
+                Catálogo
+              </h1>
+              {query && (
+                <p className="text-[10px] md:text-xs text-muted-foreground font-medium mt-1 truncate">
+                  Buscando por: <span className="text-primary">"{query}"</span>
+                </p>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 flex-1 max-w-md">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none transition-colors group-focus-within:text-primary" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Buscar produtos..."
-                className="flex h-10 w-full rounded-full border border-input bg-background pl-10 pr-9 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary/40"
+                className="flex h-10 md:h-11 w-full rounded-full border border-input bg-muted/30 pl-10 pr-9 text-sm transition-all placeholder:text-muted-foreground/70 focus:bg-background focus:ring-4 focus:ring-primary/5 focus:border-primary/30 outline-none"
               />
               {query && (
                 <button
@@ -409,7 +415,6 @@ export default function Catalog() {
             </div>
             <button
               onClick={() => setFiltersOpen(true)}
-              aria-label="Filtros e ordenação"
               className="relative inline-flex items-center justify-center h-10 w-10 shrink-0 rounded-full border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors"
             >
               <SlidersHorizontal className="h-4 w-4" />
@@ -417,8 +422,7 @@ export default function Catalog() {
                 <span aria-hidden className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-background" />
               )}
             </button>
-          </div>
-
+            </div>
           </div>
         </div>
       </div>
