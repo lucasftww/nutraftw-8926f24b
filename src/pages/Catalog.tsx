@@ -828,7 +828,7 @@ const ProductCard = memo(function ProductCard({
             >
               {/* Imagem — aspect quadrado + padding interno para uniformizar
                   produtos com recortes/proporções diferentes nos assets. */}
-              <div className="relative aspect-square overflow-hidden bg-white p-4 sm:p-5 flex items-center justify-center">
+              <div className="relative aspect-square overflow-hidden bg-white p-5 sm:p-6 flex items-center justify-center group-hover:bg-muted/5 transition-colors">
                 {(() => {
                   const r = responsiveImage(
                     p.image_url,
@@ -859,15 +859,14 @@ const ProductCard = memo(function ProductCard({
                       width={400}
                       height={400}
                       onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
-                      className="max-w-[84%] max-h-[84%] w-auto h-auto object-contain mx-auto"
+                      className="max-w-[85%] max-h-[85%] w-auto h-auto object-contain mx-auto transition-transform duration-500 group-hover:scale-105"
                     />
                   );
                 })()}
                 {(() => {
                   // Apenas UMA etiqueta visível por vez no canto superior esquerdo.
-                  // Estilo "pílula" inspirado nas referências enviadas pelo usuário.
                   const pillBase =
-                    "absolute top-2 left-2 z-[1] inline-flex items-center rounded-full text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wide px-3 py-1 leading-none shadow-md";
+                    "absolute top-2.5 left-2.5 z-[1] inline-flex items-center rounded-full text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 leading-none shadow-sm backdrop-blur-sm";
                   if (isOut) {
                     return (
                       <span className={`${pillBase} bg-destructive text-destructive-foreground`}>
@@ -912,32 +911,32 @@ const ProductCard = memo(function ProductCard({
               <div className="flex flex-col flex-1 px-3 pt-2 pb-3 sm:px-3.5 sm:pt-3 sm:pb-4">
                 {/* Slot fixo de "etiqueta superior" — reserva 16px sempre,
                     de modo que o título inicie na mesma altura em todos os cards. */}
-                <h3 className="font-medium text-[13px] sm:text-sm leading-snug text-foreground line-clamp-2 sm:line-clamp-3 min-h-[2.6em] sm:min-h-[3.9em]">
+                <h3 className="font-semibold text-[13px] sm:text-[14.5px] leading-snug text-foreground line-clamp-2 min-h-[2.8em] sm:min-h-[3em]">
                   {p.name}
                 </h3>
                 {/* Bloco de preço com altura mínima reservada para a linha
                     "de R$" — alinha cards com e sem desconto na mesma altura. */}
-                <div className="mt-2 sm:mt-2 leading-tight sm:min-h-[64px] flex flex-col sm:justify-end">
+                <div className="mt-auto pt-2 leading-tight min-h-[64px] flex flex-col justify-end">
                   {hasRealSale ? (
-                    <div className="text-xs text-oldPrice font-medium line-through tabular-nums">
+                    <div className="text-[11px] text-oldPrice font-medium line-through tabular-nums opacity-80">
                       de {formatBRL(priceNum)}
                     </div>
                   ) : (
                     // Em desktop reservamos a linha "de R$" para alinhar cards
                     // do mesmo grid; no mobile (2 col) deixamos o preço subir
                     // para perto do nome — evita o vão vazio nos cards "NOVO".
-                    <div aria-hidden className="hidden sm:block h-[16px]" />
+                    <div aria-hidden className="h-[14px]" />
                   )}
-                  <div className="text-base md:text-lg font-extrabold text-primary tabular-nums">
+                  <div className="text-[17px] sm:text-[20px] font-extrabold text-primary tabular-nums tracking-tight">
                     {formatBRL(finalPrice)}
                   </div>
                   {/* Parcelamento — gatilho clássico de conversão.
                       Levemente mais legível que antes, ainda subordinado ao preço. */}
-                  <div className="text-xs font-medium text-foreground/65 tabular-nums mt-0.5">
+                  <div className="text-[11px] font-medium text-muted-foreground tabular-nums mt-0.5">
                     ou 3x de {formatBRL(finalPrice / 3)}
                   </div>
                 </div>
-                <div className="mt-3 sm:mt-auto flex flex-col gap-1.5">
+                <div className="mt-4 flex flex-col gap-1.5">
                 <button
                   type="button"
                   onClick={(e) => {
@@ -945,8 +944,7 @@ const ProductCard = memo(function ProductCard({
                     // garantimos foco/clique explícito acessível para o nicho
                     // 40+ que pode não perceber que o card inteiro é clicável.
                   }}
-                  aria-label={`Ver detalhes de ${p.name}`}
-                  className="inline-flex items-center justify-center h-8 sm:h-9 w-full rounded-full border border-primary/25 bg-background text-primary text-[12px] sm:text-[13px] font-semibold hover:bg-primary/5 hover:border-primary/40 active:scale-[0.98] transition-all"
+                  className="inline-flex items-center justify-center h-9 w-full rounded-full border border-primary/15 bg-background text-primary text-[12.5px] font-semibold hover:bg-primary/5 hover:border-primary/30 active:scale-[0.98] transition-all"
                 >
                   Ver produto
                 </button>
@@ -958,8 +956,7 @@ const ProductCard = memo(function ProductCard({
                     onAdd(p, finalPrice);
                   }}
                   disabled={isOut}
-                  aria-label={isOut ? "Esgotado" : `Adicionar ${p.name} ao carrinho`}
-                  className="inline-flex items-center justify-center gap-1 h-9 sm:h-10 w-full rounded-full bg-secondary text-secondary-foreground text-[13px] sm:text-sm font-semibold hover:bg-secondary/90 active:scale-[0.98] transition-all shadow-sm shadow-secondary/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
+                  className="btn-cta h-10 w-full !text-[13.5px] !gap-1.5 !px-0"
                 >
                   <ShoppingCart className="h-3.5 w-3.5" strokeWidth={2.2} />
                   Comprar
