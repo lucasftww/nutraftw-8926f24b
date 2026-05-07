@@ -6,7 +6,6 @@ import { validateEnv, renderEnvError } from "./lib/validateEnv";
 const rootEl = document.getElementById("root")!;
 const envCheck = validateEnv();
 if (envCheck.ok === false) {
-  // eslint-disable-next-line no-console
   console.error(`[env] ${envCheck.message}`);
   renderEnvError(rootEl, envCheck);
 } else {
