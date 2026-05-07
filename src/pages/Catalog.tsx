@@ -169,6 +169,22 @@ export default function Catalog() {
     });
   };
 
+  const toggleBrand = (slug: string) => {
+    setSelectedBrands((prev) => {
+      const next = new Set(prev);
+      if (next.has(slug)) next.delete(slug);
+      else next.add(slug);
+      // Sincroniza URL para permitir compartilhar/voltar.
+      setSearchParams((curr) => {
+        const params = new URLSearchParams(curr);
+        if (next.size === 0) params.delete("marca");
+        else params.set("marca", [...next].join(","));
+        return params;
+      }, { replace: true });
+      return next;
+    });
+  };
+
   const filtered = useMemo(
     () => {
       // Normaliza para busca tolerante: remove acentos, pontuação (`.`, `-`, `/`, `_`)
