@@ -7,7 +7,7 @@ import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { prefetchMyAccount } from "@/App";
 import logoRV from "@/assets/logo-rv.webp";
-import logoRoyalVittaText from "@/assets/logo-royalvitta-text.webp";
+import logoRoyalVittaText from "@/assets/logo-royalvita-horizontal.svg";
 
 export function Header() {
   const { user, isAdmin } = useAuth();
