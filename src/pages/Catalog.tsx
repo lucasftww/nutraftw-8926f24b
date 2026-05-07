@@ -380,22 +380,28 @@ export default function Catalog() {
             o espaço vazio entre header e conteúdo.
           - Chips logo abaixo da busca formam a "barra de filtros"
             principal, sempre visível durante o scroll. */}
-      <div className="bg-background border-b border-border/40 py-2 md:py-3">
+      <div className="sticky top-[64px] md:top-[80px] z-30 bg-background/95 backdrop-blur-md border-b border-border/40 py-2.5 md:py-3.5 transition-all">
         <div className="container mx-auto px-4">
-          <div className="w-full space-y-1.5 md:space-y-2">
-          <h1 className="text-lg md:text-2xl font-extrabold tracking-tight text-foreground leading-none">
-            Catálogo
-          </h1>
-          {/* Linha 1: busca + ícone de filtros (drawer com ordenação e
-              multi-seleção avançada). Mais limpa: 1 input grande + 1 ícone. */}
-          <div className="flex gap-2">
+          <div className="w-full flex items-center justify-between gap-3 md:gap-6">
+            <div className="flex flex-col min-w-0">
+              <h1 className="text-lg md:text-2xl font-extrabold tracking-tight text-foreground leading-none truncate">
+                Catálogo
+              </h1>
+              {query && (
+                <p className="text-[10px] md:text-xs text-muted-foreground font-medium mt-1 truncate">
+                  Buscando por: <span className="text-primary">"{query}"</span>
+                </p>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 flex-1 max-w-md">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none transition-colors group-focus-within:text-primary" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Buscar produtos..."
-                className="flex h-10 w-full rounded-full border border-input bg-background pl-10 pr-9 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary/40"
+                className="flex h-10 md:h-11 w-full rounded-full border border-input bg-muted/30 pl-10 pr-9 text-sm transition-all placeholder:text-muted-foreground/70 focus:bg-background focus:ring-4 focus:ring-primary/5 focus:border-primary/30 outline-none"
               />
               {query && (
                 <button
@@ -409,7 +415,6 @@ export default function Catalog() {
             </div>
             <button
               onClick={() => setFiltersOpen(true)}
-              aria-label="Filtros e ordenação"
               className="relative inline-flex items-center justify-center h-10 w-10 shrink-0 rounded-full border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors"
             >
               <SlidersHorizontal className="h-4 w-4" />
@@ -417,8 +422,7 @@ export default function Catalog() {
                 <span aria-hidden className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-background" />
               )}
             </button>
-          </div>
-
+            </div>
           </div>
         </div>
       </div>
@@ -824,7 +828,7 @@ const ProductCard = memo(function ProductCard({
             >
               {/* Imagem — aspect quadrado + padding interno para uniformizar
                   produtos com recortes/proporções diferentes nos assets. */}
-              <div className="relative aspect-square overflow-hidden bg-white p-4 sm:p-5 flex items-center justify-center">
+              <div className="relative aspect-square overflow-hidden bg-white p-5 sm:p-6 flex items-center justify-center group-hover:bg-muted/5 transition-colors">
                 {(() => {
                   const r = responsiveImage(
                     p.image_url,
@@ -855,15 +859,14 @@ const ProductCard = memo(function ProductCard({
                       width={400}
                       height={400}
                       onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
-                      className="max-w-[84%] max-h-[84%] w-auto h-auto object-contain mx-auto"
+                      className="max-w-[85%] max-h-[85%] w-auto h-auto object-contain mx-auto transition-transform duration-500 group-hover:scale-105"
                     />
                   );
                 })()}
                 {(() => {
                   // Apenas UMA etiqueta visível por vez no canto superior esquerdo.
-                  // Estilo "pílula" inspirado nas referências enviadas pelo usuário.
                   const pillBase =
-                    "absolute top-2 left-2 z-[1] inline-flex items-center rounded-full text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wide px-3 py-1 leading-none shadow-md";
+                    "absolute top-2.5 left-2.5 z-[1] inline-flex items-center rounded-full text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 leading-none shadow-sm backdrop-blur-sm";
                   if (isOut) {
                     return (
                       <span className={`${pillBase} bg-destructive text-destructive-foreground`}>
@@ -878,14 +881,14 @@ const ProductCard = memo(function ProductCard({
                       </span>
                     );
                   }
-                  if (isOffer) {
+                  if (hasRealSale) {
                     return (
-                      <span className={`${pillBase} bg-destructive text-destructive-foreground`}>
-                        OFERTA
+                      <span className={`${pillBase} bg-secondary text-secondary-foreground`}>
+                        -{discountPct}% OFF
                       </span>
                     );
                   }
-                  if (hasRealSale) {
+                  if (isOffer) {
                     return (
                       <span className={`${pillBase} bg-destructive text-destructive-foreground`}>
                         OFERTA
@@ -908,32 +911,29 @@ const ProductCard = memo(function ProductCard({
               <div className="flex flex-col flex-1 px-3 pt-2 pb-3 sm:px-3.5 sm:pt-3 sm:pb-4">
                 {/* Slot fixo de "etiqueta superior" — reserva 16px sempre,
                     de modo que o título inicie na mesma altura em todos os cards. */}
-                <h3 className="font-medium text-[13px] sm:text-sm leading-snug text-foreground line-clamp-2 sm:line-clamp-3 min-h-[2.6em] sm:min-h-[3.9em]">
+                <h3 className="font-semibold text-[13px] sm:text-[14px] leading-snug text-foreground line-clamp-2 min-h-[2.8em]">
                   {p.name}
                 </h3>
                 {/* Bloco de preço com altura mínima reservada para a linha
                     "de R$" — alinha cards com e sem desconto na mesma altura. */}
-                <div className="mt-2 sm:mt-2 leading-tight sm:min-h-[64px] flex flex-col sm:justify-end">
+                <div className="mt-auto pt-2 leading-tight min-h-[60px] flex flex-col justify-end">
                   {hasRealSale ? (
-                    <div className="text-xs text-oldPrice font-medium line-through tabular-nums">
+                    <div className="text-[10px] sm:text-[11px] text-oldPrice font-medium line-through tabular-nums opacity-70">
                       de {formatBRL(priceNum)}
                     </div>
                   ) : (
-                    // Em desktop reservamos a linha "de R$" para alinhar cards
-                    // do mesmo grid; no mobile (2 col) deixamos o preço subir
-                    // para perto do nome — evita o vão vazio nos cards "NOVO".
-                    <div aria-hidden className="hidden sm:block h-[16px]" />
+                    <div aria-hidden className="h-[12px] sm:h-[14px]" />
                   )}
-                  <div className="text-base md:text-lg font-extrabold text-primary tabular-nums">
+                  <div className="text-[16px] sm:text-[19px] font-extrabold text-primary tabular-nums tracking-tight">
                     {formatBRL(finalPrice)}
                   </div>
                   {/* Parcelamento — gatilho clássico de conversão.
                       Levemente mais legível que antes, ainda subordinado ao preço. */}
-                  <div className="text-xs font-medium text-foreground/65 tabular-nums mt-0.5">
+                  <div className="text-[10px] sm:text-[11px] font-medium text-muted-foreground tabular-nums mt-0.5">
                     ou 3x de {formatBRL(finalPrice / 3)}
                   </div>
                 </div>
-                <div className="mt-3 sm:mt-auto flex flex-col gap-1.5">
+                <div className="mt-4 flex flex-col gap-1.5">
                 <button
                   type="button"
                   onClick={(e) => {
@@ -941,8 +941,7 @@ const ProductCard = memo(function ProductCard({
                     // garantimos foco/clique explícito acessível para o nicho
                     // 40+ que pode não perceber que o card inteiro é clicável.
                   }}
-                  aria-label={`Ver detalhes de ${p.name}`}
-                  className="inline-flex items-center justify-center h-8 sm:h-9 w-full rounded-full border border-primary/25 bg-background text-primary text-[12px] sm:text-[13px] font-semibold hover:bg-primary/5 hover:border-primary/40 active:scale-[0.98] transition-all"
+                  className="inline-flex items-center justify-center h-9 w-full rounded-full border border-primary/15 bg-background text-primary text-[12.5px] font-semibold hover:bg-primary/5 hover:border-primary/30 active:scale-[0.98] transition-all"
                 >
                   Ver produto
                 </button>
@@ -954,8 +953,7 @@ const ProductCard = memo(function ProductCard({
                     onAdd(p, finalPrice);
                   }}
                   disabled={isOut}
-                  aria-label={isOut ? "Esgotado" : `Adicionar ${p.name} ao carrinho`}
-                  className="inline-flex items-center justify-center gap-1 h-9 sm:h-10 w-full rounded-full bg-secondary text-secondary-foreground text-[13px] sm:text-sm font-semibold hover:bg-secondary/90 active:scale-[0.98] transition-all shadow-sm shadow-secondary/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
+                  className="btn-cta h-10 w-full !text-[13.5px] !gap-1.5 !px-0"
                 >
                   <ShoppingCart className="h-3.5 w-3.5" strokeWidth={2.2} />
                   Comprar
