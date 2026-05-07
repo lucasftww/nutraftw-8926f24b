@@ -1,8 +1,17 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { validateEnv, renderEnvError } from "./lib/validateEnv";
 
-createRoot(document.getElementById("root")!).render(<App />);
+const rootEl = document.getElementById("root")!;
+const envCheck = validateEnv();
+if (!envCheck.ok) {
+  // eslint-disable-next-line no-console
+  console.error(`[env] ${envCheck.message}`);
+  renderEnvError(rootEl, envCheck);
+} else {
+  createRoot(rootEl).render(<App />);
+}
 
 // PWA service worker — only register in production AND outside iframes/preview hosts.
 const isInIframe = (() => {
