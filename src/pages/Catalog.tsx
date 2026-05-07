@@ -380,23 +380,14 @@ export default function Catalog() {
             o espaço vazio entre header e conteúdo.
           - Chips logo abaixo da busca formam a "barra de filtros"
             principal, sempre visível durante o scroll. */}
-      <div className="sticky top-[64px] md:top-[80px] z-30 bg-background/95 backdrop-blur-md border-b border-border/40 py-2.5 md:py-3.5 transition-all">
-        <div className="container mx-auto px-4">
-          <div className="w-full flex items-center justify-between gap-3 md:gap-6">
-            <div className="flex flex-col min-w-0">
-              <h1 className="text-lg md:text-2xl font-extrabold tracking-tight text-foreground leading-none truncate">
-                Catálogo
-              </h1>
-              {query && (
-                <p className="text-[10px] md:text-xs text-muted-foreground font-medium mt-1 truncate">
-                  Buscando por: <span className="text-primary">"{query}"</span>
-                </p>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2 flex-1 max-w-md">
-            <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none transition-colors group-focus-within:text-primary" />
+      <div className="sticky top-16 md:top-20 z-30 bg-background/95 backdrop-blur-md border-b border-border/40">
+        <div className="container mx-auto px-4 py-2.5 md:py-3.5">
+          <div className="flex items-center gap-3 md:gap-5">
+            <h1 className="hidden md:block text-2xl font-extrabold tracking-tight text-foreground leading-none shrink-0">
+              Catálogo
+            </h1>
+            <div className="relative flex-1 min-w-0">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -415,15 +406,20 @@ export default function Catalog() {
             </div>
             <button
               onClick={() => setFiltersOpen(true)}
-              className="relative inline-flex items-center justify-center h-10 w-10 shrink-0 rounded-full border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+              aria-label="Filtros"
+              className="relative inline-flex items-center justify-center h-10 w-10 md:h-11 md:w-11 shrink-0 rounded-full border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors"
             >
               <SlidersHorizontal className="h-4 w-4" />
               {(selectedCats.size > 0 || selectedBrands.size > 0 || sort !== "categoria") && (
                 <span aria-hidden className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-background" />
               )}
             </button>
-            </div>
           </div>
+          {query && (
+            <p className="text-[11px] md:text-xs text-muted-foreground font-medium mt-2 truncate">
+              Buscando por: <span className="text-primary">"{query}"</span>
+            </p>
+          )}
         </div>
       </div>
 
