@@ -2,16 +2,19 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+// Fallback hardcoded das credenciais PÚBLICAS do Supabase (anon key + URL).
+// São chaves publicáveis — seguras em código versionado. O fallback existe
+// porque alguns deploys (ex.: builds em ambientes que não exportam VITE_*)
+// ficavam sem env vars e o app crashava com tela branca.
+const FALLBACK_SUPABASE_URL = "https://idutmqfqnoozqbjeqtui.supabase.co";
+const FALLBACK_SUPABASE_PUBLISHABLE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlkdXRtcWZxbm9venFiamVxdHVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMzk4MTEsImV4cCI6MjA5MjgxNTgxMX0.6HUDT6J4D9Z3euHNNpJW0cHuLfXi-nTegm1lG7CTj-I";
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || FALLBACK_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY =
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
-  import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-  throw new Error(
-    "Configuração do Supabase ausente. Defina VITE_SUPABASE_URL e VITE_SUPABASE_PUBLISHABLE_KEY (ou VITE_SUPABASE_ANON_KEY) no .env.",
-  );
-}
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  FALLBACK_SUPABASE_PUBLISHABLE_KEY;
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
