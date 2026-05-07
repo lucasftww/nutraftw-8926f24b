@@ -1,5 +1,7 @@
 /// <reference types="vite-plugin-pwa/client" />
 
+declare const __BUILD_VERSION__: string;
+
 declare module "virtual:pwa-register" {
   export interface RegisterSWOptions {
     immediate?: boolean;
