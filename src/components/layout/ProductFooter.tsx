@@ -5,7 +5,8 @@ import { useCurrentProduct } from "@/contexts/CurrentProductContext";
 import { formatBRL } from "@/lib/utils";
 
 /**
- * Footer minimalista — CTA WhatsApp + links + copyright.
+ * Footer minimalista no estilo "KA Imports": colunas de marca, links úteis
+ * e atendimento com CTA WhatsApp em outline verde.
  */
 export function ProductFooter() {
   const settings = useSiteSettings();
@@ -13,52 +14,80 @@ export function ProductFooter() {
   const year = new Date().getFullYear();
   const { current } = useCurrentProduct();
 
-  // CTA dinâmico: muda texto e mensagem se houver um produto sendo visto.
   const productUrl =
     current && typeof window !== "undefined"
       ? `${window.location.origin}/produto/${current.slug}`
       : "";
-  const ctaLabel = current ? "Tirar dúvida no WhatsApp" : "Falar no WhatsApp";
   const ctaText = current
     ? `Olá! Tenho interesse no produto *${current.name}*${
         current.price ? ` (${formatBRL(current.price)})` : ""
       }.${productUrl ? `\nLink: ${productUrl}` : ""}\nPode me ajudar?`
     : "Olá! Preciso de suporte.";
 
-  return (
-    <footer className="mt-12 sm:mt-16 border-t border-border/60 bg-muted/30">
-      <div className="max-w-5xl mx-auto px-5 py-8 sm:py-10 pb-[calc(env(safe-area-inset-bottom,0px)+7.5rem)] sm:pb-10">
-        <div className="flex flex-col items-center text-center gap-4 sm:gap-5">
-          <a
-            href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(ctaText)}`}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center justify-center gap-2 px-6 h-11 rounded-full bg-whatsapp text-whatsapp-foreground font-semibold text-sm shadow-sm hover:bg-whatsapp-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-whatsapp focus-visible:ring-offset-2"
-          >
-            <MessageCircle className="w-4 h-4" aria-hidden />
-            {ctaLabel}
-          </a>
+  const brandName = settings.brand_name || "Royal Vita";
 
-          <nav className="flex items-center gap-6 text-[13px] text-muted-foreground">
-            <Link to="/" className="hover:text-foreground transition-colors">
-              Produtos
-            </Link>
-            <Link to="/sobre" className="hover:text-foreground transition-colors">
-              Sobre
-            </Link>
+  return (
+    <footer className="mt-12 sm:mt-16 border-t border-border/60 bg-background">
+      <div className="max-w-5xl mx-auto px-6 py-10 sm:py-12 pb-[calc(env(safe-area-inset-bottom,0px)+7.5rem)] sm:pb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-12">
+          {/* Marca */}
+          <div>
+            <h3 className="font-display text-xl font-extrabold tracking-tight text-primary uppercase">
+              {brandName}
+            </h3>
+            <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+              A sua loja de importados com os melhores preços e garantia de qualidade.
+            </p>
+          </div>
+
+          {/* Links úteis */}
+          <div>
+            <h4 className="font-display text-base font-bold text-foreground">
+              Links Úteis
+            </h4>
+            <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+              <li>
+                <Link to="/" className="hover:text-foreground transition-colors">
+                  Produtos
+                </Link>
+              </li>
+              <li>
+                <a
+                  href={`https://wa.me/${whatsapp}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:text-foreground transition-colors"
+                >
+                  Suporte
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Atendimento */}
+          <div>
+            <h4 className="font-display text-base font-bold text-foreground">
+              Atendimento
+            </h4>
+            <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+              Precisa de ajuda? Fale com nosso suporte diretamente pelo WhatsApp.
+            </p>
             <a
-              href={`https://wa.me/${whatsapp}`}
+              href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(ctaText)}`}
               target="_blank"
               rel="noreferrer"
-              className="hover:text-foreground transition-colors"
+              className="mt-4 inline-flex w-full items-center justify-center gap-2 px-5 h-11 rounded-full border-2 border-whatsapp text-whatsapp font-semibold text-sm hover:bg-whatsapp hover:text-whatsapp-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-whatsapp focus-visible:ring-offset-2"
             >
-              Suporte
+              <MessageCircle className="w-4 h-4" aria-hidden />
+              Suporte via WhatsApp
             </a>
-          </nav>
+          </div>
+        </div>
 
-           <p className="text-[11px] text-muted-foreground/80">
-             © {year}
-           </p>
+        <div className="mt-10 pt-6 border-t border-border/60 text-center">
+          <p className="text-xs text-muted-foreground">
+            © {year} {brandName} — Todos os direitos reservados
+          </p>
         </div>
       </div>
     </footer>
