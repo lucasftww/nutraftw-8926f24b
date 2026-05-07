@@ -695,6 +695,12 @@ export function AdminProducts() {
                   {cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
+              <div className="space-y-2"><Label>Marca</Label>
+                <select className="h-11 w-full rounded-xl border border-input bg-background px-4 text-sm" value={editing.brand_id || ""} onChange={(e) => setEditing({ ...editing, brand_id: e.target.value || null })}>
+                  <option value="">— Sem marca —</option>
+                  {brands.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+                </select>
+              </div>
               <div className="space-y-2"><Label>Preço (R$)</Label><Input type="number" step="0.01" min="0" required value={editing.price ?? ""} onChange={(e) => setEditing({ ...editing, price: e.target.value })} /></div>
               <div className="space-y-2">
                 <Label>Preço promocional (R$)</Label>
