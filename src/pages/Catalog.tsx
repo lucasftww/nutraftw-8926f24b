@@ -342,6 +342,24 @@ export default function Catalog() {
     return map;
   }, [products]);
 
+  // Contagem de produtos por marca (para o filtro). Considera as categorias já
+  // selecionadas para que o número reflita o que será exibido após aplicar.
+  const countByBrand = useMemo(() => {
+    const map = new Map<string, number>();
+    const wantsPromos = selectedCats.has("__promos__");
+    const realCats = new Set([...selectedCats].filter((s) => s !== "__promos__"));
+    for (const p of products) {
+      if (selectedCats.size > 0) {
+        if (wantsPromos && discountPctOf(p) <= 0) continue;
+        if (realCats.size > 0 && (!p.category || !realCats.has(p.category.slug))) continue;
+      }
+      const k = p.brand?.slug;
+      if (!k) continue;
+      map.set(k, (map.get(k) ?? 0) + 1);
+    }
+    return map;
+  }, [products, selectedCats]);
+
   const displayedCategories = useMemo(() => {
     const promosCount = countByCat.get("__promos__") ?? 0;
     const base = [...categories];
