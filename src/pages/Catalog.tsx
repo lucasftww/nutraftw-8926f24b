@@ -11,17 +11,20 @@ import { formatBRL } from "@/lib/utils";
 import { SORT_KEYS, SORT_LABELS, type SortKey, discountPctOf, isTirzepatidaCategory, productScore } from "@/lib/catalog";
 import { useCart } from "@/hooks/useCart";
 import { useSEO } from "@/hooks/useSEO";
-import { useProducts, useCategories, type ProductRow } from "@/hooks/useProducts";
+import { useProducts, useCategories, useBrands, type ProductRow } from "@/hooks/useProducts";
 
 type Product = ProductRow;
 
 export default function Catalog() {
   const { data: products = [], isLoading: loadingProducts } = useProducts();
   const { data: categories = [] } = useCategories();
+  const { data: brands = [] } = useBrands();
   const [selectedCats, setSelectedCats] = useState<Set<string>>(new Set());
+  const [selectedBrands, setSelectedBrands] = useState<Set<string>>(new Set());
   const [searchParams, setSearchParams] = useSearchParams();
   const urlQuery = searchParams.get("q") ?? "";
   const urlCategoria = searchParams.get("categoria") ?? "";
+  const urlMarca = searchParams.get("marca") ?? "";
   const urlSort = (searchParams.get("ordenar") ?? "categoria") as SortKey;
   const [query, setQuery] = useState(urlQuery);
   const [filtersOpen, setFiltersOpen] = useState(false);
