@@ -99,6 +99,7 @@ function ProductTableRow({ p, sortable, selected, toggleSel, setEditing, duplica
 export function AdminProducts() {
   const [items, setItems] = useState<any[]>([]);
   const [cats, setCats] = useState<any[]>([]);
+  const [brands, setBrands] = useState<any[]>([]);
   const [editing, setEditing] = useState<any | null>(null);
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
