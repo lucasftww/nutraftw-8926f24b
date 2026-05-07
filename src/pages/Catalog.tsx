@@ -881,14 +881,14 @@ const ProductCard = memo(function ProductCard({
                       </span>
                     );
                   }
-                  if (isOffer) {
+                  if (hasRealSale) {
                     return (
-                      <span className={`${pillBase} bg-destructive text-destructive-foreground`}>
-                        OFERTA
+                      <span className={`${pillBase} bg-secondary text-secondary-foreground`}>
+                        -{discountPct}% OFF
                       </span>
                     );
                   }
-                  if (hasRealSale) {
+                  if (isOffer) {
                     return (
                       <span className={`${pillBase} bg-destructive text-destructive-foreground`}>
                         OFERTA
@@ -911,28 +911,25 @@ const ProductCard = memo(function ProductCard({
               <div className="flex flex-col flex-1 px-3 pt-2 pb-3 sm:px-3.5 sm:pt-3 sm:pb-4">
                 {/* Slot fixo de "etiqueta superior" — reserva 16px sempre,
                     de modo que o título inicie na mesma altura em todos os cards. */}
-                <h3 className="font-semibold text-[13px] sm:text-[14.5px] leading-snug text-foreground line-clamp-2 min-h-[2.8em] sm:min-h-[3em]">
+                <h3 className="font-semibold text-[13px] sm:text-[14px] leading-snug text-foreground line-clamp-2 min-h-[2.8em]">
                   {p.name}
                 </h3>
                 {/* Bloco de preço com altura mínima reservada para a linha
                     "de R$" — alinha cards com e sem desconto na mesma altura. */}
-                <div className="mt-auto pt-2 leading-tight min-h-[64px] flex flex-col justify-end">
+                <div className="mt-auto pt-2 leading-tight min-h-[60px] flex flex-col justify-end">
                   {hasRealSale ? (
-                    <div className="text-[11px] text-oldPrice font-medium line-through tabular-nums opacity-80">
+                    <div className="text-[10px] sm:text-[11px] text-oldPrice font-medium line-through tabular-nums opacity-70">
                       de {formatBRL(priceNum)}
                     </div>
                   ) : (
-                    // Em desktop reservamos a linha "de R$" para alinhar cards
-                    // do mesmo grid; no mobile (2 col) deixamos o preço subir
-                    // para perto do nome — evita o vão vazio nos cards "NOVO".
-                    <div aria-hidden className="h-[14px]" />
+                    <div aria-hidden className="h-[12px] sm:h-[14px]" />
                   )}
-                  <div className="text-[17px] sm:text-[20px] font-extrabold text-primary tabular-nums tracking-tight">
+                  <div className="text-[16px] sm:text-[19px] font-extrabold text-primary tabular-nums tracking-tight">
                     {formatBRL(finalPrice)}
                   </div>
                   {/* Parcelamento — gatilho clássico de conversão.
                       Levemente mais legível que antes, ainda subordinado ao preço. */}
-                  <div className="text-[11px] font-medium text-muted-foreground tabular-nums mt-0.5">
+                  <div className="text-[10px] sm:text-[11px] font-medium text-muted-foreground tabular-nums mt-0.5">
                     ou 3x de {formatBRL(finalPrice / 3)}
                   </div>
                 </div>
