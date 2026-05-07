@@ -380,8 +380,8 @@ export default function Catalog() {
             o espaço vazio entre header e conteúdo.
           - Chips logo abaixo da busca formam a "barra de filtros"
             principal, sempre visível durante o scroll. */}
-      <div className="fixed top-16 md:top-20 left-0 right-0 z-30 bg-background/95 backdrop-blur-md border-b border-border/40">
-        <div className="container mx-auto px-4 py-2.5 md:py-3.5">
+      <div className="fixed top-16 md:top-20 left-0 right-0 z-30 bg-background border-b border-border/40 shadow-[0_1px_0_0_hsl(var(--border)/0.4)]">
+        <div className="container mx-auto px-4 py-2 md:py-3">
           <div className="flex items-center gap-3 md:gap-5">
             <h1 className="hidden md:block text-2xl font-extrabold tracking-tight text-foreground leading-none shrink-0">
               Catálogo
