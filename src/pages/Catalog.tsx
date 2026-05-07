@@ -395,7 +395,7 @@ export default function Catalog() {
               className="relative inline-flex items-center justify-center h-10 w-10 shrink-0 rounded-full border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors"
             >
               <SlidersHorizontal className="h-4 w-4" />
-              {(selectedCats.size > 0 || sort !== "categoria") && (
+              {(selectedCats.size > 0 || selectedBrands.size > 0 || sort !== "categoria") && (
                 <span aria-hidden className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-background" />
               )}
             </button>
