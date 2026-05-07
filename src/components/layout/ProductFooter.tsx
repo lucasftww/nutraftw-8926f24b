@@ -24,7 +24,7 @@ export function ProductFooter() {
       }.${productUrl ? `\nLink: ${productUrl}` : ""}\nPode me ajudar?`
     : "Olá! Preciso de suporte.";
 
-  const brandName = settings.brand_name || "Royal Vita";
+  const brandName = settings.brand_name || "Royal Vitta";
 
   return (
     <footer className="mt-12 sm:mt-16 border-t border-border/60 bg-background">
