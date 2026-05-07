@@ -224,6 +224,9 @@ export default function Catalog() {
             return false;
           }
         }
+        if (selectedBrands.size > 0) {
+          if (!p.brand || !selectedBrands.has(p.brand.slug)) return false;
+        }
         if (!qNorm) return true;
         const nameNorm = normalize(p.name);
         const descNorm = p.description ? normalize(p.description) : "";
