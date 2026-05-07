@@ -5,12 +5,12 @@ import { validateEnv, renderEnvError } from "./lib/validateEnv";
 
 const rootEl = document.getElementById("root")!;
 const envCheck = validateEnv();
-if (!envCheck.ok) {
+if (envCheck.ok) {
+  createRoot(rootEl).render(<App />);
+} else {
   // eslint-disable-next-line no-console
   console.error(`[env] ${envCheck.message}`);
   renderEnvError(rootEl, envCheck);
-} else {
-  createRoot(rootEl).render(<App />);
 }
 
 // PWA service worker — only register in production AND outside iframes/preview hosts.
