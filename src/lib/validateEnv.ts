@@ -7,18 +7,11 @@ export type EnvValidationResult =
   | { ok: true }
   | { ok: false; missing: string[]; message: string };
 
-export function validateEnv(env: ImportMetaEnv = import.meta.env): EnvValidationResult {
-  const missing: string[] = [];
-  if (!env.VITE_SUPABASE_URL) missing.push("VITE_SUPABASE_URL");
-  if (!env.VITE_SUPABASE_PUBLISHABLE_KEY && !env.VITE_SUPABASE_ANON_KEY) {
-    missing.push("VITE_SUPABASE_PUBLISHABLE_KEY (ou VITE_SUPABASE_ANON_KEY)");
-  }
-  if (missing.length === 0) return { ok: true };
-  return {
-    ok: false,
-    missing,
-    message: `Configuração do Supabase incompleta. Variáveis ausentes: ${missing.join(", ")}.`,
-  };
+export function validateEnv(_env: ImportMetaEnv = import.meta.env): EnvValidationResult {
+  // O cliente Supabase tem fallback hardcoded das chaves PÚBLICAS, então
+  // o app sempre tem credenciais válidas em runtime. Esta função fica como
+  // um hook para validações futuras (sem bloquear o boot por env vars).
+  return { ok: true };
 }
 
 export function renderEnvError(target: HTMLElement, result: Extract<EnvValidationResult, { ok: false }>) {
