@@ -1,5 +1,6 @@
 import {
   Activity,
+  Award,
   BarChart3,
   Handshake,
   Heart,
@@ -24,6 +25,7 @@ export type Tab =
   | "reports"
   | "products"
   | "categories"
+  | "brands"
   | "promotions"
   | "orders"
   | "coupons"
@@ -44,6 +46,7 @@ export const TAB_IDS: Tab[] = [
   "reports",
   "products",
   "categories",
+  "brands",
   "promotions",
   "orders",
   "coupons",
@@ -62,6 +65,7 @@ export const TABS: TabDefinition[] = [
   { id: "reports", label: "Relatórios", icon: BarChart3 },
   { id: "products", label: "Produtos", icon: Package },
   { id: "categories", label: "Categorias", icon: Tags },
+  { id: "brands", label: "Marcas", icon: Award },
   { id: "promotions", label: "Promoções", icon: Tag },
   { id: "orders", label: "Pedidos", icon: ShoppingBag },
   { id: "coupons", label: "Cupons", icon: Ticket },
@@ -75,7 +79,7 @@ export const TABS: TabDefinition[] = [
 
 export const GROUPS: GroupDefinition[] = [
   { id: "overview", label: "Visão geral", icon: LayoutDashboard, tabs: ["dashboard", "funnel", "wishlist", "reports"] },
-  { id: "catalog", label: "Catálogo", icon: Package, tabs: ["products", "categories", "promotions"] },
+  { id: "catalog", label: "Catálogo", icon: Package, tabs: ["products", "categories", "brands", "promotions"] },
   { id: "sales", label: "Vendas", icon: ShoppingBag, tabs: ["orders", "coupons", "shipping"] },
   { id: "people", label: "Pessoas", icon: Users, tabs: ["users", "affiliates"] },
   { id: "system", label: "Sistema", icon: Settings, tabs: ["settings", "diagnostics", "audit"] },

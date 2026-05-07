@@ -17,6 +17,7 @@ export interface ProductRow {
   stock: number;
   created_at: string;
   category: { id: string; name: string; slug: string } | null;
+  brand: { id: string; name: string; slug: string } | null;
 }
 
 export interface CategoryRow {
@@ -25,8 +26,14 @@ export interface CategoryRow {
   slug: string;
 }
 
+export interface BrandRow {
+  id: string;
+  name: string;
+  slug: string;
+}
+
 const PRODUCT_COLUMNS =
-  "id, slug, name, description, price, sale_price, image_url, is_featured, is_new_release, is_on_offer, offer_order, stock, created_at, category:categories(id, name, slug)";
+  "id, slug, name, description, price, sale_price, image_url, is_featured, is_new_release, is_on_offer, offer_order, stock, created_at, category:categories(id, name, slug), brand:brands(id, name, slug)";
 
 export function useCategories() {
   return useQuery<CategoryRow[]>({
@@ -36,6 +43,21 @@ export function useCategories() {
         .from("categories")
         .select("id, name, slug")
         .order("display_order");
+      if (error) throw error;
+      return (data as any) || [];
+    },
+  });
+}
+
+export function useBrands() {
+  return useQuery<BrandRow[]>({
+    queryKey: ["brands", "all"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("brands")
+        .select("id, name, slug")
+        .order("display_order")
+        .order("name");
       if (error) throw error;
       return (data as any) || [];
     },

@@ -99,6 +99,7 @@ function ProductTableRow({ p, sortable, selected, toggleSel, setEditing, duplica
 export function AdminProducts() {
   const [items, setItems] = useState<any[]>([]);
   const [cats, setCats] = useState<any[]>([]);
+  const [brands, setBrands] = useState<any[]>([]);
   const [editing, setEditing] = useState<any | null>(null);
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -139,9 +140,10 @@ export function AdminProducts() {
       const safe = debouncedQuery.replace(/[%_,()*:"'\\]/g, " ").trim();
       q = q.or(`name.ilike.%${safe}%,active_principle.ilike.%${safe}%`);
     }
-    const [pr, cr] = await Promise.all([
+    const [pr, cr, br] = await Promise.all([
       q,
       supabase.from("categories").select("*").order("display_order"),
+      supabase.from("brands").select("*").order("display_order").order("name"),
     ]);
     if (requestId !== loadReqRef.current) return;
     if (pr.error) {
@@ -161,6 +163,7 @@ export function AdminProducts() {
     setItems(pr.data || []);
     setTotalCount(pr.count ?? null);
     setCats(cr.data || []);
+    setBrands(br.data || []);
     setLoading(false);
   }
   useEffect(() => { load(); }, [page, debouncedQuery]);
@@ -199,6 +202,7 @@ export function AdminProducts() {
       stock: stockNum,
       image_url: f.image_url || null,
       category_id: f.category_id || null,
+      brand_id: f.brand_id || null,
       is_featured: !!f.is_featured,
       is_new_release: !!f.is_new_release,
       is_active: f.is_active !== false,
@@ -689,6 +693,12 @@ export function AdminProducts() {
                 <select className="h-11 w-full rounded-xl border border-input bg-background px-4 text-sm" value={editing.category_id || ""} onChange={(e) => setEditing({ ...editing, category_id: e.target.value || null })}>
                   <option value="">— Sem categoria —</option>
                   {cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+              <div className="space-y-2"><Label>Marca</Label>
+                <select className="h-11 w-full rounded-xl border border-input bg-background px-4 text-sm" value={editing.brand_id || ""} onChange={(e) => setEditing({ ...editing, brand_id: e.target.value || null })}>
+                  <option value="">— Sem marca —</option>
+                  {brands.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
                 </select>
               </div>
               <div className="space-y-2"><Label>Preço (R$)</Label><Input type="number" step="0.01" min="0" required value={editing.price ?? ""} onChange={(e) => setEditing({ ...editing, price: e.target.value })} /></div>

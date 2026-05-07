@@ -29,6 +29,7 @@ export type AdminAction =
 export type AdminEntity =
   | "products"
   | "categories"
+  | "brands"
   | "coupons"
   | "shipping_rates"
   | "site_settings"

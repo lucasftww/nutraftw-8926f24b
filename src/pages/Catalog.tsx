@@ -11,17 +11,20 @@ import { formatBRL } from "@/lib/utils";
 import { SORT_KEYS, SORT_LABELS, type SortKey, discountPctOf, isTirzepatidaCategory, productScore } from "@/lib/catalog";
 import { useCart } from "@/hooks/useCart";
 import { useSEO } from "@/hooks/useSEO";
-import { useProducts, useCategories, type ProductRow } from "@/hooks/useProducts";
+import { useProducts, useCategories, useBrands, type ProductRow } from "@/hooks/useProducts";
 
 type Product = ProductRow;
 
 export default function Catalog() {
   const { data: products = [], isLoading: loadingProducts } = useProducts();
   const { data: categories = [] } = useCategories();
+  const { data: brands = [] } = useBrands();
   const [selectedCats, setSelectedCats] = useState<Set<string>>(new Set());
+  const [selectedBrands, setSelectedBrands] = useState<Set<string>>(new Set());
   const [searchParams, setSearchParams] = useSearchParams();
   const urlQuery = searchParams.get("q") ?? "";
   const urlCategoria = searchParams.get("categoria") ?? "";
+  const urlMarca = searchParams.get("marca") ?? "";
   const urlSort = (searchParams.get("ordenar") ?? "categoria") as SortKey;
   const [query, setQuery] = useState(urlQuery);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -44,6 +47,9 @@ export default function Catalog() {
     //   navegar para `/` depois de uma categoria, exigindo recarregar a página).
     setSelectedCats(urlCategoria ? new Set([urlCategoria]) : new Set());
   }, [urlCategoria]);
+  useEffect(() => {
+    setSelectedBrands(urlMarca ? new Set(urlMarca.split(",").filter(Boolean)) : new Set());
+  }, [urlMarca]);
   useEffect(() => {
     if (query === urlQuery) return;
     const t = setTimeout(() => {
@@ -163,6 +169,22 @@ export default function Catalog() {
     });
   };
 
+  const toggleBrand = (slug: string) => {
+    setSelectedBrands((prev) => {
+      const next = new Set(prev);
+      if (next.has(slug)) next.delete(slug);
+      else next.add(slug);
+      // Sincroniza URL para permitir compartilhar/voltar.
+      setSearchParams((curr) => {
+        const params = new URLSearchParams(curr);
+        if (next.size === 0) params.delete("marca");
+        else params.set("marca", [...next].join(","));
+        return params;
+      }, { replace: true });
+      return next;
+    });
+  };
+
   const filtered = useMemo(
     () => {
       // Normaliza para busca tolerante: remove acentos, pontuação (`.`, `-`, `/`, `_`)
@@ -202,6 +224,9 @@ export default function Catalog() {
             return false;
           }
         }
+        if (selectedBrands.size > 0) {
+          if (!p.brand || !selectedBrands.has(p.brand.slug)) return false;
+        }
         if (!qNorm) return true;
         const nameNorm = normalize(p.name);
         const descNorm = p.description ? normalize(p.description) : "";
@@ -213,7 +238,7 @@ export default function Catalog() {
         return nameCompact.includes(qCompact) || descCompact.includes(qCompact);
       });
     },
-    [products, selectedCats, query]
+    [products, selectedCats, selectedBrands, query]
   );
 
   // Comparator único — usado tanto em Promoções quanto em cada Categoria,
@@ -317,6 +342,24 @@ export default function Catalog() {
     return map;
   }, [products]);
 
+  // Contagem de produtos por marca (para o filtro). Considera as categorias já
+  // selecionadas para que o número reflita o que será exibido após aplicar.
+  const countByBrand = useMemo(() => {
+    const map = new Map<string, number>();
+    const wantsPromos = selectedCats.has("__promos__");
+    const realCats = new Set([...selectedCats].filter((s) => s !== "__promos__"));
+    for (const p of products) {
+      if (selectedCats.size > 0) {
+        if (wantsPromos && discountPctOf(p) <= 0) continue;
+        if (realCats.size > 0 && (!p.category || !realCats.has(p.category.slug))) continue;
+      }
+      const k = p.brand?.slug;
+      if (!k) continue;
+      map.set(k, (map.get(k) ?? 0) + 1);
+    }
+    return map;
+  }, [products, selectedCats]);
+
   const displayedCategories = useMemo(() => {
     const promosCount = countByCat.get("__promos__") ?? 0;
     const base = [...categories];
@@ -370,7 +413,7 @@ export default function Catalog() {
               className="relative inline-flex items-center justify-center h-10 w-10 shrink-0 rounded-full border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors"
             >
               <SlidersHorizontal className="h-4 w-4" />
-              {(selectedCats.size > 0 || sort !== "categoria") && (
+              {(selectedCats.size > 0 || selectedBrands.size > 0 || sort !== "categoria") && (
                 <span aria-hidden className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-background" />
               )}
             </button>
@@ -454,40 +497,34 @@ export default function Catalog() {
             className="absolute inset-0 bg-foreground/50 backdrop-blur-[2px] animate-in fade-in"
             onClick={() => setFiltersOpen(false)}
           />
-          <aside className="absolute right-0 top-0 h-full w-full sm:w-[92%] sm:max-w-md bg-background shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
-            {/* Header — grande, claro, com contador */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <SlidersHorizontal className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h2 className="font-bold text-xl text-primary leading-tight">Filtros</h2>
-                  <p className="text-[13px] text-muted-foreground leading-tight">
-                    {selectedCats.size === 0
-                      ? "Toque para escolher uma categoria"
-                      : `${selectedCats.size} ${selectedCats.size === 1 ? "categoria selecionada" : "categorias selecionadas"}`}
-                  </p>
-                </div>
+          <aside className="absolute right-0 top-0 h-full w-full sm:w-[88%] sm:max-w-sm bg-background shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
+            {/* Header minimalista */}
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-border/70">
+              <div className="flex items-center gap-2.5">
+                <SlidersHorizontal className="h-4 w-4 text-primary" />
+                <h2 className="text-[15px] font-semibold text-foreground tracking-tight">Filtros</h2>
+                {(selectedCats.size + selectedBrands.size) > 0 && (
+                  <span className="text-[11px] font-semibold tabular-nums text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                    {selectedCats.size + selectedBrands.size}
+                  </span>
+                )}
               </div>
               <button
                 onClick={() => setFiltersOpen(false)}
-                className="h-11 w-11 inline-flex items-center justify-center rounded-full hover:bg-muted active:bg-muted/80 transition-colors"
+                className="h-9 w-9 -mr-2 inline-flex items-center justify-center rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                 aria-label="Fechar filtros"
               >
-                <X className="h-6 w-6 text-primary" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            {/* Lista de categorias — área de toque ampla, contagem visível */}
             <div className="flex-1 overflow-y-auto px-4 py-4">
-              {/* Ordenação — agora dentro do drawer (saiu do header para
-                  liberar espaço na área principal). */}
-              <div className="mb-5">
-                <h3 className="text-[13px] font-bold uppercase tracking-wider text-muted-foreground px-2 mb-2">
+              {/* Ordenação — chips finos */}
+              <section className="mb-5">
+                <h3 className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/80 px-1 mb-2">
                   Ordenar por
                 </h3>
-                <div className="grid grid-cols-2 gap-2 px-1 sm:flex sm:flex-wrap">
+                <div className="flex flex-wrap gap-1.5">
                   {SORT_KEYS.map((k) => {
                     const active = sort === k;
                     return (
@@ -496,98 +533,139 @@ export default function Catalog() {
                         type="button"
                         onClick={() => setSort(k)}
                         aria-pressed={active}
-                        className={`inline-flex items-center justify-center gap-1.5 h-10 px-3 rounded-full text-sm font-medium transition-colors ${
+                        className={`inline-flex items-center gap-1 h-8 px-3 rounded-full text-[12.5px] font-medium border transition-colors ${
                           active
-                            ? "bg-primary text-primary-foreground shadow-sm"
-                            : "bg-muted/60 text-foreground hover:bg-muted"
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-background text-foreground border-border hover:border-foreground/40"
                         }`}
                       >
-                        {active && <ArrowUpDown className="h-3.5 w-3.5" />}
+                        {active && <ArrowUpDown className="h-3 w-3" />}
                         {SORT_LABELS[k]}
                       </button>
                     );
                   })}
                 </div>
-              </div>
+              </section>
 
-              <div className="flex items-center justify-between px-2 mb-3">
-                <h3 className="text-[13px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Categorias
-                </h3>
-                {selectedCats.size > 0 && (
-                  <button
-                    onClick={() => setSelectedCats(new Set())}
-                    className="text-[13px] font-semibold text-primary hover:underline"
-                  >
-                    Limpar tudo
-                  </button>
-                )}
-              </div>
-              <ul className="flex flex-col gap-1.5 pb-24">
-                {[...displayedCategories].sort((a, b) => {
-                  const aTirz = isTirzepatidaCategory(a) ? 0 : 1;
-                  const bTirz = isTirzepatidaCategory(b) ? 0 : 1;
-                  if (aTirz !== bTirz) return aTirz - bTirz;
-                  return 0;
-                }).map((c) => {
-                  const checked = selectedCats.has(c.slug);
-                  const count = countByCat.get(c.slug) ?? 0;
-                  const isPromo = c.slug === "__promos__";
-                  if (isPromo && count === 0) return null;
-                  return (
-                    <li key={c.id}>
-                      <label
-                        className={`flex items-center gap-4 cursor-pointer min-h-[56px] px-4 rounded-2xl border transition-all ${
-                          checked
-                            ? "bg-primary/5 border-primary/40 shadow-sm"
-                            : "bg-background border-border hover:bg-muted/60 hover:border-border"
-                        } focus-within:ring-2 focus-within:ring-primary/40 focus-within:border-primary/50`}
+              {/* Categorias — lista compacta */}
+              <section className="mb-5">
+                <div className="flex items-center justify-between px-1 mb-2">
+                  <h3 className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/80">
+                    Categorias
+                  </h3>
+                  {selectedCats.size > 0 && (
+                    <button
+                      onClick={() => setSelectedCats(new Set())}
+                      className="text-[11px] font-medium text-primary hover:underline"
+                    >
+                      limpar
+                    </button>
+                  )}
+                </div>
+                <ul className="flex flex-col">
+                  {[...displayedCategories].sort((a, b) => {
+                    const aTirz = isTirzepatidaCategory(a) ? 0 : 1;
+                    const bTirz = isTirzepatidaCategory(b) ? 0 : 1;
+                    if (aTirz !== bTirz) return aTirz - bTirz;
+                    return 0;
+                  }).map((c) => {
+                    const checked = selectedCats.has(c.slug);
+                    const count = countByCat.get(c.slug) ?? 0;
+                    const isPromo = c.slug === "__promos__";
+                    if (isPromo && count === 0) return null;
+                    return (
+                      <li key={c.id}>
+                        <label
+                          className={`flex items-center gap-3 cursor-pointer h-11 px-2 rounded-lg transition-colors ${
+                            checked ? "bg-primary/5" : "hover:bg-muted/50"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => toggleCat(c.slug)}
+                            className="sr-only"
+                          />
+                          <div
+                            className={`h-[18px] w-[18px] rounded-[5px] border flex items-center justify-center shrink-0 transition-colors ${
+                              checked ? "bg-primary border-primary" : "border-muted-foreground/40 bg-background"
+                            }`}
+                            aria-hidden="true"
+                          >
+                            {checked && (
+                              <svg className="h-3 w-3 text-primary-foreground" fill="none" stroke="currentColor" strokeWidth="3.5" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
+                            )}
+                          </div>
+                          <span className={`flex-1 text-[14px] ${checked ? "text-primary font-semibold" : "text-foreground font-medium"}`}>
+                            {c.name}
+                          </span>
+                          <span className="text-[11px] font-medium tabular-nums text-muted-foreground">
+                            {count}
+                          </span>
+                        </label>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+
+              {/* Marcas — chips compactos (estilo KA Imports) */}
+              {brands.length > 0 && (
+                <section className="mb-6 pb-24">
+                  <div className="flex items-center justify-between px-1 mb-2">
+                    <h3 className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/80">
+                      Marcas
+                    </h3>
+                    {selectedBrands.size > 0 && (
+                      <button
+                        onClick={() => {
+                          setSelectedBrands(new Set());
+                          setSearchParams((curr) => {
+                            const params = new URLSearchParams(curr);
+                            params.delete("marca");
+                            return params;
+                          }, { replace: true });
+                        }}
+                        className="text-[11px] font-medium text-primary hover:underline"
                       >
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={() => toggleCat(c.slug)}
-                          className="sr-only"
-                        />
-                        <div
-                          className={`h-6 w-6 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
-                            checked ? "bg-primary border-primary" : "border-muted-foreground/40 bg-background"
-                          }`}
-                          aria-hidden="true"
-                        >
-                          {checked && (
-                            <svg
-                              className="h-4 w-4 text-primary-foreground"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="3.5"
-                              viewBox="0 0 24 24"
-                            >
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
-                          )}
-                        </div>
-                        <span
-                          className={`flex-1 text-base font-medium ${
-                            checked ? "text-primary" : "text-foreground"
-                          }`}
-                        >
-                          {c.name}
-                        </span>
-                        <span
-                          className={`text-[13px] font-semibold tabular-nums px-2.5 py-0.5 rounded-full ${
+                        limpar
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {brands.map((b) => {
+                      const checked = selectedBrands.has(b.slug);
+                      const count = countByBrand.get(b.slug) ?? 0;
+                      const dim = count === 0 && !checked;
+                      return (
+                        <button
+                          key={b.id}
+                          type="button"
+                          onClick={() => toggleBrand(b.slug)}
+                          aria-pressed={checked}
+                          disabled={dim}
+                          className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-[12.5px] font-medium border transition-colors ${
                             checked
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-muted text-muted-foreground"
+                              ? "bg-foreground text-background border-foreground"
+                              : dim
+                                ? "bg-muted/30 text-muted-foreground/60 border-border/60 cursor-not-allowed"
+                                : "bg-background text-foreground border-border hover:border-foreground/40"
                           }`}
                         >
-                          {count}
-                        </span>
-                      </label>
-                    </li>
-                  );
-                })}
-              </ul>
+                          {b.name}
+                          {count > 0 && (
+                            <span className={`text-[10.5px] tabular-nums ${checked ? "text-background/70" : "text-muted-foreground"}`}>
+                              {count}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
             </div>
 
             {/* Rodapé com CTA grande — "Ver produtos" em laranja (CTA de avanço),
@@ -597,16 +675,25 @@ export default function Catalog() {
               className="px-4 py-4 border-t border-border bg-background shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.08)]"
               style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)" }}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setSelectedCats(new Set())}
-                  className="h-14 px-4 text-sm font-semibold text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors"
+                  onClick={() => {
+                    setSelectedCats(new Set());
+                    setSelectedBrands(new Set());
+                    setSearchParams((curr) => {
+                      const params = new URLSearchParams(curr);
+                      params.delete("marca");
+                      params.delete("categoria");
+                      return params;
+                    }, { replace: true });
+                  }}
+                  className="h-12 px-4 rounded-xl text-[13px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                 >
                   Limpar
                 </button>
                 <button
                   onClick={() => setFiltersOpen(false)}
-                  className="flex-1 h-14 rounded-2xl bg-secondary text-secondary-foreground text-base font-extrabold hover:bg-secondary/90 active:scale-[0.99] shadow-lg shadow-secondary/30 transition-all"
+                  className="flex-1 h-12 rounded-xl bg-secondary text-secondary-foreground text-[14px] font-bold hover:bg-secondary/90 active:scale-[0.99] shadow-md shadow-secondary/25 transition-all"
                 >
                   Ver {filtered.length} {filtered.length === 1 ? "produto" : "produtos"}
                 </button>
