@@ -3,8 +3,24 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { VitePWA } from "vite-plugin-pwa";
 
+// Versão do build — usada como sufixo dos cache names do Service Worker.
+// Cada build gera um identificador único; quando o SW novo ativa, os caches
+// antigos (com sufixo diferente) são apagados pelo cleanup em src/main.tsx.
+// Workbox já faz `cleanupOutdatedCaches` para o precache, mas os caches de
+// runtime têm nomes estáticos — sem versionar, eles persistiam entre deploys.
+const BUILD_VERSION =
+  process.env.BUILD_VERSION ||
+  process.env.VERCEL_GIT_COMMIT_SHA ||
+  process.env.COMMIT_REF ||
+  process.env.GITHUB_SHA ||
+  String(Date.now());
+const V = BUILD_VERSION.slice(0, 12);
+
 export default defineConfig(() => ({
   server: { host: "::", port: 8080 },
+  define: {
+    __BUILD_VERSION__: JSON.stringify(BUILD_VERSION),
+  },
   plugins: [
     react(),
     VitePWA({
@@ -79,7 +95,7 @@ export default defineConfig(() => ({
             urlPattern: ({ request }) => request.mode === "navigate",
             handler: "NetworkFirst",
             options: {
-              cacheName: "royalvita-html",
+              cacheName: `royalvita-html-${V}`,
               networkTimeoutSeconds: 3,
               expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 },
               cacheableResponse: { statuses: [0, 200] },
@@ -89,7 +105,7 @@ export default defineConfig(() => ({
             urlPattern: ({ request }) => request.destination === "image",
             handler: "CacheFirst",
             options: {
-              cacheName: "royalvita-images",
+              cacheName: `royalvita-images-${V}`,
               expiration: {
                 maxEntries: 200,
                 maxAgeSeconds: 60 * 60 * 24 * 30,
@@ -106,7 +122,7 @@ export default defineConfig(() => ({
               url.origin === self.location.origin,
             handler: "StaleWhileRevalidate",
             options: {
-              cacheName: "royalvita-assets",
+              cacheName: `royalvita-assets-${V}`,
               expiration: {
                 maxEntries: 120,
                 maxAgeSeconds: 60 * 60 * 24 * 7,
@@ -118,7 +134,7 @@ export default defineConfig(() => ({
             urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
             handler: "StaleWhileRevalidate",
             options: {
-              cacheName: "google-fonts",
+              cacheName: `google-fonts-${V}`,
               expiration: {
                 maxEntries: 30,
                 maxAgeSeconds: 60 * 60 * 24 * 365,
@@ -132,7 +148,7 @@ export default defineConfig(() => ({
               url.hostname.endsWith("supabase.co"),
             handler: "NetworkFirst",
             options: {
-              cacheName: "royalvita-api",
+              cacheName: `royalvita-api-${V}`,
               networkTimeoutSeconds: 4,
               expiration: {
                 maxEntries: 80,

@@ -54,6 +54,29 @@ if (isInIframe || isPreviewHost || import.meta.env.DEV) {
         reloading = true;
         window.location.reload();
       });
+      // Limpa caches de versões anteriores (cache names têm sufixo
+      // `-<BUILD_VERSION>`; tudo que não for da versão atual é apagado).
+      const currentVersion = (typeof __BUILD_VERSION__ !== "undefined"
+        ? __BUILD_VERSION__
+        : ""
+      ).slice(0, 12);
+      if ("caches" in window && currentVersion) {
+        caches.keys().then((keys) => {
+          keys.forEach((k) => {
+            if (
+              /^(royalvita-(html|images|assets|api)|google-fonts)-/.test(k) &&
+              !k.endsWith(`-${currentVersion}`)
+            ) {
+              caches.delete(k);
+            }
+          });
+        });
+        // Expõe a versão para depuração rápida no console.
+        try {
+          (window as unknown as { __BUILD_VERSION__?: string }).__BUILD_VERSION__ =
+            currentVersion;
+        } catch { /* noop */ }
+      }
       registerSW({
         immediate: true,
         onNeedRefresh() {
