@@ -1319,7 +1319,7 @@ export default function Checkout() {
                       active={form.payment_method === "credit_card"}
                       onSelect={onSelectMethod}
                       title="Cartão de crédito"
-                      subtitle="Em até 12x sem juros*"
+                      subtitle="Em até 3x sem juros"
                       icon={CreditCard}
                       totalLabel="Total no cartão"
                       totalValue={cardTotal}
