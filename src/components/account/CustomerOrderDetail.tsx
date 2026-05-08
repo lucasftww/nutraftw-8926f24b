@@ -2,34 +2,40 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { X, Package } from "lucide-react";
-
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  pending: { label: "Aguardando pagamento", color: "bg-amber-100 text-amber-700" },
-  paid: { label: "Pago", color: "bg-emerald-100 text-emerald-700" },
-  processing: { label: "Em preparação", color: "bg-blue-100 text-blue-700" },
-  shipped: { label: "Enviado", color: "bg-indigo-100 text-indigo-700" },
-  delivered: { label: "Entregue", color: "bg-green-100 text-green-700" },
-  cancelled: { label: "Cancelado", color: "bg-red-100 text-red-700" },
-  refunded: { label: "Reembolsado", color: "bg-gray-100 text-gray-700" },
-};
+import { X, Package, AlertCircle } from "lucide-react";
+import { getOrderStatus } from "@/lib/orderStatus";
 
 export function CustomerOrderDetail({ orderId, onClose }: { orderId: string; onClose: () => void }) {
   const [order, setOrder] = useState<any | null>(null);
   const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setLoading(true);
+    setError(null);
     (async () => {
-      const [{ data: o }, { data: it }] = await Promise.all([
-        supabase.from("orders").select("*").eq("id", orderId).maybeSingle(),
-        supabase.from("order_items").select("*").eq("order_id", orderId),
-      ]);
-      setOrder(o);
-      setItems(it || []);
+      try {
+        const [{ data: o, error: oErr }, { data: it }] = await Promise.all([
+          supabase.from("orders").select("*").eq("id", orderId).maybeSingle(),
+          supabase.from("order_items").select("*").eq("order_id", orderId),
+        ]);
+        if (oErr) throw oErr;
+        if (!o) {
+          setError("Pedido não encontrado ou sem permissão de acesso.");
+        } else {
+          setOrder(o);
+          setItems(it || []);
+        }
+      } catch (e: any) {
+        setError(e?.message || "Erro ao carregar pedido.");
+      } finally {
+        setLoading(false);
+      }
     })();
   }, [orderId]);
 
-  const status = order ? STATUS_LABELS[order.status] || { label: order.status, color: "bg-muted" } : null;
+  const status = order ? getOrderStatus(order.status) : null;
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
@@ -49,8 +55,18 @@ export function CustomerOrderDetail({ orderId, onClose }: { orderId: string; onC
           <button onClick={onClose} className="p-2 hover:bg-muted rounded-lg"><X className="h-4 w-4" /></button>
         </div>
 
-        {!order ? (
+        {loading ? (
           <p className="text-muted-foreground">Carregando…</p>
+        ) : error || !order ? (
+          <div className="space-y-4">
+            <div className="flex items-start gap-2 p-4 rounded-xl bg-destructive/10 text-destructive text-sm">
+              <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+              <p>{error || "Pedido indisponível."}</p>
+            </div>
+            <div className="flex justify-end">
+              <Button variant="outline" onClick={onClose}>Fechar</Button>
+            </div>
+          </div>
         ) : (
           <>
             {status && (
