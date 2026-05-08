@@ -63,7 +63,7 @@ export default function Catalog() {
       }, { replace: true });
     }, 200);
     return () => clearTimeout(t);
-  }, [query]);
+  }, [query, urlQuery, setSearchParams]);
 
   // Drawer de filtros: ESC fecha + trava scroll do body enquanto aberto.
   // Mesmo comportamento do CartDrawer para consistência de UX/A11y.
@@ -794,7 +794,9 @@ const ProductCard = memo(function ProductCard({
       io.disconnect();
       if (timer != null) clearTimeout(timer);
     };
-  }, [p, onPrefetchFull]);
+    // Depender de p.slug (não do objeto p) evita reconectar o IntersectionObserver
+    // a cada re-render da lista filtrada (quando o usuário digita na busca).
+  }, [p, p.slug, onPrefetchFull]);
 
   const priceNum = Number(p.price);
   const saleNum = p.sale_price != null ? Number(p.sale_price) : 0;

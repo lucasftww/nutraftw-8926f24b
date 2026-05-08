@@ -24,6 +24,9 @@ export function CartDrawer() {
   // Pré-carrega o chunk do Checkout assim que o carrinho abre com itens.
   // Quando o usuário clicar em "Finalizar pedido", o JS já está pronto
   // → navegação instantânea (elimina o spinner/atraso no mobile).
+  // Chave estável que muda quando o conjunto de imagens a pré-carregar muda
+  // (qty não importa para prefetch — só a lista de produtos).
+  const prefetchKey = lines.map((l) => l.product_id).join(",");
   useEffect(() => {
     if (open && lines.length > 0) {
       prefetchCheckout().catch(() => {});
@@ -35,7 +38,8 @@ export function CartDrawer() {
         prefetchImage(imageUrl(l.image_url, { width: 176, quality: 75 }));
       }
     }
-  }, [open, lines.length]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, prefetchKey]);
 
   const itemCount = lines.reduce((acc, l) => acc + l.qty, 0);
   const installment = total / 3;
