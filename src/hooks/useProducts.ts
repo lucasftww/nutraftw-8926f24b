@@ -11,8 +11,10 @@ export interface ProductRow {
   sale_price: number | null;
   image_url: string | null;
   is_featured: boolean;
-  is_new_release: boolean;
-  is_on_offer: boolean;
+  is_new_release?: boolean;
+  is_on_offer?: boolean;
+  active_principle?: string | null;
+  composition?: string | null;
   offer_order?: number;
   stock: number;
   created_at: string;

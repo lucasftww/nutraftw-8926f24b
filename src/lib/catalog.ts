@@ -18,11 +18,39 @@ export const productScore = (p: ProductRow) => {
   return inStock * 1e15 + featured * 1e13 + recency;
 };
 
+/**
+ * Retorna as informações de preço calculadas de um produto.
+ * Centraliza a lógica para evitar discrepâncias entre Catálogo, Detalhe e Checkout.
+ */
+export const getProductPricing = (p: { price: number | string; sale_price?: number | string | null }) => {
+  const price = Number(p.price);
+  const salePrice = p.sale_price != null ? Number(p.sale_price) : 0;
+  
+  // Promoção real: preço de oferta deve ser menor que o original e maior que zero.
+  // Consideramos apenas se o desconto for de pelo menos 1% para evitar ruído visual.
+  const rawDiscount = price > 0 ? (price - salePrice) / price : 0;
+  const discountPct = (salePrice > 0 && salePrice < price && rawDiscount >= 0.01) 
+    ? Math.round(rawDiscount * 100) 
+    : 0;
+  
+  const hasSale = discountPct > 0;
+  const finalPrice = hasSale ? salePrice : price;
+  const savings = hasSale ? price - salePrice : 0;
+  
+  return {
+    basePrice: price,
+    salePrice: hasSale ? salePrice : null,
+    finalPrice,
+    discountPct,
+    hasSale,
+    savings,
+    pixPrice: finalPrice * 0.95 // 5% de desconto no PIX padrão
+  };
+};
+
+/** @deprecated Use getProductPricing().discountPct */
 export const discountPctOf = (p: ProductRow) => {
-  const pr = Number(p.price);
-  const sp = p.sale_price != null ? Number(p.sale_price) : 0;
-  if (!(sp > 0 && sp < pr)) return 0;
-  return (pr - sp) / pr;
+  return getProductPricing(p).discountPct / 100;
 };
 
 export const isTirzepatidaCategory = (c: { name?: string | null; slug?: string | null }) => {
