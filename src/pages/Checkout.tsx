@@ -1518,7 +1518,7 @@ export default function Checkout() {
             type="submit"
             disabled={submitting}
             ref={summaryCtaRef}
-            className="inline-flex w-full h-12 sm:h-13 rounded-xl bg-success text-success-foreground font-bold text-base hover:bg-success/90 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed transition-all items-center justify-center gap-2 shadow-md shadow-success/25"
+            className="inline-flex w-full h-12 sm:h-14 rounded-xl bg-success text-success-foreground font-bold text-base hover:bg-success/90 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed transition-all items-center justify-center gap-2 shadow-md shadow-success/25"
           >
             {submitting ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Processando…</>
