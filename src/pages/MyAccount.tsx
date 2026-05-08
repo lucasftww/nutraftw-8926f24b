@@ -59,6 +59,24 @@ export default function MyAccount() {
     return () => { cancelled = true; };
   }, [user]);
 
+  // Abre automaticamente o modal do pedido recém-criado quando o checkout
+  // redireciona para /minha-conta?pedido=<id>. Antes, o param era ignorado
+  // e o cliente ficava sem feedback visual do pedido criado.
+  useEffect(() => {
+    const pedidoId = searchParams.get("pedido");
+    if (pedidoId) {
+      setTab("orders");
+      setOrderId(pedidoId);
+      // Limpa o param para que F5 não reabra o modal indefinidamente.
+      setSearchParams((curr) => {
+        const params = new URLSearchParams(curr);
+        params.delete("pedido");
+        return params;
+      }, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Carrega estatísticas de afiliação ao abrir a aba.
   useEffect(() => {
     if (!user || tab !== "affiliate") return;
