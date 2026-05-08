@@ -495,7 +495,11 @@ export default function Checkout() {
     setCouponError(errMsg);
     // Não removemos o cupom automaticamente — apenas avisamos o usuário.
     // O RPC do servidor é a fonte da verdade no momento do checkout.
-  }, [total, coupon]);
+    // Depender de `coupon.code` (string estável) em vez do objeto evita
+    // re-disparar este efeito quando `setCoupon` substitui a referência
+    // sem mudar de cupom efetivo.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [total, coupon?.code, coupon?.discount_type, coupon?.discount_value]);
 
   const selectedShipping = shippingOptions.find((o) => o.id === shippingId);
   // Frete: usa valor real selecionado. Não aplicamos fallback "fantasma":
