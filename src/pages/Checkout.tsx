@@ -544,10 +544,10 @@ export default function Checkout() {
   // "Selecionado" — usado pra liberar o botão de finalizar.
   const paymentSelected =
     !!form.payment_method && paymentMethodAvailable && buyerDone && addressDone && shippingDone;
-  // "Concluído" no stepper — só vira ✓ DEPOIS que o pagamento for processado
-  // (pedido criado). Antes, o passo 3 marcava ✓ assim que o método era
-  // escolhido, dando impressão de "pago" sem cobrança nenhuma.
-  const paymentDone = false;
+  // "Concluído" no stepper — vira ✓ quando todos os passos anteriores
+  // estão prontos e um método de pagamento foi escolhido. Sem isso a
+  // barra de progresso travava em 50% mesmo com tudo preenchido.
+  const paymentDone = paymentSelected;
 
   // Mesmas fórmulas usadas no RPC `create_order` para garantir que o resumo
   // exibido aqui bate com o total que o servidor vai gravar.
