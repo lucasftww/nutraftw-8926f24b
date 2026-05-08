@@ -385,7 +385,7 @@ export default function Catalog() {
           - Layout único: título (md+) | busca | botão filtros.
           - Linha auxiliar mostra termo buscado e contagem viva. */}
       <div
-        className="fixed inset-x-0 top-16 md:top-20 z-30 border-b border-border/60 bg-background shadow-sm"
+        className="fixed inset-x-0 top-12 md:top-14 z-30 border-b border-border/60 bg-background shadow-sm"
         role="search"
       >
         <div className="mx-auto w-full max-w-[1400px] px-3 sm:px-5 lg:px-8 py-2 md:py-3">
@@ -460,7 +460,7 @@ export default function Catalog() {
       </div>
 
       {/* Sections — pt compensa altura da barra fixa (busca + filtros) */}
-      <section className="relative pt-[72px] md:pt-[84px] pb-2 scroll-mt-32">
+      <section className="relative pt-[56px] md:pt-[64px] pb-2 scroll-mt-32">
         <div className="container mx-auto px-4">
           {/* overflow-anchor:none impede o navegador de "puxar" o scroll
               quando novos cards são inseridos pelo infinite scroll —
