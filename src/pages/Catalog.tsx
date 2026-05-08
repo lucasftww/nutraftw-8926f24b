@@ -375,49 +375,74 @@ export default function Catalog() {
 
   return (
     <>
-      {/* Barra sticky única: busca + chips de categoria juntos.
-          - Cola direto no header (sem padding top extra) para eliminar
-            o espaço vazio entre header e conteúdo.
-          - Chips logo abaixo da busca formam a "barra de filtros"
-            principal, sempre visível durante o scroll. */}
-      <div className="fixed top-16 md:top-20 left-0 right-0 z-30 bg-background border-b border-border/40 shadow-[0_1px_0_0_hsl(var(--border)/0.4)]">
-        <div className="container mx-auto px-4 py-2 md:py-3">
-          <div className="flex items-center gap-3 md:gap-5">
-            <h1 className="hidden md:block text-2xl font-extrabold tracking-tight text-foreground leading-none shrink-0">
+      {/* Barra fixa de busca + filtros — redesenhada do zero.
+          - `fixed` logo abaixo do header (top-16 / top-20).
+          - Fundo opaco + sombra discreta para separar do conteúdo
+            durante a rolagem (não "vaza" através).
+          - Layout único: título (md+) | busca | botão filtros.
+          - Linha auxiliar mostra termo buscado e contagem viva. */}
+      <div
+        className="fixed inset-x-0 top-16 md:top-20 z-30 border-b border-border/60 bg-background shadow-sm"
+        role="search"
+      >
+        <div className="mx-auto w-full max-w-[1400px] px-3 sm:px-5 lg:px-8 py-2 md:py-3">
+          <div className="flex items-center gap-2 md:gap-4">
+            <h1 className="hidden md:block shrink-0 text-2xl font-extrabold tracking-tight text-foreground leading-none">
               Catálogo
             </h1>
+
             <div className="relative flex-1 min-w-0">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <Search
+                className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                aria-hidden
+              />
               <input
+                type="search"
+                inputMode="search"
+                enterKeyHint="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Buscar produtos..."
-                className="flex h-10 md:h-11 w-full rounded-full border border-input bg-muted/30 pl-10 pr-9 text-sm transition-all placeholder:text-muted-foreground/70 focus:bg-background focus:ring-4 focus:ring-primary/5 focus:border-primary/30 outline-none"
+                aria-label="Buscar produtos"
+                className="h-10 md:h-11 w-full rounded-full border border-input bg-muted/30 pl-10 pr-10 text-sm outline-none transition-all placeholder:text-muted-foreground/70 focus:border-primary/30 focus:bg-background focus:ring-4 focus:ring-primary/5"
               />
               {query && (
                 <button
+                  type="button"
                   onClick={() => setQuery("")}
                   aria-label="Limpar busca"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
+                  className="absolute right-1.5 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
               )}
             </div>
+
             <button
+              type="button"
               onClick={() => setFiltersOpen(true)}
-              aria-label="Filtros"
-              className="relative inline-flex items-center justify-center h-10 w-10 md:h-11 md:w-11 shrink-0 rounded-full border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+              aria-label="Abrir filtros"
+              aria-haspopup="dialog"
+              className="relative inline-flex h-10 w-10 md:h-11 md:w-11 shrink-0 items-center justify-center rounded-full border border-input bg-background shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
             >
               <SlidersHorizontal className="h-4 w-4" />
               {(selectedCats.size > 0 || selectedBrands.size > 0 || sort !== "categoria") && (
-                <span aria-hidden className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-background" />
+                <span
+                  aria-hidden
+                  className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-background"
+                />
               )}
             </button>
           </div>
+
           {query && (
-            <p className="text-[11px] md:text-xs text-muted-foreground font-medium mt-2 truncate">
+            <p className="mt-1.5 truncate text-[11px] md:text-xs font-medium text-muted-foreground">
               Buscando por: <span className="text-primary">"{query}"</span>
+              {!loading && (
+                <span className="text-muted-foreground/70">
+                  {" "}— {filtered.length} {filtered.length === 1 ? "resultado" : "resultados"}
+                </span>
+              )}
             </p>
           )}
         </div>
