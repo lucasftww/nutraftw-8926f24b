@@ -1,4 +1,4 @@
-import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { ShoppingCart, ShieldCheck, Truck, Package, CreditCard, QrCode, ChevronDown, ArrowLeft } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
@@ -18,7 +18,6 @@ export default function ProductDetail() {
   const { data: related = [] } = useRelatedProducts(p?.category_id, p?.id);
   const { add, openCart } = useCart();
   const nav = useNavigate();
-  const location = useLocation();
   const origin = typeof window !== "undefined" ? window.location.origin : "";
 
   // Considera "promoção real" apenas quando o desconto arredondado for >= 1%.
