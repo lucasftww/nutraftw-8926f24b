@@ -498,7 +498,6 @@ export default function Checkout() {
   // Frete: usa valor real selecionado. Não aplicamos fallback "fantasma":
   // se a UF não tem tarifa cadastrada, o RPC `create_order` rejeita o pedido
   // — mostrar um valor estimado no resumo só confunde o cliente.
-  const cepFilled = onlyDigits(form.zip).length === 8 && form.state.trim().length === 2;
   const cepReady = onlyDigits(form.zip).length === 8 && form.state.trim().length === 2;
   // Centralizado em src/lib/checkoutMath.ts — paridade testada com o RPC
   // create_order. Mantém o mesmo comportamento (sem fallback de frete,
