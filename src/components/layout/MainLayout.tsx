@@ -1,3 +1,4 @@
+import { useLocation } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { ProductFooter } from "@/components/layout/ProductFooter";
 import { CartDrawer } from "@/components/cart/CartDrawer";
@@ -7,12 +8,15 @@ import { PerfOverlay } from "@/components/debug/PerfOverlay";
 import { useCaptureAffiliateRef } from "@/hooks/useCaptureAffiliateRef";
 
 export function MainLayout() {
+  const location = useLocation();
+  const isCheckout = location.pathname === "/checkout";
+
   // Captura ?ref=CODIGO em qualquer página (não só /r/:code).
   useCaptureAffiliateRef();
   return (
     <CurrentProductProvider>
       <div className="min-h-screen flex flex-col bg-background [&_:target]:scroll-mt-16 md:[&_:target]:scroll-mt-20">
-        <Header />
+        <Header isCheckout={isCheckout} />
         <main className="flex-1">
           <Outlet />
         </main>

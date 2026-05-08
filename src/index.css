@@ -222,9 +222,9 @@
      Use estas classes em vez de text-[10px]/[11px]/[13px] arbitrários
      para manter consistência visual em todo o site. */
 
-  /* Eyebrow / label uppercase (chips de seção, "MINHA CONTA", "LINK") */
+  /* Eyebrow / label uppercase — BUMP de 10px para 11px para legibilidade mobile */
   .text-eyebrow {
-    @apply text-[10px] font-semibold uppercase tracking-[0.14em] leading-none;
+    @apply text-[11px] font-semibold uppercase tracking-[0.14em] leading-none;
   }
 
   /* Caption — metadados, datas, "de R$ X", legendas auxiliares */
@@ -242,9 +242,9 @@
     @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full
            text-[11px] font-semibold leading-[1.2] whitespace-nowrap;
   }
-  .badge-pill-sm {
+  .badge-pill-sm { /* BUMP 10px -> 11px */
     @apply inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full
-           text-[10px] font-semibold leading-none whitespace-nowrap;
+           text-[11px] font-semibold leading-none whitespace-nowrap;
   }
 
   /* ===== Mobile tap targets — garante 44x44 mínimo por WCAG 2.5.5 (AAA: 44px) ===== */

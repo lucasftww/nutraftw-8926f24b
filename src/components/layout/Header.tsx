@@ -27,7 +27,7 @@ import logoRoyalVittaText from "@/assets/logo-royalvitta-text.webp";
  *  - Fecha drawer ao trocar de rota.
  *  - Sanitiza número do WhatsApp (apenas dígitos).
  */
-export function Header() {
+export function Header({ isCheckout = false }: { isCheckout?: boolean }) {
   const { user } = useAuth();
   const { count, openCart } = useCart();
   const location = useLocation();
@@ -89,8 +89,18 @@ export function Header() {
               </Link>
             </div>
 
-            {/* Direita: ações */}
-            <nav className="flex items-center gap-0.5 md:gap-1" aria-label="Ações da conta">
+            {isCheckout && (
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <ShoppingCart className="h-4 w-4 text-primary" strokeWidth={2.5} />
+                </div>
+                <span className="text-sm font-bold tracking-tight uppercase">Checkout Seguro</span>
+              </div>
+            )}
+
+            {/* Direita: ações — OCULTAS no checkout para focar na conversão */}
+            {!isCheckout && (
+              <nav className="flex items-center gap-0.5 md:gap-1" aria-label="Ações da conta">
               <a
                 href={waHref}
                 target="_blank"
@@ -137,7 +147,8 @@ export function Header() {
                   </span>
                 )}
               </button>
-            </nav>
+              </nav>
+            )}
           </div>
         </div>
       </header>
