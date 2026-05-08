@@ -8,7 +8,7 @@ import { prefetchImage, shouldPrefetch } from "@/lib/prefetch";
 import { WishlistButton } from "@/components/wishlist/WishlistButton";
 import { Search, SlidersHorizontal, X, ArrowUpDown, ShoppingCart } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
-import { SORT_KEYS, SORT_LABELS, type SortKey, discountPctOf, isTirzepatidaCategory, productScore } from "@/lib/catalog";
+import { SORT_KEYS, SORT_LABELS, type SortKey, getProductPricing, isTirzepatidaCategory, productScore } from "@/lib/catalog";
 import { useCart } from "@/hooks/useCart";
 import { useSEO } from "@/hooks/useSEO";
 import { useProducts, useCategories, useBrands, type ProductRow } from "@/hooks/useProducts";
@@ -357,7 +357,7 @@ export default function Catalog() {
     const realCats = new Set([...selectedCats].filter((s) => s !== "__promos__"));
     for (const p of products) {
       if (selectedCats.size > 0) {
-        if (wantsPromos && discountPctOf(p) <= 0) continue;
+        if (wantsPromos && !getProductPricing(p).hasSale) continue;
         if (realCats.size > 0 && (!p.category || !realCats.has(p.category.slug))) continue;
       }
       const k = p.brand?.slug;
@@ -849,20 +849,12 @@ const ProductCard = memo(function ProductCard({
     // A função `onPrefetchFull` é estável (useCallback no Catalog).
   }, [p.slug, onPrefetchFull]);
 
-  const priceNum = Number(p.price);
-  const saleNum = p.sale_price != null ? Number(p.sale_price) : 0;
-  const discountPct =
-    saleNum > 0 && saleNum < priceNum
-      ? Math.round((1 - saleNum / priceNum) * 100)
-      : 0;
-  const hasRealSale = discountPct >= 1;
-  const finalPrice = hasRealSale ? saleNum : priceNum;
+  const { hasSale, discountPct, finalPrice } = getProductPricing(p);
   const isOut = (p.stock ?? 0) <= 0;
   const ageDays = (Date.now() - new Date(p.created_at).getTime()) / 86400000;
   const isNew = !isOut && ageDays <= 30;
-  // Etiquetas marcadas pelo admin no painel.
-  const isLaunch = !!(p as ProductRow & { is_new_release?: boolean }).is_new_release;
-  const isOffer = !!(p as ProductRow & { is_on_offer?: boolean }).is_on_offer;
+  const isLaunch = !!p.is_new_release;
+  const isOffer = !!p.is_on_offer;
   // Apenas um badge por card e nunca empilhado com "-x%". "Novo" vira um
   // ponto sutil + texto pequeno em cinza (não compete com o preço).
   // "Esgotado" continua forte porque indica indisponibilidade real.
@@ -930,7 +922,7 @@ const ProductCard = memo(function ProductCard({
                       </span>
                     );
                   }
-                  if (hasRealSale) {
+                  if (hasSale) {
                     return (
                       <span className={`${pillBase} bg-secondary text-secondary-foreground`}>
                         -{discountPct}% OFF
