@@ -67,7 +67,7 @@ export function Header() {
                 aria-label="Abrir menu"
                 aria-expanded={menuOpen}
                 aria-controls="mobile-menu"
-                className="md:hidden inline-flex h-10 w-10 -ml-1 items-center justify-center rounded-full text-primary hover:bg-primary/5 active:bg-primary/10 active:scale-95 transition-all"
+                className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-full text-primary hover:bg-primary/5 active:bg-primary/10 active:scale-95 transition-all"
               >
                 <Menu className="h-5 w-5" strokeWidth={1.75} />
               </button>
