@@ -262,13 +262,9 @@ export default function Catalog() {
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     }
     if (sort === "preco_asc" || sort === "preco_desc") {
-      const eff = (p: Product) => {
-        const pr = Number(p.price) || 0;
-        const sp = p.sale_price != null ? Number(p.sale_price) : 0;
-        return sp > 0 && sp < pr ? sp : pr;
-      };
       const dir = sort === "preco_asc" ? 1 : -1;
-      return (a: Product, b: Product) => (eff(a) - eff(b)) * dir;
+      return (a: Product, b: Product) => 
+        (getProductPricing(a).finalPrice - getProductPricing(b).finalPrice) * dir;
     }
     // "categoria" (curadoria): mais desconto primeiro, desempate por score
     return (a: Product, b: Product) => {
