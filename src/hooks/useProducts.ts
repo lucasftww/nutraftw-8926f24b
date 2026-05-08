@@ -35,7 +35,7 @@ export interface BrandRow {
 }
 
 const PRODUCT_COLUMNS =
-  "id, slug, name, description, price, sale_price, image_url, is_featured, is_new_release, is_on_offer, offer_order, stock, created_at, category:categories(id, name, slug), brand:brands(id, name, slug)";
+  "id, slug, name, description, active_principle, composition, price, sale_price, image_url, is_featured, is_new_release, is_on_offer, offer_order, stock, created_at, category:categories(id, name, slug), brand:brands(id, name, slug)";
 
 export function useCategories() {
   return useQuery<CategoryRow[]>({
