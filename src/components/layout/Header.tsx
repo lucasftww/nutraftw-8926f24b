@@ -58,7 +58,7 @@ export function Header({ isCheckout = false }: { isCheckout?: boolean }) {
         role="banner"
       >
         <div className="mx-auto w-full max-w-[1400px] px-3 sm:px-5 lg:px-8">
-          <div className="flex h-16 md:h-20 items-center justify-between gap-3">
+          <div className="flex h-12 md:h-14 items-center justify-between gap-3">
             {/* Esquerda: menu (mobile) + logo */}
             <div className="flex items-center gap-1.5 min-w-0">
               <button
@@ -84,7 +84,7 @@ export function Header({ isCheckout = false }: { isCheckout?: boolean }) {
                   height={80}
                   decoding="async"
                   {...({ fetchpriority: "high" } as Record<string, string>)}
-                  className="h-7 sm:h-8 md:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                  className="h-6 sm:h-7 md:h-8 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
                 />
               </Link>
             </div>
