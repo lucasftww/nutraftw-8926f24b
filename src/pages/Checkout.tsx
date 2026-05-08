@@ -1529,8 +1529,8 @@ export default function Checkout() {
           {/* Reforços de confiança discretos abaixo do CTA */}
           <div className="mt-3 space-y-2">
             {form.payment_method === "pix" && (
-              <p className="text-center text-[11px] text-success font-semibold">
-                ✓ Pedido confirmado e enviado para atendimento
+              <p className="inline-flex w-full items-center justify-center gap-1.5 text-center text-[11px] text-success font-semibold">
+                <Check className="w-3 h-3" /> Pedido confirmado e enviado para atendimento
               </p>
             )}
             <div className="flex items-center justify-center gap-3 text-muted-foreground/70">
