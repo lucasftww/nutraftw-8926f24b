@@ -38,7 +38,6 @@ export function CartDrawer() {
         prefetchImage(imageUrl(l.image_url, { width: 176, quality: 75 }));
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, prefetchKey]);
 
   const itemCount = lines.reduce((acc, l) => acc + l.qty, 0);
