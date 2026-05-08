@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { LogOut, User as UserIcon, MapPin, ShoppingBag, Loader2, Users, Copy, Check, Wallet, ChevronRight, Mail, Share2 } from "lucide-react";
 import { formatBRL, maskCPF, maskPhone, maskCEP } from "@/lib/utils";
 import { CustomerOrderDetail } from "@/components/account/CustomerOrderDetail";
+import { ORDER_STATUS_LABELS } from "@/lib/orderStatus";
 
 type Tab = "profile" | "address" | "orders" | "affiliate" | "commissions";
 
@@ -20,19 +21,12 @@ const TABS: { id: Tab; label: string; description: string; icon: any }[] = [
   { id: "commissions", label: "Comissões",      description: "Pagamentos e status",       icon: Wallet },
 ];
 
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  pending: { label: "Aguardando pagamento", color: "bg-amber-100 text-amber-700" },
-  paid: { label: "Pago", color: "bg-emerald-100 text-emerald-700" },
-  processing: { label: "Em preparação", color: "bg-blue-100 text-blue-700" },
-  shipped: { label: "Enviado", color: "bg-indigo-100 text-indigo-700" },
-  delivered: { label: "Entregue", color: "bg-green-100 text-green-700" },
-  cancelled: { label: "Cancelado", color: "bg-red-100 text-red-700" },
-  refunded: { label: "Reembolsado", color: "bg-gray-100 text-gray-700" },
-};
+const STATUS_LABELS = ORDER_STATUS_LABELS;
 
 export default function MyAccount() {
   const { user } = useAuth();
   const nav = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [tab, setTab] = useState<Tab>("profile");
   const [profile, setProfile] = useState<any>({});
   const [orders, setOrders] = useState<any[]>([]);
@@ -64,6 +58,24 @@ export default function MyAccount() {
       .then(({ data }) => { if (!cancelled) setOrders(data || []); });
     return () => { cancelled = true; };
   }, [user]);
+
+  // Abre automaticamente o modal do pedido recém-criado quando o checkout
+  // redireciona para /minha-conta?pedido=<id>. Antes, o param era ignorado
+  // e o cliente ficava sem feedback visual do pedido criado.
+  useEffect(() => {
+    const pedidoId = searchParams.get("pedido");
+    if (pedidoId) {
+      setTab("orders");
+      setOrderId(pedidoId);
+      // Limpa o param para que F5 não reabra o modal indefinidamente.
+      setSearchParams((curr) => {
+        const params = new URLSearchParams(curr);
+        params.delete("pedido");
+        return params;
+      }, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Carrega estatísticas de afiliação ao abrir a aba.
   useEffect(() => {

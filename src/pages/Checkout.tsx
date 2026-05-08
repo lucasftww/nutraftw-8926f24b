@@ -544,10 +544,10 @@ export default function Checkout() {
   // "Selecionado" — usado pra liberar o botão de finalizar.
   const paymentSelected =
     !!form.payment_method && paymentMethodAvailable && buyerDone && addressDone && shippingDone;
-  // "Concluído" no stepper — só vira ✓ DEPOIS que o pagamento for processado
-  // (pedido criado). Antes, o passo 3 marcava ✓ assim que o método era
-  // escolhido, dando impressão de "pago" sem cobrança nenhuma.
-  const paymentDone = false;
+  // "Concluído" no stepper — vira ✓ quando todos os passos anteriores
+  // estão prontos e um método de pagamento foi escolhido. Sem isso a
+  // barra de progresso travava em 50% mesmo com tudo preenchido.
+  const paymentDone = paymentSelected;
 
   // Mesmas fórmulas usadas no RPC `create_order` para garantir que o resumo
   // exibido aqui bate com o total que o servidor vai gravar.
@@ -1319,7 +1319,7 @@ export default function Checkout() {
                       active={form.payment_method === "credit_card"}
                       onSelect={onSelectMethod}
                       title="Cartão de crédito"
-                      subtitle="Em até 12x sem juros*"
+                      subtitle="Em até 3x sem juros"
                       icon={CreditCard}
                       totalLabel="Total no cartão"
                       totalValue={cardTotal}
@@ -1504,7 +1504,7 @@ export default function Checkout() {
               </div>
               {form.payment_method === "credit_card" && (
                 <div className="text-[11px] text-muted-foreground mt-1 tabular-nums">
-                  ou 12x de {formatBRL(grandTotal / 12)}
+                  ou 3x de {formatBRL(grandTotal / 3)} sem juros
                 </div>
               )}
               {form.payment_method === "pix" && (couponDiscount + pixDiscount) > 0 && (
@@ -1518,7 +1518,7 @@ export default function Checkout() {
             type="submit"
             disabled={submitting}
             ref={summaryCtaRef}
-            className="inline-flex w-full h-12 sm:h-13 rounded-xl bg-success text-success-foreground font-bold text-base hover:bg-success/90 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed transition-all items-center justify-center gap-2 shadow-md shadow-success/25"
+            className="inline-flex w-full h-12 sm:h-14 rounded-xl bg-success text-success-foreground font-bold text-base hover:bg-success/90 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed transition-all items-center justify-center gap-2 shadow-md shadow-success/25"
           >
             {submitting ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Processando…</>
@@ -1529,8 +1529,8 @@ export default function Checkout() {
           {/* Reforços de confiança discretos abaixo do CTA */}
           <div className="mt-3 space-y-2">
             {form.payment_method === "pix" && (
-              <p className="text-center text-[11px] text-success font-semibold">
-                ✓ Pedido confirmado e enviado para atendimento
+              <p className="inline-flex w-full items-center justify-center gap-1.5 text-center text-[11px] text-success font-semibold">
+                <Check className="w-3 h-3" /> Pedido confirmado e enviado para atendimento
               </p>
             )}
             <div className="flex items-center justify-center gap-3 text-muted-foreground/70">
