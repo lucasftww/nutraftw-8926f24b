@@ -416,7 +416,15 @@ export default function Catalog() {
               {query && (
                 <button
                   type="button"
-                  onClick={() => setQuery("")}
+                  onClick={() => {
+                    setQuery("");
+                    // Limpa URL imediatamente ao clicar no X, sem esperar o debounce.
+                    setSearchParams((prev) => {
+                      const params = new URLSearchParams(prev);
+                      params.delete("q");
+                      return params;
+                    }, { replace: true });
+                  }}
                   aria-label="Limpar busca"
                   className="absolute right-1.5 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 >
@@ -481,11 +489,19 @@ export default function Catalog() {
                 <p className="text-muted-foreground text-sm mt-1">
                   Tente remover filtros ou ajustar a busca.
                 </p>
-                {(selectedCats.size > 0 || query) && (
+                {(selectedCats.size > 0 || selectedBrands.size > 0 || query) && (
                   <button
                     onClick={() => {
                       setSelectedCats(new Set());
+                      setSelectedBrands(new Set());
                       setQuery("");
+                      setSearchParams((curr) => {
+                        const params = new URLSearchParams(curr);
+                        params.delete("marca");
+                        params.delete("categoria");
+                        params.delete("q");
+                        return params;
+                      }, { replace: true });
                     }}
                     className="mt-5 inline-flex items-center justify-center h-10 px-5 rounded-full border border-border text-foreground text-sm font-medium hover:bg-foreground hover:text-background transition-colors"
                   >
@@ -699,10 +715,12 @@ export default function Catalog() {
                   onClick={() => {
                     setSelectedCats(new Set());
                     setSelectedBrands(new Set());
+                    setQuery("");
                     setSearchParams((curr) => {
                       const params = new URLSearchParams(curr);
                       params.delete("marca");
                       params.delete("categoria");
+                      params.delete("q");
                       return params;
                     }, { replace: true });
                   }}
