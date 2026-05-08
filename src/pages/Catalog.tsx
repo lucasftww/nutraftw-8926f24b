@@ -796,8 +796,7 @@ const ProductCard = memo(function ProductCard({
     };
     // Depender de p.slug (não do objeto p) evita reconectar o IntersectionObserver
     // a cada re-render da lista filtrada (quando o usuário digita na busca).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [p.slug, onPrefetchFull]);
+  }, [p, p.slug, onPrefetchFull]);
 
   const priceNum = Number(p.price);
   const saleNum = p.sale_price != null ? Number(p.sale_price) : 0;
