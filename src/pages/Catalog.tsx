@@ -8,7 +8,7 @@ import { prefetchImage, shouldPrefetch } from "@/lib/prefetch";
 import { WishlistButton } from "@/components/wishlist/WishlistButton";
 import { Search, SlidersHorizontal, X, ArrowUpDown, ShoppingCart } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
-import { SORT_KEYS, SORT_LABELS, type SortKey, discountPctOf, isTirzepatidaCategory, productScore } from "@/lib/catalog";
+import { SORT_KEYS, SORT_LABELS, type SortKey, getProductPricing, isTirzepatidaCategory, productScore } from "@/lib/catalog";
 import { useCart } from "@/hooks/useCart";
 import { useSEO } from "@/hooks/useSEO";
 import { useProducts, useCategories, useBrands, type ProductRow } from "@/hooks/useProducts";
@@ -224,7 +224,7 @@ export default function Catalog() {
           const realCats = new Set(
             [...selectedCats].filter((s) => s !== "__promos__")
           );
-          if (wantsPromos && discountPctOf(p) <= 0) return false;
+          if (wantsPromos && !getProductPricing(p).hasSale) return false;
           if (realCats.size > 0) {
             if (!p.category || !realCats.has(p.category.slug)) return false;
           } else if (!wantsPromos) {
@@ -272,7 +272,7 @@ export default function Catalog() {
     }
     // "categoria" (curadoria): mais desconto primeiro, desempate por score
     return (a: Product, b: Product) => {
-      const dDiff = discountPctOf(b) - discountPctOf(a);
+      const dDiff = getProductPricing(b).discountPct - getProductPricing(a).discountPct;
       if (Math.abs(dDiff) > 0.0001) return dDiff;
       return productScore(b) - productScore(a);
     };
@@ -285,9 +285,9 @@ export default function Catalog() {
     // ver TODOS os produtos numa única lista plana ordenada — não faz
     // sentido manter agrupamento por categoria nesses sorts.
     const flat = sort !== "categoria";
-    const promos = flat
+      const promos = flat
       ? []
-      : filtered.filter((p) => discountPctOf(p) > 0).sort(sortComparator);
+      : filtered.filter((p) => getProductPricing(p).hasSale).sort(sortComparator);
     const showOnlyPromos =
       !flat && selectedCats.size === 1 && selectedCats.has("__promos__");
 
@@ -344,7 +344,7 @@ export default function Catalog() {
       map.set(k, (map.get(k) ?? 0) + 1);
     }
     // Pseudo-categoria "Promoções": conta produtos com desconto real.
-    const promoCount = products.reduce((acc, p) => acc + (discountPctOf(p) > 0 ? 1 : 0), 0);
+    const promoCount = products.reduce((acc, p) => acc + (getProductPricing(p).hasSale ? 1 : 0), 0);
     map.set("__promos__", promoCount);
     return map;
   }, [products]);
@@ -357,7 +357,7 @@ export default function Catalog() {
     const realCats = new Set([...selectedCats].filter((s) => s !== "__promos__"));
     for (const p of products) {
       if (selectedCats.size > 0) {
-        if (wantsPromos && discountPctOf(p) <= 0) continue;
+        if (wantsPromos && !getProductPricing(p).hasSale) continue;
         if (realCats.size > 0 && (!p.category || !realCats.has(p.category.slug))) continue;
       }
       const k = p.brand?.slug;
@@ -849,20 +849,12 @@ const ProductCard = memo(function ProductCard({
     // A função `onPrefetchFull` é estável (useCallback no Catalog).
   }, [p.slug, onPrefetchFull]);
 
-  const priceNum = Number(p.price);
-  const saleNum = p.sale_price != null ? Number(p.sale_price) : 0;
-  const discountPct =
-    saleNum > 0 && saleNum < priceNum
-      ? Math.round((1 - saleNum / priceNum) * 100)
-      : 0;
-  const hasRealSale = discountPct >= 1;
-  const finalPrice = hasRealSale ? saleNum : priceNum;
+  const { hasSale, discountPct, finalPrice } = getProductPricing(p);
   const isOut = (p.stock ?? 0) <= 0;
   const ageDays = (Date.now() - new Date(p.created_at).getTime()) / 86400000;
   const isNew = !isOut && ageDays <= 30;
-  // Etiquetas marcadas pelo admin no painel.
-  const isLaunch = !!(p as ProductRow & { is_new_release?: boolean }).is_new_release;
-  const isOffer = !!(p as ProductRow & { is_on_offer?: boolean }).is_on_offer;
+  const isLaunch = !!p.is_new_release;
+  const isOffer = !!p.is_on_offer;
   // Apenas um badge por card e nunca empilhado com "-x%". "Novo" vira um
   // ponto sutil + texto pequeno em cinza (não compete com o preço).
   // "Esgotado" continua forte porque indica indisponibilidade real.
@@ -930,7 +922,7 @@ const ProductCard = memo(function ProductCard({
                       </span>
                     );
                   }
-                  if (hasRealSale) {
+                  if (hasSale) {
                     return (
                       <span className={`${pillBase} bg-secondary text-secondary-foreground`}>
                         -{discountPct}% OFF
@@ -966,9 +958,9 @@ const ProductCard = memo(function ProductCard({
                 {/* Bloco de preço com altura mínima reservada para a linha
                     "de R$" — alinha cards com e sem desconto na mesma altura. */}
                 <div className="mt-auto pt-2 leading-tight min-h-[60px] flex flex-col justify-end">
-                  {hasRealSale ? (
+                  {hasSale ? (
                     <div className="text-[10px] sm:text-[11px] text-oldPrice font-medium line-through tabular-nums opacity-70">
-                      de {formatBRL(priceNum)}
+                      de {formatBRL(getProductPricing(p).basePrice)}
                     </div>
                   ) : (
                     <div aria-hidden className="h-[12px] sm:h-[14px]" />
