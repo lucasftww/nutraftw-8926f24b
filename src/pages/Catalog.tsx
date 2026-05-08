@@ -422,9 +422,9 @@ export default function Catalog() {
                     }, { replace: true });
                   }}
                   aria-label="Limpar busca"
-                  className="absolute right-1.5 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  className="absolute right-1.5 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 >
-                  <X className="h-3.5 w-3.5" />
+                  <X className="h-4.5 w-4.5" />
                 </button>
               )}
             </div>
@@ -903,7 +903,7 @@ const ProductCard = memo(function ProductCard({
                 {(() => {
                   // Apenas UMA etiqueta visível por vez no canto superior esquerdo.
                   const pillBase =
-                    "absolute top-2.5 left-2.5 z-[1] inline-flex items-center rounded-full text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 leading-none shadow-sm backdrop-blur-sm";
+                    "absolute top-2.5 left-2.5 z-[1] inline-flex items-center rounded-full text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-1 leading-none shadow-sm backdrop-blur-sm";
                   if (isOut) {
                     return (
                       <span className={`${pillBase} bg-destructive text-destructive-foreground`}>

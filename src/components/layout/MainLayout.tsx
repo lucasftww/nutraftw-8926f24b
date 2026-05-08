@@ -4,7 +4,6 @@ import { ProductFooter } from "@/components/layout/ProductFooter";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { Outlet } from "react-router-dom";
 import { CurrentProductProvider, useCurrentProduct } from "@/contexts/CurrentProductContext";
-import { PerfOverlay } from "@/components/debug/PerfOverlay";
 import { useCaptureAffiliateRef } from "@/hooks/useCaptureAffiliateRef";
 
 export function MainLayout() {
@@ -23,7 +22,6 @@ export function MainLayout() {
         {/* Footer padronizado em todas as páginas (Home, Catálogo, Produto, etc.) */}
         <FooterWithStickyOffset />
         <CartDrawer />
-        <PerfOverlay />
       </div>
     </CurrentProductProvider>
   );
