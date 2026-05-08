@@ -397,7 +397,7 @@ export default function Catalog() {
                 aria-hidden
               />
               <input
-                type="search"
+                type="text"
                 inputMode="search"
                 enterKeyHint="search"
                 value={query}
