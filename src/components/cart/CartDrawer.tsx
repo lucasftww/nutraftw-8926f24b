@@ -71,7 +71,7 @@ export function CartDrawer() {
             <div className="relative h-9 w-9 rounded-full bg-primary/10 text-primary inline-flex items-center justify-center shrink-0">
               <ShoppingBag className="h-4.5 w-4.5" />
               {itemCount > 0 && (
-                <span className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 inline-flex items-center justify-center rounded-full bg-secondary text-secondary-foreground text-[10px] font-bold leading-none">
+                <span className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 inline-flex items-center justify-center rounded-full bg-secondary text-secondary-foreground text-[11px] font-bold leading-none">
                   {itemCount}
                 </span>
               )}
@@ -186,7 +186,7 @@ export function CartDrawer() {
             </div>
             <div className="flex items-end justify-between gap-3 mb-3">
               <div className="min-w-0">
-                <span className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">
+                <span className="block text-[12px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">
                   Subtotal
                 </span>
                 <span className="block font-display text-2xl sm:text-[1.6rem] font-extrabold text-primary tabular-nums leading-tight mt-1">
