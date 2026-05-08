@@ -105,8 +105,9 @@ export default function ProductDetail() {
     if (p?.id) void trackEvent("view", p.id);
   }, [p?.id]);
 
-  if (loading)
-    return <div className="container py-20 text-center text-muted-foreground">A carregar…</div>;
+  if (loading) {
+    return <div className="container py-20 text-center text-muted-foreground">Carregando...</div>;
+  }
   if (!p)
     return (
       <div className="container py-20 text-center">
