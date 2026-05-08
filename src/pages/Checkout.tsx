@@ -1504,7 +1504,7 @@ export default function Checkout() {
               </div>
               {form.payment_method === "credit_card" && (
                 <div className="text-[11px] text-muted-foreground mt-1 tabular-nums">
-                  ou 12x de {formatBRL(grandTotal / 12)}
+                  ou 3x de {formatBRL(grandTotal / 3)} sem juros
                 </div>
               )}
               {form.payment_method === "pix" && (couponDiscount + pixDiscount) > 0 && (
