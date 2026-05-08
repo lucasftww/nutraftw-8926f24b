@@ -28,7 +28,13 @@ export function ProductFooter() {
 
   return (
     <footer className="mt-12 sm:mt-16 border-t border-border/60 bg-background">
-      <div className="max-w-[1400px] mx-auto px-6 py-10 sm:py-12 pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] sm:pb-12">
+      <div
+        className={`max-w-[1400px] mx-auto px-6 py-10 sm:py-12 sm:pb-12 ${
+          current
+            ? "pb-[calc(env(safe-area-inset-bottom,0px)+7.5rem)]"
+            : "pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]"
+        }`}
+      >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-12">
           {/* Marca */}
           <div>
