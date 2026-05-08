@@ -260,7 +260,10 @@ export default function Checkout() {
         }));
       });
     return () => { cancelled = true; };
-  }, [user]);
+    // Depende só do ID do usuário — `user` é uma nova referência a cada
+    // TOKEN_REFRESHED do Supabase (a cada hora), o que causaria refetch
+    // desnecessário do profile durante o checkout.
+  }, [user?.id, user?.email]);
 
   // ViaCEP autocomplete — debounced + abortável (evita rate-limit e race conditions)
   // Bug fix UX: antes, CEP inexistente caía em silêncio. Agora avisamos o
