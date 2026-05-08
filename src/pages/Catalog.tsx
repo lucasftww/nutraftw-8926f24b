@@ -15,6 +15,22 @@ import { useProducts, useCategories, useBrands, type ProductRow } from "@/hooks/
 
 type Product = ProductRow;
 
+// Normaliza para busca tolerante: remove acentos, pontuação (`.`, `-`, `/`, `_`)
+// e colapsa espaços. Assim "tg" encontra "T.G.", "amox 500" encontra
+// "Amoxicilina-500", "vit b12" encontra "Vitamina B12", etc.
+const normalizeString = (s: string) =>
+  s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // remove acentos
+    .replace(/[^\p{L}\p{N}]+/gu, " ") // pontuação/símbolos viram espaço
+    .trim()
+    .replace(/\s+/g, " ");
+
+// Versão "compacta" (sem espaços) — usada como segunda chance, para
+// que "tg" case com "t g" (que veio de "T.G.").
+const compactString = (s: string) => normalizeString(s).replace(/\s+/g, "");
+
 export default function Catalog() {
   const { data: products = [], isLoading: loadingProducts } = useProducts();
   const { data: categories = [] } = useCategories();
@@ -41,11 +57,8 @@ export default function Catalog() {
     setQuery(urlQuery);
   }, [urlQuery]);
   useEffect(() => {
-    // Sincroniza URL → state em AMBAS as direções:
-    // - `?categoria=peptideos`  → seleciona só essa categoria
-    // - sem `?categoria=...`    → limpa o filtro (antes ficava preso ao
-    //   navegar para `/` depois de uma categoria, exigindo recarregar a página).
-    setSelectedCats(urlCategoria ? new Set([urlCategoria]) : new Set());
+    // Suporta múltiplas categorias separadas por vírgula na URL para consistência com marcas.
+    setSelectedCats(urlCategoria ? new Set(urlCategoria.split(",").filter(Boolean)) : new Set());
   }, [urlCategoria]);
   useEffect(() => {
     setSelectedBrands(urlMarca ? new Set(urlMarca.split(",").filter(Boolean)) : new Set());
@@ -165,6 +178,15 @@ export default function Catalog() {
       const next = new Set(prev);
       if (next.has(slug)) next.delete(slug);
       else next.add(slug);
+
+      // Sincroniza URL para permitir compartilhar/voltar.
+      setSearchParams((curr) => {
+        const params = new URLSearchParams(curr);
+        if (next.size === 0) params.delete("categoria");
+        else params.set("categoria", [...next].join(","));
+        return params;
+      }, { replace: true });
+
       return next;
     });
   };
