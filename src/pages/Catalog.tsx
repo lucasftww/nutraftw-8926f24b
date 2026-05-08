@@ -15,6 +15,22 @@ import { useProducts, useCategories, useBrands, type ProductRow } from "@/hooks/
 
 type Product = ProductRow;
 
+// Normaliza para busca tolerante: remove acentos, pontuação (`.`, `-`, `/`, `_`)
+// e colapsa espaços. Assim "tg" encontra "T.G.", "amox 500" encontra
+// "Amoxicilina-500", "vit b12" encontra "Vitamina B12", etc.
+const normalizeString = (s: string) =>
+  s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // remove acentos
+    .replace(/[^\p{L}\p{N}]+/gu, " ") // pontuação/símbolos viram espaço
+    .trim()
+    .replace(/\s+/g, " ");
+
+// Versão "compacta" (sem espaços) — usada como segunda chance, para
+// que "tg" case com "t g" (que veio de "T.G.").
+const compactString = (s: string) => normalizeString(s).replace(/\s+/g, "");
+
 export default function Catalog() {
   const { data: products = [], isLoading: loadingProducts } = useProducts();
   const { data: categories = [] } = useCategories();
@@ -41,11 +57,8 @@ export default function Catalog() {
     setQuery(urlQuery);
   }, [urlQuery]);
   useEffect(() => {
-    // Sincroniza URL → state em AMBAS as direções:
-    // - `?categoria=peptideos`  → seleciona só essa categoria
-    // - sem `?categoria=...`    → limpa o filtro (antes ficava preso ao
-    //   navegar para `/` depois de uma categoria, exigindo recarregar a página).
-    setSelectedCats(urlCategoria ? new Set([urlCategoria]) : new Set());
+    // Suporta múltiplas categorias separadas por vírgula na URL para consistência com marcas.
+    setSelectedCats(urlCategoria ? new Set(urlCategoria.split(",").filter(Boolean)) : new Set());
   }, [urlCategoria]);
   useEffect(() => {
     setSelectedBrands(urlMarca ? new Set(urlMarca.split(",").filter(Boolean)) : new Set());
@@ -165,6 +178,15 @@ export default function Catalog() {
       const next = new Set(prev);
       if (next.has(slug)) next.delete(slug);
       else next.add(slug);
+
+      // Sincroniza URL para permitir compartilhar/voltar.
+      setSearchParams((curr) => {
+        const params = new URLSearchParams(curr);
+        if (next.size === 0) params.delete("categoria");
+        else params.set("categoria", [...next].join(","));
+        return params;
+      }, { replace: true });
+
       return next;
     });
   };
@@ -187,23 +209,8 @@ export default function Catalog() {
 
   const filtered = useMemo(
     () => {
-      // Normaliza para busca tolerante: remove acentos, pontuação (`.`, `-`, `/`, `_`)
-      // e colapsa espaços. Assim "tg" encontra "T.G.", "amox 500" encontra
-      // "Amoxicilina-500", "vit b12" encontra "Vitamina B12", etc.
-      const normalize = (s: string) =>
-        s
-          .toLowerCase()
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "") // remove acentos
-          .replace(/[^\p{L}\p{N}]+/gu, " ") // pontuação/símbolos viram espaço
-          .trim()
-          .replace(/\s+/g, " ");
-      // Versão "compacta" (sem espaços) — usada como segunda chance, para
-      // que "tg" case com "t g" (que veio de "T.G.").
-      const compact = (s: string) => normalize(s).replace(/\s+/g, "");
-
-      const qNorm = query ? normalize(query) : "";
-      const qCompact = query ? compact(query) : "";
+      const qNorm = query ? normalizeString(query) : "";
+      const qCompact = query ? compactString(query) : "";
 
       return products.filter((p) => {
         if (selectedCats.size > 0) {
@@ -228,8 +235,8 @@ export default function Catalog() {
           if (!p.brand || !selectedBrands.has(p.brand.slug)) return false;
         }
         if (!qNorm) return true;
-        const nameNorm = normalize(p.name);
-        const descNorm = p.description ? normalize(p.description) : "";
+        const nameNorm = normalizeString(p.name);
+        const descNorm = p.description ? normalizeString(p.description) : "";
         if (nameNorm.includes(qNorm) || descNorm.includes(qNorm)) return true;
         // Segunda passada sem espaços: "tg" → casa em "tg" dentro de
         // compact("T.G. 500mg") = "tg500mg".
@@ -409,7 +416,15 @@ export default function Catalog() {
               {query && (
                 <button
                   type="button"
-                  onClick={() => setQuery("")}
+                  onClick={() => {
+                    setQuery("");
+                    // Limpa URL imediatamente ao clicar no X, sem esperar o debounce.
+                    setSearchParams((prev) => {
+                      const params = new URLSearchParams(prev);
+                      params.delete("q");
+                      return params;
+                    }, { replace: true });
+                  }}
                   aria-label="Limpar busca"
                   className="absolute right-1.5 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 >
@@ -474,11 +489,19 @@ export default function Catalog() {
                 <p className="text-muted-foreground text-sm mt-1">
                   Tente remover filtros ou ajustar a busca.
                 </p>
-                {(selectedCats.size > 0 || query) && (
+                {(selectedCats.size > 0 || selectedBrands.size > 0 || query) && (
                   <button
                     onClick={() => {
                       setSelectedCats(new Set());
+                      setSelectedBrands(new Set());
                       setQuery("");
+                      setSearchParams((curr) => {
+                        const params = new URLSearchParams(curr);
+                        params.delete("marca");
+                        params.delete("categoria");
+                        params.delete("q");
+                        return params;
+                      }, { replace: true });
                     }}
                     className="mt-5 inline-flex items-center justify-center h-10 px-5 rounded-full border border-border text-foreground text-sm font-medium hover:bg-foreground hover:text-background transition-colors"
                   >
@@ -692,10 +715,12 @@ export default function Catalog() {
                   onClick={() => {
                     setSelectedCats(new Set());
                     setSelectedBrands(new Set());
+                    setQuery("");
                     setSearchParams((curr) => {
                       const params = new URLSearchParams(curr);
                       params.delete("marca");
                       params.delete("categoria");
+                      params.delete("q");
                       return params;
                     }, { replace: true });
                   }}
