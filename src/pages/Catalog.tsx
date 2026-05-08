@@ -224,7 +224,7 @@ export default function Catalog() {
           const realCats = new Set(
             [...selectedCats].filter((s) => s !== "__promos__")
           );
-          if (wantsPromos && discountPctOf(p) <= 0) return false;
+          if (wantsPromos && !getProductPricing(p).hasSale) return false;
           if (realCats.size > 0) {
             if (!p.category || !realCats.has(p.category.slug)) return false;
           } else if (!wantsPromos) {
@@ -272,7 +272,7 @@ export default function Catalog() {
     }
     // "categoria" (curadoria): mais desconto primeiro, desempate por score
     return (a: Product, b: Product) => {
-      const dDiff = discountPctOf(b) - discountPctOf(a);
+      const dDiff = getProductPricing(b).discountPct - getProductPricing(a).discountPct;
       if (Math.abs(dDiff) > 0.0001) return dDiff;
       return productScore(b) - productScore(a);
     };
@@ -285,9 +285,9 @@ export default function Catalog() {
     // ver TODOS os produtos numa única lista plana ordenada — não faz
     // sentido manter agrupamento por categoria nesses sorts.
     const flat = sort !== "categoria";
-    const promos = flat
+      const promos = flat
       ? []
-      : filtered.filter((p) => discountPctOf(p) > 0).sort(sortComparator);
+      : filtered.filter((p) => getProductPricing(p).hasSale).sort(sortComparator);
     const showOnlyPromos =
       !flat && selectedCats.size === 1 && selectedCats.has("__promos__");
 
@@ -958,9 +958,9 @@ const ProductCard = memo(function ProductCard({
                 {/* Bloco de preço com altura mínima reservada para a linha
                     "de R$" — alinha cards com e sem desconto na mesma altura. */}
                 <div className="mt-auto pt-2 leading-tight min-h-[60px] flex flex-col justify-end">
-                  {hasRealSale ? (
+                  {hasSale ? (
                     <div className="text-[10px] sm:text-[11px] text-oldPrice font-medium line-through tabular-nums opacity-70">
-                      de {formatBRL(priceNum)}
+                      de {formatBRL(getProductPricing(p).basePrice)}
                     </div>
                   ) : (
                     <div aria-hidden className="h-[12px] sm:h-[14px]" />

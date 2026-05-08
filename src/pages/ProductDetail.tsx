@@ -11,6 +11,7 @@ import { useSEO } from "@/hooks/useSEO";
 import { useRegisterCurrentProduct } from "@/contexts/CurrentProductContext";
 import { useProductBySlug, useRelatedProducts } from "@/hooks/useProducts";
 import { trackEvent } from "@/lib/analytics";
+import { getProductPricing } from "@/lib/catalog";
 
 export default function ProductDetail() {
   const { slug } = useParams();
@@ -20,18 +21,8 @@ export default function ProductDetail() {
   const nav = useNavigate();
   const origin = typeof window !== "undefined" ? window.location.origin : "";
 
-  // Considera "promoção real" apenas quando o desconto arredondado for >= 1%.
-  // Evita mostrar "-0% OFF" quando o sale_price é praticamente igual ao price
-  // (ex.: ajustes finos de centavos não devem aparecer como oferta).
-  const earlyPct = p
-    ? p.sale_price != null &&
-      Number(p.sale_price) > 0 &&
-      Number(p.sale_price) < Number(p.price)
-      ? Math.round((1 - Number(p.sale_price) / Number(p.price)) * 100)
-      : 0
-    : 0;
-  const hasSaleEarly = earlyPct >= 1;
-  const finalPriceEarly = p ? (hasSaleEarly ? Number(p.sale_price) : Number(p.price)) : 0;
+  const pricing = getProductPricing(p || { price: 0 });
+  const { hasSale, finalPrice, discountPct, basePrice } = pricing;
 
   useSEO(
     p
@@ -53,7 +44,7 @@ export default function ProductDetail() {
               offers: {
                 "@type": "Offer",
                 priceCurrency: "BRL",
-                price: finalPriceEarly.toFixed(2),
+                price: finalPrice.toFixed(2),
                 availability:
                   (p.stock ?? 0) > 0
                     ? "https://schema.org/InStock"
@@ -90,12 +81,7 @@ export default function ProductDetail() {
       ? {
           name: p.name,
           slug: p.slug,
-          price:
-            p.sale_price != null &&
-            Number(p.sale_price) > 0 &&
-            Number(p.sale_price) < Number(p.price)
-              ? Number(p.sale_price)
-              : Number(p.price),
+          price: finalPrice,
         }
       : null
   );
@@ -117,17 +103,6 @@ export default function ProductDetail() {
         </Button>
       </div>
     );
-
-  // Mesma trava do `earlyPct`: só mostra promoção quando ≥ 1%.
-  const rawDiscountPct =
-    p.sale_price != null &&
-    Number(p.sale_price) > 0 &&
-    Number(p.sale_price) < Number(p.price)
-      ? Math.round(((Number(p.price) - Number(p.sale_price)) / Number(p.price)) * 100)
-      : 0;
-  const hasSale = rawDiscountPct >= 1;
-  const finalPrice = hasSale ? Number(p.sale_price) : Number(p.price);
-  const discountPct = hasSale ? rawDiscountPct : 0;
 
   return (
     <section className="py-5 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full pb-40 sm:pb-10">
