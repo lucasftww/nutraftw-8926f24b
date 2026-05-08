@@ -498,7 +498,6 @@ export default function Checkout() {
     // Depender de `coupon.code` (string estável) em vez do objeto evita
     // re-disparar este efeito quando `setCoupon` substitui a referência
     // sem mudar de cupom efetivo.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [total, coupon?.code, coupon?.discount_type, coupon?.discount_value]);
 
   const selectedShipping = shippingOptions.find((o) => o.id === shippingId);
