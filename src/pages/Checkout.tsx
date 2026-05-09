@@ -828,15 +828,32 @@ export default function Checkout() {
 
       const createdOrderId = typeof orderId === "string" ? orderId : null;
       let paymentRedirectUrl: string | null = null;
+      let paymentWarning: string | null = null;
       if (createdOrderId) {
         try {
-          const { data: paymentData } = await supabase.functions.invoke("create-payment-intent", {
+          const { data: paymentData, error: payErr } = await supabase.functions.invoke("create-payment-intent", {
             body: {
               order_id: createdOrderId,
               method: form.payment_method,
             },
           });
-          if (paymentData && typeof paymentData === "object" && "checkout_url" in paymentData) {
+          // supabase.functions.invoke NÃO joga em status != 2xx — vem em `error`.
+          // Sem este check, falhas do gateway (ex.: limite MisticPay R$1000)
+          // ficavam silenciosas e o cliente ia pra /minha-conta sem QR Code.
+          if (payErr) {
+            const ctx: any = (payErr as any)?.context;
+            let providerMsg = "";
+            try {
+              const body = await ctx?.json?.();
+              providerMsg =
+                body?.details?.message ||
+                (typeof body?.details === "string" ? body.details : "") ||
+                body?.error || "";
+            } catch { /* noop */ }
+            paymentWarning = providerMsg
+              ? `Pedido criado, mas o PIX falhou: ${providerMsg}`
+              : "Pedido criado, mas o PIX ainda não foi gerado. Tente novamente em alguns instantes.";
+          } else if (paymentData && typeof paymentData === "object" && "checkout_url" in paymentData) {
             paymentRedirectUrl = String((paymentData as Record<string, unknown>).checkout_url || "");
           }
         } catch {
@@ -847,7 +864,11 @@ export default function Checkout() {
 
       // Bug fix: navegar ANTES de clear() evita um frame com a tela
       // "Seu carrinho está vazio" enquanto a transição acontece.
-      toast.success("Pedido criado com sucesso!");
+      if (paymentWarning) {
+        toast.error(paymentWarning, { duration: 8000 });
+      } else {
+        toast.success("Pedido criado com sucesso!");
+      }
       // Limpa atribuição de afiliado — pedido criado, comissão registrada.
       try { clearAffiliateRef(); } catch {}
       // Limpa o rascunho persistido — pedido já foi gravado.
