@@ -1,8 +1,8 @@
 // Supabase Edge Function (Deno)
-// Gateway-ready endpoint used by Checkout.tsx after order creation.
-// Expected envs (configure in Supabase project secrets):
-// - PAYMENT_PROVIDER_BASE_URL
-// - PAYMENT_PROVIDER_API_KEY
+// Cria a transação PIX na MisticPay (cash-in) para um pedido já gravado.
+// Envs obrigatórias (Project Secrets):
+// - MISTICPAY_CLIENT_ID
+// - MISTICPAY_CLIENT_SECRET
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
@@ -87,7 +87,7 @@ serve(async (req) => {
   const adminClient = createClient(SUPABASE_URL, SERVICE_ROLE);
   const { data: order, error: orderErr } = await adminClient
     .from("orders")
-    .select("id, user_id, status")
+    .select("id, user_id, status, total, shipping_full_name, shipping_cpf, payment_reference, payment_qr_code, payment_copy_paste")
     .eq("id", body.order_id)
     .maybeSingle();
   if (orderErr) {
@@ -104,48 +104,113 @@ serve(async (req) => {
     });
   }
 
-  const providerBase = Deno.env.get("PAYMENT_PROVIDER_BASE_URL");
-  const providerKey = Deno.env.get("PAYMENT_PROVIDER_API_KEY");
+  // Cartão ainda não suportado pela MisticPay (apenas PIX).
+  if (body.method !== "pix") {
+    return new Response(
+      JSON.stringify({ error: "method_not_supported", method: body.method }),
+      {
+        status: 400,
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      },
+    );
+  }
 
-  if (!providerBase || !providerKey) {
+  // Idempotência: se já existe QR para este pedido, devolve sem chamar de novo.
+  if (order.payment_qr_code && order.payment_copy_paste) {
+    return new Response(
+      JSON.stringify({
+        provider: "misticpay",
+        method: "pix",
+        provider_reference: order.payment_reference,
+        qr_code_base64: order.payment_qr_code,
+        copy_paste: order.payment_copy_paste,
+        amount: Number(order.total),
+      }),
+      { status: 200, headers: { ...corsHeaders, "content-type": "application/json" } },
+    );
+  }
+
+  const ci = Deno.env.get("MISTICPAY_CLIENT_ID");
+  const cs = Deno.env.get("MISTICPAY_CLIENT_SECRET");
+  if (!ci || !cs) {
     return new Response(JSON.stringify({ error: "provider_not_configured" }), {
       status: 501,
       headers: { ...corsHeaders, "content-type": "application/json" },
     });
   }
 
-  // Replace this request with your provider-specific API contract.
-  const upstream = await fetch(`${providerBase}/payment-intents`, {
+  const cpfDigits = String(order.shipping_cpf ?? "").replace(/\D/g, "");
+  const payerName = String(order.shipping_full_name ?? "Cliente").slice(0, 80);
+  const amount = Number(order.total);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return new Response(JSON.stringify({ error: "invalid_order_amount" }), {
+      status: 400,
+      headers: { ...corsHeaders, "content-type": "application/json" },
+    });
+  }
+  if (cpfDigits.length !== 11) {
+    return new Response(JSON.stringify({ error: "invalid_cpf" }), {
+      status: 400,
+      headers: { ...corsHeaders, "content-type": "application/json" },
+    });
+  }
+
+  const webhookUrl = `${SUPABASE_URL}/functions/v1/misticpay-webhook`;
+
+  const upstream = await fetch("https://api.misticpay.com/api/transactions/create", {
     method: "POST",
     headers: {
       "content-type": "application/json",
-      authorization: `Bearer ${providerKey}`,
+      ci,
+      cs,
     },
     body: JSON.stringify({
-      order_id: body.order_id,
-      method: body.method,
+      amount,
+      payerName,
+      payerDocument: cpfDigits,
+      transactionId: order.id,
+      description: `Pedido Royal Vitta ${String(order.id).slice(0, 8)}`,
+      projectWebhook: webhookUrl,
     }),
   });
 
-  if (!upstream.ok) {
+  const upstreamText = await upstream.text();
+  let upstreamJson: any = null;
+  try { upstreamJson = JSON.parse(upstreamText); } catch { /* keep null */ }
+
+  if (!upstream.ok || !upstreamJson?.data) {
+    console.error("[misticpay] create failed", upstream.status, upstreamText);
     return new Response(
-      JSON.stringify({ error: "provider_error", status: upstream.status }),
-      {
-        status: 502,
-        headers: { ...corsHeaders, "content-type": "application/json" },
-      },
+      JSON.stringify({ error: "provider_error", status: upstream.status, details: upstreamJson ?? upstreamText }),
+      { status: 502, headers: { ...corsHeaders, "content-type": "application/json" } },
     );
   }
 
-  const data = await upstream.json();
+  const tx = upstreamJson.data;
+  const providerRef = String(tx.transactionId ?? "");
+  const qrBase64 = String(tx.qrCodeBase64 ?? "");
+  const copyPaste = String(tx.copyPaste ?? "");
+
+  // Persiste no pedido para idempotência e exibição posterior.
+  await adminClient
+    .from("orders")
+    .update({
+      payment_provider: "misticpay",
+      payment_reference: providerRef,
+      payment_qr_code: qrBase64,
+      payment_copy_paste: copyPaste,
+    })
+    .eq("id", order.id);
+
   return new Response(
     JSON.stringify({
-      checkout_url: data.checkout_url ?? null,
-      provider_reference: data.reference ?? null,
+      provider: "misticpay",
+      method: "pix",
+      provider_reference: providerRef,
+      qr_code_base64: qrBase64,
+      copy_paste: copyPaste,
+      amount,
     }),
-    {
-      status: 200,
-      headers: { ...corsHeaders, "content-type": "application/json" },
-    },
+    { status: 200, headers: { ...corsHeaders, "content-type": "application/json" } },
   );
 });

@@ -1,1 +1,4 @@
 project_id = "idutmqfqnoozqbjeqtui"
+
+[functions.misticpay-webhook]
+verify_jwt = false
