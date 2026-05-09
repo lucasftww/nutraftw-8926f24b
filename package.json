@@ -1,5 +1,5 @@
 {
-  "name": "gimports",
+  "name": "royalvitta-store",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -8,8 +8,9 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
-    "lint": "eslint src/pages/Login.tsx src/pages/Wishlist.tsx src/integrations/supabase/client.ts src/components/ErrorBoundary.tsx src/pages/Admin.tsx src/pages/Catalog.tsx src/hooks/useAuth.tsx src/lib/checkoutValidation.ts src/pages/adminTabs.ts src/lib/catalog.ts src/lib/checkoutMath.test.ts src/pages/Checkout.tsx",
-    "test": "vitest run src/lib/checkoutMath.test.ts"
+    "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
