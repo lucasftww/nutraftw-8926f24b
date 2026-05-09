@@ -386,7 +386,12 @@ export type Database = {
           id: string
           insurance: number
           notes: string | null
+          paid_at: string | null
+          payment_copy_paste: string | null
           payment_method: Database["public"]["Enums"]["payment_method"] | null
+          payment_provider: string | null
+          payment_qr_code: string | null
+          payment_reference: string | null
           resend_notes: string | null
           resend_requested_at: string | null
           resend_sent_at: string | null
@@ -416,7 +421,12 @@ export type Database = {
           id?: string
           insurance?: number
           notes?: string | null
+          paid_at?: string | null
+          payment_copy_paste?: string | null
           payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          payment_provider?: string | null
+          payment_qr_code?: string | null
+          payment_reference?: string | null
           resend_notes?: string | null
           resend_requested_at?: string | null
           resend_sent_at?: string | null
@@ -446,7 +456,12 @@ export type Database = {
           id?: string
           insurance?: number
           notes?: string | null
+          paid_at?: string | null
+          payment_copy_paste?: string | null
           payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          payment_provider?: string | null
+          payment_qr_code?: string | null
+          payment_reference?: string | null
           resend_notes?: string | null
           resend_requested_at?: string | null
           resend_sent_at?: string | null
