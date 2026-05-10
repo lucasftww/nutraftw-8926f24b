@@ -287,9 +287,17 @@ export default function MyAccount() {
           </div>
           <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl px-2.5 py-2 md:p-4">
             <p className="text-[10px] md:text-xs uppercase tracking-wide text-white/75 font-semibold">Desde</p>
-            <p className="text-[13px] md:text-2xl font-extrabold mt-1 capitalize leading-none">
+            <p className="text-[13px] md:text-2xl font-extrabold mt-1 leading-none">
               {profile?.created_at
-                ? new Date(profile.created_at).toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }).replace(".", "")
+                ? (() => {
+                    // toLocaleDateString("pt-BR", {month:"short"}) retorna "mai." e
+                    // o formato {year:"2-digit"} insere "de" entre mês e ano (ex.:
+                    // "mai. de 26"), o que combinado com `capitalize` virava
+                    // "Mai De 26" — esquisito. Construímos manualmente: "Mai 2026".
+                    const d = new Date(profile.created_at);
+                    const m = d.toLocaleDateString("pt-BR", { month: "short" }).replace(/\./g, "");
+                    return `${m.charAt(0).toUpperCase()}${m.slice(1)} ${d.getFullYear()}`;
+                  })()
                 : "—"}
             </p>
           </div>

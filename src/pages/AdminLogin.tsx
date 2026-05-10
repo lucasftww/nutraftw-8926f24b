@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { friendlyAuthError } from "@/lib/friendlyError";
 import { ShieldCheck, Loader2, AlertTriangle, LogOut } from "lucide-react";
 
 /**
@@ -87,7 +88,7 @@ export default function AdminLogin() {
       toast.success("Bem-vindo, admin!");
       nav(next, { replace: true });
     } catch (err: any) {
-      toast.error(err.message || "Falha ao autenticar");
+      toast.error(friendlyAuthError(err));
     } finally {
       setSubmitting(false);
     }

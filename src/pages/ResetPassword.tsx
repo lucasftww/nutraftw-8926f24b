@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { friendlyAuthError } from "@/lib/friendlyError";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
@@ -43,7 +44,7 @@ export default function ResetPassword() {
       toast.success("Senha redefinida com sucesso!");
       nav("/minha-conta", { replace: true });
     } catch (err: any) {
-      toast.error(err.message || "Erro ao redefinir senha");
+      toast.error(friendlyAuthError(err));
     } finally {
       setLoading(false);
     }

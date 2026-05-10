@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { getAffiliateRef, getAffiliateRefData, setAffiliateRef, clearAffiliateRef, readAttributionFromUrl } from "@/lib/affiliateRef";
+import { friendlyAuthError } from "@/lib/friendlyError";
 import { Users } from "lucide-react";
 
 export default function Login() {
@@ -123,7 +124,7 @@ export default function Login() {
         nav(next, { replace: true });
       }
     } catch (err: any) {
-      toast.error(err.message || "Erro na autenticação");
+      toast.error(friendlyAuthError(err));
     } finally {
       setLoading(false);
     }
@@ -135,7 +136,7 @@ export default function Login() {
       provider: "google",
       options: { redirectTo: `${window.location.origin}${target}` },
     });
-    if (error) toast.error(error.message);
+    if (error) toast.error(friendlyAuthError(error));
   }
 
   async function onForgotPassword() {
@@ -152,7 +153,7 @@ export default function Login() {
       if (error) throw error;
       toast.success("Enviamos um link de recuperação para seu e-mail.");
     } catch (err: any) {
-      toast.error(err.message || "Erro ao enviar e-mail de recuperação");
+      toast.error(friendlyAuthError(err));
     } finally {
       setLoading(false);
     }
