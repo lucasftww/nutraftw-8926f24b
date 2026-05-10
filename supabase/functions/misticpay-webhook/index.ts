@@ -209,6 +209,7 @@ serve(async (req) => {
       method: "POST",
       headers: { "content-type": "application/json", ci, cs },
       body: JSON.stringify({ transactionId: providerRef }),
+      signal: AbortSignal.timeout(10_000), // 10s — evita worker preso 150s
     });
     const checkText = await checkResp.text();
     if (!checkResp.ok) {
@@ -255,13 +256,15 @@ serve(async (req) => {
   // Inclui estados de estorno/expiração que antes caíam em `targetStatus = null`
   // e ficavam silenciosos — chargeback recebido após "paid" não revertia
   // comissão de afiliado nem reabastecia estoque.
-  let targetStatus: "paid" | "cancelled" | "refunded" | "expired" | null = null;
+  // "expired" NÃO existe no enum order_status do banco — mapeamos EXPIRADO
+  // para "cancelled" para evitar exceção PostgreSQL ("invalid input value for
+  // enum") que causava retry infinito do webhook e pedido preso em "pending".
+  let targetStatus: "paid" | "cancelled" | "refunded" | null = null;
   if (verifiedState === "COMPLETO") targetStatus = "paid";
-  else if (verifiedState === "FALHA" || verifiedState === "CANCELADO") targetStatus = "cancelled";
-  else if (verifiedState === "ESTORNADO" || verifiedState === "REEMBOLSADO" || verifiedState === "CHARGEBACK") {
+  else if (verifiedState === "FALHA" || verifiedState === "CANCELADO" || verifiedState === "EXPIRADO") {
+    targetStatus = "cancelled";
+  } else if (verifiedState === "ESTORNADO" || verifiedState === "REEMBOLSADO" || verifiedState === "CHARGEBACK") {
     targetStatus = "refunded";
-  } else if (verifiedState === "EXPIRADO") {
-    targetStatus = "expired";
   }
 
   if (!targetStatus) {

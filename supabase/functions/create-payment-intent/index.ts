@@ -7,12 +7,24 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+// CORS restrito ao domínio de produção. Wildcard "*" permitia que scripts
+// em qualquer site chamassem este endpoint com o token do usuário (XSS lateral).
+const ALLOWED_ORIGINS = new Set([
+  Deno.env.get("SITE_ORIGIN") ?? "", // ex.: https://royalvitta.com.br
+  "http://localhost:5173",
+  "http://localhost:8080",
+]);
+function getCorsHeaders(requestOrigin: string | null) {
+  const origin = requestOrigin && ALLOWED_ORIGINS.has(requestOrigin)
+    ? requestOrigin
+    : (ALLOWED_ORIGINS.values().next().value || "*");
+  return {
+    "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Vary": "Origin",
+  };
+}
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -23,6 +35,7 @@ type Payload = {
 };
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get("origin"));
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -230,6 +243,7 @@ serve(async (req) => {
       description: `Pedido Royal Vitta ${String(order.id).slice(0, 8)}`,
       projectWebhook: webhookUrl,
     }),
+    signal: AbortSignal.timeout(10_000), // 10s — evita worker preso 150s
   });
 
   const upstreamText = await upstream.text();
