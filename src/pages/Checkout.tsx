@@ -6,163 +6,27 @@ import { supabase } from "@/integrations/supabase/client";
 import { calcTotals } from "@/lib/checkoutMath";
 import { validateCheckoutForm } from "@/lib/checkoutValidation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { formatBRL, onlyDigits, maskCPF, maskPhone, maskCEP } from "@/lib/utils";
 import { imageUrl } from "@/lib/image";
 import { toast } from "sonner";
 import { ShieldCheck, Truck, Lock, CreditCard, QrCode, ArrowLeft, Ticket, Check, MapPin, User as UserIcon, Package, Loader2, ChevronDown, ShoppingBag, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { trackEvent } from "@/lib/analytics";
-import { useFieldValidation } from "@/hooks/useFieldValidation";
-import { validateFullName, validateEmail, validatePhoneBR, validateCPF, validateCEP } from "@/lib/validators";
-import type { FieldStatus } from "@/lib/validators";
 import { getAffiliateRefData, clearAffiliateRef } from "@/lib/affiliateRef";
 import { CheckoutStepper } from "@/components/checkout/CheckoutStepper";
 
+// Sub-components
+import { BuyerSection } from "./checkout/BuyerSection";
+import { AddressSection } from "./checkout/AddressSection";
+import { ShippingSection } from "./checkout/ShippingSection";
+import { PaymentSection } from "./checkout/PaymentSection";
+import { OrderSummary } from "./checkout/OrderSummary";
+import { StickyMobileBar } from "./checkout/StickyMobileBar";
+import { loadPersistedForm, FORM_STORAGE_KEY } from "./checkout/storage";
+import type { CheckoutFormState } from "./checkout/types";
+
 const INSURANCE_RATE = 0.1;
 const PIX_DISCOUNT = 0.05;
-
-/**
- * Persistência leve do form em sessionStorage. Evita perder o que o usuário
- * digitou se ele recarregar a página por engano (acidente comum em mobile
- * com pull-to-refresh). Sessão limpa sozinha ao fechar a aba — sem rastros.
- * Só dados de contato/endereço — nunca senha. Senhas nem passam por aqui.
- */
-const FORM_STORAGE_KEY = "checkout:form:v1";
-type CheckoutFormState = {
-  full_name: string; email: string; cpf: string; phone: string;
-  zip: string; street: string; number: string; complement: string;
-  district: string; city: string; state: string; notes: string;
-  payment_method: "pix" | "credit_card";
-};
-const EMPTY_FORM: CheckoutFormState = {
-  full_name: "", email: "", cpf: "", phone: "",
-  zip: "", street: "", number: "", complement: "",
-  district: "", city: "", state: "", notes: "",
-  payment_method: "pix",
-};
-function loadPersistedForm(): CheckoutFormState {
-  if (typeof window === "undefined") return EMPTY_FORM;
-  try {
-    const raw = window.sessionStorage.getItem(FORM_STORAGE_KEY);
-    if (!raw) return EMPTY_FORM;
-    const parsed = JSON.parse(raw) as Partial<CheckoutFormState>;
-    return { ...EMPTY_FORM, ...parsed };
-  } catch {
-    return EMPTY_FORM;
-  }
-}
-
-/**
- * Cartão de método de pagamento (PIX / Cartão).
- * Bug fix: antes era declarado DENTRO de `Checkout`. Resultado: a cada
- * keystroke nos campos do form, React via uma "função-componente nova"
- * e desmontava/remontava o card inteiro — animações reiniciavam, ARIA
- * resetava, e em mobile alguns toques eram engolidos pela troca rápida
- * de árvore. Movido pra fora, mantém referência estável entre renders.
- */
-function PaymentOption({
-  value,
-  active,
-  onSelect,
-  title,
-  subtitle,
-  icon: Icon,
-  badge,
-  totalLabel,
-  totalValue,
-  installment,
-}: {
-  value: "pix" | "credit_card";
-  active: boolean;
-  onSelect: (v: "pix" | "credit_card") => void;
-  title: string;
-  subtitle: string;
-  icon: typeof QrCode;
-  badge?: { text: string; tone: "secondary" | "muted" };
-  totalLabel: string;
-  totalValue: number;
-  installment?: string;
-}) {
-  return (
-    <button
-      type="button"
-      role="radio"
-      aria-checked={active}
-      onClick={() => onSelect(value)}
-      className={[
-        "relative w-full text-left p-4 rounded-2xl border-2 transition-all",
-        "active:scale-[0.99] focus-visible:outline-none focus-visible:ring-4",
-        active
-          ? "border-primary bg-primary/5 shadow-md shadow-primary/10 focus-visible:ring-primary/15"
-          : "border-border bg-white hover:border-primary/40 focus-visible:ring-primary/10",
-      ].join(" ")}
-    >
-      {badge && (
-        <span
-          className={[
-            "badge-pill absolute -top-2 right-3 font-extrabold shadow-sm ring-2 ring-card",
-            badge.tone === "secondary"
-              ? "bg-success text-success-foreground badge-pulse"
-              : "bg-muted text-muted-foreground",
-          ].join(" ")}
-        >
-          {badge.text}
-        </span>
-      )}
-      <div className="flex items-start gap-3">
-        <div
-          className={[
-            "mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
-            active ? "border-primary" : "border-muted-foreground/40",
-          ].join(" ")}
-          aria-hidden
-        >
-          {active && <div className="w-2.5 h-2.5 bg-primary rounded-full" />}
-        </div>
-        <div
-          className={[
-            "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors",
-            active ? "bg-primary text-primary-foreground" : "bg-muted text-primary",
-          ].join(" ")}
-        >
-          <Icon className="w-5 h-5" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="font-bold text-sm leading-tight">{title}</div>
-          <div className="text-[12px] text-muted-foreground mt-0.5 leading-tight">{subtitle}</div>
-        </div>
-      </div>
-      <div className={`mt-3 pt-3 border-t border-dashed ${active ? "border-primary/30" : "border-border"} flex items-end justify-between gap-2`}>
-        <div className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground leading-none">
-          {totalLabel}
-        </div>
-        <div className="text-right">
-          <div className={`text-lg font-extrabold tabular-nums leading-none ${active ? "text-primary" : "text-foreground"}`}>
-            {formatBRL(totalValue)}
-          </div>
-          {installment && (
-            <div className="text-[10px] text-muted-foreground mt-1 tabular-nums">{installment}</div>
-          )}
-        </div>
-      </div>
-    </button>
-  );
-}
-
-/** Mensagem inline de validação — verde "ok" / vermelho "erro" / nada quando idle.
- *  `id` permite vincular ao input via aria-describedby (acessibilidade). */
-function FieldHint({ status, message, id }: { status: FieldStatus; message?: string; id?: string }) {
-  // Visual clean: ocultamos o "Tudo certo" — só mostramos mensagens de erro.
-  if (status !== "invalid") return null;
-  return (
-    <p id={id} role="alert" className="field-hint field-hint-error">
-      <AlertCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-      <span>{message}</span>
-    </p>
-  );
-}
 
 export default function Checkout() {
   const { lines, total, clear, coupon: cartCouponCode, setCoupon: setCartCoupon } = useCart();
@@ -182,7 +46,6 @@ export default function Checkout() {
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState<string | null>(null);
   const [couponOpen, setCouponOpen] = useState<boolean>(false);
-  const [complementOpen, setComplementOpen] = useState<boolean>(false);
 
   // Funil: registra `checkout_started` ao chegar na página com itens.
   // Usa um ref-like guard via state pra disparar uma vez por carga.
@@ -563,7 +426,7 @@ export default function Checkout() {
   const couponDiscount = _totals.couponDiscount;
   const pixDiscount = _totals.pixDiscount;
   const grandTotal = _totals.total;
-  // baseTotal mantido para a UI legada (parcelas/“ou em x vezes”).
+  // baseTotal mantido para a UI legada (parcelas/"ou em x vezes").
   const baseTotal = total + shippingValue + insurance - couponDiscount;
 
   // Lista de itens no resumo — memoizada porque depende só de `lines`,
@@ -643,13 +506,6 @@ export default function Checkout() {
     obs.observe(el);
     return () => obs.disconnect();
   }, [grandTotal]);
-
-  // === Validação em tempo real (debounced) — feedback inline ===
-  const vName = useFieldValidation(form.full_name, validateFullName);
-  const vEmail = useFieldValidation(form.email, validateEmail);
-  const vPhone = useFieldValidation(form.phone, validatePhoneBR);
-  const vCPF = useFieldValidation(form.cpf, validateCPF);
-  const vCEP = useFieldValidation(form.zip, validateCEP, { debounceMs: 200 });
 
   if (lines.length === 0)
     return (
@@ -907,6 +763,9 @@ export default function Checkout() {
     }
   }
 
+  const pixEnabled = settings.checkout_enable_pix !== "0";
+  const cardEnabled = settings.checkout_enable_card !== "0";
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 md:py-10 pb-44 lg:pb-10">
       <div className="flex items-center mb-3 sm:mb-4">
@@ -933,638 +792,64 @@ export default function Checkout() {
       <form onSubmit={submit} className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-5 lg:gap-8">
         <div className="space-y-4 sm:space-y-6 min-w-0">
           {/* Dados do Comprador */}
-          <section className="checkout-card">
-            <div className="flex items-center gap-3 mb-4 sm:mb-6">
-              <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground text-sm font-extrabold tabular-nums shrink-0">1</span>
-              <h2 className="checkout-section-title !mb-0">Seus dados</h2>
-            </div>
-            <div className="space-y-4">
-              <div className="checkout-field">
-                <label htmlFor="co-name" className="checkout-label">Nome Completo *</label>
-                <input
-                  id="co-name"
-                  required
-                  value={form.full_name}
-                  onChange={(e) => setForm({ ...form, full_name: e.target.value })}
-                  onBlur={vName.touch}
-                  placeholder="João da Silva"
-                  className="checkout-input"
-                  data-status={vName.status === "idle" ? undefined : vName.status}
-                  aria-invalid={vName.status === "invalid"}
-                  aria-describedby={vName.status !== "idle" ? "co-name-hint" : undefined}
-                  autoComplete="name"
-                  maxLength={100}
-                />
-                <FieldHint id="co-name-hint" status={vName.status} message={vName.message} />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="checkout-field sm:col-span-2">
-                  <label htmlFor="co-email" className="checkout-label">E-mail *</label>
-                  <input
-                    id="co-email"
-                    required
-                    type="email"
-                    inputMode="email"
-                    value={form.email}
-                    onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    onBlur={vEmail.touch}
-                    placeholder="joao@exemplo.com"
-                    className="checkout-input"
-                    data-status={vEmail.status === "idle" ? undefined : vEmail.status}
-                    aria-invalid={vEmail.status === "invalid"}
-                    aria-describedby={vEmail.status !== "idle" ? "co-email-hint" : undefined}
-                    autoComplete="email"
-                    autoCapitalize="off"
-                    spellCheck={false}
-                    maxLength={255}
-                  />
-                  <FieldHint id="co-email-hint" status={vEmail.status} message={vEmail.message} />
-                </div>
-                <div className="checkout-field">
-                  <label htmlFor="co-phone" className="checkout-label">Telefone (WhatsApp) *</label>
-                  <input
-                    id="co-phone"
-                    required
-                    type="tel"
-                    value={form.phone}
-                    onChange={(e) => setForm({ ...form, phone: maskPhone(e.target.value) })}
-                    onBlur={vPhone.touch}
-                    placeholder="(11) 99999-9999"
-                    inputMode="tel"
-                    className="checkout-input"
-                    data-status={vPhone.status === "idle" ? undefined : vPhone.status}
-                    aria-invalid={vPhone.status === "invalid"}
-                    aria-describedby={vPhone.status !== "idle" ? "co-phone-hint" : undefined}
-                    autoComplete="tel"
-                    maxLength={15}
-                  />
-                  <FieldHint id="co-phone-hint" status={vPhone.status} message={vPhone.message} />
-                </div>
-                <div className="checkout-field">
-                <label htmlFor="co-cpf" className="checkout-label">CPF *</label>
-                <input
-                  id="co-cpf"
-                  required
-                  value={form.cpf}
-                  onChange={(e) => setForm({ ...form, cpf: maskCPF(e.target.value) })}
-                  onBlur={vCPF.touch}
-                  placeholder="000.000.000-00"
-                  inputMode="numeric"
-                  className="checkout-input"
-                  data-status={vCPF.status === "idle" ? undefined : vCPF.status}
-                  aria-invalid={vCPF.status === "invalid"}
-                  aria-describedby={vCPF.status !== "idle" ? "co-cpf-hint" : undefined}
-                  autoComplete="off"
-                  maxLength={14}
-                />
-                <FieldHint id="co-cpf-hint" status={vCPF.status} message={vCPF.message} />
-                </div>
-              </div>
-            </div>
-          </section>
+          <BuyerSection form={form} setForm={setForm} />
 
           {/* Endereço de Entrega */}
-          <section className="checkout-card">
-            <div className="flex items-center gap-3 mb-4 sm:mb-6">
-              <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground text-sm font-extrabold tabular-nums shrink-0">2</span>
-              <h2 className="checkout-section-title !mb-0">Endereço</h2>
-            </div>
-            <div className="space-y-4">
-              <div className="checkout-field">
-                <label htmlFor="co-zip" className="checkout-label">CEP *</label>
-                <div className="relative">
-                  <input
-                    id="co-zip"
-                    required
-                    value={form.zip}
-                    onChange={(e) => setForm({ ...form, zip: maskCEP(e.target.value) })}
-                    onBlur={vCEP.touch}
-                    placeholder="00000-000"
-                    inputMode="numeric"
-                    maxLength={9}
-                    className="checkout-input pr-10"
-                    data-status={vCEP.status === "idle" ? undefined : vCEP.status}
-                    aria-invalid={vCEP.status === "invalid"}
-                    aria-describedby={vCEP.status === "invalid" ? "co-zip-hint" : "co-zip-help"}
-                    autoComplete="postal-code"
-                  />
-                  {cepLoading && (
-                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary animate-spin" />
-                  )}
-                </div>
-                {vCEP.status === "invalid" ? (
-                  <FieldHint id="co-zip-hint" status="invalid" message={vCEP.message} />
-                ) : (
-                  <p id="co-zip-help" className="text-xs text-muted-foreground ml-1 mt-1.5">
-                    Digite o CEP para preenchimento automático do endereço
-                  </p>
-                )}
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="sm:col-span-2 checkout-field">
-                  <label htmlFor="co-street" className="checkout-label">Rua / Logradouro *</label>
-                  <input
-                    id="co-street"
-                    required
-                    value={form.street}
-                    onChange={(e) => setForm({ ...form, street: e.target.value })}
-                    placeholder="Rua das Flores"
-                    className="checkout-input"
-                    autoComplete="address-line1"
-                    maxLength={120}
-                  />
-                </div>
-                <div className="checkout-field">
-                  <label htmlFor="co-number" className="checkout-label">Número *</label>
-                  <input
-                    id="co-number"
-                    required
-                    value={form.number}
-                    onChange={(e) => setForm({ ...form, number: e.target.value })}
-                    placeholder="123"
-                    className="checkout-input"
-                    autoComplete="address-line2"
-                    inputMode="numeric"
-                    maxLength={20}
-                  />
-                </div>
-              </div>
-              <div className="checkout-field">
-                <label htmlFor="co-district" className="checkout-label">Bairro *</label>
-                <input
-                  id="co-district"
-                  required
-                  value={form.district}
-                  onChange={(e) => setForm({ ...form, district: e.target.value })}
-                  placeholder="Centro"
-                  className="checkout-input"
-                  autoComplete="address-level3"
-                  maxLength={80}
-                />
-              </div>
-              {!complementOpen ? (
-                <button
-                  type="button"
-                  onClick={() => setComplementOpen(true)}
-                  className="text-xs font-semibold text-primary hover:underline"
-                >
-                  + Adicionar complemento
-                </button>
-              ) : (
-                <div className="checkout-field">
-                  <div className="flex items-center justify-between">
-                    <label htmlFor="co-complement" className="checkout-label">Complemento</label>
-                    {/* Antes não dava pra fechar o campo depois de aberto. */}
-                    <button
-                      type="button"
-                      onClick={() => { setForm((f) => ({ ...f, complement: "" })); setComplementOpen(false); }}
-                      className="text-[11px] font-semibold text-muted-foreground hover:text-destructive"
-                    >
-                      remover
-                    </button>
-                  </div>
-                  <input
-                    id="co-complement"
-                    value={form.complement}
-                    onChange={(e) => setForm({ ...form, complement: e.target.value })}
-                    placeholder="Apto 12, Bloco B"
-                    className="checkout-input"
-                    autoComplete="address-line3"
-                    maxLength={80}
-                    autoFocus
-                  />
-                </div>
-              )}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="sm:col-span-2 checkout-field">
-                  <label htmlFor="co-city" className="checkout-label">Cidade *</label>
-                  <input
-                    id="co-city"
-                    required
-                    value={form.city}
-                    onChange={(e) => setForm({ ...form, city: e.target.value })}
-                    placeholder="São Paulo"
-                    className="checkout-input"
-                    autoComplete="address-level2"
-                    maxLength={80}
-                  />
-                </div>
-                <div className="checkout-field">
-                  <label htmlFor="co-state" className="checkout-label">Estado *</label>
-                  <div className="relative">
-                    <select
-                      id="co-state"
-                      required
-                      value={form.state}
-                      onChange={(e) => setForm({ ...form, state: e.target.value })}
-                      className="checkout-input bg-white appearance-none cursor-pointer pr-10"
-                      autoComplete="address-level1"
-                    >
-                      <option value="">UF</option>
-                      {[
-                        "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG",
-                        "PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO",
-                      ].map((uf) => (
-                        <option key={uf} value={uf}>{uf}</option>
-                      ))}
-                    </select>
-                    <ChevronDown
-                      aria-hidden
-                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
+          <AddressSection form={form} setForm={setForm} cepLoading={cepLoading} />
 
           {/* Entrega — só aparece após CEP/UF preenchidos */}
           {cepReady && (
-          <section className="checkout-card space-y-5" data-checkout-shipping>
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-3">
-                <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground text-sm font-extrabold tabular-nums shrink-0">3</span>
-                <h2 className="checkout-section-title !mb-0">Entrega</h2>
-              </div>
-              {shippingLoading && (
-                <span className="ml-auto inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground" aria-live="polite">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
-                  atualizando…
-                </span>
-              )}
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-foreground mb-3 block">Tipo de Frete</label>
-              {shippingLoading && shippingOptions.length === 0 ? (
-                <ul className="grid grid-cols-1 gap-4" aria-busy="true" aria-label="Calculando opções de frete">
-                  {[0, 1].map((i) => (
-                    <li key={i} className="p-4 rounded-xl border-2 border-border flex items-center gap-4">
-                      <div className="w-5 h-5 rounded-full skeleton-shimmer" />
-                      <div className="flex-1 space-y-2">
-                        <div className="h-3 w-1/3 rounded skeleton-shimmer" />
-                        <div className="h-2.5 w-1/4 rounded skeleton-shimmer" />
-                      </div>
-                      <div className="h-3 w-16 rounded skeleton-shimmer" />
-                    </li>
-                  ))}
-                </ul>
-              ) : shippingOptions.length === 0 ? (
-                <div className="p-4 rounded-xl bg-muted/30 border border-border text-sm text-muted-foreground">
-                  {form.state.length === 2
-                    ? "Sem opções de frete para este estado. Fale com o suporte."
-                    : "Selecione o estado para ver as opções de frete."}
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 gap-4">
-                  {shippingOptions.map((o) => {
-                    const active = shippingId === o.id;
-                    return (
-                      <button
-                        key={o.id}
-                        type="button"
-                        onClick={() => setShippingId(o.id)}
-                        className={`cursor-pointer p-4 rounded-xl border-2 transition-all flex items-start gap-4 text-left ${
-                          active ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
-                        }`}
-                      >
-                        <div
-                          className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                            active ? "border-primary" : "border-muted-foreground/40"
-                          }`}
-                        >
-                          {active && <div className="w-2.5 h-2.5 bg-primary rounded-full" />}
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-bold text-foreground flex items-center gap-2">
-                            <Truck className="w-4 h-4" />
-                            {o.label}
-                          </p>
-                          {o.delivery_days_min && o.delivery_days_max && (
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {o.delivery_days_min} a {o.delivery_days_max} dias úteis
-                            </p>
-                          )}
-                          <p className="font-semibold text-primary mt-2">
-                            {Number(o.price) === 0 ? "Grátis" : formatBRL(Number(o.price))}
-                          </p>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {settings.insurance_optional !== "0" && (
-              <div className="pt-4 border-t border-border">
-                <label className="flex items-center gap-3 cursor-pointer group">
-                  <div className="relative flex items-center justify-center shrink-0">
-                    <input
-                      type="checkbox"
-                      checked={insuranceOn}
-                      onChange={(e) => setInsuranceOn(e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div
-                      className={`w-5 h-5 rounded-md border-2 transition-colors flex items-center justify-center ${
-                        insuranceOn ? "bg-primary border-primary" : "border-muted-foreground/40 group-hover:border-primary"
-                      }`}
-                    >
-                      {insuranceOn && <Check className="w-3.5 h-3.5 text-primary-foreground" strokeWidth={3} />}
-                    </div>
-                  </div>
-                  <span className="text-sm text-foreground/90">
-                    Adicionar proteção de envio <span className="text-muted-foreground">(+10%)</span>
-                  </span>
-                </label>
-                {!insuranceOn && (
-                  <p className="mt-2 ml-8 text-[11px] leading-snug text-muted-foreground">
-                    Pedidos sem seguro são de responsabilidade do comprador. Não nos responsabilizamos por problemas no transporte.
-                  </p>
-                )}
-              </div>
-            )}
-          </section>
+            <ShippingSection
+              form={form}
+              shippingOptions={shippingOptions}
+              shippingId={shippingId}
+              shippingLoading={shippingLoading}
+              insuranceOn={insuranceOn}
+              setShippingId={setShippingId}
+              setInsuranceOn={setInsuranceOn}
+              insuranceOptional={settings.insurance_optional}
+            />
           )}
 
           {/* Forma de Pagamento */}
-          <section className="checkout-card" data-checkout-payment>
-            <div className="flex items-center gap-3 mb-4 sm:mb-6">
-              <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground text-sm font-extrabold tabular-nums shrink-0">4</span>
-              <h2 className="checkout-section-title !mb-0">Pagamento</h2>
-            </div>
-            {(() => {
-              const pixOn = settings.checkout_enable_pix !== "0";
-              const cardOn = settings.checkout_enable_card !== "0";
-              const noneOn = !pixOn && !cardOn;
-              // Total ESTIMADO por método (calculado fora do baseTotal pra mostrar dentro do card)
-              const pixTotal = baseTotal * (1 - PIX_DISCOUNT);
-              const cardTotal = baseTotal;
-              const pixSaves = baseTotal - pixTotal;
-
-              if (noneOn) {
-                return (
-                  <div role="alert" className="p-4 rounded-xl border-2 border-destructive/30 bg-destructive/5 flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-bold text-destructive text-sm">Pagamentos indisponíveis</p>
-                      <p className="text-xs text-destructive/80 mt-0.5">
-                        Nenhum método está habilitado no momento. Fale com o suporte para finalizar.
-                      </p>
-                    </div>
-                  </div>
-                );
-              }
-
-              const onSelectMethod = (v: "pix" | "credit_card") =>
-                setForm((f) => ({ ...f, payment_method: v }));
-              return (
-                <div role="radiogroup" aria-label="Forma de pagamento" className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  {pixOn && (
-                    <PaymentOption
-                      value="pix"
-                      active={form.payment_method === "pix"}
-                      onSelect={onSelectMethod}
-                      title="PIX"
-                      subtitle="Liberação na hora · 5% off"
-                      icon={QrCode}
-                      badge={pixSaves > 0 ? { text: `Economize ${formatBRL(pixSaves)}`, tone: "secondary" } : { text: "Economize 5%", tone: "secondary" }}
-                      totalLabel="Total no PIX"
-                      totalValue={pixTotal}
-                    />
-                  )}
-                  {cardOn && (
-                    <PaymentOption
-                      value="credit_card"
-                      active={form.payment_method === "credit_card"}
-                      onSelect={onSelectMethod}
-                      title="Cartão de crédito"
-                      subtitle="Em até 3x sem juros"
-                      icon={CreditCard}
-                      totalLabel="Total no cartão"
-                      totalValue={cardTotal}
-                    />
-                  )}
-                </div>
-              );
-            })()}
-            {/* Dica de economia — só aparece se PIX disponível e não for o selecionado */}
-            {settings.checkout_enable_pix !== "0" && form.payment_method !== "pix" && baseTotal > 0 && (
-              <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-success font-semibold">
-                <Check className="w-3.5 h-3.5" />
-                Pague no PIX e economize {formatBRL(baseTotal * PIX_DISCOUNT)}
-              </p>
-            )}
-          </section>
+          <PaymentSection
+            form={form}
+            setForm={setForm}
+            baseTotal={baseTotal}
+            pixEnabled={pixEnabled}
+            cardEnabled={cardEnabled}
+          />
         </div>
 
         {/* Resumo do Pedido */}
-        <aside className="bg-card p-4 sm:p-6 rounded-2xl shadow-xl shadow-primary/5 border border-primary/10 h-fit lg:sticky lg:top-28">
-          {/* Cabeçalho — colapsável no mobile, sempre aberto no desktop */}
-          <button
-            type="button"
-            onClick={() => setItemsOpen((v) => !v)}
-            aria-expanded={itemsOpen}
-            aria-controls="checkout-summary-items"
-            className="w-full flex items-center justify-between gap-3 lg:cursor-default lg:pointer-events-none"
-          >
-            <div className="flex items-center gap-2 min-w-0">
-              <ShoppingBag className="w-5 h-5 text-primary shrink-0" />
-              <h2 className="text-base sm:text-xl font-bold tracking-tight">Resumo</h2>
-              <span className="text-[11px] sm:text-xs font-semibold text-muted-foreground tabular-nums">
-                · {totalQty} {totalQty === 1 ? "item" : "itens"}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <span className="text-sm font-bold text-foreground tabular-nums lg:hidden">{formatBRL(total)}</span>
-              <ChevronDown
-                className={`w-4 h-4 text-muted-foreground transition-transform lg:hidden ${itemsOpen ? "rotate-180" : ""}`}
-              />
-            </div>
-          </button>
-
-          {/* Lista de itens — colapsável no mobile */}
-          <ul
-            id="checkout-summary-items"
-            className={`mt-3 sm:mt-4 mb-4 sm:mb-5 max-h-72 overflow-y-auto pr-1 divide-y divide-border/60 ${itemsOpen ? "block" : "hidden"} lg:block`}
-          >
-            {summaryItems}
-          </ul>
-
-          <div className="space-y-2.5 py-4 border-t border-border text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Subtotal</span>
-              <span className="font-semibold tabular-nums">{formatBRL(total)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground inline-flex items-center gap-1.5 flex-wrap">
-                Frete
-                {shippingLoading && (
-                  <Loader2 className="h-3 w-3 animate-spin text-primary" aria-label="Atualizando frete" />
-                )}
-              </span>
-              <span className={`font-semibold tabular-nums transition-opacity ${shippingLoading ? "opacity-50" : ""}`}>
-                {shippingKnown ? formatBRL(shippingValue) : <span className="text-muted-foreground font-normal">Informe o CEP</span>}
-              </span>
-            </div>
-            {insurance > 0 && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Seguro</span>
-                <span className="font-semibold tabular-nums">{formatBRL(insurance)}</span>
-              </div>
-            )}
-            {couponDiscount > 0 && (
-              <div className="flex justify-between text-success font-semibold">
-                <span className="truncate">Cupom {coupon?.code}</span>
-                <span className="tabular-nums">−{formatBRL(couponDiscount)}</span>
-              </div>
-            )}
-            {pixDiscount > 0 && (
-              <div className="flex justify-between text-success font-semibold">
-                <span>Desconto PIX</span>
-                <span className="tabular-nums">−{formatBRL(pixDiscount)}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Cupom */}
-          <div className="border-t border-border pt-4 pb-4">
-            {coupon ? (
-              <>
-                <div
-                  className={`flex items-center justify-between rounded-lg px-3 py-2 ${
-                    couponError ? "bg-destructive/10" : "bg-success/10"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 text-sm">
-                    <Check className={`h-4 w-4 ${couponError ? "text-destructive" : "text-success"}`} />
-                    <span className="font-semibold">{coupon.code}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {couponError ? "indisponível" : "aplicado"}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCoupon(null);
-                      setCouponInput("");
-                      setCouponError(null);
-                      setCouponOpen(false);
-                    }}
-                    className="text-xs text-muted-foreground hover:text-destructive"
-                  >
-                    remover
-                  </button>
-                </div>
-                {couponError && (
-                  <p role="alert" className="mt-2 text-xs text-destructive">
-                    {couponError}
-                  </p>
-                )}
-              </>
-            ) : !couponOpen ? (
-              <button
-                type="button"
-                onClick={() => setCouponOpen(true)}
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
-              >
-                <Ticket className="w-4 h-4" /> Tem cupom?
-              </button>
-            ) : (
-              <>
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <input
-                      className="checkout-input pl-9 uppercase tracking-wider"
-                      placeholder="Cupom de desconto"
-                      value={couponInput}
-                      autoFocus
-                      autoComplete="off"
-                      autoCapitalize="characters"
-                      spellCheck={false}
-                      maxLength={32}
-                      onChange={(e) => {
-                        // Normaliza no estado, não só no display: remove
-                        // espaços (paste com espaço extra é comum) e força
-                        // alfanumérico maiúsculo. Garante que o que o
-                        // servidor recebe = o que o usuário vê.
-                        const cleaned = e.target.value
-                          .toUpperCase()
-                          .replace(/[^A-Z0-9_-]/g, "");
-                        setCouponInput(cleaned);
-                        if (couponError) setCouponError(null);
-                      }}
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    disabled={couponLoading || !couponInput.trim()}
-                    onClick={applyCoupon}
-                    className="h-12 px-5 rounded-xl bg-primary text-primary-foreground font-bold text-sm shadow-sm hover:bg-primary-glow disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                  >
-                    {couponLoading ? "…" : "Aplicar"}
-                  </button>
-                </div>
-                {couponError && (
-                  <p role="alert" className="mt-2 text-xs text-destructive">
-                    {couponError}
-                  </p>
-                )}
-              </>
-            )}
-          </div>
-
-          {/* Total — compacto e centralizado no mobile */}
-          <div className="mt-4 mb-4 flex items-baseline justify-between gap-3">
-            <span className="text-sm font-semibold text-muted-foreground">Total</span>
-            <div className="text-right">
-              <div className="text-2xl sm:text-3xl font-extrabold text-foreground leading-none tabular-nums">
-                {formatBRL(grandTotal)}
-              </div>
-              {form.payment_method === "credit_card" && (
-                <div className="text-[11px] text-muted-foreground mt-1 tabular-nums">
-                  ou 3x de {formatBRL(grandTotal / 3)} sem juros
-                </div>
-              )}
-              {form.payment_method === "pix" && (couponDiscount + pixDiscount) > 0 && (
-                <div className="text-[11px] text-success font-semibold mt-1">
-                  Você economiza {formatBRL(couponDiscount + pixDiscount)}
-                </div>
-              )}
-            </div>
-          </div>
-          <button
-            type="submit"
-            disabled={submitting}
-            ref={summaryCtaRef}
-            className="inline-flex w-full h-12 sm:h-14 rounded-xl bg-success text-success-foreground font-bold text-base hover:bg-success/90 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed transition-all items-center justify-center gap-2 shadow-md shadow-success/25"
-          >
-            {submitting ? (
-              <><Loader2 className="w-4 h-4 animate-spin" /> Processando…</>
-            ) : (
-              <><CheckCircle2 className="w-5 h-5" /> Finalizar pedido</>
-            )}
-          </button>
-          {/* Reforços de confiança discretos abaixo do CTA */}
-          <div className="mt-3 space-y-2">
-            {form.payment_method === "pix" && (
-              <p className="inline-flex w-full items-center justify-center gap-1.5 text-center text-[11px] text-success font-semibold">
-                <Check className="w-3 h-3" /> Pedido confirmado e enviado para atendimento
-              </p>
-            )}
-            <div className="flex items-center justify-center gap-3 text-muted-foreground/70">
-              <Lock className="w-3 h-3" aria-hidden />
-              <span className="text-[10px] font-semibold tracking-wider uppercase">SSL</span>
-              <span className="w-px h-3 bg-border" />
-              <span className="text-[10px] font-bold tracking-wider">PIX</span>
-              <span className="text-[10px] font-bold tracking-wider">VISA</span>
-              <span className="text-[10px] font-bold tracking-wider">MASTER</span>
-              <span className="text-[10px] font-bold tracking-wider">ELO</span>
-            </div>
-          </div>
-        </aside>
+        <OrderSummary
+          form={form}
+          total={total}
+          totalQty={totalQty}
+          summaryItems={summaryItems}
+          itemsOpen={itemsOpen}
+          setItemsOpen={setItemsOpen}
+          shippingValue={shippingValue}
+          shippingKnown={shippingKnown}
+          shippingLoading={shippingLoading}
+          insurance={insurance}
+          couponDiscount={couponDiscount}
+          pixDiscount={pixDiscount}
+          grandTotal={grandTotal}
+          baseTotal={baseTotal}
+          coupon={coupon}
+          couponInput={couponInput}
+          couponLoading={couponLoading}
+          couponError={couponError}
+          couponOpen={couponOpen}
+          setCouponInput={setCouponInput}
+          setCouponOpen={setCouponOpen}
+          setCoupon={setCoupon}
+          setCouponError={setCouponError}
+          applyCoupon={applyCoupon}
+          submitting={submitting}
+          summaryCtaRef={summaryCtaRef}
+        />
 
       </form>
 
@@ -1573,69 +858,16 @@ export default function Checkout() {
           o CTA do resumo NÃO está visível na tela (evita dois botões
           concorrentes lado a lado). */}
       {grandTotal > 0 && !summaryCtaVisible && (
-        <div
-          className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border px-4 py-3 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.15)] animate-in slide-in-from-bottom-2 duration-200"
-          style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.75rem)" }}
-        >
-          <div className="flex items-center gap-3">
-            <div className="flex-1 min-w-0 leading-tight">
-              <span className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider leading-none">Total</span>
-              <span className="block text-lg font-extrabold text-foreground tabular-nums leading-tight mt-0.5">
-                {formatBRL(grandTotal)}
-              </span>
-              {form.payment_method === "pix" && pixDiscount > 0 && (
-                <span className="block text-[11px] text-success font-bold tabular-nums leading-none">
-                  PIX · economiza {formatBRL(pixDiscount)}
-                </span>
-              )}
-            </div>
-            <button
-              type="button"
-              disabled={submitting}
-              aria-label={
-                submitting
-                  ? "Processando pedido"
-                  : !buyerDone
-                    ? "Continuar — preencher seus dados"
-                    : !addressDone
-                      ? "Continuar — preencher endereço"
-                      : !shippingDone
-                        ? "Continuar — escolher frete"
-                          : !paymentSelected
-                          ? "Continuar — escolher pagamento"
-                          : "Finalizar pedido"
-              }
-              onClick={() => {
-                // Foca a primeira seção incompleta para guiar o usuário.
-                const target = !buyerDone
-                  ? document.querySelector<HTMLInputElement>('input[autocomplete="name"]')
-                  : !addressDone
-                  ? document.querySelector<HTMLInputElement>('input[autocomplete="postal-code"]')
-                  : !shippingDone
-                  ? document.querySelector<HTMLElement>('[data-checkout-shipping]')
-                  : !paymentSelected
-                  ? document.querySelector<HTMLElement>('[data-checkout-payment]') || document.querySelector<HTMLElement>('h2.checkout-section-title')
-                  : null;
-                if (target) {
-                  target.scrollIntoView({ behavior: "smooth", block: "center" });
-                  if ((target as HTMLInputElement).focus) setTimeout(() => (target as HTMLInputElement).focus(), 350);
-                  return;
-                }
-                // Tudo pronto → submete o form.
-                document.querySelector<HTMLFormElement>('form')?.requestSubmit();
-              }}
-              className="h-12 px-5 rounded-2xl text-sm font-extrabold bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-lg shadow-secondary/30 whitespace-nowrap active:scale-[0.98] transition-all disabled:opacity-60"
-            >
-              {submitting ? (
-                <><Loader2 className="w-4 h-4 mr-1.5 animate-spin inline" /> Processando…</>
-              ) : (buyerDone && addressDone && shippingDone && paymentSelected) ? (
-                <>Finalizar pedido</>
-              ) : (
-                <>Continuar</>
-              )}
-            </button>
-          </div>
-        </div>
+        <StickyMobileBar
+          grandTotal={grandTotal}
+          pixDiscount={pixDiscount}
+          submitting={submitting}
+          buyerDone={buyerDone}
+          addressDone={addressDone}
+          shippingDone={shippingDone}
+          paymentSelected={paymentSelected}
+          form={form}
+        />
       )}
     </div>
   );
