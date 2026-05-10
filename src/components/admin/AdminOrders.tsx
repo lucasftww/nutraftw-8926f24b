@@ -108,6 +108,7 @@ export function AdminOrders() {
 
   useEffect(() => {
     setSelected(new Set());
+    setPage(0);
   }, [query]);
 
   async function setStatus(id: string, status: string) {
@@ -383,27 +384,30 @@ export function AdminOrders() {
                     onChange={(e) => setStatus(o.id, e.target.value)}
                   >
                     {STATUSES.map((s) => (
-                      <option key={s} value={s}>{s}</option>
+                      <option key={s} value={s} style={{ background: "hsl(var(--card))", color: "hsl(var(--foreground))" }}>{s}</option>
                     ))}
                   </select>
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <button onClick={() => setDetailId(o.id)} className="p-1.5 hover:bg-muted rounded"><Eye className="h-4 w-4" /></button>
+                  <button onClick={() => setDetailId(o.id)} aria-label={`Ver detalhes do pedido ${o.id.slice(0, 8)}`} className="p-1.5 hover:bg-muted rounded"><Eye className="h-4 w-4" /></button>
                 </td>
               </tr>
             ))}
-            {filtered.length === 0 && (
+            {loading && Array.from({ length: 5 }).map((_, i) => (
+              <tr key={`skel-${i}`} className="border-t border-border">
+                <td className="px-4 py-3" colSpan={7}>
+                  <div className="h-10 bg-muted/50 rounded animate-pulse" />
+                </td>
+              </tr>
+            ))}
+            {!loading && filtered.length === 0 && (
               <tr>
                 <td colSpan={7}>
-                  {loading ? (
-                    <div className="text-center py-12 text-muted-foreground">Carregando pedidos…</div>
-                  ) : (
-                    <EmptyState
-                      icon={ShoppingBag}
-                      title="Nenhum pedido encontrado"
-                      description="Quando uma compra for feita, ela aparecerá aqui."
-                    />
-                  )}
+                  <EmptyState
+                    icon={ShoppingBag}
+                    title="Nenhum pedido encontrado"
+                    description="Quando uma compra for feita, ela aparecerá aqui."
+                  />
                 </td>
               </tr>
             )}

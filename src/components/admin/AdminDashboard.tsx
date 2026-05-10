@@ -1,4 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+
+const STATUS_COLORS: Record<string, string> = {
+  pending:    "bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/25",
+  paid:       "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/25",
+  processing: "bg-primary/15 text-primary ring-1 ring-primary/25",
+  shipped:    "bg-primary/20 text-primary ring-1 ring-primary/25",
+  delivered:  "bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/30",
+  cancelled:  "bg-destructive/15 text-destructive ring-1 ring-destructive/25",
+  refunded:   "bg-muted text-muted-foreground ring-1 ring-border",
+};
+const STATUS_PT: Record<string, string> = {
+  pending: "Pendente", paid: "Pago", processing: "Processando",
+  shipped: "Enviado", delivered: "Entregue", cancelled: "Cancelado", refunded: "Estornado",
+};
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { Package, ShoppingBag, DollarSign, Users, TrendingUp, Clock, Receipt, Boxes, Sparkles, Eye, Heart, ShoppingCart, CreditCard, CheckCircle2, Zap } from "lucide-react";
@@ -97,7 +111,20 @@ export function AdminDashboard() {
   }
 
   if (loading || !stats) {
-    return <div className="text-center py-12 text-muted-foreground">Carregando métricas…</div>;
+    return (
+      <div className="space-y-4 md:space-y-6">
+        <div className="h-28 rounded-2xl bg-muted/50 animate-pulse" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 md:gap-3">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="h-[104px] rounded-2xl bg-muted/50 animate-pulse" />
+          ))}
+        </div>
+        <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
+          <div className="h-64 rounded-2xl bg-muted/50 animate-pulse" />
+          <div className="h-64 rounded-2xl bg-muted/50 animate-pulse" />
+        </div>
+      </div>
+    );
   }
 
   // Paleta consistente (admin dark): primary cyan, success green, amber para atenção,
@@ -184,7 +211,9 @@ export function AdminDashboard() {
                   </div>
                   <div className="text-right">
                     <p className="font-semibold">{formatBRL(o.total)}</p>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-muted">{o.status}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[o.status as keyof typeof STATUS_COLORS] ?? "bg-muted text-muted-foreground"}`}>
+                      {STATUS_PT[o.status] ?? o.status}
+                    </span>
                   </div>
                 </li>
               ))}

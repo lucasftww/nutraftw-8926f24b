@@ -130,7 +130,29 @@ export function AdminWishlist() {
       {/* List */}
       <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
         {loading ? (
-          <div className="p-10 text-center text-sm text-muted-foreground">Carregando…</div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[820px] text-sm">
+              <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
+                <tr>
+                  <th className="text-left font-medium px-4 py-3">Produto</th>
+                  <th className="text-left font-medium px-3 py-3 w-[28%]">Demanda</th>
+                  <th className="text-right font-medium px-3 py-3">Carrinho</th>
+                  <th className="text-right font-medium px-3 py-3">Vendidos</th>
+                  <th className="text-right font-medium px-3 py-3">Estoque</th>
+                  <th className="text-right font-medium px-4 py-3">Último</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <tr key={i} className="border-t border-border/60">
+                    <td className="px-4 py-3" colSpan={6}>
+                      <div className="h-9 bg-muted/50 rounded animate-pulse" />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         ) : filtered.length === 0 ? (
           <EmptyState
             icon={Heart}

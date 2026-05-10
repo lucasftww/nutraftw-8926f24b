@@ -390,7 +390,7 @@ export default function Catalog() {
           - Layout único: título (md+) | busca | botão filtros.
           - Linha auxiliar mostra termo buscado e contagem viva. */}
       <div
-        className="fixed inset-x-0 top-12 md:top-14 z-30 border-b border-border/60 bg-background shadow-sm"
+        className="fixed inset-x-0 top-14 md:top-16 z-30 border-b border-border/60 bg-background shadow-sm"
         role="search"
       >
         <div className="mx-auto w-full max-w-[1400px] px-3 sm:px-5 lg:px-8 py-2 md:py-3">
@@ -472,7 +472,7 @@ export default function Catalog() {
               evita a sensação de a página subir sozinha no mobile. */}
           <div className="space-y-6 md:space-y-10 pb-16 [overflow-anchor:none]">
             {loading ? (
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div key={i} className="rounded-2xl bg-card overflow-hidden">
                    <div className="aspect-square skeleton-shimmer" />
@@ -785,7 +785,7 @@ const Section = memo(function Section({
           </span>
         )}
       </div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
         {items.map((p, idx) => (
           <ProductCard
             key={p.id}
@@ -991,7 +991,7 @@ const ProductCard = memo(function ProductCard({
                   {/* PIX no card do catálogo — em verde, ANTES do parcelamento.
                       Cliente compara cards e percebe o preço REAL (5% off);
                       concorrentes que mostram só preço cheio parecem mais caros. */}
-                  <div className="text-[11px] sm:text-[12px] font-bold text-success tabular-nums leading-tight mt-0.5">
+                  <div className="text-[11px] sm:text-[12px] font-bold text-success tabular-nums leading-tight mt-0.5 truncate">
                     {formatBRL(finalPrice * 0.95)} no PIX
                   </div>
                   {/* Parcelamento — gatilho clássico de conversão.

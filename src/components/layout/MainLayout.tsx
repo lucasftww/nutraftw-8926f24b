@@ -26,7 +26,7 @@ export function MainLayout() {
   useCaptureAffiliateRef();
   return (
     <CurrentProductProvider>
-      <div className="min-h-screen flex flex-col bg-background [&_:target]:scroll-mt-16 md:[&_:target]:scroll-mt-20">
+      <div className="min-h-screen flex flex-col bg-background [&_:target]:scroll-mt-24 md:[&_:target]:scroll-mt-28">
         {/* Barra slim acima do header — escondida no checkout para foco. */}
         {!isCheckout && <AnnouncementBar />}
         <Header isCheckout={isCheckout} />

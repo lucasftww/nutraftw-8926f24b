@@ -226,7 +226,7 @@ export function AdminFunnel() {
                 Nenhum produto com atividade no período.
               </div>
             ) : (
-              <div className="overflow-x-auto -mx-5 md:mx-0">
+              <div className="overflow-x-auto">
                 <table className="w-full text-sm min-w-[720px]">
                   <thead className="bg-muted/30 text-xs uppercase tracking-wider text-muted-foreground">
                     <tr>

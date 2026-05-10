@@ -139,7 +139,7 @@ export function AdminPromotions() {
   async function addToPromo(p: Product) {
     // Sem preço promocional, marcar `is_on_offer=true` mostra o produto na faixa
     // de promoções com o mesmo preço cheio — confunde o cliente. Avisamos.
-    if (!p.sale_price || p.sale_price <= 0 || p.sale_price >= p.price) {
+    if (!p.price || p.price <= 0 || !p.sale_price || p.sale_price <= 0 || p.sale_price >= p.price) {
       toast.warning("Defina um Preço promocional no produto antes de colocar em destaque.", {
         description: `"${p.name}" não tem desconto cadastrado.`,
       });
@@ -434,7 +434,7 @@ export function AdminPromotions() {
                     className="flex items-center gap-3 p-3 rounded-xl border border-border bg-background"
                   >
                     <div className="w-12 h-12 rounded-lg bg-secondary/15 text-secondary font-bold text-sm flex items-center justify-center shrink-0">
-                      -{pct}%
+                      {pct > 0 ? `-${pct}%` : "—"}
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold">

@@ -182,7 +182,7 @@ export function OrderDetailModal({ orderId, onClose }: { orderId: string; onClos
     if (!Number.isFinite(amount) || amount <= 0) { toast.error("Informe um valor válido (> 0)"); return; }
     const total = Number(order?.total || 0);
     const already = refunds.filter(r => r.status !== "failed").reduce((s, r) => s + Number(r.amount || 0), 0);
-    if (amount + already > total + 0.001) {
+    if (Math.round((amount + already) * 100) > Math.round(total * 100)) {
       toast.error(`Valor excede o total do pedido (${formatBRL(total - already)} disponível)`);
       return;
     }

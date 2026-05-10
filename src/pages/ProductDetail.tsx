@@ -123,7 +123,7 @@ export default function ProductDetail() {
           if (window.history.length > 1) nav(-1);
           else nav("/", { replace: true });
         }}
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded-md px-1 -ml-1"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded-md px-2 py-2.5 -ml-2 min-h-[44px]"
       >
         <ArrowLeft className="h-4 w-4" strokeWidth={2.25} />
         Voltar
@@ -131,7 +131,7 @@ export default function ProductDetail() {
 
       <div className="grid lg:grid-cols-2 gap-6 lg:gap-12 items-start">
         {/* Image */}
-        <div className="relative rounded-3xl border border-border/60 overflow-hidden bg-white shadow-[var(--shadow-card)] w-full max-w-md mx-auto lg:max-w-none lg:sticky lg:top-20">
+        <div className="relative aspect-square rounded-3xl border border-border/60 overflow-hidden bg-white shadow-[var(--shadow-card)] w-full max-w-md mx-auto lg:max-w-none lg:sticky lg:top-[72px]">
           {(() => {
             const hero = responsiveImage(
               p.image_url,
@@ -289,7 +289,7 @@ export default function ProductDetail() {
                   </span>
                   <div className="min-w-0">
                     <p className="text-[12px] font-bold leading-tight">{b.title}</p>
-                    <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">{b.desc}</p>
+                    <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">{b.desc}</p>
                   </div>
                 </div>
               );
@@ -393,7 +393,7 @@ export default function ProductDetail() {
               </Link>
             )}
           </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
             {related.map((r) => {
               const rPrice = Number(r.price);
               const rSale = r.sale_price != null ? Number(r.sale_price) : 0;

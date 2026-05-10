@@ -48,7 +48,6 @@ export function AnnouncementBar() {
       className="relative bg-primary text-primary-foreground"
       role="region"
       aria-label="Avisos da loja"
-      style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
     >
       <div className="mx-auto flex h-9 max-w-[1400px] items-center justify-center gap-2 px-12 text-center">
         <Sparkles className="h-3.5 w-3.5 opacity-80 shrink-0" aria-hidden />

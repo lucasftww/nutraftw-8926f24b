@@ -129,7 +129,7 @@ export function CartDrawer() {
                     decoding="async"
                     width={80}
                     height={80}
-                    className="w-20 h-20 rounded-xl object-cover bg-white shrink-0"
+                    className="w-20 h-20 rounded-xl object-contain bg-white shrink-0 p-1"
                   />
                   <div className="flex-1 min-w-0 flex flex-col">
                     <div className="flex justify-between items-start gap-2">

@@ -106,12 +106,13 @@ export function AdminBrands() {
     <div className="bg-card rounded-2xl border border-border p-5 max-w-2xl">
       <div className="flex gap-2 mb-4">
         <Input
+          className="flex-1 min-w-0"
           placeholder="Nova marca (ex.: Synedica, ZPHC, Cooper Pharma)"
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }}
         />
-        <Button onClick={add}><Plus className="h-4 w-4" /> Adicionar</Button>
+        <Button onClick={add} className="shrink-0"><Plus className="h-4 w-4" /> Adicionar</Button>
       </div>
       <ul className="divide-y divide-border/60">
         {sorted.map((c, idx) => {

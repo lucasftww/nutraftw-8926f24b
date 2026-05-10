@@ -114,6 +114,7 @@ export function AdminUsers() {
         .eq("role", "admin");
       if (error) {
         toast.error(friendlyErrorMessage(error));
+        await load(); // Recarrega para mostrar estado real do servidor.
       } else {
         toast.success("Admin removido");
         logAdminAction({
@@ -137,6 +138,7 @@ export function AdminUsers() {
         );
       if (error) {
         toast.error(friendlyErrorMessage(error));
+        await load(); // Recarrega para mostrar estado real do servidor.
       } else {
         toast.success("Promovido a admin");
         logAdminAction({

@@ -378,12 +378,12 @@ export function AdminProducts() {
     } else if (bulkAction === "price_inc_pct") {
       const pct = Number(String(bulkValue).replace(",", "."));
       if (!Number.isFinite(pct)) { toast.error("Informe % (ex: 10 ou -5)"); return; }
+      setBulkBusy(true); // Guard antes do await para evitar duplo clique no confirm.
       const ok = await confirm({
         title: `Reajustar preço de ${ids.length} produto${ids.length === 1 ? "" : "s"}?`,
         description: `Cada preço será multiplicado por ${(1 + pct / 100).toFixed(4)} (${pct >= 0 ? "+" : ""}${pct}%). Arredondado a 2 casas.`,
       });
-      if (!ok) return;
-      setBulkBusy(true);
+      if (!ok) { setBulkBusy(false); return; }
       let okC = 0, fail = 0;
       for (const id of ids) {
         const cur = Number(items.find((p) => p.id === id)?.price ?? 0);
@@ -409,12 +409,12 @@ export function AdminProducts() {
       if (!/^-?\d+$/.test(trimmed)) { toast.error("Informe um valor inteiro (positivo ou negativo)"); return; }
       const delta = parseInt(trimmed, 10);
       if (!Number.isFinite(delta)) { toast.error("Informe um valor inteiro (positivo ou negativo)"); return; }
+      setBulkBusy(true); // Guard antes do await para evitar duplo clique no confirm.
       const ok = await confirm({
         title: `Ajustar stock de ${ids.length} produto${ids.length === 1 ? "" : "s"}?`,
         description: `Será somado ${delta >= 0 ? "+" : ""}${delta} ao stock atual de cada produto.`,
       });
-      if (!ok) return;
-      setBulkBusy(true);
+      if (!ok) { setBulkBusy(false); return; }
       let okC = 0, fail = 0;
       for (const id of ids) {
         const cur = items.find((p) => p.id === id)?.stock ?? 0;
@@ -527,6 +527,11 @@ export function AdminProducts() {
     const { data, error } = await q;
     if (error) { toast.error(error.message); return; }
     const rows = data || [];
+    // PostgREST limita a 1000 linhas por padrão, mesmo com .limit(5000).
+    // Se atingirmos 1000, a lista pode estar incompleta — avisamos o admin.
+    if (rows.length >= 1000) {
+      toast.warning(`Exportados ${rows.length} produtos (limite atingido — aplique filtros para exportar todos).`);
+    }
     const esc = (v: any) => {
       if (v == null) return "";
       let s = String(v).replace(/"/g, '""');

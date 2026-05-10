@@ -20,6 +20,7 @@ const FIELDS: { key: string; label: string; type: "text" | "textarea" | "toggle"
 
 export function AdminSettings() {
   const [values, setValues] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<AdminErrorInfo | null>(null);
 
@@ -30,15 +31,28 @@ export function AdminSettings() {
       const info = logSupabaseError("Carregar configurações", err, { table: "site_settings" });
       setError(info);
       toast.error(`Configurações: ${info.message}`);
+      setLoading(false);
       return;
     }
     const v: Record<string, string> = {};
     (data || []).forEach((r: any) => { v[r.key] = r.value ?? ""; });
     setValues(v);
+    setLoading(false);
   }
   useEffect(() => { load(); }, []);
 
   async function save() {
+    // Validação antes de persistir.
+    const badgeDays = Number(values["badge_new_days"]);
+    if (values["badge_new_days"] !== "" && (!Number.isInteger(badgeDays) || badgeDays < 1 || badgeDays > 365)) {
+      toast.error("'Dias para lançamento' deve ser um inteiro entre 1 e 365.");
+      return;
+    }
+    const wa = (values["whatsapp_number"] || "").replace(/\D/g, "");
+    if (wa && (wa.length < 10 || wa.length > 15)) {
+      toast.error("Número WhatsApp inválido. Use DDI + DDD + número (ex: 5511999999999).");
+      return;
+    }
     setSaving(true);
     try {
       const rows = FIELDS.map((f) => ({ key: f.key, value: values[f.key] ?? "" }));
@@ -61,6 +75,14 @@ export function AdminSettings() {
   }
 
   if (error) return <AdminErrorBanner error={error} onRetry={load} />;
+
+  if (loading) return (
+    <div className="bg-card rounded-2xl border border-border p-6 max-w-2xl space-y-5">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="h-10 bg-muted/50 rounded-xl animate-pulse" />
+      ))}
+    </div>
+  );
 
   return (
     <div className="bg-card rounded-2xl border border-border p-6 max-w-2xl space-y-5">

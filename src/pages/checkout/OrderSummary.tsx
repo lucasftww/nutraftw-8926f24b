@@ -62,7 +62,7 @@ export function OrderSummary({
   summaryCtaRef,
 }: OrderSummaryProps) {
   return (
-    <aside className="bg-card p-4 sm:p-6 rounded-2xl shadow-xl shadow-primary/5 border border-primary/10 h-fit lg:sticky lg:top-28">
+    <aside className="bg-card p-4 sm:p-6 rounded-2xl shadow-xl shadow-primary/5 border border-primary/10 h-fit md:sticky md:top-28">
       {/* Cabeçalho — colapsável no mobile, sempre aberto no desktop */}
       <button
         type="button"

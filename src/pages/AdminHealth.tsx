@@ -559,13 +559,13 @@ function CheckRow({ check }: { check: Check }) {
             : null;
   const tone =
     check.status === "pass"
-      ? "text-emerald-600 bg-emerald-50 border-emerald-200"
+      ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/25"
       : check.status === "fail"
-        ? "text-destructive bg-destructive/5 border-destructive/30"
+        ? "text-destructive bg-destructive/10 border-destructive/25"
         : check.status === "running"
-          ? "text-primary bg-primary/5 border-primary/30"
+          ? "text-primary bg-primary/10 border-primary/25"
           : check.status === "skipped"
-            ? "text-amber-700 bg-amber-50 border-amber-200"
+            ? "text-amber-400 bg-amber-500/10 border-amber-500/25"
             : "text-muted-foreground bg-card border-border";
 
   return (
@@ -608,11 +608,11 @@ function SummaryPill({
 }) {
   const cls =
     tone === "ok"
-      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/25"
       : tone === "danger"
-        ? "bg-destructive/5 text-destructive border-destructive/30"
+        ? "bg-destructive/10 text-destructive border-destructive/25"
         : tone === "warn"
-          ? "bg-amber-50 text-amber-700 border-amber-200"
+          ? "bg-amber-500/10 text-amber-400 border-amber-500/25"
           : "bg-card text-muted-foreground border-border";
   return (
     <div className={`rounded-2xl border p-3 ${cls}`}>

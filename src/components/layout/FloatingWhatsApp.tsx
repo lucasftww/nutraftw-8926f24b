@@ -44,20 +44,19 @@ export function FloatingWhatsApp() {
 
   const href = `https://wa.me/${wa}?text=${encodeURIComponent(productMsg)}`;
 
-  // Em página de produto, há sticky bar mobile com altura ~80px. Subimos
-  // o FAB para 5.5rem (88px) acima da safe-area; nas demais páginas, 1rem.
-  const bottomOffset = current ? "5.5rem" : "1rem";
-
   return (
     <a
       href={href}
       target="_blank"
       rel="noreferrer"
       aria-label="Falar com suporte no WhatsApp"
-      className="fixed right-4 z-30 inline-flex h-14 w-14 items-center justify-center rounded-full bg-whatsapp text-whatsapp-foreground shadow-elegant hover:bg-whatsapp-hover hover:scale-105 active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-whatsapp/40"
-      style={{
-        bottom: `calc(env(safe-area-inset-bottom, 0px) + ${bottomOffset})`,
-      }}
+      className={`fixed right-4 z-30 inline-flex h-14 w-14 items-center justify-center rounded-full bg-whatsapp text-whatsapp-foreground shadow-elegant hover:bg-whatsapp-hover hover:scale-105 active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-whatsapp/40 ${
+        // Em mobile (<sm), sobe acima da sticky bar de produto (se houver).
+        // Em desktop (sm+), a sticky bar some (sm:hidden), então fica em 1rem.
+        current
+          ? "bottom-[calc(env(safe-area-inset-bottom,0px)+5.5rem)] sm:bottom-[calc(env(safe-area-inset-bottom,0px)+1rem)]"
+          : "bottom-[calc(env(safe-area-inset-bottom,0px)+1rem)]"
+      }`}
     >
       <MessageCircle className="h-7 w-7" strokeWidth={2} />
       {/* Pulse sutil — chama o olho sem ser invasivo. */}

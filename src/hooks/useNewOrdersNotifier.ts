@@ -24,6 +24,9 @@ export function useNewOrdersNotifier(opts: { enabled?: boolean; onNew?: () => vo
   // criava um Ctx que não era fechado de forma confiável (Chrome limita ~6
   // contexts por aba). Numa noite movimentada, vazava e o beep parava.
   const ctxRef = useRef<AudioContext | null>(null);
+  // Mantém referência ao lastSeenRef do useEffect ativo para que clear()
+  // possa sincronizar o baseline sem re-executar o efeito.
+  const clearLastSeenRef = useRef<{ current: string } | null>(null);
 
   function playBeep() {
     try {
@@ -65,6 +68,9 @@ export function useNewOrdersNotifier(opts: { enabled?: boolean; onNew?: () => vo
       lastSeen = new Date().toISOString();
       sessionStorage.setItem(LAST_SEEN_KEY, lastSeen);
     }
+    // Ref compartilhado entre o listener e clear() para manter sincronismo
+    // quando clear() é chamado fora do contexto do useEffect.
+    const lastSeenRef = { current: lastSeen };
     const channel = supabase
       .channel("admin-new-orders")
       .on(
@@ -72,12 +78,12 @@ export function useNewOrdersNotifier(opts: { enabled?: boolean; onNew?: () => vo
         { event: "INSERT", schema: "public", table: "orders" },
         (payload) => {
           const o: any = payload.new;
-          if (o.created_at && o.created_at <= lastSeen!) return;
-          // Atualiza TANTO o sessionStorage QUANTO a variável de closure,
+          if (o.created_at && o.created_at <= lastSeenRef.current) return;
+          // Atualiza TANTO o sessionStorage QUANTO a ref de closure,
           // para que reconexões do canal Realtime não re-toast pedidos
           // que já foram exibidos nesta sessão.
-          lastSeen = o.created_at || new Date().toISOString();
-          sessionStorage.setItem(LAST_SEEN_KEY, lastSeen);
+          lastSeenRef.current = o.created_at || new Date().toISOString();
+          sessionStorage.setItem(LAST_SEEN_KEY, lastSeenRef.current);
           setUnseenCount((n) => n + 1);
           playBeep();
           const total = typeof o.total === "number" ? o.total.toFixed(2).replace(".", ",") : o.total;
@@ -90,12 +96,17 @@ export function useNewOrdersNotifier(opts: { enabled?: boolean; onNew?: () => vo
         }
       )
       .subscribe();
+    // Expõe lastSeenRef para clear() via ref externo.
+    clearLastSeenRef.current = lastSeenRef;
     return () => { supabase.removeChannel(channel); };
   }, [enabled, qc]);
 
   function clear() {
     setUnseenCount(0);
-    sessionStorage.setItem(LAST_SEEN_KEY, new Date().toISOString());
+    const now = new Date().toISOString();
+    sessionStorage.setItem(LAST_SEEN_KEY, now);
+    // Sincroniza a ref ativa para evitar re-toast em reconexões do Realtime.
+    if (clearLastSeenRef.current) clearLastSeenRef.current.current = now;
   }
 
   return { unseenCount, clear };

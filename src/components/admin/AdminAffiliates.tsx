@@ -126,7 +126,13 @@ export function AdminAffiliates() {
   const totals = useMemo(() => {
     const t = { pending: 0, released: 0, paid: 0, clawback: 0 };
     for (const r of rows) {
-      if (r.status in t) (t as any)[r.status] += Number(r.amount || 0);
+      if (r.status === "clawback") {
+        // Clawbacks são estornos (dinheiro recuperado da comissão), não dívidas.
+        // Somamos negativamente para refletir a redução de obrigações.
+        t.clawback += Number(r.amount || 0);
+      } else if (r.status in t) {
+        (t as any)[r.status] += Number(r.amount || 0);
+      }
     }
     return t;
   }, [rows]);
@@ -177,7 +183,7 @@ export function AdminAffiliates() {
     <div className="space-y-4">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {cards.map((c) => (
-          <div key={c.label} className="bg-card rounded-2xl border border-border p-4">
+          <div key={c.label} className="bg-card rounded-2xl border border-border p-3.5">
             <p className={`inline-block text-[11px] font-semibold px-2 py-0.5 rounded ${c.cls} mb-2`}>{c.label}</p>
             <p className="text-lg font-bold tabular-nums">{formatBRL(c.value)}</p>
           </div>
