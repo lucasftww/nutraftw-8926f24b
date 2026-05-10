@@ -125,7 +125,7 @@ serve(async (req) => {
 
   const { data: order, error: lookupErr } = await admin
     .from("orders")
-    .select("id, status, user_id")
+    .select("id, status, user_id, paid_at")
     .eq("payment_reference", providerRef)
     .maybeSingle();
 
@@ -224,13 +224,12 @@ serve(async (req) => {
     });
   }
 
-  const update: Record<string, unknown> = {};
-  if (verifiedState === "COMPLETO") {
-    update.status = "paid";
-    update.paid_at = new Date().toISOString();
-  } else if (verifiedState === "FALHA" || verifiedState === "CANCELADO") {
-    update.status = "cancelled";
-  } else {
+  // Mapeia o estado verificado para o status local do pedido.
+  let targetStatus: "paid" | "cancelled" | null = null;
+  if (verifiedState === "COMPLETO") targetStatus = "paid";
+  else if (verifiedState === "FALHA" || verifiedState === "CANCELADO") targetStatus = "cancelled";
+
+  if (!targetStatus) {
     // PENDENTE / outro estado intermediário — nada a fazer.
     return new Response(JSON.stringify({ ok: true, verified: verifiedState }), {
       status: 200,
@@ -238,7 +237,49 @@ serve(async (req) => {
     });
   }
 
-  const { error: updErr } = await admin.from("orders").update(update).eq("id", order.id);
+  // ===== Idempotência e proteção contra regressão de estado =====
+  // 1) Webhook reentregue (default da MisticPay): pedido já está no estado
+  //    correto — não fazemos nada. Antes, este caminho sobrescrevia `paid_at`
+  //    com novo timestamp, quebrando auditoria de "quando pagou de verdade".
+  if (order.status === targetStatus) {
+    return new Response(
+      JSON.stringify({ ok: true, idempotent: true, status: order.status }),
+      { status: 200, headers: { ...corsHeaders, "content-type": "application/json" } },
+    );
+  }
+
+  // 2) Estados terminais (paid/cancelled) NÃO podem regredir entre si via webhook.
+  //    Cenário: admin cancelou manualmente; webhook de "COMPLETO" atrasado chega
+  //    e tentaria reabrir. Logamos e ignoramos — fonte da verdade é a ação humana.
+  const TERMINAL = new Set(["paid", "cancelled"]);
+  if (TERMINAL.has(String(order.status)) && order.status !== targetStatus) {
+    console.warn("[misticpay-webhook] state regression blocked", {
+      orderId: order.id,
+      current: order.status,
+      attempted: targetStatus,
+      verifiedState,
+    });
+    return new Response(
+      JSON.stringify({ ok: true, ignored: "terminal_state_locked", current: order.status }),
+      { status: 200, headers: { ...corsHeaders, "content-type": "application/json" } },
+    );
+  }
+
+  // 3) Atualiza. Preserva `paid_at` se já estava setado (não deveria com os
+  //    guards acima, mas defesa em profundidade contra reentregas concorrentes).
+  const update: Record<string, unknown> = { status: targetStatus };
+  if (targetStatus === "paid" && !order.paid_at) {
+    update.paid_at = new Date().toISOString();
+  }
+
+  const { error: updErr } = await admin
+    .from("orders")
+    .update(update)
+    .eq("id", order.id)
+    // Race-safe: só atualiza se o status no banco AINDA é o que lemos antes.
+    // Bloqueia janela entre o SELECT e o UPDATE onde outro processo poderia ter
+    // mudado o pedido para um estado terminal.
+    .eq("status", order.status);
   if (updErr) {
     console.error("[misticpay-webhook] update error", updErr);
     return new Response(JSON.stringify({ error: "update_failed" }), {
@@ -248,7 +289,7 @@ serve(async (req) => {
   }
 
   return new Response(
-    JSON.stringify({ ok: true, order_id: order.id, new_status: update.status, verified: verifiedState }),
+    JSON.stringify({ ok: true, order_id: order.id, new_status: targetStatus, verified: verifiedState }),
     { status: 200, headers: { ...corsHeaders, "content-type": "application/json" } },
   );
 });

@@ -17,15 +17,17 @@ export function ImageUpload({ value, onChange }: { value: string; onChange: (url
     };
   }, []);
 
+  // SVG removido propositalmente: o formato permite <script> embutido e,
+  // quando aberto direto pela URL pública, executa JS no domínio do site
+  // (XSS armazenado). Loja só precisa de raster.
   const ALLOWED_MIME = [
     "image/jpeg",
     "image/png",
     "image/webp",
     "image/gif",
     "image/avif",
-    "image/svg+xml",
   ];
-  const ALLOWED_EXT = ["jpg", "jpeg", "png", "webp", "gif", "avif", "svg"];
+  const ALLOWED_EXT = ["jpg", "jpeg", "png", "webp", "gif", "avif"];
   const MAX_BYTES = 5 * 1024 * 1024;
 
   function formatSize(bytes: number) {
@@ -49,7 +51,7 @@ export function ImageUpload({ value, onChange }: { value: string; onChange: (url
 
     if (!mimeOk && !extOk) {
       toast.error("Formato não suportado", {
-        description: `"${file.name}" não é uma imagem válida. Use JPG, PNG, WEBP, GIF, AVIF ou SVG.`,
+        description: `"${file.name}" não é uma imagem válida. Use JPG, PNG, WEBP, GIF ou AVIF.`,
       });
       return;
     }

@@ -504,7 +504,9 @@ export function AdminProducts() {
     const rows = data || [];
     const esc = (v: any) => {
       if (v == null) return "";
-      const s = String(v).replace(/"/g, '""');
+      let s = String(v).replace(/"/g, '""');
+      // Sanitiza prefixos de fórmula (CSV injection — Excel executaria como expressão).
+      if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
       return /[",\n;]/.test(s) ? `"${s}"` : s;
     };
     const headers = ["id","name","slug","category","price","sale_price","stock","is_active","is_featured","is_new_release","is_on_offer","active_principle","composition","description","meta_title","meta_description"];

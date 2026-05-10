@@ -226,7 +226,9 @@ export function AdminOrders() {
     ];
     const escape = (v: any) => {
       if (v == null) return "";
-      const s = String(v).replace(/"/g, '""');
+      let s = String(v).replace(/"/g, '""');
+      // Sanitiza prefixos de fórmula (CSV injection — Excel executaria como expressão).
+      if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
       return /[",\n;]/.test(s) ? `"${s}"` : s;
     };
     const rows = all.map((o: any) => [
