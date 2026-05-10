@@ -13,7 +13,6 @@ import { useCart } from "@/hooks/useCart";
 import { useSEO } from "@/hooks/useSEO";
 import { useProducts, useCategories, useBrands, type ProductRow } from "@/hooks/useProducts";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
-import { ValuePropsBar } from "@/components/layout/ValuePropsBar";
 
 type Product = ProductRow;
 
@@ -467,14 +466,6 @@ export default function Catalog() {
 
       {/* Sections — pt compensa altura da barra fixa (busca + filtros) */}
       <section className="relative pt-[56px] md:pt-[64px] pb-2 scroll-mt-32">
-        {/* Strip de propostas de valor — frete grátis, originalidade, segurança.
-            Renderizado DENTRO da seção (depois do pt que compensa search bar fixa)
-            para que não fique sobreposto pela search bar quando scroll=0.
-            Em telas pequenas resolve 80% das objeções pré-compra de 1 olhada.
-            Margin bottom dá respiro antes da grade. */}
-        <div className="mb-4 md:mb-6">
-          <ValuePropsBar />
-        </div>
         <div className="container mx-auto px-4">
           {/* overflow-anchor:none impede o navegador de "puxar" o scroll
               quando novos cards são inseridos pelo infinite scroll —
