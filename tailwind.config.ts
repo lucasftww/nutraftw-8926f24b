@@ -30,10 +30,16 @@ export default {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
           glow: "hsl(var(--secondary-glow))",
+          /* Variante AA-safe para uso como TEXTO sobre fundo claro */
+          text: "hsl(var(--secondary-text))",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
         },
         oldPrice: {
           DEFAULT: "hsl(var(--old-price))",

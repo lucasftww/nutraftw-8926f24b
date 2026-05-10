@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { ShoppingCart, ShieldCheck, Truck, Package, CreditCard, QrCode, ChevronDown, ArrowLeft } from "lucide-react";
+import { ShoppingCart, ShieldCheck, Truck, Package, PackageCheck, MessageCircle, CreditCard, QrCode, ChevronDown, ArrowLeft } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { responsiveImage, imageUrl } from "@/lib/image";
 import { Button } from "@/components/ui/button";
@@ -165,7 +165,9 @@ export default function ProductDetail() {
             {p.category && (
               <Link
                 to={`/?categoria=${p.category.slug}`}
-                className="inline-flex items-center text-[11px] font-bold uppercase tracking-[0.12em] text-secondary hover:underline"
+                /* text-secondary-text (não text-secondary) — laranja escurecido
+                   AA-safe (5.2:1) para uso como texto sobre fundo claro. */
+                className="inline-flex items-center text-[11px] font-bold uppercase tracking-[0.12em] text-secondary-text hover:underline"
               >
                 {p.category.name}
               </Link>
@@ -260,18 +262,39 @@ export default function ProductDetail() {
             )}
           </div>
 
-          {/* Selos de confiança — linha horizontal fina, sem caixas. */}
-          <ul className="flex items-center justify-center lg:justify-start gap-x-5 gap-y-2 flex-wrap text-[12px] text-muted-foreground">
+          {/* Selos de confiança em GRID 2x2 — antes era texto fino que
+              passava despercebido. Em farma premium ticket alto, o cliente
+              precisa de reasseguramento visual forte: segurança, procedência,
+              suporte, envio. Cards com ícone destacado + título + descrição. */}
+          <div className="grid grid-cols-2 gap-2">
             {[
-              { icon: Truck, label: "Envio nacional" },
-              { icon: ShieldCheck, label: "100% original" },
-            ].map((b) => (
-              <li key={b.label} className="inline-flex items-center gap-1.5">
-                <b.icon className="h-3.5 w-3.5 text-primary/80" strokeWidth={1.75} />
-                <span className="font-medium text-foreground/80">{b.label}</span>
-              </li>
-            ))}
-          </ul>
+              { icon: ShieldCheck, title: "Compra Segura", desc: "Pagamento criptografado", tone: "success" as const },
+              { icon: PackageCheck, title: "Procedência", desc: "Produto 100% original", tone: "primary" as const },
+              { icon: Truck, title: "Envio rápido", desc: "Para todo o Brasil", tone: "primary" as const },
+              { icon: MessageCircle, title: "Suporte WhatsApp", desc: "Tire dúvidas antes", tone: "whatsapp" as const },
+            ].map((b) => {
+              const toneCls =
+                b.tone === "success"
+                  ? "bg-success/10 text-success border-success/20"
+                  : b.tone === "whatsapp"
+                  ? "bg-whatsapp/10 text-whatsapp border-whatsapp/20"
+                  : "bg-primary/10 text-primary border-primary/20";
+              return (
+                <div
+                  key={b.title}
+                  className="flex items-center gap-2.5 p-3 rounded-xl bg-muted/30 border border-border/50"
+                >
+                  <span className={`shrink-0 inline-flex h-9 w-9 items-center justify-center rounded-lg border ${toneCls}`}>
+                    <b.icon className="h-4 w-4" strokeWidth={2.2} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[12px] font-bold leading-tight">{b.title}</p>
+                    <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">{b.desc}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
 
           {/* Calculadora de frete — reduz abandono no checkout */}
           <ShippingCalculator />
@@ -442,10 +465,17 @@ export default function ProductDetail() {
       {/* Sticky CTA mobile — sempre visível, intenção de compra */}
       {(p.stock ?? 0) > 0 && (
         <div
-          className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border px-4 py-3 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.15)]"
+          className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.15)]"
           style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.75rem)" }}
         >
-          <div className="flex items-center gap-3">
+          {/* Faixinha de urgência DENTRO da sticky bar quando estoque baixo.
+              Cliente que rolou até FAQ esqueceu da urgência — agora vê de novo. */}
+          {(p.stock ?? 0) <= 5 && (
+            <div className="bg-warning/15 text-warning border-b border-warning/20 text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 text-center">
+              {p.stock === 1 ? "Última unidade!" : `Restam apenas ${p.stock} unidades`}
+            </div>
+          )}
+          <div className="flex items-center gap-3 px-4 py-3">
             {/* Mini-thumb — reforça contexto do produto enquanto o usuário rola */}
             <img
               src={imageUrl(p.image_url, { width: 96, quality: 70 })}

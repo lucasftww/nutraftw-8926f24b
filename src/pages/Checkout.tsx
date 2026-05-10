@@ -811,7 +811,11 @@ export default function Checkout() {
         paymentDone={paymentDone}
       />
 
-      <form onSubmit={submit} className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-5 lg:gap-8">
+      <form
+        onSubmit={submit}
+        data-checkout-form
+        className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-5 lg:gap-8"
+      >
         <div className="space-y-4 sm:space-y-6 min-w-0">
           {/* Dados do Comprador */}
           <BuyerSection form={form} setForm={setForm} />

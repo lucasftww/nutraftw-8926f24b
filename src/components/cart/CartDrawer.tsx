@@ -192,6 +192,12 @@ export function CartDrawer() {
                 <span className="block font-display text-2xl sm:text-[1.6rem] font-extrabold text-primary tabular-nums leading-tight mt-1">
                   {formatBRL(total)}
                 </span>
+                {/* PIX no subtotal — antes do "Finalizar pedido", o cliente
+                    vê o preço real (5% off) ANTES de decidir prosseguir.
+                    Ancoragem de preço comprovada: aumenta conversão. */}
+                <span className="block text-[12px] font-bold text-success tabular-nums leading-tight mt-0.5">
+                  {formatBRL(total * 0.95)} no PIX (-5%)
+                </span>
                 <span className="block text-[11px] text-muted-foreground tabular-nums leading-tight">
                   ou 3x de {formatBRL(installment)} sem juros
                 </span>

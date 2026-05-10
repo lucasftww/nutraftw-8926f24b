@@ -950,6 +950,14 @@ const ProductCard = memo(function ProductCard({
                   }
                   return null;
                 })()}
+                {/* Badge de escassez no canto inferior esquerdo (oposto ao Wishlist).
+                    Antes só aparecia "ESGOTADO" quando já era tarde. Mostrar
+                    "Últimas X" cria urgência durante a comparação no grid. */}
+                {!isOut && (p.stock ?? 0) > 0 && (p.stock ?? 0) <= 5 && (
+                  <span className="absolute bottom-2 left-2 z-[1] inline-flex items-center gap-1 rounded-full bg-warning text-warning-foreground text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 shadow-sm">
+                    Últimas {p.stock}
+                  </span>
+                )}
                 {/* Wishlist: sempre visível, em pill branca no canto inferior direito da imagem */}
                 <WishlistButton
                   productId={p.id}
@@ -980,24 +988,21 @@ const ProductCard = memo(function ProductCard({
                   <div className="text-[16px] sm:text-[19px] font-extrabold text-primary tabular-nums tracking-tight">
                     {formatBRL(finalPrice)}
                   </div>
+                  {/* PIX no card do catálogo — em verde, ANTES do parcelamento.
+                      Cliente compara cards e percebe o preço REAL (5% off);
+                      concorrentes que mostram só preço cheio parecem mais caros. */}
+                  <div className="text-[11px] sm:text-[12px] font-bold text-success tabular-nums leading-tight mt-0.5">
+                    {formatBRL(finalPrice * 0.95)} no PIX
+                  </div>
                   {/* Parcelamento — gatilho clássico de conversão.
-                      Levemente mais legível que antes, ainda subordinado ao preço. */}
+                      Subordinado ao PIX e ao preço principal. */}
                   <div className="text-[10px] sm:text-[11px] font-medium text-muted-foreground tabular-nums mt-0.5">
-                    ou 3x de {formatBRL(finalPrice / 3)}
+                    ou 3x de {formatBRL(finalPrice / 3)} sem juros
                   </div>
                 </div>
-                <div className="mt-4 flex flex-col gap-1.5">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    // Deixa o Link do card cuidar da navegação — apenas
-                    // garantimos foco/clique explícito acessível para o nicho
-                    // 40+ que pode não perceber que o card inteiro é clicável.
-                  }}
-                  className="inline-flex items-center justify-center h-9 w-full rounded-full border border-primary/15 bg-background text-primary text-[12.5px] font-semibold hover:bg-primary/5 hover:border-primary/30 active:scale-[0.98] transition-all"
-                >
-                  Ver produto
-                </button>
+                {/* CTA único — botão "Ver produto" foi removido. O Link envolvente
+                    já navega ao detalhe quando o card é tocado, e o CTA "Comprar"
+                    fica em destaque absoluto. Decisão binária: compro ou não. */}
                 <button
                   onClick={(e) => {
                     e.preventDefault();
@@ -1006,12 +1011,11 @@ const ProductCard = memo(function ProductCard({
                     onAdd(p, finalPrice);
                   }}
                   disabled={isOut}
-                  className="btn-cta h-10 w-full !text-[13.5px] !gap-1.5 !px-0"
+                  className="mt-3 btn-cta h-11 w-full !text-[13.5px] !gap-1.5 !px-0"
                 >
-                  <ShoppingCart className="h-3.5 w-3.5" strokeWidth={2.2} />
+                  <ShoppingCart className="h-4 w-4" strokeWidth={2.2} />
                   Comprar
                 </button>
-                </div>
               </div>
             </Link>
           );

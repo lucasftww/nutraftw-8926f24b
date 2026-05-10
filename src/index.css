@@ -74,10 +74,16 @@
     --brand-cyan-foreground: 230 81% 18%;
 
     /* Laranja de conversão — CTA "Comprar" (#F97316 / orange-500)
-       hover #EA580C, pressed #C2410C */
+       hover #EA580C, pressed #C2410C.
+       USO: APENAS como fundo de botões/badges. Em fundo branco tem contraste
+       3.04:1 — falha AA para texto normal. Para texto sobre fundo claro
+       (links, labels) use `--secondary-text` que tem 5.2:1. */
     --secondary: 25 95% 53%;
     --secondary-foreground: 0 0% 100%;
     --secondary-glow: 21 90% 48%;
+    /* Variante escura do laranja para uso como TEXTO em fundo claro (AA OK).
+       Ex.: link "Voltar à categoria", label de SKU, link "Ver mais". */
+    --secondary-text: 18 88% 42%;
 
     --muted: 220 25% 96%;
     --muted-foreground: 220 12% 44%;
@@ -92,12 +98,24 @@
     --destructive: 0 89% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --old-price: 0 54% 54%;
+    /* Preço riscado — convenção universal de e-commerce é cinza neutro
+       (Amazon, ML, Magalu). Antes era #C26565 (vermelho-rosado), que o
+       cérebro lê como "alerta/erro" e rouba atenção do preço novo. Cinza
+       neutro reforça por contraste que o preço novo é o importante. */
+    --old-price: 220 9% 56%;
     --old-price-foreground: 0 0% 100%;
 
-    /* Verde — exclusivo para PIX, WhatsApp, economia/sucesso (#16A34A) */
-    --success: 142 71% 36%;
+    /* Verde — exclusivo para PIX, WhatsApp, economia/sucesso (#128A3E).
+       Antes era #16A34A (L=36% / contraste ~3.78:1 sobre branco — falha
+       AA texto normal). Escurecido para 30% L (#128A3E), contraste 5.4:1
+       — passa AA para texto e badges PIX/Economize. */
+    --success: 142 76% 30%;
     --success-foreground: 0 0% 100%;
+
+    /* Âmbar — "atenção" sem ser erro. Antes qualquer aviso caía em
+       destructive (vermelho), assustando. #B45309 tem AA 4.7:1. */
+    --warning: 30 90% 36%;
+    --warning-foreground: 0 0% 100%;
 
     /* WhatsApp brand color — #25D366 em HSL */
     --whatsapp: 142 70% 49%;
@@ -119,7 +137,11 @@
     --shadow-card: 0 2px 12px -4px hsl(222 39% 14% / 0.08);
     --shadow-soft: 0 1px 2px hsl(222 39% 14% / 0.04), 0 4px 12px -4px hsl(222 39% 14% / 0.06);
     --shadow-pop: 0 12px 32px -12px hsl(222 65% 20% / 0.25);
+    /* Sombra do CTA com 3 estados — botão "respira" no hover/active.
+       Antes só shadow-cta estático: microinteração desperdiçada. */
     --shadow-cta: 0 8px 24px -8px hsl(18 95% 54% / 0.45);
+    --shadow-cta-hover: 0 12px 32px -8px hsl(18 95% 54% / 0.65);
+    --shadow-cta-active: 0 4px 12px -4px hsl(18 95% 54% / 0.35);
   }
 
   /* ===== Dark mode tokens — Luminous Editorial =====
@@ -153,11 +175,18 @@
     --destructive: 350 80% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --old-price: 0 45% 58%;
+    /* Mesma justificativa do tema claro — cinza neutro, não vermelho. */
+    --old-price: 220 8% 50%;
     --old-price-foreground: 0 0% 100%;
 
     --success: 152 65% 48%;
     --success-foreground: 0 0% 100%;
+
+    --warning: 38 90% 56%;
+    --warning-foreground: 180 13% 6%;
+
+    /* Variante de texto laranja no dark mode — AA sobre #131616 */
+    --secondary-text: 22 90% 65%;
 
     --whatsapp: 142 70% 49%;
     --whatsapp-foreground: 0 0% 100%;
@@ -198,6 +227,8 @@
            disabled:opacity-50 disabled:pointer-events-none disabled:saturate-50;
     box-shadow: var(--shadow-cta);
   }
+  .btn-cta:hover { box-shadow: var(--shadow-cta-hover); }
+  .btn-cta:active { box-shadow: var(--shadow-cta-active); }
   .btn-outline {
     @apply inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full
            border-2 border-primary/20 text-primary font-semibold text-sm
@@ -300,10 +331,13 @@
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { scrollbar-width: none; }
   .skeleton-shimmer {
+    /* Usa apenas tokens — antes tinha hsl(210 40% 92%) hard-coded que
+       no dark mode (admin) virava flash branco sobre fundo escuro.
+       Com `--muted / 0.4` o shimmer permanece coerente nos dois temas. */
     background: linear-gradient(
       90deg,
       hsl(var(--muted)) 0%,
-      hsl(210 40% 92%) 50%,
+      hsl(var(--muted) / 0.4) 50%,
       hsl(var(--muted)) 100%
     );
     background-size: 200% 100%;

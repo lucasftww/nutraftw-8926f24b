@@ -15,8 +15,26 @@ interface ShippingOption {
  * Calculadora de frete no detalhe do produto.
  * Reduz o atrito de descobrir o frete só no checkout (principal motivo de abandono).
  */
+// Persistir o CEP entre páginas remove a dor de redigitar no checkout.
+// Antes: cliente digita CEP no produto, vê frete, vai ao checkout — tinha
+// que digitar de novo. Agora o checkout também lê esta chave para prefill.
+const CEP_STORAGE_KEY = "rv-cep-v1";
+
+const formatZipDisplay = (v: string) => {
+  const d = v.replace(/\D/g, "").slice(0, 8);
+  return d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d;
+};
+
 export function ShippingCalculator() {
-  const [zip, setZip] = useState("");
+  // Hidrata do localStorage no mount; se já houver CEP completo, dispara
+  // cálculo imediato em useEffect abaixo.
+  const [zip, setZip] = useState<string>(() => {
+    if (typeof window === "undefined") return "";
+    try {
+      const saved = localStorage.getItem(CEP_STORAGE_KEY);
+      return saved ? formatZipDisplay(saved) : "";
+    } catch { return ""; }
+  });
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [opts, setOpts] = useState<ShippingOption[]>([]);
@@ -36,10 +54,15 @@ export function ShippingCalculator() {
     };
   }, []);
 
-  const formatZip = (v: string) => {
-    const d = v.replace(/\D/g, "").slice(0, 8);
-    return d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d;
-  };
+  const formatZip = formatZipDisplay;
+
+  // Auto-calcula no mount se já temos CEP persistido.
+  useEffect(() => {
+    if (zip.replace(/\D/g, "").length === 8) {
+      calculate(zip);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function calculate(zipRaw: string) {
     const cleanZip = zipRaw.replace(/\D/g, "");
@@ -72,6 +95,8 @@ export function ShippingCalculator() {
       const arr = (rates as ShippingOption[]) || [];
       setOpts(arr);
       if (arr.length === 0) setError("Sem opções de frete para este estado");
+      // Persiste só após sucesso completo — evita salvar CEP inválido.
+      try { localStorage.setItem(CEP_STORAGE_KEY, cleanZip); } catch {}
     } catch (e: any) {
       if (e?.name === "AbortError" || isStale()) return;
       setError("Não foi possível calcular agora");
@@ -91,32 +116,29 @@ export function ShippingCalculator() {
           <p className="text-[11px] text-muted-foreground leading-tight">Entregamos para todo o Brasil — informe seu CEP</p>
         </div>
       </div>
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-          <input
-            type="text"
-            inputMode="numeric"
-            value={zip}
-            onChange={(e) => {
-              const v = formatZip(e.target.value);
-              setZip(v);
-              if (v.replace(/\D/g, "").length === 8) calculate(v);
-            }}
-            placeholder="00000-000"
-            aria-label="CEP"
-            aria-invalid={!!error}
-            className={`w-full h-11 rounded-xl border bg-background pl-9 pr-3 text-sm tabular-nums focus-visible:outline-none focus-visible:ring-2 transition-colors ${error ? "border-destructive/60 focus-visible:ring-destructive/30" : "border-input focus-visible:ring-primary/30 focus-visible:border-primary/40"}`}
-          />
-        </div>
-        <button
-          type="button"
-          onClick={() => calculate(zip)}
-          disabled={loading || zip.replace(/\D/g, "").length !== 8}
-          className="h-11 px-5 rounded-xl bg-primary text-primary-foreground text-sm font-bold shadow-sm hover:bg-primary-glow disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center min-w-[92px] active:scale-95 transition-all"
-        >
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Calcular"}
-        </button>
+      <div className="relative">
+        {/* Botão "Calcular" foi removido — o cálculo já dispara automaticamente
+            quando o CEP completa 8 dígitos (linha do onChange). Spinner inline
+            no canto direito mostra estado de loading sem botão redundante. */}
+        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+        <input
+          type="text"
+          inputMode="numeric"
+          autoComplete="postal-code"
+          value={zip}
+          onChange={(e) => {
+            const v = formatZip(e.target.value);
+            setZip(v);
+            if (v.replace(/\D/g, "").length === 8) calculate(v);
+          }}
+          placeholder="00000-000"
+          aria-label="CEP"
+          aria-invalid={!!error}
+          className={`w-full h-12 md:h-11 rounded-xl border bg-background pl-9 pr-10 text-base md:text-sm tabular-nums focus-visible:outline-none focus-visible:ring-2 transition-colors ${error ? "border-destructive/60 focus-visible:ring-destructive/30" : "border-input focus-visible:ring-primary/30 focus-visible:border-primary/40"}`}
+        />
+        {loading && (
+          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-primary" />
+        )}
       </div>
       <a
         href="https://buscacepinter.correios.com.br/app/endereco/index.php"

@@ -71,17 +71,27 @@ export function StickyMobileBar({
               if ((target as HTMLInputElement).focus) setTimeout(() => (target as HTMLInputElement).focus(), 350);
               return;
             }
-            // Tudo pronto → submete o form.
-            document.querySelector<HTMLFormElement>('form')?.requestSubmit();
+            // Tudo pronto → submete o form. Selector específico evita que
+            // formulário acidental (cupom, modal) seja submetido em vez do checkout.
+            const form =
+              document.querySelector<HTMLFormElement>('form[data-checkout-form]') ||
+              document.querySelector<HTMLFormElement>('form');
+            form?.requestSubmit();
           }}
           className="h-12 px-5 rounded-2xl text-sm font-extrabold bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-lg shadow-secondary/30 whitespace-nowrap active:scale-[0.98] transition-all disabled:opacity-60"
         >
           {submitting ? (
             <><Loader2 className="w-4 h-4 mr-1.5 animate-spin inline" /> Processando…</>
-          ) : (buyerDone && addressDone && shippingDone && paymentSelected) ? (
-            <>Finalizar pedido</>
+          ) : !buyerDone ? (
+            <>Próximo: Endereço</>
+          ) : !addressDone ? (
+            <>Próximo: Frete</>
+          ) : !shippingDone ? (
+            <>Próximo: Pagamento</>
+          ) : !paymentSelected ? (
+            <>Escolher pagamento</>
           ) : (
-            <>Continuar</>
+            <>Finalizar pedido</>
           )}
         </button>
       </div>

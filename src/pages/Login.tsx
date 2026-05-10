@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { getAffiliateRef, getAffiliateRefData, setAffiliateRef, clearAffiliateRef, readAttributionFromUrl } from "@/lib/affiliateRef";
 import { friendlyAuthError } from "@/lib/friendlyError";
-import { Users } from "lucide-react";
+import { Users, Eye, EyeOff, Loader2 } from "lucide-react";
 
 export default function Login() {
   const [params] = useSearchParams();
@@ -16,6 +16,7 @@ export default function Login() {
   const initialEmail = (params.get("email") || "").trim();
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const nav = useNavigate();
@@ -182,7 +183,7 @@ export default function Login() {
         <div className="grid grid-cols-2 gap-1 p-1 bg-muted rounded-full mb-6">
           <button
             onClick={() => setMode("login")}
-            className={`h-9 rounded-full text-sm font-semibold transition-all ${
+            className={`h-11 rounded-full text-sm font-semibold transition-all ${
               mode === "login" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
             }`}
           >
@@ -190,7 +191,7 @@ export default function Login() {
           </button>
           <button
             onClick={() => setMode("register")}
-            className={`h-9 rounded-full text-sm font-semibold transition-all ${
+            className={`h-11 rounded-full text-sm font-semibold transition-all ${
               mode === "register" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
             }`}
           >
@@ -211,26 +212,57 @@ export default function Login() {
           {mode === "register" && (
             <div className="space-y-2">
               <Label htmlFor="name">Nome completo</Label>
-              <Input id="name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+              <Input
+                id="name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+                autoComplete="name"
+                autoCapitalize="words"
+              />
             </div>
           )}
           <div className="space-y-2">
             <Label htmlFor="email">E-mail</Label>
-            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <Input
+              id="email"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Senha</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={8}
-              autoComplete={mode === "login" ? "current-password" : "new-password"}
-            />
+            {/* Show/hide password — UX padrão em mobile (digitação correta
+                em primeira tentativa reduz drasticamente abandono em login). */}
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={8}
+                autoComplete={mode === "login" ? "current-password" : "new-password"}
+                className="pr-12"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((s) => !s)}
+                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-11 w-11 inline-flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
             {mode === "register" && (
-              <p className="text-xs text-muted-foreground">Mínimo 8 caracteres.</p>
+              <p className="text-xs text-muted-foreground">Mínimo 8 caracteres com letra e número.</p>
             )}
           </div>
           {mode === "login" && (
@@ -238,14 +270,19 @@ export default function Login() {
               <button
                 type="button"
                 onClick={onForgotPassword}
-                className="text-xs font-medium text-primary hover:underline"
+                className="inline-flex items-center min-h-[44px] px-2 -mr-2 text-xs font-medium text-primary hover:underline"
               >
                 Esqueci minha senha
               </button>
             </div>
           )}
           <Button type="submit" disabled={loading} className="w-full" size="lg">
-            {loading ? "Aguarde…" : mode === "login" ? "Entrar" : "Criar conta"}
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Aguarde…
+              </>
+            ) : mode === "login" ? "Entrar" : "Criar conta"}
           </Button>
         </form>
 
@@ -263,7 +300,12 @@ export default function Login() {
         </Button>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
-          <Link to="/" className="hover:text-primary">← Voltar ao catálogo</Link>
+          <Link
+            to="/"
+            className="inline-flex items-center min-h-[44px] px-3 hover:text-primary"
+          >
+            ← Voltar ao catálogo
+          </Link>
         </p>
       </div>
     </div>

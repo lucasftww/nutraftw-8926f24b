@@ -56,9 +56,14 @@ export function Header({ isCheckout = false }: { isCheckout?: boolean }) {
       <header
         className="sticky top-0 inset-x-0 z-40 w-full border-b border-border/50 bg-background/85 backdrop-blur-md supports-[backdrop-filter]:bg-background/70 shadow-sm"
         role="banner"
+        // Respeita safe-area do iOS (notch + barra de status em PWA standalone).
+        // Sem isso, conteúdo do header ficava coberto no iPhone com notch.
+        style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
       >
-        <div className="mx-auto w-full max-w-[1400px] px-3 sm:px-5 lg:px-8">
-          <div className="flex h-12 md:h-14 items-center justify-between gap-3">
+        <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8">
+          {/* h-14 mobile (56px): atende WCAG tap target 44x44 com folga e
+              dá branding adequado ao logo. h-16 desktop (64px) para presença. */}
+          <div className="flex h-14 md:h-16 items-center justify-between gap-3">
             {/* Esquerda: menu (mobile) + logo */}
             <div className="flex items-center gap-1.5 min-w-0">
               <button
@@ -67,7 +72,7 @@ export function Header({ isCheckout = false }: { isCheckout?: boolean }) {
                 aria-label="Abrir menu"
                 aria-expanded={menuOpen}
                 aria-controls="mobile-menu"
-                className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-full text-primary hover:bg-primary/5 active:bg-primary/10 active:scale-95 transition-all"
+                className="md:hidden inline-flex h-11 w-11 items-center justify-center rounded-full text-primary hover:bg-primary/5 active:bg-primary/10 active:scale-95 transition-all"
               >
                 <Menu className="h-5 w-5" strokeWidth={1.75} />
               </button>
@@ -77,14 +82,17 @@ export function Header({ isCheckout = false }: { isCheckout?: boolean }) {
                 aria-label="Royal Vitta — página inicial"
                 className="group inline-flex items-center min-w-0"
               >
+                {/* width/height refletem aspecto real renderizado para evitar
+                    CLS — antes 80x80 reservava 1:1 mas o CSS forçava h-7
+                    causando "esmagamento" e shift de layout. */}
                 <img
                   src={logoRV}
                   alt="Royal Vitta"
-                  width={80}
-                  height={80}
+                  width={104}
+                  height={32}
                   decoding="async"
                   {...({ fetchpriority: "high" } as Record<string, string>)}
-                  className="h-6 sm:h-7 md:h-8 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                  className="h-7 sm:h-8 md:h-9 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
                 />
               </Link>
             </div>
@@ -107,19 +115,19 @@ export function Header({ isCheckout = false }: { isCheckout?: boolean }) {
                 rel="noreferrer"
                 aria-label="Suporte WhatsApp"
                 title="Suporte WhatsApp"
-                className="hidden md:inline-flex h-10 w-10 items-center justify-center rounded-full text-whatsapp hover:bg-whatsapp/10 transition-colors"
+                className="hidden md:inline-flex h-11 w-11 items-center justify-center rounded-full text-whatsapp hover:bg-whatsapp/10 transition-colors"
               >
                 <MessageCircle className="h-5 w-5" strokeWidth={1.75} />
               </a>
 
               <Link
                 to={accountHref}
-                aria-label={accountLabel}
+                aria-label={user ? `${accountLabel} (logado)` : accountLabel}
                 title={accountLabel}
                 onMouseEnter={prefetchAccount}
                 onTouchStart={prefetchAccount}
                 onFocus={prefetchAccount}
-                className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-primary hover:bg-primary/5 transition-colors"
+                className="relative inline-flex h-11 w-11 items-center justify-center rounded-full text-primary hover:bg-primary/5 transition-colors"
               >
                 <User
                   className="h-[22px] w-[22px]"
@@ -138,11 +146,16 @@ export function Header({ isCheckout = false }: { isCheckout?: boolean }) {
                 type="button"
                 onClick={openCart}
                 aria-label={`Abrir carrinho${count > 0 ? ` (${count} ${count === 1 ? "item" : "itens"})` : ""}`}
-                className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-primary hover:bg-primary/5 transition-colors"
+                className="relative inline-flex h-11 w-11 items-center justify-center rounded-full text-primary hover:bg-primary/5 transition-colors"
               >
                 <ShoppingCart className="h-[22px] w-[22px]" strokeWidth={1.6} />
                 {count > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-secondary px-1 text-[10px] font-semibold text-secondary-foreground ring-2 ring-background shadow-sm tabular-nums">
+                  // key={count} re-monta o badge em cada mudança, animando
+                  // o zoom-in — micro-recompensa visual ao adicionar produto.
+                  <span
+                    key={count}
+                    className="absolute -top-0.5 -right-0.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-secondary px-1 text-[10px] font-semibold text-secondary-foreground ring-2 ring-background shadow-sm tabular-nums animate-in zoom-in-50 duration-300"
+                  >
                     {count > 99 ? "99+" : count}
                   </span>
                 )}
@@ -153,11 +166,13 @@ export function Header({ isCheckout = false }: { isCheckout?: boolean }) {
         </div>
       </header>
 
-      {/* Drawer mobile */}
+      {/* Drawer mobile — slide DA ESQUERDA (padrão BR: ML, Magalu, Shopee).
+          Antes vinha de cima cobrindo o header — UX invertida e
+          conflitante com a barra de status iOS. */}
       {menuOpen && (
         <div className="fixed inset-0 z-50 md:hidden" role="presentation">
           <div
-            className="absolute inset-0 bg-foreground/40 animate-fade-in"
+            className="absolute inset-0 bg-foreground/55 backdrop-blur-sm animate-fade-in"
             onClick={closeMenu}
             aria-hidden="true"
           />
@@ -168,11 +183,12 @@ export function Header({ isCheckout = false }: { isCheckout?: boolean }) {
             aria-modal="true"
             aria-label="Menu de navegação"
             tabIndex={-1}
-            className="absolute inset-x-0 top-0 flex max-h-[100dvh] flex-col bg-background shadow-2xl outline-none animate-in slide-in-from-top duration-300 focus-visible:ring-2 focus-visible:ring-primary/40"
+            className="absolute inset-y-0 left-0 w-[85%] max-w-[360px] flex flex-col bg-background shadow-2xl outline-none animate-in slide-in-from-left duration-300 focus-visible:ring-2 focus-visible:ring-primary/40 overscroll-contain"
+            style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
           >
-            {/* Cabeçalho do drawer — espelha altura do header */}
-            <div className="border-b border-border/50 bg-background/85 backdrop-blur-md supports-[backdrop-filter]:bg-background/70">
-              <div className="mx-auto flex h-16 w-full max-w-[1400px] items-center justify-between px-3 sm:px-5">
+            {/* Cabeçalho do drawer */}
+            <div className="border-b border-border/50">
+              <div className="flex h-14 items-center justify-between px-4">
                 <Link
                   to="/"
                   onClick={closeMenu}
@@ -192,7 +208,7 @@ export function Header({ isCheckout = false }: { isCheckout?: boolean }) {
                   type="button"
                   onClick={closeMenu}
                   aria-label="Fechar menu"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full text-primary hover:bg-primary/5 transition-colors"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full text-primary hover:bg-primary/5 transition-colors"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -201,19 +217,20 @@ export function Header({ isCheckout = false }: { isCheckout?: boolean }) {
 
             {/* Navegação */}
             <nav
-              className="flex-1 overflow-y-auto px-3 sm:px-5 py-2"
+              className="flex-1 overflow-y-auto px-2 py-2 overscroll-contain"
               aria-label="Navegação principal"
             >
               <ul className="flex flex-col">
                 <DrawerLink to="/" icon={LayoutGrid} label="Catálogo" />
-                <DrawerLink to="/sobre" icon={Info} label="Sobre" />
                 <DrawerLink to="/favoritos" icon={Heart} label="Favoritos" />
+                <DrawerLink to={accountHref} icon={User} label={accountLabel} />
+                <DrawerLink to="/sobre" icon={Info} label="Sobre" />
               </ul>
             </nav>
 
             {/* CTA WhatsApp */}
             <div
-              className="border-t border-border/50 px-3 sm:px-5 py-3"
+              className="border-t border-border/50 px-4 py-3"
               style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.75rem)" }}
             >
               <a

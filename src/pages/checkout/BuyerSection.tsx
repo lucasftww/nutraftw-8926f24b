@@ -96,10 +96,17 @@ export function BuyerSection({ form, setForm }: BuyerSectionProps) {
               className="checkout-input"
               data-status={vCPF.status === "idle" ? undefined : vCPF.status}
               aria-invalid={vCPF.status === "invalid"}
-              aria-describedby={vCPF.status !== "idle" ? "co-cpf-hint" : undefined}
+              aria-describedby={vCPF.status !== "idle" ? "co-cpf-hint" : "co-cpf-help"}
               autoComplete="off"
               maxLength={14}
             />
+            {vCPF.status === "idle" && (
+              /* Microcopy explicando o "porquê" do CPF — campo de maior
+                 abandono em checkouts BR. Reduz fricção/desconfiança. */
+              <p id="co-cpf-help" className="text-[11px] text-muted-foreground mt-1 ml-0.5">
+                Necessário para emissão da nota fiscal e segurança da entrega.
+              </p>
+            )}
             <FieldHint id="co-cpf-hint" status={vCPF.status} message={vCPF.message} />
           </div>
         </div>

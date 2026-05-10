@@ -8,7 +8,13 @@ export const Label = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <LabelPrimitive.Root
     ref={ref}
-    className={cn("text-sm font-medium leading-none text-foreground", className)}
+    className={cn(
+      // cursor-pointer: convenção UX padrão (label clicável foca o input).
+      // peer-disabled: estado herdado do input associado.
+      "text-sm font-medium leading-none text-foreground cursor-pointer",
+      "peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+      className,
+    )}
     {...props}
   />
 ));
