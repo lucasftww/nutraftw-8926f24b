@@ -376,7 +376,15 @@ export type Database = {
           status?: Database["public"]["Enums"]["refund_status"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "order_refunds_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       orders: {
         Row: {
@@ -839,7 +847,15 @@ export type Database = {
           product_id?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "wishlists_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -1026,6 +1042,15 @@ export type Database = {
       }
       mark_affiliate_commission_paid: {
         Args: { p_commission_id: string }
+        Returns: undefined
+      }
+      record_product_event: {
+        Args: {
+          p_event_type: string
+          p_product_id: string
+          p_session_id?: string
+          p_user_id?: string
+        }
         Returns: undefined
       }
       release_due_affiliate_commissions: { Args: never; Returns: number }
