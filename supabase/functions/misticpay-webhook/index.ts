@@ -188,6 +188,18 @@ serve(async (req) => {
     });
   }
 
+  // Otimização de segurança: se o pedido já está num estado terminal (paid /
+  // cancelled / refunded), não chamamos a API da MisticPay. Isso bloqueia ataques
+  // de enumeração que enviam transactionIds aleatórios tentando esgotar nosso
+  // rate limit junto à MisticPay — cada chamada forjada custa uma req autenticada.
+  const EARLY_TERMINAL = new Set(["paid", "cancelled", "refunded"]);
+  if (EARLY_TERMINAL.has(String(order.status))) {
+    return new Response(
+      JSON.stringify({ ok: true, ignored: "terminal_state_locked", current: order.status }),
+      { status: 200, headers: { ...corsHeaders, "content-type": "application/json" } },
+    );
+  }
+
   // === VERIFY-BY-CALLBACK ===
   // Em vez de confiar em payload.status (forjável), consultamos o estado real
   // da transação na MisticPay com nossas credenciais. A resposta é fonte da
@@ -318,7 +330,7 @@ serve(async (req) => {
   //    verdade é a ação humana.
   //    Exceção: `paid → refunded` é uma transição legítima (chargeback /
   //    estorno) que precisa ser propagada para reverter comissão e estoque.
-  const TERMINAL = new Set(["paid", "cancelled", "expired"]);
+  const TERMINAL = new Set(["paid", "cancelled", "refunded"]);
   const ALLOWED_TRANSITIONS: Record<string, Set<string>> = {
     paid: new Set(["refunded"]),
   };

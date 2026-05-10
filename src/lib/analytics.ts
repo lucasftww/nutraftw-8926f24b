@@ -84,11 +84,15 @@ export async function trackEvent(
     // tráfego em páginas de catálogo/produto. A sessão local é
     // suficiente para preencher user_id no evento de funil.
     const { data: sess } = await supabase.auth.getSession();
-    await (supabase as any).from("product_events").insert({
-      event_type: type,
-      product_id: productId ?? null,
-      user_id: sess?.session?.user?.id ?? null,
-      session_id: getSessionId(),
+    // Usa RPC SECURITY DEFINER com ON CONFLICT DO NOTHING (rate-limit de
+    // 1 evento/produto/tipo/hora por sessão no banco). INSERT direto na
+    // tabela foi substituído para que o índice único parcial seja respeitado
+    // de forma silenciosa — sem erro visível no cliente.
+    await (supabase as any).rpc("record_product_event", {
+      p_product_id: productId ?? null,
+      p_event_type: type,
+      p_session_id: getSessionId(),
+      p_user_id: sess?.session?.user?.id ?? null,
     });
   } catch {
     /* silencioso */
