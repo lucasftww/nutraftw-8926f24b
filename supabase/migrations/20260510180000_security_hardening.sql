@@ -21,12 +21,15 @@ REVOKE INSERT, UPDATE, DELETE ON public.site_settings FROM authenticated;
 -- ── 2. product_events: rate-limit por sessão (1 evento/produto/tipo/hora) ────
 -- Impede inflate de views por scripts. Usa índice parcial único truncando
 -- created_at para hora — colisão = silently ignored no INSERT.
+-- date_trunc('hour', timestamptz) é STABLE (depende do timezone), não IMMUTABLE.
+-- Convertemos explicitamente para UTC antes de truncar: AT TIME ZONE 'UTC'
+-- retorna um timestamp (sem fuso) que é IMMUTABLE — aceito pelo índice único.
 CREATE UNIQUE INDEX IF NOT EXISTS product_events_session_rate_limit
   ON public.product_events (
     session_id,
     product_id,
     event_type,
-    date_trunc('hour', created_at)
+    date_trunc('hour', created_at AT TIME ZONE 'UTC')
   )
   WHERE session_id IS NOT NULL;
 
