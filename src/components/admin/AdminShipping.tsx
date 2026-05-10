@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Plus, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
+import { friendlyErrorMessage } from "@/lib/friendlyError";
 import { queryKeys } from "@/lib/queryKeys";
 import { logAdminAction, shallowDiff } from "@/lib/auditLog";
 import { AdminModal } from "@/components/admin/AdminModal";
@@ -67,7 +68,7 @@ export function AdminShipping() {
       : await supabase.from("shipping_rates" as any).insert(payload).select().maybeSingle();
     if (error) {
       logSupabaseError("Guardar frete", error, { id: f.id, payload });
-      toast.error(error.message);
+      toast.error(friendlyErrorMessage(error));
     } else {
       toast.success("Frete guardado");
       const saved: any = data || payload;
@@ -95,7 +96,7 @@ export function AdminShipping() {
     const { error: err } = await supabase.from("shipping_rates" as any).delete().eq("id", id);
     if (err) {
       logSupabaseError("Remover frete", err, { id });
-      toast.error(err.message);
+      toast.error(friendlyErrorMessage(err));
       return;
     }
     logAdminAction({

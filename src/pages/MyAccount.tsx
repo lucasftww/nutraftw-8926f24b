@@ -10,6 +10,7 @@ import { LogOut, User as UserIcon, MapPin, ShoppingBag, Loader2, Users, Copy, Ch
 import { formatBRL, maskCPF, maskPhone, maskCEP } from "@/lib/utils";
 import { CustomerOrderDetail } from "@/components/account/CustomerOrderDetail";
 import { ORDER_STATUS_LABELS } from "@/lib/orderStatus";
+import { friendlyErrorMessage } from "@/lib/friendlyError";
 
 type Tab = "profile" | "address" | "orders" | "affiliate" | "commissions";
 
@@ -28,6 +29,12 @@ export default function MyAccount() {
   const nav = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [tab, setTab] = useState<Tab>("profile");
+  // Guard de montagem: evita chamar setState após navegação durante fetches assíncronos.
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
   const [profile, setProfile] = useState<any>({});
   const [orders, setOrders] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
@@ -109,7 +116,7 @@ export default function MyAccount() {
         .eq("affiliate_user_id", user.id)
         .order("created_at", { ascending: false });
       if (cancelled) return;
-      if (error) toast.error(error.message);
+      if (error) toast.error(friendlyErrorMessage(error));
       setCommissions(data || []);
       setLoadingComm(false);
     })();
@@ -194,8 +201,10 @@ export default function MyAccount() {
     if (digits.length !== 8) return;
     setCepLoading(true);
     try {
-      const r = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+      const ctrl = new AbortController();
+      const r = await fetch(`https://viacep.com.br/ws/${digits}/json/`, { signal: ctrl.signal });
       const d = await r.json();
+      if (!mountedRef.current) return;
       if (d.erro) {
         toast.error("CEP não encontrado");
         return;
@@ -207,10 +216,11 @@ export default function MyAccount() {
         address_city: d.localidade || p.address_city,
         address_state: d.uf || p.address_state,
       }));
-    } catch {
+    } catch (e: any) {
+      if (e?.name === "AbortError" || !mountedRef.current) return;
       toast.error("Erro ao buscar CEP");
     } finally {
-      setCepLoading(false);
+      if (mountedRef.current) setCepLoading(false);
     }
   }
 
@@ -230,7 +240,7 @@ export default function MyAccount() {
       address_state: profile.address_state || null,
     }).eq("user_id", user!.id);
     setSaving(false);
-    if (error) toast.error(error.message);
+    if (error) toast.error(friendlyErrorMessage(error));
     else toast.success("Perfil atualizado!");
   }
 

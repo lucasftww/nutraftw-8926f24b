@@ -12,6 +12,7 @@ import { SORT_KEYS, SORT_LABELS, type SortKey, getProductPricing, isTirzepatidaC
 import { useCart } from "@/hooks/useCart";
 import { useSEO } from "@/hooks/useSEO";
 import { useProducts, useCategories, useBrands, type ProductRow } from "@/hooks/useProducts";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 type Product = ProductRow;
 
@@ -35,6 +36,10 @@ export default function Catalog() {
   const { data: products = [], isLoading: loadingProducts } = useProducts();
   const { data: categories = [] } = useCategories();
   const { data: brands = [] } = useBrands();
+  // Respeita a configuração admin "Marcar produto como LANÇAMENTO até (N dias)".
+  // Antes era hardcoded em 30 — agora vem de site_settings.badge_new_days.
+  const settings = useSiteSettings();
+  const badgeNewDays = Math.max(1, Number(settings.badge_new_days) || 30);
   const [selectedCats, setSelectedCats] = useState<Set<string>>(new Set());
   const [selectedBrands, setSelectedBrands] = useState<Set<string>>(new Set());
   const [searchParams, setSearchParams] = useSearchParams();
@@ -516,6 +521,7 @@ export default function Catalog() {
                     onAdd={handleAdd}
                     onPrefetch={prefetchProduct}
                     onPrefetchFull={prefetchProductFull}
+                    badgeNewDays={badgeNewDays}
                   />
                 )}
                 {paginated.sections.map((s) => (
@@ -526,6 +532,7 @@ export default function Catalog() {
                     onAdd={handleAdd}
                     onPrefetch={prefetchProduct}
                     onPrefetchFull={prefetchProductFull}
+                    badgeNewDays={badgeNewDays}
                   />
                 ))}
               </>
@@ -745,12 +752,14 @@ const Section = memo(function Section({
   onAdd,
   onPrefetch,
   onPrefetchFull,
+  badgeNewDays = 30,
 }: {
   title: string;
   items: Product[];
   onAdd: (p: Product, finalPrice: number) => void;
   onPrefetch?: (slug: string) => void;
   onPrefetchFull?: (p: Product) => void;
+  badgeNewDays?: number;
 }) {
   if (items.length === 0) return null;
   // Subtítulo automático para a seção de Promoções: comunica o maior
@@ -785,6 +794,7 @@ const Section = memo(function Section({
             onAdd={onAdd}
             onPrefetch={onPrefetch}
             onPrefetchFull={onPrefetchFull}
+            badgeNewDays={badgeNewDays}
           />
         ))}
       </div>
@@ -800,12 +810,14 @@ const ProductCard = memo(function ProductCard({
   onAdd,
   onPrefetch,
   onPrefetchFull,
+  badgeNewDays = 30,
 }: {
   p: Product;
   index: number;
   onAdd: (p: Product, finalPrice: number) => void;
   onPrefetch?: (slug: string) => void;
   onPrefetchFull?: (p: Product) => void;
+  badgeNewDays?: number;
 }) {
   const linkRef = useRef<HTMLAnchorElement | null>(null);
 
@@ -851,7 +863,8 @@ const ProductCard = memo(function ProductCard({
   // em vez de propagar NaN pelo cálculo, que silenciosamente desligava a flag.
   const createdMs = p.created_at ? new Date(p.created_at).getTime() : NaN;
   const ageDays = Number.isFinite(createdMs) ? (Date.now() - createdMs) / 86400000 : Infinity;
-  const isNew = !isOut && ageDays <= 30;
+  // Usa a configuração admin "badge_new_days" em vez de valor fixo.
+  const isNew = !isOut && ageDays <= badgeNewDays;
   const isLaunch = !!p.is_new_release;
   const isOffer = !!p.is_on_offer;
   // Apenas um badge por card e nunca empilhado com "-x%". "Novo" vira um

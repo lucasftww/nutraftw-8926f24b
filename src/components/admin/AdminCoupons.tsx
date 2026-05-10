@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Plus, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
+import { friendlyErrorMessage } from "@/lib/friendlyError";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { queryKeys } from "@/lib/queryKeys";
 import { logAdminAction, shallowDiff } from "@/lib/auditLog";
@@ -69,7 +70,7 @@ export function AdminCoupons() {
       : await supabase.from("coupons" as any).insert(payload).select().maybeSingle();
     if (error) {
       logSupabaseError("Guardar cupom", error, { id: f.id, code: payload.code });
-      toast.error(error.message);
+      toast.error(friendlyErrorMessage(error));
     } else {
       toast.success("Cupom guardado");
       const saved: any = data || payload;
@@ -97,7 +98,7 @@ export function AdminCoupons() {
     const { error } = await supabase.from("coupons" as any).delete().eq("id", id);
     if (error) {
       logSupabaseError("Remover cupom", error, { id });
-      toast.error(error.message);
+      toast.error(friendlyErrorMessage(error));
     } else {
       toast.success("Removido");
       logAdminAction({

@@ -56,7 +56,11 @@ export function useNewOrdersNotifier(opts: { enabled?: boolean; onNew?: () => vo
         (payload) => {
           const o: any = payload.new;
           if (o.created_at && o.created_at <= lastSeen!) return;
-          sessionStorage.setItem(LAST_SEEN_KEY, o.created_at || new Date().toISOString());
+          // Atualiza TANTO o sessionStorage QUANTO a variável de closure,
+          // para que reconexões do canal Realtime não re-toast pedidos
+          // que já foram exibidos nesta sessão.
+          lastSeen = o.created_at || new Date().toISOString();
+          sessionStorage.setItem(LAST_SEEN_KEY, lastSeen);
           setUnseenCount((n) => n + 1);
           playBeep();
           const total = typeof o.total === "number" ? o.total.toFixed(2).replace(".", ",") : o.total;

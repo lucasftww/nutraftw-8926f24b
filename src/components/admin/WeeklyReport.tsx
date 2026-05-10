@@ -28,6 +28,7 @@ import {
   CheckCircle2,
   AlertTriangle,
 } from "lucide-react";
+import { csvEscape } from "@/lib/exportCsv";
 
 type Range = "24h" | "7d" | "14d" | "30d";
 
@@ -351,8 +352,10 @@ export function WeeklyReport() {
     rows.push(["Top produtos"]);
     rows.push(["Produto", "Qtd vendida", "Receita (BRL)"]);
     topProducts.forEach((p) => rows.push([p.name, String(p.qty), p.revenue.toFixed(2)]));
+    // Usa csvEscape para sanitizar f\u00f3rmulas (CSV injection) \u2014 mesmo padr\u00e3o
+    // dos outros exports do admin (AdminOrders, AdminAffiliates).
     const csv = [header, ...rows]
-      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
+      .map((r) => r.map((c) => csvEscape(c)).join(","))
       .join("\n");
     const blob = new Blob([`\ufeff${csv}`], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
