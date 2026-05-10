@@ -151,7 +151,7 @@ export function OrderSummary({
           <div className="text-2xl sm:text-3xl font-extrabold text-foreground leading-none tabular-nums">
             {formatBRL(grandTotal)}
           </div>
-          {form.payment_method === "credit_card" && (
+          {form.payment_method === "credit_card" && grandTotal > 0 && (
             <div className="text-[11px] text-muted-foreground mt-1 tabular-nums">
               ou 3x de {formatBRL(grandTotal / 3)} sem juros
             </div>

@@ -74,7 +74,6 @@ export default function MyAccount() {
         return params;
       }, { replace: true });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Carrega estatísticas de afiliação ao abrir a aba.

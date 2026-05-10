@@ -47,12 +47,18 @@ export default function Checkout() {
   const [couponError, setCouponError] = useState<string | null>(null);
   const [couponOpen, setCouponOpen] = useState<boolean>(false);
 
-  // Funil: registra `checkout_started` ao chegar na página com itens.
-  // Usa um ref-like guard via state pra disparar uma vez por carga.
+  // Funil: registra `checkout_started` na primeira vez que o usuário chega
+  // ao checkout com itens no carrinho. Antes, o effect rodava só no mount
+  // com `[]` — se o carrinho ainda estivesse hidratando do localStorage,
+  // o `lines.length` era 0 e o evento nunca disparava. Agora aguardamos
+  // os itens chegarem e usamos um ref para garantir disparo único.
+  const checkoutStartedRef = useRef(false);
   useEffect(() => {
+    if (checkoutStartedRef.current) return;
     if (lines.length === 0) return;
+    checkoutStartedRef.current = true;
     void trackEvent("checkout_started", lines[0]?.product_id ?? null);
-  }, []);
+  }, [lines.length]);
 
   // Pré-carrega + revalida cupom já aplicado no carrinho (drawer).
   useEffect(() => {
@@ -321,13 +327,26 @@ export default function Checkout() {
         if (!opts.silent) toast.error(errMsg);
         return { ok: false, error: errMsg };
       }
+      // Validação dos números: dado corrompido no banco (string não-numérica)
+      // antes virava 0 silenciosamente, desalinhando o desconto exibido do
+      // que o RPC create_order calcularia. Agora rejeitamos explicitamente.
+      const dvNum = Number(row.discount_value);
+      const daNum = Number(row.discount_amount);
+      if (!Number.isFinite(dvNum) || dvNum < 0) {
+        const errMsg = "Cupom com configuração inválida. Tente outro código.";
+        setCoupon(null);
+        setCouponError(errMsg);
+        if (!opts.silent) toast.error(errMsg);
+        console.error("[Checkout] invalid coupon discount_value", row);
+        return { ok: false, error: errMsg };
+      }
       // Mantém o mesmo shape do antigo SELECT * (campos consumidos no resto do checkout).
       const couponData = {
         code: row.code,
         description: row.description,
         discount_type: row.discount_type,
-        discount_value: Number(row.discount_value || 0),
-        discount_amount: Number(row.discount_amount || 0),
+        discount_value: dvNum,
+        discount_amount: Number.isFinite(daNum) && daNum >= 0 ? daNum : 0,
         active: true,
       };
       setCoupon(couponData);
@@ -496,6 +515,9 @@ export default function Checkout() {
   // ele está visível na tela.
   const summaryCtaRef = useRef<HTMLButtonElement | null>(null);
   const [summaryCtaVisible, setSummaryCtaVisible] = useState(false);
+  // Roda apenas no mount: o ref aponta para o mesmo botão durante toda a
+  // vida do componente. Antes dependia de `grandTotal`, o que recriava o
+  // observer a cada keystroke (cupom/frete) e fazia a sticky bar piscar.
   useEffect(() => {
     const el = summaryCtaRef.current;
     if (!el || typeof IntersectionObserver === "undefined") return;
@@ -505,7 +527,7 @@ export default function Checkout() {
     );
     obs.observe(el);
     return () => obs.disconnect();
-  }, [grandTotal]);
+  }, []);
 
   if (lines.length === 0)
     return (
