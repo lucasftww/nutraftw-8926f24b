@@ -157,13 +157,16 @@ serve(async (req) => {
 
   const webhookUrl = `${SUPABASE_URL}/functions/v1/misticpay-webhook`;
 
+  // Headers de autenticação isolados em escopo local — evita que loggers ou
+  // serializadores futuros incluam o objeto inteiro com credenciais.
+  const authHeaders: Record<string, string> = {
+    "content-type": "application/json",
+    ci,
+    cs,
+  };
   const upstream = await fetch("https://api.misticpay.com/api/transactions/create", {
     method: "POST",
-    headers: {
-      "content-type": "application/json",
-      ci,
-      cs,
-    },
+    headers: authHeaders,
     body: JSON.stringify({
       amount,
       payerName,
@@ -179,9 +182,14 @@ serve(async (req) => {
   try { upstreamJson = JSON.parse(upstreamText); } catch { /* keep null */ }
 
   if (!upstream.ok || !upstreamJson?.data) {
-    console.error("[misticpay] create failed", upstream.status, upstreamText);
+    // Nunca logar `authHeaders`. Em produção, se o provider ecoasse credenciais
+    // no body de erro, este log iria pro Supabase Functions logs — sanitizamos.
+    const safeDetails = upstreamJson?.message
+      ? { message: String(upstreamJson.message) }
+      : { message: "provider_unavailable" };
+    console.error("[misticpay] create failed", upstream.status, safeDetails);
     return new Response(
-      JSON.stringify({ error: "provider_error", status: upstream.status, details: upstreamJson ?? upstreamText }),
+      JSON.stringify({ error: "provider_error", status: upstream.status, details: safeDetails }),
       { status: 502, headers: { ...corsHeaders, "content-type": "application/json" } },
     );
   }

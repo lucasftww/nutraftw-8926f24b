@@ -76,10 +76,16 @@ if (typeof window !== "undefined") {
   load();
   // Sincroniza o carrinho entre abas/janelas. Sem isto, abrir o site em
   // duas abas leva a contagens divergentes e o cliente fica confuso.
+  // Wrap defensivo: load() já tem try/catch internos, mas se uma extensão
+  // do navegador injetar erro no listener, não queremos derrubar a aba.
   window.addEventListener("storage", (e) => {
     if (e.key !== STORAGE_KEY && e.key !== COUPON_KEY) return;
-    load();
-    listeners.forEach((l) => l());
+    try {
+      load();
+      listeners.forEach((l) => l());
+    } catch (err) {
+      console.error("[cart-store] storage sync failed", err);
+    }
   });
 }
 

@@ -348,8 +348,12 @@ export function AdminProducts() {
     else if (bulkAction === "unfeature") { payload = { is_featured: false }; summary = "removidos do destaque"; }
     else if (bulkAction === "stock_set") {
       needsConfirm = true;
-      const v = parseInt(bulkValue, 10);
-      if (Number.isNaN(v) || v < 0) { toast.error("Informe um stock válido (≥ 0)"); return; }
+      const trimmed = bulkValue.trim();
+      // Aceita só inteiros não-negativos. `parseInt` engole "0.5" como 0
+      // e descarta sufixos ("3abc" -> 3) — usamos regex pra rejeitar.
+      if (!/^\d+$/.test(trimmed)) { toast.error("Informe um stock válido (inteiro ≥ 0)"); return; }
+      const v = parseInt(trimmed, 10);
+      if (!Number.isFinite(v) || v < 0) { toast.error("Informe um stock válido (≥ 0)"); return; }
       payload = { stock: v }; summary = `stock = ${v}`;
     } else if (bulkAction === "price_set") {
       needsConfirm = true;
@@ -385,8 +389,11 @@ export function AdminProducts() {
       load();
       return;
     } else if (bulkAction === "stock_inc") {
-      const delta = parseInt(bulkValue, 10);
-      if (Number.isNaN(delta)) { toast.error("Informe um valor inteiro (positivo ou negativo)"); return; }
+      const trimmed = bulkValue.trim();
+      // Inteiro com sinal opcional. Bloqueia decimais ("0.5" virava 0 silenciosamente).
+      if (!/^-?\d+$/.test(trimmed)) { toast.error("Informe um valor inteiro (positivo ou negativo)"); return; }
+      const delta = parseInt(trimmed, 10);
+      if (!Number.isFinite(delta)) { toast.error("Informe um valor inteiro (positivo ou negativo)"); return; }
       const ok = await confirm({
         title: `Ajustar stock de ${ids.length} produto${ids.length === 1 ? "" : "s"}?`,
         description: `Será somado ${delta >= 0 ? "+" : ""}${delta} ao stock atual de cada produto.`,

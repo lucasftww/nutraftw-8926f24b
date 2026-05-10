@@ -10,3 +10,6 @@ data/*.db-shm
 data/*.db-wal
 public/uploads/products/*
 !public/uploads/products/.gitkeep
+
+# Supabase CLI local state (link config, tokens) — must not be committed
+supabase/.temp/
