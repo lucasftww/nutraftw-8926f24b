@@ -10,6 +10,7 @@ import { useConfirm } from "@/components/admin/ConfirmDialog";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { logSupabaseError, AdminErrorBanner, type AdminErrorInfo } from "@/components/admin/AdminErrorBanner";
 import { logAdminAction, shallowDiff } from "@/lib/auditLog";
+import { friendlyErrorMessage } from "@/lib/friendlyError";
 
 export function AdminBrands() {
   const [items, setItems] = useState<any[]>([]);
@@ -41,7 +42,7 @@ export function AdminBrands() {
     const maxOrder = items.reduce((m, c) => Math.max(m, c.display_order ?? 0), 0);
     const payload = { name: name.trim(), slug: slugify(name), display_order: maxOrder + 10 };
     const { data, error } = await supabase.from("brands").insert(payload).select().maybeSingle();
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(friendlyErrorMessage(error)); return; }
     setName("");
     logAdminAction({ action: "create", entity: "brands", entityId: (data as any)?.id ?? null, summary: `Marca criada: ${payload.name}`, diff: { after: data || payload } });
     qc.invalidateQueries({ queryKey: ["brands", "all"] });
@@ -55,7 +56,7 @@ export function AdminBrands() {
     if (!before || before.name === v) { setEditingId(null); return; }
     const payload = { name: v, slug: slugify(v) };
     const { data, error } = await supabase.from("brands").update(payload).eq("id", id).select().maybeSingle();
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(friendlyErrorMessage(error)); return; }
     toast.success("Marca renomeada");
     logAdminAction({ action: "update", entity: "brands", entityId: id, summary: `Marca: ${before.name} → ${v}`, diff: shallowDiff(before, data) });
     setEditingId(null);
@@ -92,7 +93,7 @@ export function AdminBrands() {
     });
     if (!ok) return;
     const { error: err } = await supabase.from("brands").delete().eq("id", id);
-    if (err) { toast.error(err.message); return; }
+    if (err) { toast.error(friendlyErrorMessage(err)); return; }
     logAdminAction({ action: "delete", entity: "brands", entityId: id, summary: `Marca removida: ${before?.name ?? id.slice(0, 8)}`, diff: { before } });
     qc.invalidateQueries({ queryKey: ["brands", "all"] });
     load();

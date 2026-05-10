@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/admin/EmptyState";
 import { queryKeys } from "@/lib/queryKeys";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 import { logAdminAction, shallowDiff } from "@/lib/auditLog";
+import { friendlyErrorMessage } from "@/lib/friendlyError";
 
 export function AdminCategories() {
   const [items, setItems] = useState<any[]>([]);
@@ -41,7 +42,7 @@ export function AdminCategories() {
     const { data, error } = await supabase.from("categories").insert(payload).select().maybeSingle();
     if (error) {
       logSupabaseError("Adicionar categoria", error, { name });
-      toast.error(error.message);
+      toast.error(friendlyErrorMessage(error));
     } else {
       setName("");
       logAdminAction({
@@ -65,7 +66,7 @@ export function AdminCategories() {
     const { data, error } = await supabase.from("categories").update(payload).eq("id", id).select().maybeSingle();
     if (error) {
       logSupabaseError("Renomear categoria", error, { id });
-      toast.error(error.message);
+      toast.error(friendlyErrorMessage(error));
       return;
     }
     toast.success("Categoria renomeada");
@@ -117,7 +118,7 @@ export function AdminCategories() {
     const { error: err } = await supabase.from("categories").delete().eq("id", id);
     if (err) {
       logSupabaseError("Remover categoria", err, { id });
-      toast.error(err.message);
+      toast.error(friendlyErrorMessage(err));
       return;
     }
     logAdminAction({

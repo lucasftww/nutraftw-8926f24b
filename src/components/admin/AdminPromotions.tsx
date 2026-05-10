@@ -8,6 +8,7 @@ import { GripVertical, Search, Tag, Plus, X, Loader2, History, RotateCcw } from 
 import { formatBRL } from "@/lib/utils";
 import { ProductThumb } from "@/components/admin/ProductThumb";
 import { EmptyState } from "@/components/admin/EmptyState";
+import { friendlyErrorMessage } from "@/lib/friendlyError";
 
 type Product = {
   id: string;
@@ -58,7 +59,7 @@ export function AdminPromotions() {
       .select("id,name,slug,price,sale_price,image_url,is_on_offer,offer_order" as any)
       .eq("is_active", true);
     if (error) {
-      toast.error("Erro ao carregar produtos: " + error.message);
+      toast.error("Erro ao carregar produtos: " + friendlyErrorMessage(error));
       setLoading(false);
       return;
     }
@@ -129,7 +130,7 @@ export function AdminPromotions() {
       setPromos((prev) => prev.map((p, i) => ({ ...p, offer_order: (i + 1) * 10 })));
       qc.invalidateQueries({ queryKey: queryKeys.products.all });
     } catch (e: any) {
-      toast.error("Erro ao salvar: " + (e?.message ?? "desconhecido"));
+      toast.error("Erro ao salvar: " + friendlyErrorMessage(e));
     } finally {
       setSaving(false);
     }
@@ -149,7 +150,7 @@ export function AdminPromotions() {
       .from("products")
       .update({ is_on_offer: true, offer_order: newOrder } as any)
       .eq("id", p.id);
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(friendlyErrorMessage(error)); return; }
     setAvailable((prev) => prev.filter((x) => x.id !== p.id));
     setPromos((prev) => [...prev, { ...p, is_on_offer: true, offer_order: newOrder }]);
     qc.invalidateQueries({ queryKey: queryKeys.products.all });
@@ -160,7 +161,7 @@ export function AdminPromotions() {
     const { data, error } = await (supabase as any).rpc("apply_last_promo", {
       p_product_id: p.id,
     });
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(friendlyErrorMessage(error)); return; }
     if (!data) {
       toast.info("Nenhum histórico de promoção válido para reaplicar.");
       return;
@@ -178,7 +179,7 @@ export function AdminPromotions() {
       .select("id,product_id,original_price,sale_price,discount_percent,started_at,ended_at")
       .eq("product_id", p.id)
       .order("started_at", { ascending: false });
-    if (error) toast.error(error.message);
+    if (error) toast.error(friendlyErrorMessage(error));
     setHistoryRows((data ?? []) as PromoHistoryRow[]);
     setHistoryLoading(false);
   }
@@ -188,7 +189,7 @@ export function AdminPromotions() {
       .from("products")
       .update({ is_on_offer: false } as any)
       .eq("id", p.id);
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(friendlyErrorMessage(error)); return; }
     setPromos((prev) => prev.filter((x) => x.id !== p.id));
     setAvailable((prev) => [...prev, { ...p, is_on_offer: false }].sort((a, b) => a.name.localeCompare(b.name)));
     qc.invalidateQueries({ queryKey: queryKeys.products.all });

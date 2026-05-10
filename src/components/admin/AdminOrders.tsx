@@ -210,8 +210,8 @@ export function AdminOrders() {
         .range(from, to);
       if (filter !== "all") q = q.eq("status", filter as any);
       if (paymentFilter !== "all") q = q.eq("payment_method", paymentFilter as any);
-      if (dateFrom) q = q.gte("created_at", new Date(dateFrom + "T00:00:00").toISOString());
-      if (dateTo) q = q.lte("created_at", new Date(dateTo + "T23:59:59").toISOString());
+      if (dateFrom) q = q.gte("created_at", new Date(dateFrom + "T00:00:00-03:00").toISOString());
+      if (dateTo) q = q.lte("created_at", new Date(dateTo + "T23:59:59.999-03:00").toISOString());
       return q;
     };
     for (let offset = 0; offset < MAX; offset += BATCH) {
