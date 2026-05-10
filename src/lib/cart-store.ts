@@ -97,7 +97,10 @@ export const cart = {
   // Retorna cópia para evitar mutação externa do estado do store.
   getLines: () => lines.map((l) => ({ ...l })),
   getCount: () => lines.reduce((s, l) => s + l.qty, 0),
-  getTotal: () => lines.reduce((s, l) => s + l.price * l.qty, 0),
+  // Arredonda a 2 casas para evitar lixo de ponto flutuante (ex: 3 × 10.10 =
+  // 30.299999999999997). Sem isso, comparações com cupom/PIX/seguro propagavam
+  // erro e o RPC do servidor podia diferir em 1 centavo do exibido.
+  getTotal: () => Math.round(lines.reduce((s, l) => s + l.price * l.qty, 0) * 100) / 100,
   isOpen: () => drawerOpen,
   getCoupon: () => couponCode,
   setCoupon(code: string | null) {
@@ -106,28 +109,39 @@ export const cart = {
     couponCode = next;
     persist();
   },
-  add(line: Omit<CartLine, "qty" | "updated_at">, qty = 1) {
+  // `maxStock` opcional permite ao caller (ProductCard / ProductDetail) limitar
+  // pela quantidade real em estoque do produto, evitando que o cliente coloque
+  // 100 itens de algo que tem stock 3 e só descubra a falha no RPC create_order.
+  add(line: Omit<CartLine, "qty" | "updated_at">, qty = 1, maxStock?: number) {
     const now = Date.now();
+    const cap = Math.min(
+      CART_MAX_QTY_PER_ITEM,
+      Number.isFinite(maxStock as number) && (maxStock as number) > 0 ? (maxStock as number) : CART_MAX_QTY_PER_ITEM,
+    );
     const i = lines.findIndex((l) => l.product_id === line.product_id);
     if (i >= 0) {
-      const finalQty = Math.min(CART_MAX_QTY_PER_ITEM, Math.max(1, lines[i].qty + qty));
+      const finalQty = Math.min(cap, Math.max(1, lines[i].qty + qty));
       lines = lines.map((l, idx) =>
         idx === i ? { ...l, qty: finalQty, updated_at: now } : l
       );
     } else {
-      const nextQty = Math.min(CART_MAX_QTY_PER_ITEM, Math.max(1, qty));
+      const nextQty = Math.min(cap, Math.max(1, qty));
       lines = [...lines, { ...line, qty: nextQty, updated_at: now }];
     }
     persist();
   },
-  setQty(product_id: string, qty: number) {
+  setQty(product_id: string, qty: number, maxStock?: number) {
     const now = Date.now();
     const i = lines.findIndex((l) => l.product_id === product_id);
     if (i < 0) return;
     if (qty <= 0) {
       lines = lines.filter((_, idx) => idx !== i);
     } else {
-      const nextQty = Math.min(CART_MAX_QTY_PER_ITEM, qty);
+      const cap = Math.min(
+        CART_MAX_QTY_PER_ITEM,
+        Number.isFinite(maxStock as number) && (maxStock as number) > 0 ? (maxStock as number) : CART_MAX_QTY_PER_ITEM,
+      );
+      const nextQty = Math.min(cap, qty);
       lines = lines.map((l, idx) =>
         idx === i ? { ...l, qty: nextQty, updated_at: now } : l
       );

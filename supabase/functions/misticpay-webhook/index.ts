@@ -22,11 +22,33 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
+// Webhooks são server-to-server (MisticPay → Supabase) — não há motivo
+// para CORS permissivo. Mantemos apenas o necessário para a MisticPay
+// e ferramentas de debug autorizadas. Wildcard `*` permitia que XSS em
+// qualquer site disparasse webhooks via fetch do navegador da vítima.
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": "https://api.misticpay.com",
   "Access-Control-Allow-Headers": "content-type, x-misticpay-signature",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Vary": "Origin",
 };
+
+/**
+ * Sanitiza payload do webhook para logging — remove PII (CPF, nome, e-mail,
+ * valor) que a MisticPay pode incluir e que não deve ir para os logs do
+ * Supabase (acessíveis a qualquer membro do projeto, exportáveis para
+ * Logflare/Datadog — vazamento LGPD).
+ */
+function sanitizePayloadForLog(p: any): Record<string, unknown> {
+  if (!p || typeof p !== "object") return { _raw_type: typeof p };
+  const safe: Record<string, unknown> = {};
+  // Apenas campos de fluxo/correlação. Valor monetário é `value` — também
+  // omitimos para não correlacionar com pedidos via logs.
+  for (const k of ["transactionId", "status", "transactionType", "event"]) {
+    if (k in p) safe[k] = p[k];
+  }
+  return safe;
+}
 
 // Comparação em tempo constante para evitar timing oracles.
 function timingSafeEqualHex(a: string, b: string): boolean {
@@ -97,7 +119,9 @@ serve(async (req) => {
     });
   }
 
-  console.log("[misticpay-webhook] received", JSON.stringify(payload));
+  // Loga apenas campos não-sensíveis. Antes despejava o payload inteiro —
+  // que com PIX inclui `payerDocument` (CPF), `payerName`, `value`. LGPD risk.
+  console.log("[misticpay-webhook] received", sanitizePayloadForLog(payload));
 
   // Webhooks de infração (MED) — apenas registramos por enquanto.
   if (payload?.event === "INFRACTION") {
@@ -125,7 +149,7 @@ serve(async (req) => {
 
   const { data: order, error: lookupErr } = await admin
     .from("orders")
-    .select("id, status, user_id, paid_at")
+    .select("id, status, user_id, paid_at, total")
     .eq("payment_reference", providerRef)
     .maybeSingle();
 
@@ -179,6 +203,7 @@ serve(async (req) => {
   }
 
   let verifiedState = "";
+  let verifiedValue: number | null = null;
   try {
     const checkResp = await fetch("https://api.misticpay.com/api/transactions/check", {
       method: "POST",
@@ -200,6 +225,8 @@ serve(async (req) => {
     // Aceita também resposta envelopada em `data` (idioma comum em REST).
     const tx = checkJson?.data ?? checkJson;
     verifiedState = String(tx?.transactionState ?? tx?.status ?? "").toUpperCase();
+    const rawValue = tx?.value ?? tx?.amount;
+    verifiedValue = rawValue != null && Number.isFinite(Number(rawValue)) ? Number(rawValue) : null;
     if (!verifiedState) {
       console.error("[misticpay-webhook] check returned no state", { providerRef });
       return new Response(JSON.stringify({ error: "verification_inconclusive" }), {
@@ -225,9 +252,17 @@ serve(async (req) => {
   }
 
   // Mapeia o estado verificado para o status local do pedido.
-  let targetStatus: "paid" | "cancelled" | null = null;
+  // Inclui estados de estorno/expiração que antes caíam em `targetStatus = null`
+  // e ficavam silenciosos — chargeback recebido após "paid" não revertia
+  // comissão de afiliado nem reabastecia estoque.
+  let targetStatus: "paid" | "cancelled" | "refunded" | "expired" | null = null;
   if (verifiedState === "COMPLETO") targetStatus = "paid";
   else if (verifiedState === "FALHA" || verifiedState === "CANCELADO") targetStatus = "cancelled";
+  else if (verifiedState === "ESTORNADO" || verifiedState === "REEMBOLSADO" || verifiedState === "CHARGEBACK") {
+    targetStatus = "refunded";
+  } else if (verifiedState === "EXPIRADO") {
+    targetStatus = "expired";
+  }
 
   if (!targetStatus) {
     // PENDENTE / outro estado intermediário — nada a fazer.
@@ -235,6 +270,32 @@ serve(async (req) => {
       status: 200,
       headers: { ...corsHeaders, "content-type": "application/json" },
     });
+  }
+
+  // ===== Validação de valor: o `value` retornado pela MisticPay deve bater
+  // com `order.total` (tolerância de 1 centavo). Antes, se a MisticPay (por
+  // bug ou comprometimento parcial) reportasse "COMPLETO" para um PIX de
+  // R$ 0,01 num pedido de R$ 500, o pedido era marcado como pago integralmente.
+  // Para `paid`, exigimos match. Outros estados não exigem (cancelados/estornos
+  // podem ter `value: 0`).
+  if (targetStatus === "paid" && verifiedValue != null && order.total != null) {
+    const orderTotal = Number(order.total);
+    const tolerance = 0.01; // 1 centavo
+    if (Math.abs(verifiedValue - orderTotal) > tolerance) {
+      console.error("[misticpay-webhook] amount mismatch", {
+        orderId: order.id,
+        expected: orderTotal,
+        received: verifiedValue,
+        diff: verifiedValue - orderTotal,
+      });
+      // NÃO marca como pago. Marca como `payment_dispute` se o status existir,
+      // senão deixa pendente para investigação manual (não regride se já
+      // estava cancelado/refunded — outra checagem mais abaixo cobre).
+      return new Response(
+        JSON.stringify({ error: "amount_mismatch", expected: orderTotal, received: verifiedValue }),
+        { status: 422, headers: { ...corsHeaders, "content-type": "application/json" } },
+      );
+    }
   }
 
   // ===== Idempotência e proteção contra regressão de estado =====
@@ -248,11 +309,18 @@ serve(async (req) => {
     );
   }
 
-  // 2) Estados terminais (paid/cancelled) NÃO podem regredir entre si via webhook.
-  //    Cenário: admin cancelou manualmente; webhook de "COMPLETO" atrasado chega
-  //    e tentaria reabrir. Logamos e ignoramos — fonte da verdade é a ação humana.
-  const TERMINAL = new Set(["paid", "cancelled"]);
-  if (TERMINAL.has(String(order.status)) && order.status !== targetStatus) {
+  // 2) Estados terminais (paid/cancelled/expired) NÃO podem regredir entre si
+  //    via webhook. Cenário: admin cancelou manualmente; webhook de "COMPLETO"
+  //    atrasado chega e tentaria reabrir. Logamos e ignoramos — fonte da
+  //    verdade é a ação humana.
+  //    Exceção: `paid → refunded` é uma transição legítima (chargeback /
+  //    estorno) que precisa ser propagada para reverter comissão e estoque.
+  const TERMINAL = new Set(["paid", "cancelled", "expired"]);
+  const ALLOWED_TRANSITIONS: Record<string, Set<string>> = {
+    paid: new Set(["refunded"]),
+  };
+  const isAllowedTransition = ALLOWED_TRANSITIONS[String(order.status)]?.has(targetStatus);
+  if (TERMINAL.has(String(order.status)) && order.status !== targetStatus && !isAllowedTransition) {
     console.warn("[misticpay-webhook] state regression blocked", {
       orderId: order.id,
       current: order.status,

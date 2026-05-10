@@ -20,12 +20,19 @@ export function useNewOrdersNotifier(opts: { enabled?: boolean; onNew?: () => vo
   const qc = useQueryClient();
   const onNewRef = useRef(onNew);
   onNewRef.current = onNew;
+  // AudioContext único reutilizado entre toques. Antes, cada novo pedido
+  // criava um Ctx que não era fechado de forma confiável (Chrome limita ~6
+  // contexts por aba). Numa noite movimentada, vazava e o beep parava.
+  const ctxRef = useRef<AudioContext | null>(null);
 
   function playBeep() {
     try {
       const Ctx = (window.AudioContext || (window as any).webkitAudioContext) as typeof AudioContext | undefined;
       if (!Ctx) return;
-      const ctx = new Ctx();
+      if (!ctxRef.current) ctxRef.current = new Ctx();
+      const ctx = ctxRef.current;
+      // Auto-resume: navegadores suspendem o context se ficou inativo.
+      if (ctx.state === "suspended") ctx.resume().catch(() => {});
       const o = ctx.createOscillator();
       const g = ctx.createGain();
       o.type = "sine";
@@ -34,9 +41,19 @@ export function useNewOrdersNotifier(opts: { enabled?: boolean; onNew?: () => vo
       o.connect(g); g.connect(ctx.destination);
       o.start();
       o.stop(ctx.currentTime + 0.18);
-      setTimeout(() => ctx.close(), 250);
     } catch { /* silencioso */ }
   }
+
+  useEffect(() => {
+    return () => {
+      // Fecha o AudioContext único quando o hook desmonta (logout/navegação
+      // para fora do admin) — libera recurso de áudio.
+      if (ctxRef.current) {
+        ctxRef.current.close().catch(() => {});
+        ctxRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!enabled) return;

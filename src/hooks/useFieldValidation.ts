@@ -24,6 +24,13 @@ export function useFieldValidation(
   const [touched, setTouched] = useState(false);
   const [result, setResult] = useState<{ status: FieldStatus; message?: string }>({ status: "idle" });
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Validador via ref: callers normalmente passam função inline (nova
+  // referência a cada render). Antes, trocar de validador (ex.: CPF → CNPJ
+  // baseado em "tipo de pessoa") não re-rodava porque `validator` não estava
+  // nas deps; e adicionar `validator` nas deps causaria re-validações
+  // desnecessárias a cada render.
+  const validatorRef = useRef(validator);
+  useEffect(() => { validatorRef.current = validator; });
 
   useEffect(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -33,13 +40,13 @@ export function useFieldValidation(
     }
     if (!touched && !immediate) return;
     const run = () => {
-      const r = validator(value);
+      const r = validatorRef.current(value);
       setResult({ status: r.ok ? "valid" : "invalid", message: r.message });
     };
     if (immediate || debounceMs === 0) run();
     else timerRef.current = setTimeout(run, debounceMs);
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [value, touched, immediate]);
+  }, [value, touched, immediate, debounceMs, ignoreWhenEmpty]);
 
   return {
     status: result.status,

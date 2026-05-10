@@ -32,7 +32,12 @@ export function shouldPrefetch(): boolean {
   return true;
 }
 
-const imageCache = new Set<string>();
+// LRU simples baseado em insertion order do Map. Antes era um Set sem cap —
+// em sessão admin de horas navegando catálogo, podia acumular dezenas de
+// milhares de URLs. O Map preserva a ordem de inserção, então remover o
+// `keys().next()` deleta a entrada mais antiga.
+const PREFETCH_MAX_ENTRIES = 200;
+const imageCache = new Map<string, number>();
 
 /**
  * Pré-carrega uma imagem (gera o request e popula o cache HTTP/CDN).
@@ -42,7 +47,12 @@ export function prefetchImage(url: string | null | undefined): void {
   if (!url || typeof window === "undefined") return;
   if (imageCache.has(url)) return;
   if (!shouldPrefetch()) return;
-  imageCache.add(url);
+  // Cap LRU: ao atingir o teto, remove a entrada mais antiga (insertion order).
+  if (imageCache.size >= PREFETCH_MAX_ENTRIES) {
+    const oldest = imageCache.keys().next().value;
+    if (oldest) imageCache.delete(oldest);
+  }
+  imageCache.set(url, Date.now());
   // `Image()` é mais barato que <link rel=preload> e funciona em todos os browsers.
   const img = new Image();
   // `decode()` permite ao browser preparar a textura sem bloquear; ignoramos erros.

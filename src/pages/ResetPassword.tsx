@@ -33,6 +33,12 @@ export default function ResetPassword() {
       toast.error("Senha precisa ter no mínimo 8 caracteres");
       return;
     }
+    // Complexidade mínima: ao menos uma letra e um dígito. Antes "12345678"
+    // ou "password" passavam — fraco demais para uma loja com CPF/endereço.
+    if (!/(?=.*[a-zA-Z])(?=.*\d)/.test(password)) {
+      toast.error("Use ao menos uma letra e um número na senha");
+      return;
+    }
     if (password !== confirm) {
       toast.error("As senhas não conferem");
       return;
@@ -41,6 +47,14 @@ export default function ResetPassword() {
     try {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
+      // Se o token de recovery vazou (e-mail comprometido), o atacante teria
+      // janela aberta nas outras sessões já autenticadas. Invalidar "others"
+      // força re-login em outros dispositivos.
+      try {
+        await supabase.auth.signOut({ scope: "others" });
+      } catch {
+        // não-bloqueante — se falhar, ainda assim a senha foi trocada
+      }
       toast.success("Senha redefinida com sucesso!");
       nav("/minha-conta", { replace: true });
     } catch (err: any) {

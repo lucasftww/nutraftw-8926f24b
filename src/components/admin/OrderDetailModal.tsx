@@ -9,6 +9,8 @@ import { Printer, FileText, Plus, Trash2, RefreshCcw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { logAdminAction } from "@/lib/auditLog";
+import { friendlyErrorMessage } from "@/lib/friendlyError";
+import { useConfirm } from "@/components/admin/ConfirmDialog";
 
 const REFUND_REASONS: { value: string; label: string }[] = [
   { value: "customer_request", label: "Pedido do cliente" },
@@ -141,6 +143,7 @@ export function OrderDetailModal({ orderId, onClose }: { orderId: string; onClos
   const [savingRefund, setSavingRefund] = useState(false);
   const [error, setError] = useState<AdminErrorInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const { confirm } = useConfirm();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -192,7 +195,7 @@ export function OrderDetailModal({ orderId, onClose }: { orderId: string; onClos
       status: "pending",
     }).select().maybeSingle() as any);
     setSavingRefund(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(friendlyErrorMessage(error)); return; }
     toast.success("Estorno registrado");
     logAdminAction({
       action: "create", entity: "order_refunds", entityId: (data as any)?.id ?? null,
@@ -207,16 +210,21 @@ export function OrderDetailModal({ orderId, onClose }: { orderId: string; onClos
     const { error } = await (supabase.from("order_refunds" as any).update({
       status, processed_at: status === "processed" ? new Date().toISOString() : null,
     }).eq("id", id) as any);
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(friendlyErrorMessage(error)); return; }
     toast.success(`Estorno marcado como ${REFUND_STATUS_LABEL[status].toLowerCase()}`);
     logAdminAction({ action: "update", entity: "order_refunds", entityId: id, summary: `Estorno → ${status}` });
     load();
   }
 
   async function delRefund(id: string) {
-    if (!confirm("Remover este registro de estorno?")) return;
+    const ok = await confirm({
+      title: "Remover registro de estorno?",
+      description: "Esta ação remove apenas o registro interno; o estorno no PSP, se já feito, não é desfeito.",
+      variant: "destructive",
+    });
+    if (!ok) return;
     const { error } = await (supabase.from("order_refunds" as any).delete().eq("id", id) as any);
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(friendlyErrorMessage(error)); return; }
     toast.success("Removido");
     logAdminAction({ action: "delete", entity: "order_refunds", entityId: id, summary: "Estorno removido" });
     load();

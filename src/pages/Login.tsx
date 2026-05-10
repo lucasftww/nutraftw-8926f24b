@@ -19,10 +19,14 @@ export default function Login() {
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const nav = useNavigate();
-  // Sanitiza o `next`: aceita SOMENTE caminhos internos (começam com "/" e
-  // não com "//" para evitar protocol-relative URLs / open redirect).
+  // Sanitiza o `next`: além de exigir "/" inicial sem "//" (open redirect),
+  // restringimos a um whitelist de áreas de cliente. Antes, `next=/admin`
+  // permitia jogar usuário comum em rota administrativa após login (a rota
+  // bloquearia, mas é melhor não nem chegar lá). Rotas administrativas
+  // sempre redirecionam para `/admin` no fluxo isAdmin abaixo.
   const rawNext = params.get("next") || params.get("redirect") || "/minha-conta";
-  const next = /^\/(?!\/)/.test(rawNext) ? rawNext : "/minha-conta";
+  const ALLOWED_NEXT = /^\/(minha-conta|favoritos|carrinho|checkout|produto\/[\w-]+|catalogo|sobre|instalar)?(\/.*)?(\?.*)?$/;
+  const next = /^\/(?!\/)/.test(rawNext) && ALLOWED_NEXT.test(rawNext) ? rawNext : "/minha-conta";
 
   // ?ref=CODIGO direto na URL do /login tem prioridade. Se vier, persiste já
   // (cobre o caso do usuário compartilhar /login?ref=XXX direto).
@@ -42,6 +46,12 @@ export default function Login() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     const cleanEmail = email.trim().toLowerCase();
+    // Complexidade mínima no cadastro: ao menos uma letra e um número.
+    // O `minLength={8}` no input deixava passar "12345678"/"password".
+    if (mode === "register" && !/(?=.*[a-zA-Z])(?=.*\d).{8,}/.test(password)) {
+      toast.error("Senha precisa ter ao menos 8 caracteres com letra e número");
+      return;
+    }
     setLoading(true);
     try {
       if (mode === "login") {

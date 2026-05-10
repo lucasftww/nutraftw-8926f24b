@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/admin/EmptyState";
 import { useConfirm } from "@/components/admin/ConfirmDialog";
 import { logAdminAction } from "@/lib/auditLog";
 import { downloadCsv } from "@/lib/exportCsv";
+import { friendlyErrorMessage } from "@/lib/friendlyError";
 
 type CommissionRow = {
   id: string;
@@ -95,7 +96,7 @@ export function AdminAffiliates() {
     setBusy("release-all");
     const { data, error } = await (supabase as any).rpc("release_due_affiliate_commissions");
     setBusy(null);
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(friendlyErrorMessage(error)); return; }
     toast.success(`${data || 0} comissão(ões) liberada(s)`);
     logAdminAction({ action: "affiliate.release_due", entity: "affiliate_commissions", summary: `Liberou ${data || 0} comissões elegíveis` });
     load();
@@ -111,7 +112,7 @@ export function AdminAffiliates() {
     setBusy(c.id);
     const { error } = await (supabase as any).rpc("mark_affiliate_commission_paid", { p_commission_id: c.id });
     setBusy(null);
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(friendlyErrorMessage(error)); return; }
     toast.success("Comissão paga");
     logAdminAction({
       action: "affiliate.mark_paid",

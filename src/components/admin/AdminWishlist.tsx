@@ -6,6 +6,9 @@ import { formatBRL } from "@/lib/utils";
 import { Heart, Search, AlertTriangle, Package, Users as UsersIcon, ShoppingCart, TrendingDown } from "lucide-react";
 import { ProductThumb } from "@/components/admin/ProductThumb";
 import { EmptyState } from "@/components/admin/EmptyState";
+import { toast } from "sonner";
+import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
+import { friendlyErrorMessage } from "@/lib/friendlyError";
 
 type Row = {
   product_id: string;
@@ -48,10 +51,12 @@ export function AdminWishlist() {
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState<number>(1);
   const [q, setQ] = useState("");
+  const [error, setError] = useState<AdminErrorInfo | null>(null);
 
   useEffect(() => {
     let alive = true;
     setLoading(true);
+    setError(null);
     (async () => {
       const { data, error } = await supabase.rpc("admin_top_wishlist", {
         p_days: days,
@@ -59,7 +64,12 @@ export function AdminWishlist() {
       });
       if (!alive) return;
       if (error) {
-        console.error(error);
+        // Antes a falha era silenciada com `console.error` + `setRows([])`,
+        // dando ao admin a impressão de "sem favoritos no período" quando
+        // na verdade o RPC quebrou (ex.: schema drift, RLS, timeout).
+        const info = logSupabaseError("Carregar wishlist", error, { rpc: "admin_top_wishlist", days });
+        setError(info);
+        toast.error(`Wishlist: ${friendlyErrorMessage(error)}`);
         setRows([]);
       } else {
         setRows((data ?? []) as Row[]);
@@ -68,6 +78,8 @@ export function AdminWishlist() {
     })();
     return () => { alive = false; };
   }, [days]);
+
+  if (error) return <AdminErrorBanner error={error} onRetry={() => setDays((d) => d)} />;
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();

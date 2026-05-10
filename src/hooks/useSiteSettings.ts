@@ -39,16 +39,24 @@ export function useSiteSettings() {
     // Adapter: garante referência nova a cada notificação para forçar
     // re-render mesmo se o objeto interno não mudou de identidade.
     const adapter = (s: Record<string, string>) => setSettings({ ...s });
-    if (!cache) load(); else setSettings({ ...cache });
+    // Ordem importa: registramos o listener ANTES de disparar load().
+    // Antes era o contrário — se o load() resolvesse antes do `listeners.add`,
+    // a notificação se perdia e o componente ficava com `{}` para sempre.
     listeners.add(adapter);
+    if (cache) {
+      setSettings({ ...cache });
+    } else {
+      load();
+    }
     return () => { listeners.delete(adapter); };
   }, []);
   return settings;
 }
 
 export async function refreshSiteSettings() {
-  // Força re-fetch ignorando o cache atual.
+  // Força re-fetch sem nullificar o cache atual: se outro componente montar
+  // durante a janela de fetch, ainda lê os valores antigos (settings críticos
+  // como flags de PIX e taxas não somem temporariamente do site público).
   inflight = null;
-  cache = null;
   return load();
 }

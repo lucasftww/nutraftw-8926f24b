@@ -1,13 +1,18 @@
 import { Component, ReactNode } from "react";
 
+interface Props { children: ReactNode; resetKey?: string }
 interface State { error: Error | null }
 
 /**
  * Captura erros não tratados em qualquer árvore filha e mostra fallback
  * legível em vez de tela branca. Sem isso, um throw em qualquer page
  * derruba a app inteira.
+ *
+ * Aceita `resetKey` (tipicamente `location.pathname`) — quando o caller
+ * troca o key, o boundary reseta automaticamente. Sem isso, o usuário ficava
+ * preso no fallback ao navegar para outra rota via URL bar / botão "voltar".
  */
-export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
+export class ErrorBoundary extends Component<Props, State> {
   state: State = { error: null };
 
   static getDerivedStateFromError(error: Error): State {
@@ -16,6 +21,14 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error("[ErrorBoundary]", error, info);
+  }
+
+  componentDidUpdate(prevProps: Props) {
+    if (prevProps.resetKey !== this.props.resetKey && this.state.error) {
+      // Mudança de rota → tenta renderizar a nova rota em vez de manter
+      // o fallback antigo (que pode ser confuso após o usuário navegar).
+      this.setState({ error: null });
+    }
   }
 
   reset = () => {

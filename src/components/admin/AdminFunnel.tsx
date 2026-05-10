@@ -4,6 +4,7 @@ import { Eye, Heart, ShoppingCart, CreditCard, CheckCircle2, TrendingDown, Loade
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { toast } from "sonner";
+import { friendlyErrorMessage } from "@/lib/friendlyError";
 
 interface Summary {
   views: number;
@@ -76,9 +77,15 @@ export function AdminFunnel() {
       ]);
       if (cancel) return;
       if (s.error) {
-        toast.error("Erro ao carregar funil", { description: s.error.message });
+        toast.error("Erro ao carregar funil", { description: friendlyErrorMessage(s.error) });
         setLoading(false);
         return;
+      }
+      // Erro silencioso no segundo RPC deixava o painel parecendo "sem
+      // produtos" quando na verdade `funnel_by_product` falhou (ex.:
+      // timeout). Avisar é melhor que esconder.
+      if (p.error) {
+        toast.error("Funil por produto", { description: friendlyErrorMessage(p.error) });
       }
       // RPC `RETURNS TABLE` devolve array com 1 linha
       const row = Array.isArray(s.data) ? s.data[0] : s.data;

@@ -79,12 +79,27 @@ export function getAffiliateRefData(): Stored | null {
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return null;
-    const s = JSON.parse(raw) as Stored;
-    if (!s?.code || Date.now() - s.at > TTL_MS) {
+    const s: any = JSON.parse(raw);
+    // Validação rigorosa: extensões / XSS de outras telas / corrupção do
+    // localStorage poderiam injetar `__proto__`, `code: {}`, `at: "abc"` etc.
+    // `at` precisa ser número finito — string fazia `Date.now() - "abc"` virar
+    // NaN, e `NaN > TTL_MS` é false → o ref nunca expirava.
+    if (
+      !s ||
+      typeof s !== "object" ||
+      typeof s.code !== "string" ||
+      typeof s.at !== "number" ||
+      !Number.isFinite(s.at) ||
+      !/^[A-Z0-9]{4,16}$/.test(s.code)
+    ) {
       localStorage.removeItem(KEY);
       return null;
     }
-    return s;
+    if (Date.now() - s.at > TTL_MS) {
+      localStorage.removeItem(KEY);
+      return null;
+    }
+    return s as Stored;
   } catch {
     return null;
   }

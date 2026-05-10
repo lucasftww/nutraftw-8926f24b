@@ -88,10 +88,16 @@ export function calcTotals(input: CheckoutTotalsInput): CheckoutBreakdown {
   const insurance = input.insurance ? round2(subtotal * 0.10) : 0;
 
   let couponDiscount = 0;
-  if (input.coupon && input.coupon.value > 0) {
-    couponDiscount = input.coupon.type === "percent"
-      ? round2(subtotal * input.coupon.value / 100)
-      : Math.min(input.coupon.value, subtotal);
+  if (input.coupon && Number.isFinite(input.coupon.value) && input.coupon.value > 0) {
+    // Clamp defensivo: cupom percentual fora do range [0,100] gerava
+    // desconto > subtotal (ex.: value:150 → 1.5× subtotal). Cupom fixo é
+    // limitado pelo subtotal. Infinity já filtrado pelo isFinite acima.
+    if (input.coupon.type === "percent") {
+      const pct = Math.min(100, Math.max(0, input.coupon.value));
+      couponDiscount = round2(subtotal * pct / 100);
+    } else {
+      couponDiscount = Math.min(Math.max(0, input.coupon.value), subtotal);
+    }
   }
 
   const beforePix = Math.max(0, subtotal + shipping + insurance - couponDiscount);

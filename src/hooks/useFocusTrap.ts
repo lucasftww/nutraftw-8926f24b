@@ -31,6 +31,12 @@ export function useFocusTrap<T extends HTMLElement>(
   onEscape?: () => void,
 ) {
   const ref = useRef<T | null>(null);
+  // Mantemos o callback em ref: callers normalmente passam arrow function
+  // inline (`() => setOpen(false)`), o que mudaria a referência a cada render
+  // e re-disparava o efeito — capturando o "elemento previamente focado"
+  // do mid-drawer (já dentro do trap), perdendo a restauração.
+  const onEscapeRef = useRef(onEscape);
+  useEffect(() => { onEscapeRef.current = onEscape; });
 
   useEffect(() => {
     if (!active) return;
@@ -42,12 +48,21 @@ export function useFocusTrap<T extends HTMLElement>(
     // Garante que o container possa receber foco como fallback.
     if (!node.hasAttribute("tabindex")) node.setAttribute("tabindex", "-1");
 
+    // `offsetParent !== null` falha para elementos com `position: fixed` —
+    // alguns drawers/modais usam fixed e elementos focáveis válidos eram
+    // ignorados. `getClientRects().length > 0` cobre fixed corretamente.
+    const isVisible = (el: HTMLElement) => {
+      if (el.getClientRects().length === 0) return false;
+      const cs = getComputedStyle(el);
+      return cs.visibility !== "hidden" && cs.display !== "none";
+    };
+
     const getFocusable = () =>
       Array.from(node.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
         (el) =>
           !el.hasAttribute("disabled") &&
           el.getAttribute("aria-hidden") !== "true" &&
-          el.offsetParent !== null,
+          isVisible(el),
       );
 
     // Foco inicial — pequeno timeout para esperar animação/render.
@@ -59,7 +74,7 @@ export function useFocusTrap<T extends HTMLElement>(
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.stopPropagation();
-        onEscape?.();
+        onEscapeRef.current?.();
         return;
       }
       if (e.key !== "Tab") return;
@@ -100,7 +115,8 @@ export function useFocusTrap<T extends HTMLElement>(
         }
       }
     };
-  }, [active, onEscape]);
+    // Dep apenas em `active` — onEscape é lido via ref para evitar re-bind.
+  }, [active]);
 
   return ref;
 }

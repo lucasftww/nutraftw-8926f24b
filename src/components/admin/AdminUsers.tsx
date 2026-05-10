@@ -125,9 +125,16 @@ export function AdminUsers() {
         await load();
       }
     } else {
+      // Upsert (em vez de insert) para idempotência: clique duplo durante a
+      // confirmação não gera mais 23505 ("duplicate key violates unique
+      // constraint"). `ignoreDuplicates` retorna sucesso silencioso se a
+      // role já existir.
       const { error } = await supabase
         .from("user_roles")
-        .insert({ user_id: u.user_id, role: "admin" as any });
+        .upsert(
+          { user_id: u.user_id, role: "admin" as any },
+          { onConflict: "user_id,role", ignoreDuplicates: true },
+        );
       if (error) {
         toast.error(friendlyErrorMessage(error));
       } else {

@@ -155,6 +155,61 @@ serve(async (req) => {
     });
   }
 
+  // ===== LOCK contra corrida de criação de PIX =====
+  // Antes: dois cliques rápidos em "Gerar PIX" disparavam dois fetches
+  // paralelos à MisticPay → duas transações criadas → o segundo UPDATE no
+  // pedido sobrescrevia `payment_reference` do primeiro → o webhook do
+  // primeiro PIX (que de fato é pago) não correlaciona e o pedido fica
+  // pendente apesar do pagamento.
+  //
+  // Solução: gerar um lock token em uma coluna "neutra" (`payment_reference`
+  // com prefixo `lock:`) via UPDATE condicional. Apenas um caller consegue
+  // adquirir o lock; o segundo recebe `0 rows affected` e relê o pedido —
+  // se o primeiro caller já persistiu o QR, devolve. Caso contrário,
+  // espera/aborta com mensagem amigável.
+  const lockToken = `lock:${crypto.randomUUID()}`;
+  const { data: lockResult, error: lockErr } = await adminClient
+    .from("orders")
+    .update({ payment_reference: lockToken })
+    .eq("id", order.id)
+    .is("payment_reference", null) // só pega se ainda não estava setado
+    .select("id")
+    .maybeSingle();
+  if (lockErr) {
+    console.error("[misticpay] lock failed", lockErr);
+    return new Response(JSON.stringify({ error: "lock_failed" }), {
+      status: 500,
+      headers: { ...corsHeaders, "content-type": "application/json" },
+    });
+  }
+  if (!lockResult) {
+    // Não conseguiu adquirir o lock — outra invocação já está em andamento
+    // ou já completou. Relê o pedido e devolve o QR se já existir.
+    const { data: refreshed } = await adminClient
+      .from("orders")
+      .select("payment_reference, payment_qr_code, payment_copy_paste, total")
+      .eq("id", order.id)
+      .maybeSingle();
+    if (refreshed?.payment_qr_code && refreshed.payment_copy_paste) {
+      return new Response(
+        JSON.stringify({
+          provider: "misticpay",
+          method: "pix",
+          provider_reference: refreshed.payment_reference,
+          qr_code_base64: refreshed.payment_qr_code,
+          copy_paste: refreshed.payment_copy_paste,
+          amount: Number(refreshed.total),
+        }),
+        { status: 200, headers: { ...corsHeaders, "content-type": "application/json" } },
+      );
+    }
+    // Outra invocação está criando — pede ao cliente para tentar novamente.
+    return new Response(
+      JSON.stringify({ error: "in_progress", retry_after_ms: 1500 }),
+      { status: 409, headers: { ...corsHeaders, "content-type": "application/json" } },
+    );
+  }
+
   const webhookUrl = `${SUPABASE_URL}/functions/v1/misticpay-webhook`;
 
   // Headers de autenticação isolados em escopo local — evita que loggers ou
@@ -182,6 +237,14 @@ serve(async (req) => {
   try { upstreamJson = JSON.parse(upstreamText); } catch { /* keep null */ }
 
   if (!upstream.ok || !upstreamJson?.data) {
+    // Libera o lock: se a chamada à MisticPay falhou, outro retry deve poder
+    // tentar de novo. Sem isso, o lockToken ficaria preso em payment_reference
+    // até intervenção manual.
+    await adminClient
+      .from("orders")
+      .update({ payment_reference: null })
+      .eq("id", order.id)
+      .eq("payment_reference", lockToken);
     // Nunca logar `authHeaders`. Em produção, se o provider ecoasse credenciais
     // no body de erro, este log iria pro Supabase Functions logs — sanitizamos.
     const safeDetails = upstreamJson?.message

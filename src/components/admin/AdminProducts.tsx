@@ -306,10 +306,22 @@ export function AdminProducts() {
       is_on_offer: false,
       is_active: false,
     };
-    const { data, error } = await supabase.from("products").insert(payload).select().maybeSingle();
+    let { data, error } = await supabase.from("products").insert(payload).select().maybeSingle();
+    // Race TOCTOU: outro admin pode ter criado o slug entre o probe e o insert.
+    // Em caso de conflict, retentamos uma vez com sufixo de timestamp.
+    if (error && (error as any).code === "23505") {
+      const retrySlug = `${baseSlug}-${Date.now().toString(36)}`;
+      const retry = await supabase
+        .from("products")
+        .insert({ ...payload, slug: retrySlug })
+        .select()
+        .maybeSingle();
+      data = retry.data;
+      error = retry.error;
+    }
     if (error) {
       logSupabaseError("Duplicar produto", error, { source_id: p.id });
-      toast.error(error.message);
+      toast.error(friendlyErrorMessage(error));
       return;
     }
     toast.success("Produto duplicado (rascunho inativo)");
@@ -338,6 +350,9 @@ export function AdminProducts() {
 
   async function runBulk() {
     if (!bulkAction || selected.size === 0) return;
+    // Guard reentrante: clique duplo durante confirm/await podia disparar
+    // duas execuções de price_inc_pct em paralelo (preço dobrado).
+    if (bulkBusy) return;
     const ids = Array.from(selected);
     let payload: Partial<{ is_active: boolean; is_featured: boolean; stock: number; price: number }> = {};
     let needsConfirm = false;
@@ -432,7 +447,7 @@ export function AdminProducts() {
       setBulkBusy(true);
       const { error } = await supabase.from("products").delete().in("id", ids);
       setBulkBusy(false);
-      if (error) { toast.error(error.message); return; }
+      if (error) { toast.error(friendlyErrorMessage(error)); return; }
       logAdminAction({ action: "delete", entity: "products", entityId: null, summary: `${ids.length} produtos removidos`, diff: { ids } });
       toast.success(`${ids.length} removido${ids.length === 1 ? "" : "s"}`);
       setSelected(new Set()); setBulkAction(""); setBulkValue("");
@@ -452,7 +467,7 @@ export function AdminProducts() {
     setBulkBusy(true);
     const { error } = await supabase.from("products").update(payload).in("id", ids);
     setBulkBusy(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(friendlyErrorMessage(error)); return; }
     logAdminAction({
       action: "update",
       entity: "products",

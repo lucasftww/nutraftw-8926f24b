@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { Toaster } from "@/components/ui/sonner";
@@ -43,6 +43,16 @@ function Lazy({ fallback, children }: { fallback: ReactNode; children: ReactNode
   return <Suspense fallback={fallback}>{children}</Suspense>;
 }
 
+/**
+ * Inner boundary com acesso ao `useLocation` — passa `pathname` como
+ * `resetKey` para que mudanças de rota limpem automaticamente o fallback
+ * de erro. Sem isso, um erro em /produto/X persistia ao navegar para /.
+ */
+function RoutedErrorBoundary({ children }: { children: ReactNode }) {
+  const location = useLocation();
+  return <ErrorBoundary resetKey={location.pathname}>{children}</ErrorBoundary>;
+}
+
 const qc = new QueryClient({
   defaultOptions: {
     queries: {
@@ -68,25 +78,27 @@ export default function App() {
           >
             <AuthProvider>
               <ScrollToTop />
-              <Routes>
-                <Route element={<MainLayout />}>
-                  <Route path="/" element={<Catalog />} />
-                  <Route path="/produto/:slug" element={<ProductDetail />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/checkout" element={<Lazy fallback={<CheckoutSkeleton />}><Checkout /></Lazy>} />
-                  <Route path="/minha-conta" element={<RequireAuth fallback={<MyAccountSkeleton />}><Lazy fallback={<MyAccountSkeleton />}><MyAccount /></Lazy></RequireAuth>} />
-                  <Route path="/favoritos" element={<Lazy fallback={<WishlistSkeleton />}><Wishlist /></Lazy>} />
-                  <Route path="/instalar" element={<Lazy fallback={<GenericPageSkeleton />}><Install /></Lazy>} />
-                  <Route path="/sobre" element={<About />} />
-                  <Route path="/r/:code" element={<ReferralCapture />} />
-                  <Route path="*" element={<NotFound />} />
-                </Route>
-                {/* Rotas administrativas — fora do MainLayout (sem Header/Footer da loja) */}
-                <Route path="/admin/login" element={<Lazy fallback={<GenericPageSkeleton />}><AdminLogin /></Lazy>} />
-                <Route path="/admin" element={<RequireAuth adminOnly fallback={<AdminSkeleton />}><Lazy fallback={<AdminSkeleton />}><Admin /></Lazy></RequireAuth>} />
-                <Route path="/admin/health" element={<RequireAuth adminOnly fallback={<AdminSkeleton />}><Lazy fallback={<AdminSkeleton />}><AdminHealth /></Lazy></RequireAuth>} />
-              </Routes>
+              <RoutedErrorBoundary>
+                <Routes>
+                  <Route element={<MainLayout />}>
+                    <Route path="/" element={<Catalog />} />
+                    <Route path="/produto/:slug" element={<ProductDetail />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="/checkout" element={<Lazy fallback={<CheckoutSkeleton />}><Checkout /></Lazy>} />
+                    <Route path="/minha-conta" element={<RequireAuth fallback={<MyAccountSkeleton />}><Lazy fallback={<MyAccountSkeleton />}><MyAccount /></Lazy></RequireAuth>} />
+                    <Route path="/favoritos" element={<Lazy fallback={<WishlistSkeleton />}><Wishlist /></Lazy>} />
+                    <Route path="/instalar" element={<Lazy fallback={<GenericPageSkeleton />}><Install /></Lazy>} />
+                    <Route path="/sobre" element={<About />} />
+                    <Route path="/r/:code" element={<ReferralCapture />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Route>
+                  {/* Rotas administrativas — fora do MainLayout (sem Header/Footer da loja) */}
+                  <Route path="/admin/login" element={<Lazy fallback={<GenericPageSkeleton />}><AdminLogin /></Lazy>} />
+                  <Route path="/admin" element={<RequireAuth adminOnly fallback={<AdminSkeleton />}><Lazy fallback={<AdminSkeleton />}><Admin /></Lazy></RequireAuth>} />
+                  <Route path="/admin/health" element={<RequireAuth adminOnly fallback={<AdminSkeleton />}><Lazy fallback={<AdminSkeleton />}><AdminHealth /></Lazy></RequireAuth>} />
+                </Routes>
+              </RoutedErrorBoundary>
             </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>

@@ -34,6 +34,14 @@ export function downloadCsv<T extends Record<string, any>>(
   const a = document.createElement("a");
   a.href = url;
   a.download = filename.endsWith(".csv") ? filename : `${filename}.csv`;
+  // Anchor anexado ao DOM: Firefox antigos ignoram `click()` em anchor solto.
+  // E `revokeObjectURL` precisa rodar AP\u00D3S o navegador iniciar o download
+  // (pode tardar microtasks com antivirus/quarentena), por isso o setTimeout.
+  a.style.display = "none";
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  setTimeout(() => {
+    if (a.parentNode) a.parentNode.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 0);
 }
