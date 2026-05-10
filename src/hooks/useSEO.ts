@@ -7,6 +7,12 @@ interface SEOOptions {
   image?: string;
   type?: "website" | "product" | "article";
   jsonLd?: Record<string, any> | Record<string, any>[];
+  /**
+   * Diretivas para crawlers. Ex.: "noindex,follow" em páginas de erro/404 para
+   * evitar que URLs quebradas entrem no índice do Google. Quando ausente,
+   * removemos qualquer `<meta name="robots">` setado pela rota anterior.
+   */
+  robots?: string;
 }
 
 /**
@@ -92,7 +98,7 @@ function setLink(rel: string, href: string) {
   el.setAttribute("href", href);
 }
 
-export function useSEO({ title, description, canonical, image, type = "website", jsonLd }: SEOOptions) {
+export function useSEO({ title, description, canonical, image, type = "website", jsonLd, robots }: SEOOptions) {
   useEffect(() => {
     const origin = typeof window !== "undefined" ? window.location.origin : "";
     const currentHref = typeof window !== "undefined" ? window.location.href : "";
@@ -125,6 +131,16 @@ export function useSEO({ title, description, canonical, image, type = "website",
       setMeta("property", "og:url", canonicalAbs);
     }
 
+    // robots: aplica quando fornecido, remove quando ausente — caso contrário
+    // um noindex de página anterior persistiria silenciosamente em rotas
+    // que o autor pretendia indexar normalmente.
+    if (robots) {
+      setMeta("name", "robots", robots);
+    } else {
+      const existing = document.head.querySelector('meta[name="robots"]');
+      if (existing) existing.remove();
+    }
+
     let scriptEl: HTMLScriptElement | null = null;
     if (jsonLd) {
       const absJsonLd = absolutizeJsonLd(jsonLd, origin, canonicalAbs || origin + "/");
@@ -136,5 +152,5 @@ export function useSEO({ title, description, canonical, image, type = "website",
     return () => {
       if (scriptEl) document.head.removeChild(scriptEl);
     };
-  }, [title, description, canonical, image, type, JSON.stringify(jsonLd)]);
+  }, [title, description, canonical, image, type, robots, JSON.stringify(jsonLd)]);
 }

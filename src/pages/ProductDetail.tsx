@@ -72,7 +72,17 @@ export default function ProductDetail() {
             },
           ],
         }
-       : { title: "Produto" }
+      : loading
+        ? { title: "Carregando…" }
+        : {
+            // Sinaliza "não encontrado" pra abas/preview/SEO. Antes ficava
+            // "Produto" genérico, indistinguível de uma página válida.
+            title: "Produto não encontrado",
+            description: "Este produto não está disponível ou foi removido do catálogo.",
+            // robots noindex evita que a SERP do Google indexe URLs quebradas
+            // como conteúdo válido (cauda longa de 404s).
+            robots: "noindex,follow",
+          }
   );
 
   // Registra o produto atual para o footer (antes de qualquer early return — regra dos hooks).
