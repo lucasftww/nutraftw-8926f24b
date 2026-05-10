@@ -383,14 +383,18 @@ export default function Catalog() {
 
   return (
     <>
-      {/* Barra fixa de busca + filtros — redesenhada do zero.
-          - `fixed` logo abaixo do header (top-16 / top-20).
-          - Fundo opaco + sombra discreta para separar do conteúdo
-            durante a rolagem (não "vaza" através).
-          - Layout único: título (md+) | busca | botão filtros.
-          - Linha auxiliar mostra termo buscado e contagem viva. */}
+      {/* Barra de busca + filtros — STICKY (não fixed).
+          Sticky resolve 2 bugs do `fixed top-14`:
+          1) Em scroll=0 com AnnouncementBar visível, o header empurrado
+             cobria parcialmente a busca (z-40 > z-30). Sticky respeita
+             flow do documento → nunca há sobreposição.
+          2) Pulinho visual ao rolar: com fixed, a busca não acompanhava
+             o "encolher" do header quando a AnnouncementBar saía.
+          A barra é o primeiro elemento no fluxo do Catalog (antes da
+          grade), então quando o usuário rola, ela gruda exatamente abaixo
+          do Header sticky (top-14 = 56px = altura do header mobile). */}
       <div
-        className="fixed inset-x-0 top-14 md:top-16 z-30 border-b border-border/60 bg-background shadow-sm"
+        className="sticky top-14 md:top-16 z-30 border-b border-border/60 bg-background shadow-sm"
         role="search"
       >
         <div className="mx-auto w-full max-w-[1400px] px-3 sm:px-5 lg:px-8 py-2 md:py-3">
@@ -404,6 +408,8 @@ export default function Catalog() {
                 className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
                 aria-hidden
               />
+              {/* h-11 mobile (44px) — WCAG 2.5.5 tap target.
+                  Antes era h-10 (40px), 4px abaixo do mínimo. */}
               <input
                 type="text"
                 inputMode="search"
@@ -412,7 +418,7 @@ export default function Catalog() {
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Buscar produtos..."
                 aria-label="Buscar produtos"
-                className="h-10 md:h-11 w-full rounded-full border border-input bg-muted/30 pl-10 pr-10 text-sm outline-none transition-all placeholder:text-muted-foreground/70 focus:border-primary/30 focus:bg-background focus:ring-4 focus:ring-primary/5"
+                className="h-11 w-full rounded-full border border-input bg-muted/30 pl-10 pr-11 text-base sm:text-sm outline-none transition-all placeholder:text-muted-foreground/70 focus:border-primary/30 focus:bg-background focus:ring-4 focus:ring-primary/5"
               />
               {query && (
                 <button
@@ -427,28 +433,45 @@ export default function Catalog() {
                     }, { replace: true });
                   }}
                   aria-label="Limpar busca"
-                  className="absolute right-1.5 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  className="absolute right-1 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 >
-                  <X className="h-4.5 w-4.5" />
+                  <X className="h-4 w-4" />
                 </button>
               )}
             </div>
 
-            <button
-              type="button"
-              onClick={() => setFiltersOpen(true)}
-              aria-label="Abrir filtros"
-              aria-haspopup="dialog"
-              className="relative inline-flex h-10 w-10 md:h-11 md:w-11 shrink-0 items-center justify-center rounded-full border border-input bg-background shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              {(selectedCats.size > 0 || selectedBrands.size > 0 || sort !== "categoria") && (
-                <span
-                  aria-hidden
-                  className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-background"
-                />
-              )}
-            </button>
+            {/* Botão filtros — h-11 w-11 (44x44) em todas telas para WCAG.
+                Badge agora mostra o NÚMERO de filtros ativos (antes era só
+                um pontinho), comunicando "estado" do filtro à primeira vista. */}
+            {(() => {
+              const activeFilterCount =
+                selectedCats.size +
+                selectedBrands.size +
+                (sort !== "categoria" ? 1 : 0);
+              return (
+                <button
+                  type="button"
+                  onClick={() => setFiltersOpen(true)}
+                  aria-label={
+                    activeFilterCount > 0
+                      ? `Abrir filtros (${activeFilterCount} ativo${activeFilterCount === 1 ? "" : "s"})`
+                      : "Abrir filtros"
+                  }
+                  aria-haspopup="dialog"
+                  className="relative inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-input bg-background shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                  {activeFilterCount > 0 && (
+                    <span
+                      className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold leading-none ring-2 ring-background tabular-nums"
+                      aria-hidden
+                    >
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </button>
+              );
+            })()}
           </div>
 
           {query && (
@@ -464,8 +487,10 @@ export default function Catalog() {
         </div>
       </div>
 
-      {/* Sections — pt compensa altura da barra fixa (busca + filtros) */}
-      <section className="relative pt-[56px] md:pt-[64px] pb-2 scroll-mt-32">
+      {/* Sections — sem pt compensatório: a busca agora é sticky e ocupa
+          espaço no fluxo natural, então NÃO precisamos mais reservar 56px
+          como antes. scroll-mt-32 mantém âncoras visíveis abaixo do header. */}
+      <section className="relative pt-3 md:pt-5 pb-2 scroll-mt-32">
         <div className="container mx-auto px-4">
           {/* overflow-anchor:none impede o navegador de "puxar" o scroll
               quando novos cards são inseridos pelo infinite scroll —
@@ -549,8 +574,10 @@ export default function Catalog() {
             onClick={() => setFiltersOpen(false)}
           />
           <aside style={{ fontFamily: "'Poppins', system-ui, sans-serif" }} className="absolute right-0 top-0 h-full w-full sm:w-[420px] bg-white flex flex-col animate-in slide-in-from-right duration-200 border-l border-border/60">
-            {/* Header minimalista */}
-            <div className="flex items-start justify-between px-7 pt-7 pb-5 border-b border-border/60">
+            {/* Header do drawer — padding reduzido em mobile pequeno:
+                px-5 (20px) em <sm, px-7 (28px) em sm+ para preservar respiro
+                em iPhone SE (320px) sem apertar o conteúdo. */}
+            <div className="flex items-start justify-between px-5 sm:px-7 pt-6 sm:pt-7 pb-4 sm:pb-5 border-b border-border/60">
               <div>
                 <h2 className="text-[22px] font-semibold text-foreground tracking-tight leading-none mb-1.5">
                   Filtros
@@ -559,16 +586,18 @@ export default function Catalog() {
                   Refine sua busca usando os filtros abaixo
                 </p>
               </div>
+              {/* Botão fechar: h-11 w-11 (44x44) WCAG tap target.
+                  Antes era h-9 w-9 (36x36) — 8px abaixo do mínimo. */}
               <button
                 onClick={() => setFiltersOpen(false)}
-                className="h-9 w-9 -mr-1 -mt-1 inline-flex items-center justify-center rounded-lg border border-border/70 hover:border-foreground/40 text-muted-foreground hover:text-foreground transition-colors bg-white"
+                className="h-11 w-11 -mr-2 -mt-2 inline-flex items-center justify-center rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                 aria-label="Fechar filtros"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-7 py-6 scrollbar-thin space-y-7">
+            <div className="flex-1 overflow-y-auto px-5 sm:px-7 py-6 scrollbar-thin space-y-7">
               {/* Ordenar */}
               <section>
                 <h3 className="text-[13px] font-semibold text-foreground mb-2.5">Ordenar</h3>
@@ -709,11 +738,14 @@ export default function Catalog() {
               )}
             </div>
 
+            {/* Footer do drawer — botões h-11 (44px) WCAG tap target.
+                Layout muda em mobile: stack vertical full-width para dedo
+                grosso; em sm+ fica lado a lado direita. */}
             <div
-              className="px-7 py-4 border-t border-border/60 bg-white"
+              className="px-5 sm:px-7 py-4 border-t border-border/60 bg-white"
               style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)" }}
             >
-              <div className="flex items-center justify-end gap-2">
+              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center sm:justify-end gap-2">
                 <button
                   onClick={() => {
                     setSelectedCats(new Set());
@@ -727,15 +759,15 @@ export default function Catalog() {
                       return params;
                     }, { replace: true });
                   }}
-                  className="h-10 px-5 rounded-md text-[13px] font-medium text-foreground bg-white border border-border/70 hover:border-foreground/40 transition-colors"
+                  className="h-11 px-5 rounded-lg text-[13.5px] font-medium text-foreground bg-white border border-border/70 hover:border-foreground/40 transition-colors"
                 >
-                  Limpar Filtros
+                  Limpar filtros
                 </button>
                 <button
                   onClick={() => setFiltersOpen(false)}
-                  className="h-10 px-5 rounded-md bg-foreground text-background text-[13px] font-semibold tracking-tight hover:bg-foreground/90 active:scale-[0.99] transition-all"
+                  className="h-11 px-5 rounded-lg bg-foreground text-background text-[13.5px] font-semibold tracking-tight hover:bg-foreground/90 active:scale-[0.99] transition-all"
                 >
-                  Aplicar Filtros
+                  Aplicar filtros
                 </button>
               </div>
             </div>
