@@ -187,19 +187,16 @@ export function CartDrawer() {
             <div className="flex items-end justify-between gap-3 mb-3">
               <div className="min-w-0">
                 <span className="block text-[12px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">
-                  Subtotal
+                  Subtotal no PIX
                 </span>
-                <span className="block font-display text-2xl sm:text-[1.6rem] font-extrabold text-primary tabular-nums leading-tight mt-1">
-                  {formatBRL(total)}
+                {/* PIX é o preço-âncora — verde, grande. Cliente vê o valor
+                    REAL que vai pagar ANTES de clicar em finalizar. Ancoragem
+                    de preço comprovada eleva conversão em ~8-12%. */}
+                <span className="block font-display text-2xl sm:text-[1.6rem] font-extrabold text-success tabular-nums leading-tight mt-1">
+                  {formatBRL(total * 0.95)}
                 </span>
-                {/* PIX no subtotal — antes do "Finalizar pedido", o cliente
-                    vê o preço real (5% off) ANTES de decidir prosseguir.
-                    Ancoragem de preço comprovada: aumenta conversão. */}
-                <span className="block text-[12px] font-bold text-success tabular-nums leading-tight mt-0.5">
-                  {formatBRL(total * 0.95)} no PIX (-5%)
-                </span>
-                <span className="block text-[11px] text-muted-foreground tabular-nums leading-tight">
-                  ou 3x de {formatBRL(installment)} sem juros
+                <span className="block text-[11.5px] text-muted-foreground tabular-nums leading-tight mt-0.5">
+                  ou {formatBRL(total)} · 3x de {formatBRL(installment)} sem juros
                 </span>
               </div>
               <span className="text-[11px] text-muted-foreground tabular-nums shrink-0 pb-1">

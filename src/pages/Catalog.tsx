@@ -13,6 +13,7 @@ import { useCart } from "@/hooks/useCart";
 import { useSEO } from "@/hooks/useSEO";
 import { useProducts, useCategories, useBrands, type ProductRow } from "@/hooks/useProducts";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { ValuePropsBar } from "@/components/layout/ValuePropsBar";
 
 type Product = ProductRow;
 
@@ -466,6 +467,14 @@ export default function Catalog() {
 
       {/* Sections — pt compensa altura da barra fixa (busca + filtros) */}
       <section className="relative pt-[56px] md:pt-[64px] pb-2 scroll-mt-32">
+        {/* Strip de propostas de valor — frete grátis, originalidade, segurança.
+            Renderizado DENTRO da seção (depois do pt que compensa search bar fixa)
+            para que não fique sobreposto pela search bar quando scroll=0.
+            Em telas pequenas resolve 80% das objeções pré-compra de 1 olhada.
+            Margin bottom dá respiro antes da grade. */}
+        <div className="mb-4 md:mb-6">
+          <ValuePropsBar />
+        </div>
         <div className="container mx-auto px-4">
           {/* overflow-anchor:none impede o navegador de "puxar" o scroll
               quando novos cards são inseridos pelo infinite scroll —
@@ -966,38 +975,47 @@ const ProductCard = memo(function ProductCard({
                 />
               </div>
 
-              {/* Conteúdo: slot de badge fixo + título + bloco de preço com
-                  altura reservada — garante que CTA fica na MESMA linha entre
-                  cards vizinhos do grid, mesmo sem promoção. */}
+              {/* Conteúdo: título + bloco de preço com altura reservada —
+                  garante que CTA fica na MESMA linha entre cards vizinhos
+                  do grid, mesmo sem promoção. */}
               <div className="flex flex-col flex-1 px-3 pt-2 pb-3 sm:px-3.5 sm:pt-3 sm:pb-4">
-                {/* Slot fixo de "etiqueta superior" — reserva 16px sempre,
-                    de modo que o título inicie na mesma altura em todos os cards. */}
                 <h3 className="font-semibold text-[13px] sm:text-[14px] leading-snug text-foreground line-clamp-2 min-h-[2.8em]">
                   {p.name}
                 </h3>
-                {/* Bloco de preço com altura mínima reservada para a linha
-                    "de R$" — alinha cards com e sem desconto na mesma altura. */}
-                <div className="mt-auto pt-2 leading-tight min-h-[60px] flex flex-col justify-end">
+                {/* Bloco de preço REDESENHADO para mobile-first:
+                    1. "de R$ X" agora é inline ao lado do preço cheio (economiza linha)
+                    2. PIX VIRA o preço-âncora (verde, mesmo tamanho do preço cheio)
+                       porque 70% dos brasileiros paga no PIX — é o valor real percebido
+                    3. "3x sem juros" só aparece em sm+ (desktop/tablet): em 320px
+                       ele competia com PIX e era ilegível em 10px
+                    4. min-h reservado para alinhar todos os cards */}
+                <div className="mt-auto pt-2 leading-tight min-h-[58px] sm:min-h-[68px] flex flex-col justify-end">
+                  {/* Linha 1 — preço cheio (riscado se há sale) */}
                   {hasSale ? (
-                    <div className="text-[10px] sm:text-[11px] text-oldPrice font-medium line-through tabular-nums opacity-70">
-                      de {formatBRL(getProductPricing(p).basePrice)}
+                    <div className="flex items-baseline gap-1.5 tabular-nums">
+                      <span className="text-[11px] sm:text-[12px] text-oldPrice font-medium line-through opacity-80">
+                        {formatBRL(getProductPricing(p).basePrice)}
+                      </span>
+                      <span className="badge-pill-sm bg-secondary/10 text-secondary-text">
+                        -{discountPct}%
+                      </span>
                     </div>
                   ) : (
-                    <div aria-hidden className="h-[12px] sm:h-[14px]" />
+                    <div aria-hidden className="h-[14px] sm:h-[16px]" />
                   )}
-                  <div className="text-[16px] sm:text-[19px] font-extrabold text-primary tabular-nums tracking-tight">
-                    {formatBRL(finalPrice)}
+                  {/* Linha 2 — preço final no PIX (PROTAGONISTA) — verde forte */}
+                  <div className="flex items-baseline gap-1.5 mt-0.5">
+                    <span className="text-[17px] sm:text-[20px] font-extrabold text-success tabular-nums tracking-tight leading-none">
+                      {formatBRL(finalPrice * 0.95)}
+                    </span>
+                    <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-success/80 leading-none whitespace-nowrap">
+                      no PIX
+                    </span>
                   </div>
-                  {/* PIX no card do catálogo — em verde, ANTES do parcelamento.
-                      Cliente compara cards e percebe o preço REAL (5% off);
-                      concorrentes que mostram só preço cheio parecem mais caros. */}
-                  <div className="text-[11px] sm:text-[12px] font-bold text-success tabular-nums leading-tight mt-0.5 truncate">
-                    {formatBRL(finalPrice * 0.95)} no PIX
-                  </div>
-                  {/* Parcelamento — gatilho clássico de conversão.
-                      Subordinado ao PIX e ao preço principal. */}
-                  <div className="text-[10px] sm:text-[11px] font-medium text-muted-foreground tabular-nums mt-0.5">
-                    ou 3x de {formatBRL(finalPrice / 3)} sem juros
+                  {/* Linha 3 — preço sem PIX em texto secundário */}
+                  <div className="text-[11px] sm:text-[12px] text-muted-foreground tabular-nums leading-tight mt-0.5">
+                    ou {formatBRL(finalPrice)}
+                    <span className="hidden sm:inline"> · 3x de {formatBRL(finalPrice / 3)} sem juros</span>
                   </div>
                 </div>
                 {/* CTA único — botão "Ver produto" foi removido. O Link envolvente

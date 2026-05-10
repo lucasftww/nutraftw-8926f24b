@@ -220,9 +220,12 @@ export default function ProductDetail() {
             </div>
           </div>
 
-          {/* CTA único — "Comprar agora" como ação primária. Secundária
-              vira link de texto pequeno para reduzir competição visual. */}
-          <div className="space-y-2">
+          {/* CTA único — "Comprar agora" como ação primária absoluta.
+              O botão JÁ adiciona ao carrinho e abre o drawer; o link
+              redundante "ou adicionar ao carrinho" foi removido porque
+              criava ambiguidade ("o botão NÃO adiciona?"). Wishlist fica
+              como única alternativa secundária, em texto sutil. */}
+          <div className="space-y-2.5">
             <Button
               disabled={(p.stock ?? 0) <= 0}
               className="w-full h-14 rounded-2xl text-base font-extrabold bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-lg shadow-secondary/30 active:scale-[0.99] transition-all"
@@ -238,28 +241,13 @@ export default function ProductDetail() {
               <ShoppingCart className="w-4 h-4 mr-2" strokeWidth={2.5} />
               {(p.stock ?? 0) <= 0 ? "Esgotado" : "Comprar agora"}
             </Button>
-            {(p.stock ?? 0) > 0 && (
-              <button
-                type="button"
-                onClick={() => {
-                  add(
-                    { product_id: p.id, slug: p.slug, name: p.name, price: finalPrice, image_url: p.image_url },
-                    1
-                  );
-                  openCart();
-                }}
-                className="w-full text-center text-sm font-medium text-muted-foreground hover:text-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded-md py-1"
-              >
-                ou adicionar ao carrinho
-              </button>
-            )}
-            <WishlistButton productId={p.id} variant="inline" className="w-full justify-center text-muted-foreground hover:text-foreground" />
             {(p.stock ?? 0) > 0 && (p.stock ?? 0) <= 5 && (
               <p className="text-center text-xs font-bold text-destructive flex items-center justify-center gap-1.5">
                 <Package className="h-3.5 w-3.5" />
                 {p.stock === 1 ? "Última unidade disponível!" : `Restam apenas ${p.stock} unidades`}
               </p>
             )}
+            <WishlistButton productId={p.id} variant="inline" className="w-full justify-center text-muted-foreground hover:text-foreground" />
           </div>
 
           {/* Selos de confiança em GRID 2x2 — antes era texto fino que
@@ -440,14 +428,22 @@ export default function ProductDetail() {
                     <h3 className="font-medium text-[13px] sm:text-sm leading-snug line-clamp-2 min-h-[2.5rem] text-foreground">
                       {r.name}
                     </h3>
+                    {/* Mesma hierarquia dos cards do catálogo: PIX dominante,
+                        preço normal como secundário (texto sutil). */}
                     <div className="mt-1.5 flex flex-col gap-0.5 mb-2">
-                      {rHasSale && (
-                        <span className="text-caption text-muted-foreground line-through tabular-nums">
-                          de {formatBRL(rPrice)}
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-[15px] sm:text-base font-extrabold text-success tabular-nums leading-tight">
+                          {formatBRL(rFinal * 0.95)}
                         </span>
-                      )}
-                      <span className="text-base md:text-lg font-extrabold text-primary tabular-nums leading-tight">
-                        {formatBRL(rFinal)}
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-success/80 leading-none">
+                          PIX
+                        </span>
+                      </div>
+                      <span className="text-[10.5px] text-muted-foreground tabular-nums leading-tight">
+                        ou {formatBRL(rFinal)}
+                        {rHasSale && (
+                          <span className="line-through ml-1 opacity-70">{formatBRL(rPrice)}</span>
+                        )}
                       </span>
                     </div>
                     {/* CTA discreto — convida o clique sem competir com o card-link */}
@@ -487,11 +483,16 @@ export default function ProductDetail() {
               onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
             />
             <div className="flex-1 min-w-0 leading-tight">
-              <span className="block text-base font-extrabold text-primary tabular-nums">
-                {formatBRL(finalPrice)}
+              {/* PIX é o preço-âncora — verde, dominante. Mesma hierarquia
+                  do card do catálogo: cliente decide pelo valor real (5% off). */}
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-success/80 leading-none">
+                no PIX
               </span>
-              <span className="block text-[11px] text-success font-semibold tabular-nums">
-                PIX {formatBRL(finalPrice * 0.95)}
+              <span className="block text-lg font-extrabold text-success tabular-nums leading-tight mt-0.5">
+                {formatBRL(finalPrice * 0.95)}
+              </span>
+              <span className="block text-[11px] text-muted-foreground tabular-nums leading-none">
+                ou {formatBRL(finalPrice)}
               </span>
             </div>
             <Button
@@ -505,7 +506,7 @@ export default function ProductDetail() {
               }}
             >
               <ShoppingCart className="w-4 h-4 mr-1.5" strokeWidth={2.5} />
-              Comprar agora
+              Comprar
             </Button>
           </div>
         </div>

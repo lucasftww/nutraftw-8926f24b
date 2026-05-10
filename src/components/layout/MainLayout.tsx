@@ -27,7 +27,11 @@ export function MainLayout() {
   return (
     <CurrentProductProvider>
       <div className="min-h-screen flex flex-col bg-background [&_:target]:scroll-mt-24 md:[&_:target]:scroll-mt-28">
-        {/* Barra slim acima do header — escondida no checkout para foco. */}
+        {/* Barra slim acima do header — escondida no checkout para foco.
+            Nota: o strip de propostas de valor (ValuePropsBar) é renderizado
+            dentro da página Catalog (mais perto da grade), não aqui — assim
+            ele não conflita com a search bar `fixed top-14` que existe
+            apenas naquela rota. */}
         {!isCheckout && <AnnouncementBar />}
         <Header isCheckout={isCheckout} />
         <main className="flex-1">

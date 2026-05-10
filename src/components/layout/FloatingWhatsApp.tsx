@@ -51,11 +51,14 @@ export function FloatingWhatsApp() {
       rel="noreferrer"
       aria-label="Falar com suporte no WhatsApp"
       className={`fixed right-4 z-30 inline-flex h-14 w-14 items-center justify-center rounded-full bg-whatsapp text-whatsapp-foreground shadow-elegant hover:bg-whatsapp-hover hover:scale-105 active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-whatsapp/40 ${
-        // Em mobile (<sm), sobe acima da sticky bar de produto (se houver).
-        // Em desktop (sm+), a sticky bar some (sm:hidden), então fica em 1rem.
+        // Em mobile (<sm) com produto, sobe acima da sticky bar de "Comprar agora".
+        // A sticky bar tem ~80px de altura; usar 7rem (112px) garante 32px de gap
+        // — espaço seguro pra dedo não errar entre dois CTAs verticais.
+        // Em desktop (sm+), a sticky some, então usa 1.25rem (20px) — mais ar
+        // que o anterior 1rem para o botão não colar na borda inferior.
         current
-          ? "bottom-[calc(env(safe-area-inset-bottom,0px)+5.5rem)] sm:bottom-[calc(env(safe-area-inset-bottom,0px)+1rem)]"
-          : "bottom-[calc(env(safe-area-inset-bottom,0px)+1rem)]"
+          ? "bottom-[calc(env(safe-area-inset-bottom,0px)+7rem)] sm:bottom-[calc(env(safe-area-inset-bottom,0px)+1.25rem)]"
+          : "bottom-[calc(env(safe-area-inset-bottom,0px)+1.25rem)]"
       }`}
     >
       <MessageCircle className="h-7 w-7" strokeWidth={2} />

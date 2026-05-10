@@ -85,14 +85,16 @@ export function Header({ isCheckout = false }: { isCheckout?: boolean }) {
                 {/* width/height refletem aspecto real renderizado para evitar
                     CLS — antes 80x80 reservava 1:1 mas o CSS forçava h-7
                     causando "esmagamento" e shift de layout. */}
+                {/* Logo MAIOR no mobile (h-8 = 32px) — h-7 era o limite inferior
+                    de branding profissional. Aspect ratio mantido pelo `w-auto`. */}
                 <img
                   src={logoRV}
                   alt="Royal Vitta"
-                  width={104}
-                  height={32}
+                  width={120}
+                  height={36}
                   decoding="async"
                   {...({ fetchpriority: "high" } as Record<string, string>)}
-                  className="h-7 sm:h-8 md:h-9 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                  className="h-8 sm:h-9 md:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
                 />
               </Link>
             </div>
