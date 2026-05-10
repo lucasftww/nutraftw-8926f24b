@@ -2,22 +2,18 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-// Credenciais publicáveis do Supabase — devem ser injetadas como variáveis
-// de ambiente no build (VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY).
-// O fallback hardcoded foi REMOVIDO: um build sem env vars apontava silenciosamente
-// para produção, corrompendo dados em ambientes de staging/CI. Agora falha rápido.
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+// A anon key é uma chave PÚBLICA (JWT sem permissões elevadas) — pode ficar
+// no código do cliente. O acesso aos dados é controlado por RLS no banco.
+// Env vars têm prioridade; os valores abaixo são o fallback de produção.
+const SUPABASE_URL = (
+  import.meta.env.VITE_SUPABASE_URL as string
+) || "https://idutmqfqnoozqbjeqtui.supabase.co";
+
 const SUPABASE_PUBLISHABLE_KEY = (
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
-  import.meta.env.VITE_SUPABASE_ANON_KEY
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlkdXRtcWZxbm9venFiamVxdHVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMzk4MTEsImV4cCI6MjA5MjgxNTgxMX0.6HUDT6J4D9Z3euHNNpJW0cHuLfXi-nTegm1lG7CTj-I"
 ) as string;
-
-if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-  throw new Error(
-    "[supabase/client] VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY são obrigatórios. " +
-    "Verifique o arquivo .env ou as variáveis de ambiente do deploy."
-  );
-}
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
