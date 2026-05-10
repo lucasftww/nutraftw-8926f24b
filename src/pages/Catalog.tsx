@@ -847,7 +847,10 @@ const ProductCard = memo(function ProductCard({
 
   const { hasSale, discountPct, finalPrice } = getProductPricing(p);
   const isOut = (p.stock ?? 0) <= 0;
-  const ageDays = (Date.now() - new Date(p.created_at).getTime()) / 86400000;
+  // `created_at` ausente/inválido → NaN; tratamos como "antigo" (sem badge Novo)
+  // em vez de propagar NaN pelo cálculo, que silenciosamente desligava a flag.
+  const createdMs = p.created_at ? new Date(p.created_at).getTime() : NaN;
+  const ageDays = Number.isFinite(createdMs) ? (Date.now() - createdMs) / 86400000 : Infinity;
   const isNew = !isOut && ageDays <= 30;
   const isLaunch = !!p.is_new_release;
   const isOffer = !!p.is_on_offer;

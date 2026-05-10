@@ -475,12 +475,22 @@ export function AdminProducts() {
     const baseOffset = page * PAGE_SIZE * 10;
     const updates = next.map((p, i) => ({ id: p.id, display_order: baseOffset + (i + 1) * 10 }));
     setItems(next.map((p, i) => ({ ...p, display_order: baseOffset + (i + 1) * 10 })));
-    const results = await Promise.all(
+    // allSettled: uma falha de rede em um produto não aborta os outros updates.
+    // Antes, com Promise.all + reject implícito, só relatávamos o primeiro erro.
+    const settled = await Promise.allSettled(
       updates.map((u) => supabase.from("products").update({ display_order: u.display_order } as any).eq("id", u.id)),
     );
-    const failed = results.filter((r) => r.error);
+    const failed: { id: string; reason: string }[] = [];
+    settled.forEach((r, i) => {
+      if (r.status === "rejected") {
+        failed.push({ id: updates[i].id, reason: String(r.reason) });
+      } else if (r.value?.error) {
+        failed.push({ id: updates[i].id, reason: r.value.error.message });
+      }
+    });
     if (failed.length) {
-      toast.error(`Falha ao salvar nova ordem (${failed.length})`);
+      console.error("[AdminProducts] reorder failures", failed);
+      toast.error(`Falha ao salvar nova ordem (${failed.length} de ${updates.length})`);
       load();
     } else {
       toast.success("Ordem atualizada");

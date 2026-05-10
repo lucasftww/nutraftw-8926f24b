@@ -62,8 +62,13 @@ export function AdminOrders() {
       .range(from, to);
     if (filter !== "all") q = q.eq("status", filter as any);
     if (paymentFilter !== "all") q = q.eq("payment_method", paymentFilter as any);
-    if (dateFrom) q = q.gte("created_at", new Date(dateFrom + "T00:00:00").toISOString());
-    if (dateTo) q = q.lte("created_at", new Date(dateTo + "T23:59:59").toISOString());
+    // Filtros de data: o admin escolhe "01/05/2026" pensando em SP (UTC-3).
+    // Usar `new Date("2026-05-01T00:00:00")` interpreta como horário local do
+    // navegador, mas o cliente pode estar em outro fuso (acessando remoto).
+    // Forçamos -03:00 para alinhar com o fuso da loja (Brasil), evitando
+    // que pedidos do dia anterior apareçam por causa do offset UTC.
+    if (dateFrom) q = q.gte("created_at", new Date(dateFrom + "T00:00:00-03:00").toISOString());
+    if (dateTo) q = q.lte("created_at", new Date(dateTo + "T23:59:59.999-03:00").toISOString());
     const { data, error: err, count } = await q;
     if (err) {
       const info = logSupabaseError("Carregar pedidos", err, { table: "orders", page, filter });
