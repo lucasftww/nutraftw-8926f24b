@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { X, Package, AlertCircle, Copy, Check } from "lucide-react";
-import { getOrderStatus } from "@/lib/orderStatus";
+import { getOrderStatus, paymentLabel } from "@/lib/orderStatus";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 export function CustomerOrderDetail({ orderId, onClose }: { orderId: string; onClose: () => void }) {
   const [order, setOrder] = useState<any | null>(null);
@@ -11,6 +13,15 @@ export function CustomerOrderDetail({ orderId, onClose }: { orderId: string; onC
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  // A11y: trava scroll do body + foca primeiro elemento do modal +
+  // ESC fecha + ciclo Tab dentro do modal.
+  useBodyScrollLock(true);
+  const dialogRef = useFocusTrap<HTMLDivElement>(true, onClose);
+  // Limpa timer ao desmontar para evitar setState em componente desmontado.
+  const copyTimerRef = useRef<number | null>(null);
+  useEffect(() => () => {
+    if (copyTimerRef.current != null) window.clearTimeout(copyTimerRef.current);
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -48,18 +59,33 @@ export function CustomerOrderDetail({ orderId, onClose }: { orderId: string; onC
     try {
       await navigator.clipboard.writeText(order.payment_copy_paste);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      if (copyTimerRef.current != null) window.clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = window.setTimeout(() => setCopied(false), 2000);
     } catch { /* noop */ }
   }
 
+  const titleId = "customer-order-detail-title";
+
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="bg-card rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto space-y-5">
-        <div className="flex justify-between items-start">
-          <div>
-            <h2 className="font-bold text-xl flex items-center gap-2">
-              <Package className="h-5 w-5 text-primary" />
-              Pedido #{orderId.slice(0, 8)}
+    <div
+      className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+      onClick={onClose}
+      role="presentation"
+    >
+      <div
+        ref={dialogRef}
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        className="bg-card rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 w-full max-w-2xl max-h-[92vh] sm:max-h-[90vh] overflow-y-auto space-y-5 outline-none focus-visible:ring-2 focus-visible:ring-primary/40 animate-in slide-in-from-bottom-4 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200"
+      >
+        <div className="flex justify-between items-start gap-3">
+          <div className="min-w-0">
+            <h2 id={titleId} className="font-bold text-lg sm:text-xl flex items-center gap-2">
+              <Package className="h-5 w-5 text-primary shrink-0" />
+              <span>Pedido #{orderId.slice(0, 8)}</span>
             </h2>
             {order && (
               <p className="text-xs text-muted-foreground mt-1">
@@ -67,7 +93,14 @@ export function CustomerOrderDetail({ orderId, onClose }: { orderId: string; onC
               </p>
             )}
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-muted rounded-lg"><X className="h-4 w-4" /></button>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fechar detalhes do pedido"
+            className="shrink-0 h-11 w-11 -mr-1 -mt-1 inline-flex items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
         {loading ? (
@@ -141,7 +174,9 @@ export function CustomerOrderDetail({ orderId, onClose }: { orderId: string; onC
               <ul className="divide-y divide-border border border-border rounded-xl overflow-hidden">
                 {items.map((it) => (
                   <li key={it.id} className="flex items-center gap-3 p-3 text-sm">
-                    <img src={it.product_image_url || "/assets/no-image.svg"} alt={it.product_name} loading="lazy" decoding="async" width={56} height={56} className="w-14 h-14 rounded object-cover bg-muted" />
+                    {/* object-contain p-1 — packshots farmacêuticos não-quadrados
+                        eram cortados com object-cover (mesma correção dos cards). */}
+                    <img src={it.product_image_url || "/assets/no-image.svg"} alt={it.product_name} loading="lazy" decoding="async" width={56} height={56} className="w-14 h-14 rounded object-contain p-1 bg-white" />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium line-clamp-2 leading-snug">{it.product_name}</p>
                       <p className="text-xs text-muted-foreground">{it.quantity}x {formatBRL(it.unit_price)}</p>
@@ -181,7 +216,7 @@ export function CustomerOrderDetail({ orderId, onClose }: { orderId: string; onC
                     <div className="flex justify-between font-bold text-base pt-2 border-t border-border">
                       <span>Total</span><span className="text-primary">{formatBRL(total)}</span>
                     </div>
-                    <p className="text-xs text-muted-foreground pt-2">Pagamento: {order.payment_method || "—"}</p>
+                    <p className="text-xs text-muted-foreground pt-2">Pagamento: {paymentLabel(order.payment_method)}</p>
                   </>
                 );
               })()}
