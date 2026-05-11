@@ -212,45 +212,59 @@ export default function Catalog() {
     });
   };
 
+  // Pre-normaliza strings dos produtos UMA VEZ (na lista). Sem isso,
+  // `normalizeString(p.name)` rodava 4× por produto a cada keystroke da busca.
+  // Com 50 produtos isso = 200 normalizações/keystroke (5-20ms em dispositivos
+  // antigos). Agora só recomputa quando a lista de produtos muda.
+  const productsIndexed = useMemo(
+    () =>
+      products.map((p) => {
+        const nameNorm = normalizeString(p.name);
+        const descNorm = p.description ? normalizeString(p.description) : "";
+        return {
+          p,
+          nameNorm,
+          descNorm,
+          // Sem espaços — segunda passada da busca tolerante ("tg" → "tg500mg").
+          nameCompact: nameNorm.replace(/\s+/g, ""),
+          descCompact: descNorm.replace(/\s+/g, ""),
+        };
+      }),
+    [products]
+  );
+
   const filtered = useMemo(
     () => {
       const qNorm = query ? normalizeString(query) : "";
       const qCompact = query ? compactString(query) : "";
+      const wantsPromos = selectedCats.has("__promos__");
+      const realCats = wantsPromos
+        ? new Set([...selectedCats].filter((s) => s !== "__promos__"))
+        : selectedCats;
+      const hasCatFilter = selectedCats.size > 0;
+      const hasBrandFilter = selectedBrands.size > 0;
 
-      return products.filter((p) => {
-        if (selectedCats.size > 0) {
-          // "__promos__" é uma pseudo-categoria: produtos com desconto real.
-          // Quando combinada com categorias reais, aplicamos INTERSEÇÃO
-          // (produto da categoria X que também está em promoção). Isso evita
-          // o bug em que marcar "Promoções + Tirzepatida" listava qualquer
-          // promo de qualquer categoria misturada com produtos full-price
-          // de Tirzepatida.
-          const wantsPromos = selectedCats.has("__promos__");
-          const realCats = new Set(
-            [...selectedCats].filter((s) => s !== "__promos__")
-          );
-          if (wantsPromos && !getProductPricing(p).hasSale) return false;
-          if (realCats.size > 0) {
-            if (!p.category || !realCats.has(p.category.slug)) return false;
-          } else if (!wantsPromos) {
-            return false;
+      return productsIndexed
+        .filter(({ p, nameNorm, descNorm, nameCompact, descCompact }) => {
+          if (hasCatFilter) {
+            // "__promos__" é pseudo-categoria — INTERSEÇÃO com categorias reais.
+            if (wantsPromos && !getProductPricing(p).hasSale) return false;
+            if (realCats.size > 0) {
+              if (!p.category || !realCats.has(p.category.slug)) return false;
+            } else if (!wantsPromos) {
+              return false;
+            }
           }
-        }
-        if (selectedBrands.size > 0) {
-          if (!p.brand || !selectedBrands.has(p.brand.slug)) return false;
-        }
-        if (!qNorm) return true;
-        const nameNorm = normalizeString(p.name);
-        const descNorm = p.description ? normalizeString(p.description) : "";
-        if (nameNorm.includes(qNorm) || descNorm.includes(qNorm)) return true;
-        // Segunda passada sem espaços: "tg" → casa em "tg" dentro de
-        // compact("T.G. 500mg") = "tg500mg".
-        const nameCompact = nameNorm.replace(/\s+/g, "");
-        const descCompact = descNorm.replace(/\s+/g, "");
-        return nameCompact.includes(qCompact) || descCompact.includes(qCompact);
-      });
+          if (hasBrandFilter) {
+            if (!p.brand || !selectedBrands.has(p.brand.slug)) return false;
+          }
+          if (!qNorm) return true;
+          if (nameNorm.includes(qNorm) || descNorm.includes(qNorm)) return true;
+          return nameCompact.includes(qCompact) || descCompact.includes(qCompact);
+        })
+        .map((x) => x.p);
     },
-    [products, selectedCats, selectedBrands, query]
+    [productsIndexed, selectedCats, selectedBrands, query]
   );
 
   // Comparator único — usado tanto em Promoções quanto em cada Categoria,

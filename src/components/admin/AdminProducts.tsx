@@ -387,12 +387,18 @@ export function AdminProducts() {
         description: `Cada preço será multiplicado por ${(1 + pct / 100).toFixed(4)} (${pct >= 0 ? "+" : ""}${pct}%). Arredondado a 2 casas.`,
       });
       if (!ok) { setBulkBusy(false); return; }
-      let okC = 0, fail = 0;
-      for (const id of ids) {
+      // Paraleliza updates — antes sequencial (N× round-trip). Para 30
+      // produtos com latência 100ms, descia de ~3s para ~200ms.
+      const updates = ids.map((id) => {
         const cur = Number(items.find((p) => p.id === id)?.price ?? 0);
         const next = Math.max(0, Math.round(cur * (1 + pct / 100) * 100) / 100);
-        const { error } = await supabase.from("products").update({ price: next }).eq("id", id);
-        if (error) fail++; else okC++;
+        return supabase.from("products").update({ price: next }).eq("id", id);
+      });
+      const results = await Promise.allSettled(updates);
+      let okC = 0, fail = 0;
+      for (const r of results) {
+        if (r.status === "rejected" || (r.value as { error?: unknown })?.error) fail++;
+        else okC++;
       }
       setBulkBusy(false);
       logAdminAction({
@@ -418,12 +424,17 @@ export function AdminProducts() {
         description: `Será somado ${delta >= 0 ? "+" : ""}${delta} ao stock atual de cada produto.`,
       });
       if (!ok) { setBulkBusy(false); return; }
-      let okC = 0, fail = 0;
-      for (const id of ids) {
+      // Paraleliza updates de stock (mesmo motivo de price_inc_pct acima).
+      const updates = ids.map((id) => {
         const cur = items.find((p) => p.id === id)?.stock ?? 0;
         const next = Math.max(0, cur + delta);
-        const { error } = await supabase.from("products").update({ stock: next }).eq("id", id);
-        if (error) fail++; else okC++;
+        return supabase.from("products").update({ stock: next }).eq("id", id);
+      });
+      const results = await Promise.allSettled(updates);
+      let okC = 0, fail = 0;
+      for (const r of results) {
+        if (r.status === "rejected" || (r.value as { error?: unknown })?.error) fail++;
+        else okC++;
       }
       setBulkBusy(false);
       logAdminAction({

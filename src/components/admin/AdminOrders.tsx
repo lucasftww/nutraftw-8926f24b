@@ -156,12 +156,21 @@ export function AdminOrders() {
     });
     if (!ok) return;
     setBulkBusy(true);
+    // PARALELO em vez de sequencial: antes este loop fazia N× round-trips
+    // serializados. Para 50 pedidos numa conexão BR (latência ~100ms), levava
+    // 5+ segundos. Agora dispara tudo de uma vez — Supabase aguenta facilmente
+    // 50 RPCs paralelas e o tempo total cai para ~latência única (~200ms).
+    const results = await Promise.allSettled(
+      scopedIds.map((id) =>
+        supabase.rpc("admin_set_order_status", {
+          p_order_id: id, p_status: status, p_reason: null,
+        })
+      )
+    );
     let okCount = 0, failCount = 0;
-    for (const id of scopedIds) {
-      const { error: err } = await supabase.rpc("admin_set_order_status", {
-        p_order_id: id, p_status: status, p_reason: null,
-      });
-      if (err) failCount++; else okCount++;
+    for (const r of results) {
+      if (r.status === "rejected" || (r.value as { error?: unknown })?.error) failCount++;
+      else okCount++;
     }
     setBulkBusy(false);
     if (okCount) toast.success(`${okCount} pedido${okCount === 1 ? "" : "s"} atualizado${okCount === 1 ? "" : "s"}`);

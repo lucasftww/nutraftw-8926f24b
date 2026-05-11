@@ -34,8 +34,13 @@ export interface BrandRow {
   slug: string;
 }
 
+// Colunas usadas no CATÁLOGO (lista). Otimização: removidos `active_principle`
+// e `composition` que NÃO são usados na listagem nem na busca — só aparecem
+// na página do produto, que carrega tudo via useProductBySlug. Antes essa
+// query trazia ~30% de payload extra a cada visita à home.
+// `description` é mantido porque é usado na busca textual do catálogo.
 const PRODUCT_COLUMNS =
-  "id, slug, name, description, active_principle, composition, price, sale_price, image_url, is_featured, is_new_release, is_on_offer, offer_order, stock, created_at, category:categories(id, name, slug), brand:brands(id, name, slug)";
+  "id, slug, name, description, price, sale_price, image_url, is_featured, is_new_release, is_on_offer, offer_order, stock, created_at, category:categories(id, name, slug), brand:brands(id, name, slug)";
 
 export function useCategories() {
   return useQuery<CategoryRow[]>({
@@ -48,6 +53,10 @@ export function useCategories() {
       if (error) throw error;
       return (data as any) || [];
     },
+    // Categorias mudam raramente — staleTime alto evita refetch a cada
+    // navegação entre páginas que usam useCategories (catálogo, drawer
+    // de filtros). Antes ele refetcha a cada mount.
+    staleTime: 5 * 60_000, // 5 minutos
   });
 }
 
@@ -63,6 +72,7 @@ export function useBrands() {
       if (error) throw error;
       return (data as any) || [];
     },
+    staleTime: 5 * 60_000, // Marcas mudam raramente.
   });
 }
 
@@ -83,6 +93,10 @@ export function useProducts() {
       if (error) throw error;
       return (data as any) || [];
     },
+    // Produtos podem mudar (estoque, preço, promoção), mas não tão
+    // frequentemente. 2 minutos = saldo entre dados frescos e performance.
+    // Antes refetcha a cada navegação para a home (ex.: voltar do produto).
+    staleTime: 2 * 60_000,
   });
 }
 
@@ -122,5 +136,6 @@ export function useRelatedProducts(categoryId: string | undefined, excludeId: st
       if (error) throw error;
       return (data as any) || [];
     },
+    staleTime: 2 * 60_000,
   });
 }

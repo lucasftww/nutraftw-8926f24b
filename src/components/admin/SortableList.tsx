@@ -69,7 +69,9 @@ export function useSortableRow(id: string) {
   return { setNodeRef, style, handleProps, isDragging };
 }
 
-/** Botão visual de "arraste" — passe handleProps do useSortableRow. */
+/** Botão visual de "arraste" — passe handleProps do useSortableRow.
+ *  Mobile: h-11 w-11 (44px WCAG tap target — touch precisa de área generosa
+ *  para drag confiável); md+: h-8 w-8 compacto. */
 export function DragHandle({ handleProps, label = "Arrastar para reordenar" }: { handleProps: any; label?: string }) {
   return (
     <button
@@ -77,9 +79,9 @@ export function DragHandle({ handleProps, label = "Arrastar para reordenar" }: {
       aria-label={label}
       title={label}
       {...handleProps}
-      className="cursor-grab active:cursor-grabbing inline-flex items-center justify-center h-8 w-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted touch-none"
+      className="cursor-grab active:cursor-grabbing inline-flex items-center justify-center h-11 w-11 md:h-8 md:w-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted touch-none"
     >
-      <GripVertical className="h-4 w-4" />
+      <GripVertical className="h-5 w-5 md:h-4 md:w-4" />
     </button>
   );
 }

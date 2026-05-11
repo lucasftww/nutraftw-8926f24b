@@ -114,16 +114,32 @@ export function AdminPromotions() {
     if (promos.length === 0) return;
     setSaving(true);
     try {
-      // Sequencial p/ poder abortar no primeiro erro e mostrar diagnóstico
-      // claro — N produtos em promoção é tipicamente < 30, latência ok.
-      for (let i = 0; i < promos.length; i++) {
-        const targetOrder = (i + 1) * 10;
-        if (promos[i].offer_order === targetOrder) continue; // skip no-op
-        const { error } = await supabase
-          .from("products")
-          .update({ offer_order: targetOrder } as any)
-          .eq("id", promos[i].id);
-        if (error) throw error;
+      // Paralelo com allSettled — antes era sequencial (N× round-trip).
+      // Skip no-op para não disparar requests sem mudança real.
+      const updates = promos
+        .map((p, i) => ({ p, targetOrder: (i + 1) * 10 }))
+        .filter(({ p, targetOrder }) => p.offer_order !== targetOrder)
+        .map(({ p, targetOrder }) =>
+          supabase
+            .from("products")
+            .update({ offer_order: targetOrder } as any)
+            .eq("id", p.id)
+        );
+      if (updates.length === 0) {
+        toast.info("Nenhuma alteração na ordem");
+        setSaving(false);
+        return;
+      }
+      const results = await Promise.allSettled(updates);
+      const failed = results.filter(
+        (r) => r.status === "rejected" || (r.value as { error?: unknown })?.error
+      );
+      if (failed.length > 0) {
+        const firstErr = failed[0];
+        const msg = firstErr.status === "rejected"
+          ? String(firstErr.reason)
+          : friendlyErrorMessage((firstErr.value as { error?: unknown }).error);
+        throw new Error(msg);
       }
       toast.success("Ordem das promoções salva!");
       // reflete no estado sem refetch

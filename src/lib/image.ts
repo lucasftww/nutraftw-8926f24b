@@ -13,6 +13,11 @@ export interface ImageOpts {
   height?: number;
   quality?: number; // 1-100
   resize?: "cover" | "contain" | "fill";
+  /** Formato de saída. "webp" reduz 30-40% vs JPEG na mesma qualidade
+   *  (suportado em 96%+ dos navegadores em 2026). "origin" mantém o
+   *  formato original. Default: "webp" — o ganho é grande e a compatibilidade
+   *  é universal nos browsers que importam (mesmo Safari iOS 14+ suporta). */
+  format?: "webp" | "origin";
 }
 
 export function imageUrl(src: string | null | undefined, opts: ImageOpts = {}): string {
@@ -26,6 +31,11 @@ export function imageUrl(src: string | null | undefined, opts: ImageOpts = {}): 
   if (opts.height) params.set("height", String(opts.height));
   if (opts.quality) params.set("quality", String(opts.quality));
   if (opts.resize) params.set("resize", opts.resize);
+  // Supabase Image Transform aceita `?format=webp` — entrega ~30-40% menos
+  // bytes que JPEG com qualidade visualmente equivalente. Default ativado
+  // pois ganho de performance > o nicho de incompatibilidade.
+  const fmt = opts.format ?? "webp";
+  if (fmt !== "origin") params.set("format", fmt);
   const qs = params.toString();
   return `${host}/storage/v1/render/image/${mode}/${rest}${qs ? `?${qs}` : ""}`;
 }
