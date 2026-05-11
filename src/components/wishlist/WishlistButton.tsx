@@ -66,9 +66,14 @@ export function WishlistButton({ productId, className, variant = "card", size = 
       disabled={isPending}
       aria-pressed={isFav}
       aria-label={isFav ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+      // backdrop-blur removido: renderiza em CADA card do catálogo (50+
+      // instâncias acima da dobra), e cada blur sobre imagem dispara
+      // composição cara. `bg-white/95` sólido tem visual quase idêntico
+      // sem custo de paint. `transition-colors` em vez de `transition-all`
+      // para evitar animar tudo (incluindo box-shadow, transform, etc.).
       className={cn(
-        "inline-flex items-center justify-center rounded-full bg-background/95 backdrop-blur shadow-sm border border-border/60 transition-all active:scale-90",
-        "hover:scale-105 hover:border-destructive/40",
+        "inline-flex items-center justify-center rounded-full bg-white/95 shadow-sm border border-border/60 transition-colors active:scale-90",
+        "hover:border-destructive/40",
         dim,
         isFav ? "text-destructive" : "text-foreground/70",
         className,

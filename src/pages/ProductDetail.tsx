@@ -461,7 +461,9 @@ export default function ProductDetail() {
       {/* Sticky CTA mobile — sempre visível, intenção de compra */}
       {(p.stock ?? 0) > 0 && (
         <div
-          className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.15)]"
+          // bg opaco — fixed bottom durante todo o scroll da página de
+          // produto. backdrop-blur dispararia repaint a cada frame mobile.
+          className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-background border-t border-border shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.15)]"
           style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.75rem)" }}
         >
           {/* Faixinha de urgência DENTRO da sticky bar quando estoque baixo.

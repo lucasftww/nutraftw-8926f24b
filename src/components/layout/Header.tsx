@@ -54,7 +54,11 @@ export function Header({ isCheckout = false }: { isCheckout?: boolean }) {
   return (
     <>
       <header
-        className="sticky top-0 inset-x-0 z-40 w-full border-b border-border/50 bg-background/85 backdrop-blur-md supports-[backdrop-filter]:bg-background/70 shadow-sm"
+        // Mobile: bg opaco (sem blur) — backdrop-filter no header sticky
+        // dispara repaint custoso a cada frame de scroll em dispositivos
+        // de gama média (Android <400 dispositivos). Em desktop mantemos
+        // o efeito glass por estética.
+        className="sticky top-0 inset-x-0 z-40 w-full border-b border-border/50 bg-background md:bg-background/85 md:backdrop-blur-md md:supports-[backdrop-filter]:bg-background/70 shadow-sm"
         role="banner"
         // Respeita safe-area do iOS (notch + barra de status em PWA standalone).
         // Sem isso, conteúdo do header ficava coberto no iPhone com notch.
