@@ -164,14 +164,29 @@ export function AdminDashboard() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 md:gap-3">
         {cards.map((c) => (
-          <div key={c.label} className="bg-card rounded-2xl border border-border p-3.5 md:p-4 hover:border-border/80 transition-colors flex flex-col min-h-[104px]">
-            <div className="flex items-center justify-between mb-2.5">
+          <div
+            key={c.label}
+            // Redesign: gradient sutil do canto, hover lift suave, ring colorida
+            // do tom. Mais "vivo" que o card chapado anterior.
+            className="group relative bg-card rounded-2xl border border-border/70 p-3.5 md:p-4 hover:border-primary/30 hover:shadow-[0_0_24px_-8px_hsl(var(--primary)/0.25)] transition-all flex flex-col min-h-[104px] overflow-hidden"
+          >
+            {/* Glow sutil no canto que casa com o tone do card */}
+            <span
+              aria-hidden
+              className={`pointer-events-none absolute -top-12 -right-12 h-32 w-32 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity ${
+                c.tone === "success"     ? "bg-emerald-500/20"
+                : c.tone === "amber"     ? "bg-amber-500/20"
+                : c.tone === "destructive" ? "bg-destructive/20"
+                : "bg-primary/20"
+              }`}
+            />
+            <div className="relative flex items-center justify-between mb-2.5">
               <span className={`inline-flex p-1.5 rounded-lg ${TONE[c.tone]}`}>
-                <c.icon className="h-3.5 w-3.5" />
+                <c.icon className="h-3.5 w-3.5" strokeWidth={2.25} />
               </span>
             </div>
-            <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/80 font-medium leading-tight">{c.label}</p>
-            <p className="text-lg md:text-xl font-semibold mt-1 tabular-nums truncate">{c.value}</p>
+            <p className="relative text-[10px] uppercase tracking-[0.14em] text-muted-foreground/80 font-medium leading-tight">{c.label}</p>
+            <p className="relative text-lg md:text-xl font-bold mt-1 tabular-nums truncate text-foreground">{c.value}</p>
           </div>
         ))}
       </div>
@@ -254,24 +269,39 @@ function WelcomeBanner({ revenue, ordersToday }: { revenue: number; ordersToday:
     return "Boa noite";
   }, []);
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-card via-card to-primary/10 p-4 md:p-6 text-foreground shadow-soft">
-      <div aria-hidden className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/15 blur-3xl" />
-      <div aria-hidden className="absolute -left-12 -bottom-16 h-40 w-40 rounded-full bg-brand-cyan/10 blur-3xl" />
-      <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-3 md:gap-4">
+    <div className="relative overflow-hidden rounded-2xl md:rounded-3xl border border-primary/25 bg-gradient-to-br from-card via-card to-primary/15 p-4 md:p-7 text-foreground shadow-[0_8px_40px_-12px_hsl(var(--primary)/0.25)]">
+      {/* Glow effects mais intensos para dar profundidade premium */}
+      <div aria-hidden className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-gradient-to-br from-primary/25 to-brand-cyan/15 blur-3xl" />
+      <div aria-hidden className="absolute -left-16 -bottom-20 h-56 w-56 rounded-full bg-brand-cyan/15 blur-3xl" />
+      {/* Border decorativo no canto */}
+      <div aria-hidden className="absolute top-0 right-0 h-px w-1/2 bg-gradient-to-l from-primary/40 to-transparent" />
+      <div aria-hidden className="absolute bottom-0 left-0 h-px w-1/2 bg-gradient-to-r from-brand-cyan/30 to-transparent" />
+
+      <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-4 md:gap-6">
         <div className="min-w-0">
-           <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary/80">Painel Administrativo</p>
-          <h2 className="font-brand text-xl md:text-3xl font-bold mt-1.5 tracking-tight uppercase text-foreground leading-tight">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="inline-block h-1 w-6 rounded-full bg-gradient-to-r from-primary to-brand-cyan" aria-hidden />
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary/90">
+              Painel Administrativo
+            </p>
+          </div>
+          <h2 className="font-brand text-2xl md:text-4xl font-bold tracking-tight uppercase text-foreground leading-tight">
             {greeting}, admin
           </h2>
-          <p className="text-xs md:text-sm text-muted-foreground mt-1.5 max-w-md">
+          <p className="text-[13px] md:text-[15px] text-muted-foreground mt-2 max-w-md leading-relaxed">
             {ordersToday > 0
-              ? `${ordersToday} ${ordersToday === 1 ? "pedido novo" : "pedidos novos"} hoje. Continue assim.`
+              ? <>
+                  <span className="font-bold text-foreground tabular-nums">{ordersToday}</span>{" "}
+                  {ordersToday === 1 ? "pedido novo" : "pedidos novos"} hoje. Continue assim.
+                </>
               : "Sem pedidos novos ainda hoje. Hora de revisar promoções?"}
           </p>
         </div>
         <div className="md:text-right shrink-0">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Receita acumulada</p>
-          <p className="font-display text-2xl md:text-3xl font-extrabold tabular-nums mt-1 text-primary leading-none">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground/80">
+            Receita acumulada
+          </p>
+          <p className="font-display text-2xl md:text-4xl font-extrabold tabular-nums mt-1.5 bg-gradient-to-r from-primary via-primary-glow to-brand-cyan bg-clip-text text-transparent leading-none">
             {revenue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
           </p>
         </div>

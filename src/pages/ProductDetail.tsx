@@ -130,7 +130,8 @@ export default function ProductDetail() {
       </button>
 
       <div className="grid lg:grid-cols-2 gap-6 lg:gap-12 items-start">
-        {/* Image */}
+        {/* Image — `aspect-square` no container; o `<img>` herda altura via h-full.
+            Removido `aspect-square` redundante na <img> que duplicava cálculo. */}
         <div className="relative aspect-square rounded-3xl border border-border/60 overflow-hidden bg-white shadow-[var(--shadow-card)] w-full max-w-md mx-auto lg:max-w-none lg:sticky lg:top-[72px]">
           {(() => {
             const hero = responsiveImage(
@@ -150,7 +151,7 @@ export default function ProductDetail() {
                 width={800}
                 height={800}
                 onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
-                className="w-full h-full object-contain aspect-square bg-white"
+                className="w-full h-full object-contain p-6 sm:p-8"
               />
             );
           })()}
@@ -166,13 +167,16 @@ export default function ProductDetail() {
               <Link
                 to={`/?categoria=${p.category.slug}`}
                 /* text-secondary-text (não text-secondary) — laranja escurecido
-                   AA-safe (5.2:1) para uso como texto sobre fundo claro. */
-                className="inline-flex items-center text-[11px] font-bold uppercase tracking-[0.12em] text-secondary-text hover:underline"
+                   AA-safe (5.2:1) para uso como texto sobre fundo claro.
+                   text-[12px] para legibilidade mobile (era [11px]). */
+                className="inline-flex items-center text-[12px] font-bold uppercase tracking-[0.12em] text-secondary-text hover:underline"
               >
                 {p.category.name}
               </Link>
             )}
-            <h1 className="text-2xl md:text-4xl font-extrabold text-foreground mt-2 leading-tight tracking-tight break-words">
+            {/* H1: text-[26px] mobile (era text-2xl=24px que ficava tímido para um hero).
+                text-4xl desktop mantido. */}
+            <h1 className="text-[26px] md:text-4xl font-extrabold text-foreground mt-2 leading-[1.15] tracking-tight break-words">
               {p.name}
             </h1>
           </div>
@@ -365,9 +369,10 @@ export default function ProductDetail() {
         </div>
       </div>
 
-      {/* Produtos relacionados */}
+      {/* Produtos relacionados — espaçamento adaptado (mobile não precisa
+          de 96px de gap, era exagero do mt-14 + pt-10). */}
       {related.length > 0 && (
-        <section className="mt-14 pt-10 border-t border-border">
+        <section className="mt-10 md:mt-14 pt-8 md:pt-10 border-t border-border/60">
           <div className="mb-5 md:mb-7 flex items-end justify-between gap-3">
             <h2 className="text-lg md:text-2xl font-bold tracking-tight text-foreground">
               {p.category ? `Mais de ${p.category.name}` : "Você também pode gostar"}

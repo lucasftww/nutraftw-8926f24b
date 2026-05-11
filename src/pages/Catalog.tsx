@@ -503,8 +503,10 @@ export default function Catalog() {
 
       {/* Sections — sem pt compensatório: a busca agora é sticky e ocupa
           espaço no fluxo natural, então NÃO precisamos mais reservar 56px
-          como antes. scroll-mt-32 mantém âncoras visíveis abaixo do header. */}
-      <section className="relative pt-3 md:pt-5 pb-2 scroll-mt-32">
+          como antes. scroll-mt-32 mantém âncoras visíveis abaixo do header.
+          pt-4 md:pt-6 dá respiro entre a busca e a primeira seção
+          (antes pt-3 ficava colado em mobile). */}
+      <section className="relative pt-4 md:pt-6 pb-2 scroll-mt-32">
         <div className="container mx-auto px-4">
           {/* overflow-anchor:none impede o navegador de "puxar" o scroll
               quando novos cards são inseridos pelo infinite scroll —
@@ -523,11 +525,15 @@ export default function Catalog() {
                 ))}
               </div>
             ) : filtered.length === 0 ? (
-              <div className="text-center py-20">
-                <Search className="h-5 w-5 mx-auto mb-3 text-muted-foreground" />
-                <p className="text-foreground font-medium">Nenhum produto encontrado</p>
-                <p className="text-muted-foreground text-sm mt-1">
-                  Tente remover filtros ou ajustar a busca.
+              // Empty state redesenhado: ícone maior em pill colorida + tipografia mais
+              // hierárquica + py adaptativo (py-20 fixo era muito espaço em mobile).
+              <div className="text-center py-12 md:py-20">
+                <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-muted/60 mb-4">
+                  <Search className="h-6 w-6 text-muted-foreground" strokeWidth={1.75} />
+                </div>
+                <p className="text-foreground font-bold text-base">Nenhum produto encontrado</p>
+                <p className="text-muted-foreground text-[13px] md:text-sm mt-1.5 max-w-xs mx-auto">
+                  Tente remover filtros ou ajustar a busca acima.
                 </p>
                 {(selectedCats.size > 0 || selectedBrands.size > 0 || query) && (
                   <button
@@ -543,7 +549,8 @@ export default function Catalog() {
                         return params;
                       }, { replace: true });
                     }}
-                    className="mt-5 inline-flex items-center justify-center h-10 px-5 rounded-full border border-border text-foreground text-sm font-medium hover:bg-foreground hover:text-background transition-colors"
+                    // h-11 (44px WCAG) — antes era h-10.
+                    className="mt-5 inline-flex items-center justify-center h-11 px-6 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary-glow active:scale-[0.99] transition-all shadow-sm"
                   >
                     Limpar filtros
                   </button>
