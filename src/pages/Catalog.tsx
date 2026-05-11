@@ -1095,9 +1095,13 @@ const ProductCard = memo(function ProductCard({
               onTouchStart={() => onPrefetch?.(p.slug)}
               className={`group relative flex flex-col h-full rounded-2xl bg-card overflow-hidden border border-border/50 ${isOut ? "opacity-70" : ""}`}
             >
-              {/* Imagem — aspect quadrado + padding interno para uniformizar
-                  produtos com recortes/proporções diferentes nos assets. */}
-              <div className="relative aspect-square overflow-hidden bg-white p-5 sm:p-6 flex items-center justify-center group-hover:bg-muted/5 transition-colors">
+              {/* Imagem — aspect quadrado + padding interno enxuto.
+                  Antes: p-5 sm:p-6 + max-w-[85%] = imagem visível só 64% do
+                  card em mobile (160px → 102px). Produto ficava "perdido"
+                  cercado de branco.
+                  Agora: p-3 sm:p-5 + max-w-[92%] = ~78% visível (160px →
+                  125px). 23% mais imagem sem perder respiro. */}
+              <div className="relative aspect-square overflow-hidden bg-white p-3 sm:p-5 flex items-center justify-center group-hover:bg-muted/5 transition-colors">
                 {(() => {
                   const r = responsiveImage(
                     p.image_url,
@@ -1128,7 +1132,7 @@ const ProductCard = memo(function ProductCard({
                       width={400}
                       height={400}
                       onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
-                      className="max-w-[85%] max-h-[85%] w-auto h-auto object-contain mx-auto transition-transform duration-500 group-hover:scale-105"
+                      className="max-w-[92%] max-h-[92%] w-auto h-auto object-contain mx-auto transition-transform duration-500 group-hover:scale-105"
                     />
                   );
                 })()}

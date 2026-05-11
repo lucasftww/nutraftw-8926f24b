@@ -246,7 +246,9 @@ export default function ProductDetail() {
               {(p.stock ?? 0) <= 0 ? "Esgotado" : "Comprar agora"}
             </Button>
             {(p.stock ?? 0) > 0 && (p.stock ?? 0) <= 5 && (
-              <p className="text-center text-xs font-bold text-destructive flex items-center justify-center gap-1.5">
+              // text-[13px] (era text-xs/12px) — gatilho de urgência precisa
+              // ser bem legível em mobile.
+              <p className="text-center text-[13px] font-bold text-destructive flex items-center justify-center gap-1.5">
                 <Package className="h-3.5 w-3.5" />
                 {p.stock === 1 ? "Última unidade disponível!" : `Restam apenas ${p.stock} unidades`}
               </p>
@@ -254,10 +256,9 @@ export default function ProductDetail() {
             <WishlistButton productId={p.id} variant="inline" className="w-full justify-center text-muted-foreground hover:text-foreground" />
           </div>
 
-          {/* Selos de confiança em GRID 2x2 — antes era texto fino que
-              passava despercebido. Em farma premium ticket alto, o cliente
-              precisa de reasseguramento visual forte: segurança, procedência,
-              suporte, envio. Cards com ícone destacado + título + descrição. */}
+          {/* Selos de confiança em GRID 2x2. Em iPhone SE (320px) cada card
+              tem ~140px → ícone h-8 (era h-9) + p-2.5 (era p-3) para deixar
+              o texto respirar sem cortar palavras. */}
           <div className="grid grid-cols-2 gap-2">
             {[
               { icon: ShieldCheck, title: "Compra Segura", desc: "Pagamento criptografado", tone: "success" as const },
@@ -274,13 +275,13 @@ export default function ProductDetail() {
               return (
                 <div
                   key={b.title}
-                  className="flex items-center gap-2.5 p-3 rounded-xl bg-muted/30 border border-border/50"
+                  className="flex items-center gap-2 sm:gap-2.5 p-2.5 sm:p-3 rounded-xl bg-muted/30 border border-border/50"
                 >
-                  <span className={`shrink-0 inline-flex h-9 w-9 items-center justify-center rounded-lg border ${toneCls}`}>
-                    <b.icon className="h-4 w-4" strokeWidth={2.2} />
+                  <span className={`shrink-0 inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg border ${toneCls}`}>
+                    <b.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={2.2} />
                   </span>
                   <div className="min-w-0">
-                    <p className="text-[12px] font-bold leading-tight">{b.title}</p>
+                    <p className="text-[12px] sm:text-[13px] font-bold leading-tight">{b.title}</p>
                     <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">{b.desc}</p>
                   </div>
                 </div>

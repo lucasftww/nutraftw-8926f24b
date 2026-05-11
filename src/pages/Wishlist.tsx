@@ -134,10 +134,9 @@ export default function Wishlist() {
                 key={p.id}
                 className={`group flex flex-col h-full rounded-2xl bg-card overflow-hidden border border-border/50 ${isOut ? "opacity-70" : ""}`}
               >
-                {/* p-5 sm:p-6 + object-contain — packshots farmacêuticos (caixas
-                    verticais, frascos) ficavam cortados com object-cover. Mesma
-                    convenção usada nos cards do Catalog. */}
-                <Link to={`/produto/${p.slug}`} className="relative aspect-square overflow-hidden bg-white p-5 sm:p-6 flex items-center justify-center">
+                {/* p-3 sm:p-5 + object-contain — packshots farmacêuticos.
+                    Imagem ocupa 92% (era 85%) para usar melhor a área do card. */}
+                <Link to={`/produto/${p.slug}`} className="relative aspect-square overflow-hidden bg-white p-3 sm:p-5 flex items-center justify-center">
                   <img
                     src={r.src}
                     srcSet={r.srcSet || undefined}
@@ -147,7 +146,7 @@ export default function Wishlist() {
                     decoding="async"
                     width={400}
                     height={400}
-                    className="max-w-[85%] max-h-[85%] w-auto h-auto object-contain mx-auto transition-transform duration-500 group-hover:scale-105"
+                    className="max-w-[92%] max-h-[92%] w-auto h-auto object-contain mx-auto transition-transform duration-500 group-hover:scale-105"
                   />
                   <WishlistButton productId={p.id} className="absolute top-2.5 right-2.5 z-[1] bg-white/90 hover:bg-white shadow-sm rounded-full" size="sm" />
                   {isOut && (
