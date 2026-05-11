@@ -932,7 +932,8 @@ function ActiveChip({ label, onRemove }: { label: string; onRemove: () => void }
 }
 
 /** Seção do drawer — header rico (ícone + título uppercase + action
- *  opcional à direita) + container do conteúdo com padding consistente. */
+ *  opcional à direita) + container do conteúdo com padding consistente.
+ *  Accent line gradient brand (navy→cyan) reforça identidade visual. */
 function FilterSection({
   icon: Icon,
   title,
@@ -948,6 +949,7 @@ function FilterSection({
     <section className="px-5 sm:px-6 py-5 border-b border-border/50 last:border-b-0">
       <div className="flex items-center justify-between gap-2 mb-3">
         <h3 className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-foreground/70">
+          <span className="inline-block h-3 w-0.5 rounded-full bg-gradient-brand" aria-hidden />
           <Icon className="h-3.5 w-3.5 text-primary/70" strokeWidth={2.25} />
           {title}
         </h3>
@@ -987,7 +989,9 @@ const Section = memo(function Section({
     : 0;
   return (
       <div className="scroll-mt-36 md:scroll-mt-40">
-      <div className="mb-3 md:mb-4 flex items-baseline gap-2 flex-wrap">
+      {/* Header da seção com accent line gradient da marca (navy → cyan). */}
+      <div className="mb-3 md:mb-4 flex items-center gap-2.5 flex-wrap">
+        <span className="inline-block h-5 md:h-6 w-1 rounded-full bg-gradient-brand shrink-0" aria-hidden />
         <h2 className="text-lg md:text-2xl font-bold tracking-tight leading-tight text-primary">
           {title}
         </h2>
@@ -1141,7 +1145,10 @@ const ProductCard = memo(function ProductCard({
                   }
                   if (isLaunch) {
                     return (
-                      <span className={`${pillBase} bg-primary text-primary-foreground`}>
+                      // Gradient brand (navy → cyan da logo) reforça identidade
+                      // visual da Royal Vitta em produtos novos. Antes era flat
+                      // bg-primary, sem conexão com a logo.
+                      <span className={`${pillBase} bg-gradient-brand text-white`}>
                         LANÇAMENTO
                       </span>
                     );

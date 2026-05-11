@@ -256,8 +256,10 @@ export default function MyAccount() {
 
   return (
     <div className="container px-4 md:px-6 py-4 md:py-12 max-w-5xl space-y-4 md:space-y-6">
-      {/* ===== Hero header — perfil, identidade, sair ===== */}
-      <div className="bg-gradient-to-br from-primary via-primary to-primary/80 rounded-2xl md:rounded-3xl text-primary-foreground p-4 md:p-7 shadow-card relative overflow-hidden">
+      {/* ===== Hero header — perfil, identidade, sair.
+           Gradient da MARCA (navy royal → cyan da logo) cria identidade
+           visual coerente com o resto do site. Antes era só primary flat. */}
+      <div className="bg-gradient-to-br from-primary via-primary/95 to-brand-cyan/85 rounded-2xl md:rounded-3xl text-primary-foreground p-4 md:p-7 shadow-card relative overflow-hidden">
         <div aria-hidden className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
         <div className="relative flex items-start justify-between gap-3">
           <div className="flex items-center gap-3 md:gap-4 min-w-0">

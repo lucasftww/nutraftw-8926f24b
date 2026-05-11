@@ -71,9 +71,9 @@ export function ProductFooter() {
 
         {/* ===== Grid principal ===== */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
-          {/* Marca */}
+          {/* Marca — nome com gradient da logo (navy → cyan). */}
           <div className="col-span-2 md:col-span-1">
-            <h3 className="font-display text-xl font-extrabold tracking-tight text-primary uppercase">
+            <h3 className="font-display text-xl font-extrabold tracking-tight uppercase bg-gradient-brand bg-clip-text text-transparent">
               {brandName}
             </h3>
             <p className="mt-3 text-sm text-muted-foreground leading-relaxed">

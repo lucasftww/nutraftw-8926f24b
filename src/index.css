@@ -69,9 +69,18 @@
     --primary-glow: 226 70% 36%;
 
      /* Brand cyan — (#3FC1E5) — usar em badges,
-       hovers de destaque, micro-acentos. NÃO usar como CTA principal. */
+       hovers de destaque, micro-acentos. NÃO usar como CTA principal.
+       ⚠️ Contraste sobre branco = 2.4:1 (FALHA AA texto normal). Usar
+       SOMENTE em:
+       - Gradients (com mistura de cores)
+       - Microelementos visuais (linhas finas, glow, indicadores)
+       - Texto: usar `brand-cyan-text` (versão escurecida AA-safe) */
     --brand-cyan: 194 74% 57%;
     --brand-cyan-foreground: 230 81% 18%;
+    /* Variante de texto cyan para uso sobre fundo claro — 194 80% 32% =
+       ~#0E7AA7. Contraste 6.2:1 sobre branco — AA passa para texto normal.
+       Use em links, labels secundárias que precisam de "vibe Royal Vitta". */
+    --brand-cyan-text: 194 80% 32%;
 
     /* Laranja de conversão — CTA "Comprar" (#F97316 / orange-500)
        hover #EA580C, pressed #C2410C.
@@ -133,6 +142,13 @@
     --gradient-cta: linear-gradient(135deg, hsl(18 95% 54%), hsl(14 92% 48%));
     --gradient-price: linear-gradient(135deg, hsl(222 65% 20%), hsl(199 89% 40%));
     --gradient-soft: linear-gradient(180deg, hsl(40 20% 99%), hsl(0 0% 100%));
+    /* Gradient de IDENTIDADE — replica o gradient da logo Royal Vitta:
+       R navy royal (#0B1F6B / primary) → V cyan (#3FC1E5 / brand-cyan).
+       Cyan final escurecido para 45% (não 57%) para garantir contraste AA
+       quando há texto branco em cima — o ponto mais claro do gradient
+       atinge ~4.5:1 nessa configuração.
+       Use em: AnnouncementBar, badges Lançamento, accents de section. */
+    --gradient-brand: linear-gradient(135deg, hsl(230 81% 23%) 0%, hsl(194 80% 40%) 100%);
     --shadow-elegant: 0 10px 30px -10px hsl(222 65% 20% / 0.28);
     --shadow-card: 0 2px 12px -4px hsl(222 39% 14% / 0.08);
     --shadow-soft: 0 1px 2px hsl(222 39% 14% / 0.04), 0 4px 12px -4px hsl(222 39% 14% / 0.06);

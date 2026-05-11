@@ -37,7 +37,9 @@ export function AnnouncementBar() {
 
   return (
     <div
-      className="relative bg-primary text-primary-foreground"
+      // Bg gradient da MARCA (navy → cyan da logo) substitui bg-primary flat.
+      // Cria identidade visual logo no topo e dá sensação premium sem custo.
+      className="relative bg-gradient-brand text-white"
       role="region"
       aria-label="Avisos da loja"
     >

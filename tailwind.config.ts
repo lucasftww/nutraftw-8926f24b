@@ -57,6 +57,8 @@ export default {
         "brand-cyan": {
           DEFAULT: "hsl(var(--brand-cyan))",
           foreground: "hsl(var(--brand-cyan-foreground))",
+          /* Variante AA-safe para uso como TEXTO sobre fundo claro (6.2:1). */
+          text: "hsl(var(--brand-cyan-text))",
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",
@@ -86,6 +88,7 @@ export default {
         "gradient-cta": "var(--gradient-cta)",
         "gradient-price": "var(--gradient-price)",
         "gradient-soft": "var(--gradient-soft)",
+        "gradient-brand": "var(--gradient-brand)",
       },
       boxShadow: {
         elegant: "var(--shadow-elegant)",
