@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { ShoppingCart, ShieldCheck, Truck, Package, PackageCheck, MessageCircle, CreditCard, QrCode, ChevronDown, ArrowLeft } from "lucide-react";
+import { ShoppingCart, Package, MessageCircle, CreditCard, QrCode, ChevronDown, ArrowLeft } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { responsiveImage, imageUrl } from "@/lib/image";
 import { Button } from "@/components/ui/button";
@@ -256,45 +256,12 @@ export default function ProductDetail() {
             <WishlistButton productId={p.id} variant="inline" className="w-full justify-center text-muted-foreground hover:text-foreground" />
           </div>
 
-          {/* Selos de confiança em GRID 2x2. Em iPhone SE (320px) cada card
-              tem ~140px → ícone h-8 (era h-9) + p-2.5 (era p-3) para deixar
-              o texto respirar sem cortar palavras. */}
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { icon: ShieldCheck, title: "Compra Segura", desc: "Pagamento criptografado", tone: "success" as const },
-              { icon: PackageCheck, title: "Procedência", desc: "Produto 100% original", tone: "primary" as const },
-              { icon: Truck, title: "Envio rápido", desc: "Para todo o Brasil", tone: "primary" as const },
-              { icon: MessageCircle, title: "Suporte WhatsApp", desc: "Tire dúvidas antes", tone: "whatsapp" as const },
-            ].map((b) => {
-              const toneCls =
-                b.tone === "success"
-                  ? "bg-success/10 text-success border-success/20"
-                  : b.tone === "whatsapp"
-                  ? "bg-whatsapp/10 text-whatsapp border-whatsapp/20"
-                  : "bg-primary/10 text-primary border-primary/20";
-              return (
-                <div
-                  key={b.title}
-                  className="flex items-center gap-2 sm:gap-2.5 p-2.5 sm:p-3 rounded-xl bg-muted/30 border border-border/50"
-                >
-                  <span className={`shrink-0 inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg border ${toneCls}`}>
-                    <b.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={2.2} />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-[12px] sm:text-[13px] font-bold leading-tight">{b.title}</p>
-                    <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">{b.desc}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
           {/* Calculadora de frete — reduz abandono no checkout */}
           <ShippingCalculator />
 
           {/* Descrição */}
           {p.description && (
-            <div className="pt-2">
+            <div>
               <h2 className="text-sm font-bold text-foreground uppercase tracking-wider mb-2">
                 Sobre o produto
               </h2>
@@ -329,7 +296,7 @@ export default function ProductDetail() {
 
           {/* FAQ inline — quebra objeções comuns sem sair da página.
               Usa <details> nativo: zero JS, zero dependência, acessível. */}
-          <div className="pt-2">
+          <div>
             <h2 className="text-sm font-bold text-foreground uppercase tracking-wider mb-3">
               Perguntas frequentes
             </h2>
@@ -373,7 +340,7 @@ export default function ProductDetail() {
       {/* Produtos relacionados — espaçamento adaptado (mobile não precisa
           de 96px de gap, era exagero do mt-14 + pt-10). */}
       {related.length > 0 && (
-        <section className="mt-10 md:mt-14 pt-8 md:pt-10 border-t border-border/60">
+        <section className="mt-6 md:mt-12 pt-6 md:pt-8 border-t border-border/60">
           <div className="mb-5 md:mb-7 flex items-end justify-between gap-3">
             <h2 className="text-lg md:text-2xl font-bold tracking-tight text-foreground">
               {p.category ? `Mais de ${p.category.name}` : "Você também pode gostar"}
@@ -420,13 +387,13 @@ export default function ProductDetail() {
                           width={400}
                           height={400}
                           onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/assets/no-image.svg"; }}
-                          className="w-full h-full object-contain bg-white"
+                          className="w-full h-full object-contain p-3 bg-white"
                         />
                       );
                     })()}
                     {rHasSale && (
-                      <span className="badge-pill absolute top-2 right-2 bg-secondary text-secondary-foreground font-bold shadow-sm">
-                        -{rPct}%
+                      <span className="badge-pill absolute top-2.5 left-2.5 bg-secondary text-secondary-foreground font-bold uppercase tracking-wide shadow-sm">
+                        −{rPct}%
                       </span>
                     )}
                   </div>
@@ -442,7 +409,7 @@ export default function ProductDetail() {
                           {formatBRL(rFinal * 0.95)}
                         </span>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-success/80 leading-none">
-                          PIX
+                          NO PIX
                         </span>
                       </div>
                       <span className="text-[10.5px] text-muted-foreground tabular-nums leading-tight">

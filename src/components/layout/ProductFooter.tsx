@@ -1,20 +1,9 @@
-import { MessageCircle, ShieldCheck, Truck, CreditCard, RefreshCcw } from "lucide-react";
+import { MessageCircle, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useCurrentProduct } from "@/contexts/CurrentProductContext";
 import { formatBRL } from "@/lib/utils";
 
-/**
- * Footer com trust signals fortes — peptídeos premium têm ticket alto (R$ 200-2000)
- * e o usuário precisa de reasseguramento legal/operacional antes de comprar.
- *
- * Estrutura:
- *  - Linha de selos de confiança (envio, segurança, atendimento, troca)
- *  - 4 colunas (Marca, Atendimento, Políticas, Pagamento)
- *  - Bandeiras de pagamento + selo SSL
- *  - CNPJ/endereço/horário (exigência CDC + gatilho de confiança)
- *  - Copyright
- */
 export function ProductFooter() {
   const settings = useSiteSettings();
   const whatsapp = (settings.whatsapp_number || "5511999999999").replace(/\D/g, "");
@@ -37,7 +26,7 @@ export function ProductFooter() {
   const businessHours = settings.business_hours || "Atendimento Seg–Sex 9h às 18h";
 
   return (
-    <footer className="mt-12 sm:mt-16 border-t border-border/60 bg-background">
+    <footer className="mt-8 sm:mt-12 border-t border-border/60 bg-background">
       <div
         className={`max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 ${
           current
@@ -45,30 +34,6 @@ export function ProductFooter() {
             : "pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]"
         }`}
       >
-        {/* ===== Trust signals — destaque acima de tudo ===== */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10 pb-8 border-b border-border/60">
-          <TrustItem
-            icon={ShieldCheck}
-            title="100% Seguro"
-            desc="Pagamento criptografado"
-          />
-          <TrustItem
-            icon={Truck}
-            title="Envio nacional"
-            desc="Para todo o Brasil"
-          />
-          <TrustItem
-            icon={CreditCard}
-            title="PIX 5% OFF"
-            desc="ou cartão em até 3x"
-          />
-          <TrustItem
-            icon={RefreshCcw}
-            title="Procedência"
-            desc="Produtos originais"
-          />
-        </div>
-
         {/* ===== Grid principal ===== */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
           {/* Marca — nome com gradient da logo (navy → cyan). */}
@@ -125,20 +90,10 @@ export function ProductFooter() {
           </div>
         </div>
 
-        {/* ===== Métodos de pagamento + selo SSL ===== */}
-        <div className="mt-10 pt-6 border-t border-border/60 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <ShieldCheck className="h-4 w-4 text-success shrink-0" aria-hidden />
-            <span>Site protegido — SSL/TLS</span>
-          </div>
-          <div className="flex items-center gap-1.5 flex-wrap justify-center">
-            <PaymentBadge label="PIX" tone="success" />
-            <PaymentBadge label="Visa" />
-            <PaymentBadge label="Master" />
-            <PaymentBadge label="Elo" />
-            <PaymentBadge label="Hipercard" />
-            <PaymentBadge label="Boleto" />
-          </div>
+        {/* ===== Selo SSL ===== */}
+        <div className="mt-10 pt-6 border-t border-border/60 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+          <ShieldCheck className="h-4 w-4 text-success shrink-0" aria-hidden />
+          <span>Site protegido — SSL/TLS</span>
         </div>
 
         {/* ===== Identificação legal (CDC + trust) ===== */}
@@ -157,22 +112,6 @@ export function ProductFooter() {
         </div>
       </div>
     </footer>
-  );
-}
-
-function TrustItem({
-  icon: Icon, title, desc,
-}: { icon: typeof ShieldCheck; title: string; desc: string }) {
-  return (
-    <div className="flex items-start gap-3 p-3 rounded-xl bg-muted/40 border border-border/40">
-      <div className="shrink-0 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-        <Icon className="h-4 w-4" strokeWidth={2.2} />
-      </div>
-      <div className="min-w-0">
-        <p className="text-[13px] font-bold leading-tight">{title}</p>
-        <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">{desc}</p>
-      </div>
-    </div>
   );
 }
 
@@ -207,16 +146,3 @@ function FooterLink({
   );
 }
 
-function PaymentBadge({ label, tone }: { label: string; tone?: "success" }) {
-  return (
-    <span
-      className={`inline-flex items-center h-7 px-2.5 rounded-md border text-[11px] font-bold tracking-wide ${
-        tone === "success"
-          ? "bg-success/10 text-success border-success/30"
-          : "bg-card text-foreground/70 border-border"
-      }`}
-    >
-      {label}
-    </span>
-  );
-}
