@@ -216,7 +216,50 @@ export function AdminAffiliates() {
         </Button>
       </div>
 
-      <div className="bg-card rounded-2xl border border-border overflow-hidden">
+      {/* Versão MOBILE — cards verticais. Antes a tabela com min-w-[640px]
+          forçava scroll horizontal em iPhone SE (320px). */}
+      <ul className="md:hidden space-y-2">
+        {loading && Array.from({ length: 4 }).map((_, i) => (
+          <li key={i} className="h-24 bg-muted/40 rounded-2xl animate-pulse" />
+        ))}
+        {!loading && filtered.map((r) => {
+          const meta = STATUS_LABELS[r.status] || STATUS_LABELS.pending;
+          const Icon = meta.icon;
+          return (
+            <li key={r.id} className="bg-card rounded-2xl border border-border p-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-sm truncate">{r.affiliate_name || "—"}</p>
+                  <p className="text-[11px] text-muted-foreground truncate">{r.affiliate_email}</p>
+                  {r.order_id && <p className="text-[11px] text-muted-foreground font-mono mt-0.5">#{r.order_id.slice(0, 8)}</p>}
+                </div>
+                <span className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${meta.cls}`}>
+                  <Icon className="h-2.5 w-2.5" />{meta.label}
+                </span>
+              </div>
+              <div className="mt-2 pt-2 border-t border-border/60 flex items-center justify-between gap-2">
+                <span className="font-bold text-sm tabular-nums">{formatBRL(r.amount)}</span>
+                {r.status === "released" && (
+                  <Button size="sm" variant="outline" disabled={busy === r.id} onClick={() => markPaid(r)} className="h-8 text-[11px] px-2">
+                    {busy === r.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <DollarSign className="h-3 w-3" />} Marcar paga
+                  </Button>
+                )}
+              </div>
+            </li>
+          );
+        })}
+        {!loading && filtered.length === 0 && (
+          <li className="bg-card rounded-2xl border border-border">
+            <EmptyState
+              icon={Handshake}
+              title="Nenhuma comissão encontrada"
+              description="As comissões serão listadas após pedidos com indicação de afiliado."
+            />
+          </li>
+        )}
+      </ul>
+
+      <div className="hidden md:block bg-card rounded-2xl border border-border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[640px]">
             <thead className="bg-muted/50 text-xs uppercase tracking-wide">
