@@ -119,9 +119,10 @@ export function AdminBrands() {
           const count = c.products?.[0]?.count ?? 0;
           return (
             <li key={c.id} className="flex items-center gap-2 py-2 group">
-              <div className="flex flex-col -space-y-px">
-                <button onClick={() => move(c.id, -1)} disabled={idx === 0} aria-label={`Mover ${c.name} para cima`} className="h-7 w-7 inline-flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:hover:bg-transparent"><ChevronUp className="h-4 w-4" /></button>
-                <button onClick={() => move(c.id, 1)} disabled={idx === sorted.length - 1} aria-label={`Mover ${c.name} para baixo`} className="h-7 w-7 inline-flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:hover:bg-transparent"><ChevronDown className="h-4 w-4" /></button>
+              {/* Botões de ordenação maiores (h-9 = 36px) para mobile. */}
+              <div className="flex flex-col -space-y-px shrink-0">
+                <button onClick={() => move(c.id, -1)} disabled={idx === 0} aria-label={`Mover ${c.name} para cima`} className="h-9 w-9 inline-flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:hover:bg-transparent"><ChevronUp className="h-4 w-4" /></button>
+                <button onClick={() => move(c.id, 1)} disabled={idx === sorted.length - 1} aria-label={`Mover ${c.name} para baixo`} className="h-9 w-9 inline-flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:hover:bg-transparent"><ChevronDown className="h-4 w-4" /></button>
               </div>
               <div className="flex-1 min-w-0">
                 {editingId === c.id ? (
@@ -136,14 +137,15 @@ export function AdminBrands() {
                     }}
                   />
                 ) : (
-                  <button type="button" className="text-left w-full" onClick={() => { setEditingId(c.id); setEditName(c.name); }}>
+                  <button type="button" className="text-left w-full py-1.5 min-h-[44px]" onClick={() => { setEditingId(c.id); setEditName(c.name); }}>
                     <p className="font-medium text-sm hover:text-primary transition-colors">{c.name}</p>
                     <p className="text-[11px] text-muted-foreground/70 font-mono">{c.slug}</p>
                   </button>
                 )}
               </div>
-              <span className="text-[11px] tabular-nums text-muted-foreground bg-muted/60 rounded-full px-2 py-0.5">{count} prod.</span>
-              <button onClick={() => del(c.id)} aria-label={`Remover ${c.name}`} title="Remover" className="h-8 w-8 inline-flex items-center justify-center rounded-md opacity-60 group-hover:opacity-100 hover:bg-destructive/10 text-destructive shrink-0 transition-opacity"><Trash2 className="h-4 w-4" /></button>
+              <span className="text-[11px] tabular-nums text-muted-foreground bg-muted/60 rounded-full px-2 py-0.5 shrink-0">{count} prod.</span>
+              {/* Trash 44x44 mobile, sempre visível (sem invisível no touch). */}
+              <button onClick={() => del(c.id)} aria-label={`Remover ${c.name}`} title="Remover" className="h-11 w-11 md:h-9 md:w-9 inline-flex items-center justify-center rounded-md md:opacity-60 group-hover:opacity-100 hover:bg-destructive/10 text-destructive shrink-0 transition-opacity"><Trash2 className="h-4 w-4" /></button>
             </li>
           );
         })}

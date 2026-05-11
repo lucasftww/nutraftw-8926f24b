@@ -11,6 +11,8 @@ import { Label } from "@/components/ui/label";
 import { logAdminAction } from "@/lib/auditLog";
 import { friendlyErrorMessage } from "@/lib/friendlyError";
 import { useConfirm } from "@/components/admin/ConfirmDialog";
+import { paymentLabel } from "@/lib/orderStatus";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const REFUND_REASONS: { value: string; label: string }[] = [
   { value: "customer_request", label: "Pedido do cliente" },
@@ -24,14 +26,6 @@ const REFUND_REASONS: { value: string; label: string }[] = [
 const REFUND_STATUS_LABEL: Record<string, string> = {
   pending: "Pendente", processed: "Processado", failed: "Falhou",
 };
-
-function paymentLabel(pm: string | null | undefined): string {
-  if (!pm) return "—";
-  if (pm === "pix") return "PIX";
-  if (pm === "credit_card") return "Cartão";
-  if (pm === "boleto") return "Boleto";
-  return pm;
-}
 
 /**
  * Abre uma janela com layout pronto-para-imprimir (etiqueta + declaração).
@@ -81,7 +75,14 @@ function buildShippingLabelHtml(order: any) {
 </body></html>`;
 }
 
-function buildDeclarationHtml(order: any, items: any[]) {
+interface SenderInfo {
+  brandName: string;
+  brandEmail?: string;
+  brandCnpj?: string;
+  brandAddress?: string;
+}
+
+function buildDeclarationHtml(order: any, items: any[], sender: SenderInfo) {
   const e = escapeHtml;
   const total = items.reduce((s, it) => s + Number(it.subtotal || 0), 0);
   const rows = items.map((it) => `
@@ -113,8 +114,10 @@ function buildDeclarationHtml(order: any, items: any[]) {
   <div class="grid">
     <div>
        <h3>Remetente</h3>
-       <div>Nutra</div>
-       <div>contato@nutraftw.com.br</div>
+       <div>${e(sender.brandName)}</div>
+       ${sender.brandCnpj ? `<div>CNPJ: ${e(sender.brandCnpj)}</div>` : ""}
+       ${sender.brandAddress ? `<div>${e(sender.brandAddress)}</div>` : ""}
+       ${sender.brandEmail ? `<div>${e(sender.brandEmail)}</div>` : ""}
     </div>
     <div>
       <h3>Destinatário</h3>
@@ -144,6 +147,13 @@ export function OrderDetailModal({ orderId, onClose }: { orderId: string; onClos
   const [error, setError] = useState<AdminErrorInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const { confirm } = useConfirm();
+  const settings = useSiteSettings();
+  const senderInfo: SenderInfo = {
+    brandName: settings.brand_name || "Royal Vitta",
+    brandEmail: settings.brand_email || undefined,
+    brandCnpj: settings.brand_cnpj || undefined,
+    brandAddress: settings.brand_address || undefined,
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -242,16 +252,16 @@ export function OrderDetailModal({ orderId, onClose }: { orderId: string; onClos
             <section className="grid sm:grid-cols-2 gap-4 text-sm">
               <div>
                 <h3 className="font-semibold mb-2">Cliente</h3>
-                <p>{order.shipping_full_name}</p>
-                <p className="text-muted-foreground">{order.shipping_phone}</p>
-                <p className="text-muted-foreground">CPF: {order.shipping_cpf}</p>
+                <p>{order.shipping_full_name || "—"}</p>
+                <p className="text-muted-foreground">{order.shipping_phone || "—"}</p>
+                <p className="text-muted-foreground">CPF: {order.shipping_cpf || "—"}</p>
               </div>
               <div>
                 <h3 className="font-semibold mb-2">Endereço</h3>
-                <p>{order.shipping_street}, {order.shipping_number}</p>
+                <p>{order.shipping_street || "—"}{order.shipping_number ? `, ${order.shipping_number}` : ""}</p>
                 {order.shipping_complement && <p>{order.shipping_complement}</p>}
-                <p>{order.shipping_district} — {order.shipping_city}/{order.shipping_state}</p>
-                <p className="text-muted-foreground">CEP: {order.shipping_zip}</p>
+                <p>{order.shipping_district || "—"} — {order.shipping_city || "—"}/{order.shipping_state || "—"}</p>
+                <p className="text-muted-foreground">CEP: {order.shipping_zip || "—"}</p>
               </div>
             </section>
 
@@ -260,7 +270,10 @@ export function OrderDetailModal({ orderId, onClose }: { orderId: string; onClos
               <ul className="divide-y divide-border border border-border rounded-xl overflow-hidden">
                 {items.map((it) => (
                   <li key={it.id} className="flex items-center gap-3 p-3 text-sm">
-                    <img src={it.product_image_url || "/assets/no-image.svg"} alt={it.product_name} loading="lazy" decoding="async" width={48} height={48} className="w-12 h-12 rounded object-cover bg-muted" />
+                    {/* object-contain p-1: produtos farmacêuticos têm packshots
+                        não-quadrados (caixas verticais, frascos, etc.). `cover`
+                        cortava o rótulo. `contain` preserva o produto inteiro. */}
+                    <img src={it.product_image_url || "/assets/no-image.svg"} alt={it.product_name} loading="lazy" decoding="async" width={48} height={48} className="w-12 h-12 rounded object-contain p-1 bg-white" />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium line-clamp-2 leading-snug">{it.product_name}</p>
                       <p className="text-xs text-muted-foreground">{it.quantity}x {formatBRL(it.unit_price)}</p>
@@ -287,13 +300,16 @@ export function OrderDetailModal({ orderId, onClose }: { orderId: string; onClos
                     <div className="flex justify-between"><span>Frete</span><span>{formatBRL(ship)}</span></div>
                     <div className="flex justify-between"><span>Seguro</span><span>{formatBRL(ins)}</span></div>
                     {disc > 0 && (
-                      <div className="flex justify-between text-emerald-700">
+                      /* `text-success` em vez de `text-emerald-700` hardcoded
+                         para garantir contraste correto no admin dark mode
+                         (emerald-700 sumia em fundo escuro). */
+                      <div className="flex justify-between text-success">
                         <span>Cupom{order.coupon_code ? ` (${order.coupon_code})` : ""}</span>
                         <span>− {formatBRL(disc)}</span>
                       </div>
                     )}
                     {pixDisc > 0 && (
-                      <div className="flex justify-between text-emerald-700">
+                      <div className="flex justify-between text-success">
                         <span>Desconto PIX (5%)</span>
                         <span>− {formatBRL(pixDisc)}</span>
                       </div>
@@ -337,10 +353,12 @@ export function OrderDetailModal({ orderId, onClose }: { orderId: string; onClos
                           {r.processed_at && ` · processado em ${new Date(r.processed_at).toLocaleString("pt-BR")}`}
                         </p>
                       </div>
-                      <span className={`badge-pill text-xs ${
-                        r.status === "processed" ? "bg-emerald-500/15 text-emerald-500 border border-emerald-500/30" :
-                        r.status === "failed" ? "bg-destructive/15 text-destructive border border-destructive/30" :
-                        "bg-amber-500/15 text-amber-500 border border-amber-500/30"
+                      {/* Tons -400 são mais legíveis no admin dark do que -500.
+                          Antes "emerald-500" tinha contraste limítrofe em fundo escuro. */}
+                      <span className={`badge-pill text-xs ring-1 ${
+                        r.status === "processed" ? "bg-emerald-500/15 text-emerald-400 ring-emerald-500/30" :
+                        r.status === "failed" ? "bg-destructive/15 text-destructive ring-destructive/30" :
+                        "bg-amber-500/15 text-amber-400 ring-amber-500/30"
                       }`}>{REFUND_STATUS_LABEL[r.status] ?? r.status}</span>
                       {r.status === "pending" && (
                         <>
@@ -381,7 +399,7 @@ export function OrderDetailModal({ orderId, onClose }: { orderId: string; onClos
               <Button variant="outline" onClick={() => openPrintWindow(buildShippingLabelHtml(order))}>
                 <Printer className="h-4 w-4" /> Etiqueta
               </Button>
-              <Button variant="outline" onClick={() => openPrintWindow(buildDeclarationHtml(order, items))}>
+              <Button variant="outline" onClick={() => openPrintWindow(buildDeclarationHtml(order, items, senderInfo))}>
                 <FileText className="h-4 w-4" /> Declaração
               </Button>
               <Button variant="outline" onClick={onClose}>Fechar</Button>

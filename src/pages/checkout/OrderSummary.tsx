@@ -178,8 +178,12 @@ export function OrderSummary({
       {/* Reforços de confiança discretos abaixo do CTA */}
       <div className="mt-3 space-y-2">
         {form.payment_method === "pix" && (
+          /* Bug visual: a mensagem anterior "Pedido confirmado e enviado para
+             atendimento" aparecia ANTES do clique no botão, dando impressão
+             de que o pedido já estava confirmado. Texto novo é informativo e
+             não cria falsa expectativa. */
           <p className="inline-flex w-full items-center justify-center gap-1.5 text-center text-[11px] text-success font-semibold">
-            <Check className="w-3 h-3" /> Pedido confirmado e enviado para atendimento
+            <Check className="w-3 h-3" /> PIX gerado na hora · liberação automática
           </p>
         )}
         <div className="flex items-center justify-center gap-3 text-muted-foreground/70">

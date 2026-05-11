@@ -1,18 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-
-const STATUS_COLORS: Record<string, string> = {
-  pending:    "bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/25",
-  paid:       "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/25",
-  processing: "bg-primary/15 text-primary ring-1 ring-primary/25",
-  shipped:    "bg-primary/20 text-primary ring-1 ring-primary/25",
-  delivered:  "bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/30",
-  cancelled:  "bg-destructive/15 text-destructive ring-1 ring-destructive/25",
-  refunded:   "bg-muted text-muted-foreground ring-1 ring-border",
-};
-const STATUS_PT: Record<string, string> = {
-  pending: "Pendente", paid: "Pago", processing: "Processando",
-  shipped: "Enviado", delivered: "Entregue", cancelled: "Cancelado", refunded: "Estornado",
-};
+import { ADMIN_STATUS_COLORS as STATUS_COLORS, STATUS_PT } from "@/lib/orderStatus";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { Package, ShoppingBag, DollarSign, Users, TrendingUp, Clock, Receipt, Boxes, Sparkles, Eye, Heart, ShoppingCart, CreditCard, CheckCircle2, Zap } from "lucide-react";
@@ -336,14 +323,10 @@ function Last24hPanel({ data }: { data: Last24h }) {
                 </div>
                 <div className="text-right shrink-0">
                   <p className="font-bold tabular-nums">{formatBRL(o.total)}</p>
-                  <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full mt-0.5 ring-1 ${
-                    ["paid","processing","shipped","delivered"].includes(o.status)
-                      ? "bg-emerald-500/15 text-emerald-400 ring-emerald-500/25"
-                      : o.status === "pending"
-                      ? "bg-amber-500/15 text-amber-400 ring-amber-500/25"
-                      : "bg-muted text-muted-foreground ring-border"
-                  }`}>
-                    {o.status}
+                  {/* Reusa a paleta admin centralizada — antes tinha um mapeamento
+                      próprio (não-DRY) que mostrava status raw em inglês. */}
+                  <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full mt-0.5 font-semibold ${STATUS_COLORS[o.status as keyof typeof STATUS_COLORS] ?? "bg-muted text-muted-foreground ring-1 ring-border"}`}>
+                    {STATUS_PT[o.status as keyof typeof STATUS_PT] ?? o.status}
                   </span>
                 </div>
               </li>

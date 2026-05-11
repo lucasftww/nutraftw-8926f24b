@@ -10,24 +10,15 @@ import { useConfirm } from "@/components/admin/ConfirmDialog";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 import { friendlyErrorMessage } from "@/lib/friendlyError";
+import {
+  ORDER_STATUSES,
+  STATUS_PT,
+  ADMIN_STATUS_COLORS,
+  paymentLabel,
+} from "@/lib/orderStatus";
 
-const STATUSES = ["pending", "paid", "processing", "shipped", "delivered", "cancelled", "refunded"];
-function paymentLabel(pm: string | null | undefined): string {
-  if (!pm) return "—";
-  if (pm === "pix") return "PIX";
-  if (pm === "credit_card") return "Cartão";
-  if (pm === "boleto") return "Boleto";
-  return pm;
-}
-const STATUS_COLORS: Record<string, string> = {
-  pending:    "bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/25",
-  paid:       "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/25",
-  processing: "bg-primary/15 text-primary ring-1 ring-primary/25",
-  shipped:    "bg-primary/20 text-primary ring-1 ring-primary/25",
-  delivered:  "bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/30",
-  cancelled:  "bg-destructive/15 text-destructive ring-1 ring-destructive/25",
-  refunded:   "bg-muted text-muted-foreground ring-1 ring-border",
-};
+// Alias local mantido por compat — referencia o array exportado.
+const STATUSES = ORDER_STATUSES;
 
 export function AdminOrders() {
   const [items, setItems] = useState<any[]>([]);
@@ -154,8 +145,9 @@ export function AdminOrders() {
       return;
     }
     const isDestructive = status === "cancelled" || status === "refunded";
+    const statusPt = STATUS_PT[status as keyof typeof STATUS_PT] ?? status;
     const ok = await confirm({
-      title: `Marcar ${scopedIds.length} pedido${scopedIds.length === 1 ? "" : "s"} como "${status}"?`,
+      title: `Marcar ${scopedIds.length} pedido${scopedIds.length === 1 ? "" : "s"} como "${statusPt}"?`,
       description: isDestructive
         ? "Esta ação cancelará/reembolsará vários pedidos de uma vez."
         : "Os pedidos selecionados terão o estado atualizado.",
@@ -271,8 +263,8 @@ export function AdminOrders() {
         </div>
         <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 items-center">
           <select className="h-11 rounded-xl border border-input bg-background px-3 text-sm min-w-0" value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="Filtrar por estado">
-            <option value="all">Todos estados</option>
-            {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+            <option value="all">Todos os status</option>
+            {STATUSES.map((s) => <option key={s} value={s}>{STATUS_PT[s]}</option>)}
           </select>
           <select className="h-11 rounded-xl border border-input bg-background px-3 text-sm min-w-0" value={paymentFilter} onChange={(e) => setPaymentFilter(e.target.value)} aria-label="Filtrar por pagamento">
             <option value="all">Todos pagamentos</option>
@@ -297,7 +289,7 @@ export function AdminOrders() {
           <div className="flex items-center gap-2 flex-wrap">
             <select disabled={bulkBusy} onChange={(e) => { if (e.target.value) { bulkSetStatus(e.target.value); e.currentTarget.selectedIndex = 0; } }} className="h-9 rounded-lg border border-input bg-background px-2 text-xs">
               <option value="">Alterar status para…</option>
-              {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+              {STATUSES.map((s) => <option key={s} value={s}>{STATUS_PT[s]}</option>)}
             </select>
             <Button variant="outline" size="sm" onClick={() => setSelected(new Set())}>Limpar</Button>
           </div>
@@ -316,7 +308,7 @@ export function AdminOrders() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</span>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${STATUS_COLORS[o.status] || "bg-muted text-muted-foreground"}`}>{o.status}</span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${ADMIN_STATUS_COLORS[o.status as keyof typeof ADMIN_STATUS_COLORS] || "bg-muted text-muted-foreground"}`}>{STATUS_PT[o.status as keyof typeof STATUS_PT] ?? o.status}</span>
                 </div>
                 <p className="font-semibold text-sm leading-tight truncate mt-1">{o.shipping_full_name || "—"}</p>
                 <div className="flex items-center justify-between mt-1.5">
@@ -379,12 +371,12 @@ export function AdminOrders() {
                 <td className="px-4 py-3 text-right font-semibold">{formatBRL(o.total)}</td>
                 <td className="px-4 py-3">
                   <select
-                    className={`h-8 rounded-lg border-0 px-2 text-xs font-semibold ${STATUS_COLORS[o.status] || "bg-muted"}`}
+                    className={`h-8 rounded-lg border-0 px-2 text-xs font-semibold ${ADMIN_STATUS_COLORS[o.status as keyof typeof ADMIN_STATUS_COLORS] || "bg-muted"}`}
                     value={o.status}
                     onChange={(e) => setStatus(o.id, e.target.value)}
                   >
                     {STATUSES.map((s) => (
-                      <option key={s} value={s} style={{ background: "hsl(var(--card))", color: "hsl(var(--foreground))" }}>{s}</option>
+                      <option key={s} value={s} style={{ background: "hsl(var(--card))", color: "hsl(var(--foreground))" }}>{STATUS_PT[s]}</option>
                     ))}
                   </select>
                 </td>

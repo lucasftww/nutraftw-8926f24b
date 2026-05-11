@@ -207,9 +207,26 @@ export function AdminPromotions() {
   }
 
   if (loading) {
+    // Skeleton padronizado — antes era texto + spinner simples (inconsistente
+    // com outras telas do admin que usam skeleton-cards animados).
     return (
-      <div className="flex items-center justify-center py-20 text-muted-foreground">
-        <Loader2 className="h-5 w-5 animate-spin mr-2" /> Carregando produtos…
+      <div className="space-y-4">
+        <div className="h-10 rounded-2xl bg-muted/50 animate-pulse" />
+        <div className="grid lg:grid-cols-2 gap-4">
+          <div className="bg-card rounded-2xl border border-border p-4 space-y-2">
+            <div className="h-5 w-1/3 bg-muted/50 rounded animate-pulse mb-3" />
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="h-14 bg-muted/40 rounded-xl animate-pulse" />
+            ))}
+          </div>
+          <div className="bg-card rounded-2xl border border-border p-4 space-y-2">
+            <div className="h-5 w-1/3 bg-muted/50 rounded animate-pulse mb-3" />
+            <div className="h-10 bg-muted/40 rounded-xl animate-pulse mb-2" />
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="h-14 bg-muted/40 rounded-xl animate-pulse" />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -283,9 +300,11 @@ export function AdminPromotions() {
                         )}
                       </p>
                     </div>
+                    {/* Botões SEMPRE visíveis em mobile (não existe hover em touch).
+                        No desktop, fade-in no hover do <li> para visual mais limpo. */}
                     <button
                       onClick={() => openHistory(p)}
-                      className="p-1.5 rounded-lg hover:bg-primary/10 text-primary transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100"
+                      className="p-2 rounded-lg hover:bg-primary/10 text-primary transition-opacity md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100 md:focus-visible:opacity-100"
                       title="Ver histórico de promoções"
                       aria-label="Histórico"
                     >
@@ -293,7 +312,7 @@ export function AdminPromotions() {
                     </button>
                     <button
                       onClick={() => removeFromPromo(p)}
-                      className="p-1.5 rounded-lg hover:bg-destructive/15 text-destructive transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100"
+                      className="p-2 rounded-lg hover:bg-destructive/15 text-destructive transition-opacity md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100 md:focus-visible:opacity-100"
                       title="Remover da promoção"
                       aria-label="Remover"
                     >
@@ -315,14 +334,18 @@ export function AdminPromotions() {
           </div>
           <div className="relative mb-3">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            {/* h-11 (44px) — WCAG tap target. Antes h-10. text-base mobile
+                evita zoom indesejado em iOS Safari ao focar. */}
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar produto…"
-              className="w-full h-10 pl-9 pr-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:border-primary"
+              className="w-full h-11 pl-9 pr-3 rounded-xl border border-border bg-background text-base sm:text-sm focus:outline-none focus:border-primary"
             />
           </div>
-          <ul className="space-y-2 max-h-[600px] overflow-y-auto pr-1 scrollbar-thin">
+          {/* max-h menor em mobile: 600px ocupa quase tela inteira do iPhone SE.
+              Em md+ mantém 600px para aproveitar viewport horizontal/2-col. */}
+          <ul className="space-y-2 max-h-[420px] md:max-h-[600px] overflow-y-auto pr-1 scrollbar-thin">
             {filteredAvailable.map((p) => (
               <li
                 key={p.id}

@@ -9,14 +9,32 @@ import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/compo
 import { logAdminAction } from "@/lib/auditLog";
 import { friendlyErrorMessage } from "@/lib/friendlyError";
 
-const FIELDS: { key: string; label: string; type: "text" | "textarea" | "toggle" | "number"; help?: string }[] = [
-  { key: "checkout_enable_pix", label: "Aceitar PIX no checkout", type: "toggle" },
-  { key: "checkout_enable_card", label: "Aceitar cartão de crédito", type: "toggle" },
-  { key: "insurance_optional", label: "Seguro de envio é opcional (cliente escolhe)", type: "toggle", help: "Se desligado, o seguro de 10% é cobrado sempre." },
-  { key: "whatsapp_number", label: "WhatsApp (com DDI, só números)", type: "text", help: "Ex.: 5511999999999" },
-  { key: "whatsapp_message", label: "Mensagem padrão WhatsApp", type: "text" },
-  { key: "badge_new_days", label: "Marcar produto como LANÇAMENTO até (dias)", type: "number" },
+type FieldGroup = "brand" | "checkout" | "support" | "catalog";
+
+const FIELDS: { key: string; label: string; type: "text" | "textarea" | "toggle" | "number"; help?: string; group: FieldGroup }[] = [
+  // === Identidade da marca (aparece no footer, declarações de envio, e-mails) ===
+  { key: "brand_name",     label: "Nome da marca",                    type: "text",     group: "brand", help: "Aparece no footer, declarações de envio e e-mails de pedido." },
+  { key: "brand_cnpj",     label: "CNPJ",                             type: "text",     group: "brand", help: "Exigido pelo CDC — exibido no rodapé." },
+  { key: "brand_email",    label: "E-mail de contato",                type: "text",     group: "brand", help: "Aparece na declaração de envio. Ex.: contato@minhaloja.com.br" },
+  { key: "brand_address",  label: "Endereço completo",                type: "textarea", group: "brand", help: "Rua, número, bairro, cidade/UF, CEP." },
+  { key: "business_hours", label: "Horário de atendimento",           type: "text",     group: "brand", help: "Ex.: Seg–Sex 9h às 18h. Aparece no footer." },
+  // === Checkout ===
+  { key: "checkout_enable_pix",  label: "Aceitar PIX no checkout",       type: "toggle",  group: "checkout" },
+  { key: "checkout_enable_card", label: "Aceitar cartão de crédito",     type: "toggle",  group: "checkout" },
+  { key: "insurance_optional",   label: "Seguro de envio é opcional",    type: "toggle",  group: "checkout", help: "Se desligado, o seguro de 10% é cobrado sempre." },
+  // === Suporte ===
+  { key: "whatsapp_number",  label: "WhatsApp (com DDI, só números)", type: "text",     group: "support", help: "Ex.: 5511999999999" },
+  { key: "whatsapp_message", label: "Mensagem padrão WhatsApp",       type: "text",     group: "support" },
+  // === Catálogo ===
+  { key: "badge_new_days",   label: "Marcar produto como LANÇAMENTO até (dias)", type: "number", group: "catalog" },
 ];
+
+const GROUP_LABELS: Record<FieldGroup, string> = {
+  brand: "Identidade da marca",
+  checkout: "Checkout",
+  support: "Suporte ao cliente",
+  catalog: "Catálogo",
+};
 
 export function AdminSettings() {
   const [values, setValues] = useState<Record<string, string>>({});
@@ -84,50 +102,66 @@ export function AdminSettings() {
     </div>
   );
 
+  // Agrupa campos por seção para facilitar leitura do admin (antes era
+  // uma lista plana de 5 itens; agora são ~10 campos, precisa de seções).
+  const groupedFields = (Object.keys(GROUP_LABELS) as FieldGroup[]).map((g) => ({
+    group: g,
+    label: GROUP_LABELS[g],
+    fields: FIELDS.filter((f) => f.group === g),
+  }));
+
   return (
-    <div className="bg-card rounded-2xl border border-border p-6 max-w-2xl space-y-5">
-      <div>
+    <div className="bg-card rounded-2xl border border-border p-4 sm:p-6 max-w-2xl">
+      <div className="mb-5 pb-4 border-b border-border">
         <h2 className="font-bold text-lg">Configurações do site</h2>
-        <p className="text-xs text-muted-foreground">Mudanças se aplicam imediatamente para todos os clientes.</p>
+        <p className="text-xs text-muted-foreground mt-0.5">Mudanças se aplicam imediatamente para todos os clientes.</p>
       </div>
-      {FIELDS.map((f) => (
-        <div key={f.key} className="space-y-2">
-          {f.type === "toggle" ? (
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                className="mt-1"
-                checked={values[f.key] === "1"}
-                onChange={(e) => setValues({ ...values, [f.key]: e.target.checked ? "1" : "0" })}
-              />
-              <div>
-                <span className="font-medium text-sm">{f.label}</span>
-                {f.help && <p className="text-xs text-muted-foreground">{f.help}</p>}
+      <div className="space-y-8">
+        {groupedFields.map((g) => (
+          <section key={g.group} className="space-y-4">
+            <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary/80">{g.label}</h3>
+            {g.fields.map((f) => (
+              <div key={f.key} className="space-y-2">
+                {f.type === "toggle" ? (
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="mt-1 h-4 w-4 shrink-0"
+                      checked={values[f.key] === "1"}
+                      onChange={(e) => setValues({ ...values, [f.key]: e.target.checked ? "1" : "0" })}
+                    />
+                    <div className="min-w-0">
+                      <span className="font-medium text-sm">{f.label}</span>
+                      {f.help && <p className="text-xs text-muted-foreground mt-0.5">{f.help}</p>}
+                    </div>
+                  </label>
+                ) : f.type === "textarea" ? (
+                  <>
+                    <Label>{f.label}</Label>
+                    <textarea
+                      className="w-full min-h-[80px] rounded-xl border border-input bg-background p-3 text-sm focus:outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/15 transition-all scrollbar-thin"
+                      value={values[f.key] || ""}
+                      onChange={(e) => setValues({ ...values, [f.key]: e.target.value })}
+                    />
+                    {f.help && <p className="text-xs text-muted-foreground">{f.help}</p>}
+                  </>
+                ) : (
+                  <>
+                    <Label>{f.label}</Label>
+                    <Input
+                      type={f.type === "number" ? "number" : "text"}
+                      value={values[f.key] || ""}
+                      onChange={(e) => setValues({ ...values, [f.key]: e.target.value })}
+                    />
+                    {f.help && <p className="text-xs text-muted-foreground">{f.help}</p>}
+                  </>
+                )}
               </div>
-            </label>
-          ) : f.type === "textarea" ? (
-            <>
-              <Label>{f.label}</Label>
-              <textarea
-                className="w-full min-h-[80px] rounded-xl border border-input bg-background p-3 text-sm"
-                value={values[f.key] || ""}
-                onChange={(e) => setValues({ ...values, [f.key]: e.target.value })}
-              />
-            </>
-          ) : (
-            <>
-              <Label>{f.label}</Label>
-              <Input
-                type={f.type === "number" ? "number" : "text"}
-                value={values[f.key] || ""}
-                onChange={(e) => setValues({ ...values, [f.key]: e.target.value })}
-              />
-              {f.help && <p className="text-xs text-muted-foreground">{f.help}</p>}
-            </>
-          )}
-        </div>
-      ))}
-      <div className="pt-4 border-t border-border">
+            ))}
+          </section>
+        ))}
+      </div>
+      <div className="pt-5 mt-6 border-t border-border">
         <Button onClick={save} disabled={saving}>{saving ? "Salvando…" : "Salvar configurações"}</Button>
       </div>
     </div>

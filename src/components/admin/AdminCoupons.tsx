@@ -18,6 +18,7 @@ import { Ticket } from "lucide-react";
 export function AdminCoupons() {
   const [items, setItems] = useState<any[]>([]);
   const [editing, setEditing] = useState<any | null>(null);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<AdminErrorInfo | null>(null);
   const qc = useQueryClient();
   const { confirm } = useConfirm();
@@ -46,6 +47,10 @@ export function AdminCoupons() {
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
+    // Guard contra duplo submit — antes era possível clicar 2x e tentar criar
+    // 2 cupons com mesmo código (unique constraint falha no 2º, mas o usuário
+    // via toast de erro confuso).
+    if (saving) return;
     const f = editing;
     const dt = (f.discount_type || "percent");
     const dv = Number(f.discount_value) || 0;
@@ -65,9 +70,11 @@ export function AdminCoupons() {
       expires_at: f.expires_at ? new Date(f.expires_at).toISOString() : null,
     };
     const before = f.id ? items.find((c) => c.id === f.id) : null;
+    setSaving(true);
     const { data, error } = f.id
       ? await supabase.from("coupons" as any).update(payload).eq("id", f.id).select().maybeSingle()
       : await supabase.from("coupons" as any).insert(payload).select().maybeSingle();
+    setSaving(false);
     if (error) {
       logSupabaseError("Guardar cupom", error, { id: f.id, code: payload.code });
       toast.error(friendlyErrorMessage(error));
@@ -121,15 +128,58 @@ export function AdminCoupons() {
         <p className="text-sm text-muted-foreground">Crie códigos de desconto que os clientes aplicam no checkout.</p>
         <Button onClick={() => setEditing({ active: true, discount_type: "percent" })}><Plus className="h-4 w-4" /> Novo cupom</Button>
       </div>
-      <div className="bg-card rounded-2xl border border-border overflow-hidden">
+      {/* Versão MOBILE — cards. Antes a tabela com min-w-[640px] forçava
+          scroll horizontal em iPhone SE (320px). Cards mostram tudo verticalmente. */}
+      <ul className="md:hidden space-y-2">
+        {items.map((c) => (
+          <li key={c.id} className="bg-card rounded-2xl border border-border p-3">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <p className="font-mono font-bold text-sm">{c.code}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {c.discount_type === "percent" ? `${c.discount_value}% OFF` : `R$ ${Number(c.discount_value).toFixed(2)} OFF`}
+                  {Number(c.min_subtotal) > 0 && ` · mín. R$ ${Number(c.min_subtotal).toFixed(2)}`}
+                </p>
+                <p className="text-[11px] text-muted-foreground/80 mt-0.5">
+                  {c.uses} usos{c.max_uses ? ` / ${c.max_uses}` : ""}
+                </p>
+              </div>
+              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 ${c.active ? "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/25" : "bg-muted text-muted-foreground"}`}>
+                {c.active ? "Ativo" : "Inativo"}
+              </span>
+            </div>
+            <div className="mt-2.5 pt-2.5 border-t border-border/60 flex items-center justify-end gap-1">
+              <button onClick={() => setEditing(c)} aria-label="Editar cupom" className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg hover:bg-muted text-xs"><Pencil className="h-3.5 w-3.5" /> Editar</button>
+              <button onClick={() => del(c.id)} aria-label="Remover cupom" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="h-4 w-4" /></button>
+            </div>
+          </li>
+        ))}
+        {items.length === 0 && (
+          <li className="bg-card rounded-2xl border border-border">
+            <EmptyState
+              icon={Ticket}
+              title="Nenhum cupom cadastrado"
+              description="Crie cupons para campanhas, afiliados ou recuperação de carrinho."
+              action={
+                <Button onClick={() => setEditing({ active: true, discount_type: "percent" })}>
+                  <Plus className="h-4 w-4" /> Criar primeiro cupom
+                </Button>
+              }
+            />
+          </li>
+        )}
+      </ul>
+
+      {/* Versão DESKTOP — tabela */}
+      <div className="hidden md:block bg-card rounded-2xl border border-border overflow-hidden">
         <div className="overflow-x-auto">
         <table className="w-full text-sm min-w-[640px]">
           <thead className="bg-muted/50 text-xs uppercase tracking-wide">
             <tr>
               <th className="text-left px-4 py-3">Código</th>
               <th className="text-left px-4 py-3">Desconto</th>
-              <th className="text-left px-4 py-3 hidden md:table-cell">Mín. compra</th>
-              <th className="text-left px-4 py-3 hidden md:table-cell">Usos</th>
+              <th className="text-left px-4 py-3">Mín. compra</th>
+              <th className="text-left px-4 py-3">Usos</th>
               <th className="text-left px-4 py-3">Estado</th>
               <th className="px-4 py-3"></th>
             </tr>
@@ -141,8 +191,8 @@ export function AdminCoupons() {
                 <td className="px-4 py-3">
                   {c.discount_type === "percent" ? `${c.discount_value}%` : `R$ ${Number(c.discount_value).toFixed(2)}`}
                 </td>
-                <td className="px-4 py-3 hidden md:table-cell text-muted-foreground">R$ {Number(c.min_subtotal).toFixed(2)}</td>
-                <td className="px-4 py-3 hidden md:table-cell text-muted-foreground">{c.uses}{c.max_uses ? ` / ${c.max_uses}` : ""}</td>
+                <td className="px-4 py-3 text-muted-foreground">R$ {Number(c.min_subtotal).toFixed(2)}</td>
+                <td className="px-4 py-3 text-muted-foreground">{c.uses}{c.max_uses ? ` / ${c.max_uses}` : ""}</td>
                 <td className="px-4 py-3">
                   <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${c.active ? "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/25" : "bg-muted text-muted-foreground"}`}>
                     {c.active ? "Ativo" : "Inativo"}
@@ -204,8 +254,8 @@ export function AdminCoupons() {
               <label className="flex items-center gap-2 text-sm sm:pt-7"><input type="checkbox" checked={editing.active !== false} onChange={(e) => setEditing({ ...editing, active: e.target.checked })} /> Ativo</label>
             </div>
             <div className="flex justify-end gap-2 pt-4 border-t border-border">
-              <Button type="button" variant="outline" onClick={() => setEditing(null)}>Cancelar</Button>
-              <Button type="submit">Salvar</Button>
+              <Button type="button" variant="outline" disabled={saving} onClick={() => setEditing(null)}>Cancelar</Button>
+              <Button type="submit" disabled={saving}>{saving ? "Salvando…" : "Salvar"}</Button>
             </div>
           </form>
         )}

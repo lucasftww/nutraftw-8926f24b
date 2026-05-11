@@ -10,6 +10,7 @@ import { Plus, Trash2, Pencil, Search, Package, Download, Check, Copy, GripVerti
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { AdminModal } from "@/components/admin/AdminModal";
 import { useConfirm } from "@/components/admin/ConfirmDialog";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { ProductThumb } from "@/components/admin/ProductThumb";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { queryKeys } from "@/lib/queryKeys";
@@ -97,6 +98,8 @@ function ProductTableRow({ p, sortable, selected, toggleSel, setEditing, duplica
 }
 
 export function AdminProducts() {
+  const settings = useSiteSettings();
+  const brandName = settings.brand_name || "Royal Vitta";
   const [items, setItems] = useState<any[]>([]);
   const [cats, setCats] = useState<any[]>([]);
   const [brands, setBrands] = useState<any[]>([]);
@@ -779,7 +782,7 @@ export function AdminProducts() {
                 <Input
                   maxLength={70}
                   value={editing.meta_title || ""}
-                   placeholder={editing.name ? `${editing.name} | Nutra` : "Use o nome do produto se vazio"}
+                  placeholder={editing.name ? `${editing.name} | ${brandName}` : "Use o nome do produto se vazio"}
                   onChange={(e) => setEditing({ ...editing, meta_title: e.target.value })}
                 />
                 <p className="text-[11px] text-muted-foreground">{(editing.meta_title || "").length}/60</p>
