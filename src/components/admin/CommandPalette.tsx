@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, Package, ShoppingBag, ArrowRight, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
+import { STATUS_PT } from "@/lib/orderStatus";
 
 /**
  * Paleta de comandos global do admin (Cmd/Ctrl+K).
@@ -163,7 +164,8 @@ export function CommandPalette({
       list.push({
         id: `ord:${o.id}`,
         label: `#${o.id.slice(0, 8)} · ${o.shipping_full_name || "—"}`,
-        hint: `${formatBRL(o.total)} · ${o.status}`,
+        // Status traduzido PT-BR (antes mostrava "shipped"/"paid" em inglês).
+        hint: `${formatBRL(o.total)} · ${STATUS_PT[o.status as keyof typeof STATUS_PT] ?? o.status}`,
         group: "Pedidos",
         icon: ShoppingBag,
         run: () => { onOpenOrder(o.id); onClose(); },

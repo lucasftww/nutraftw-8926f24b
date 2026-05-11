@@ -93,7 +93,7 @@ export default function Wishlist() {
       </header>
 
       {loading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5" aria-busy="true" aria-label="Carregando favoritos">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5" aria-busy="true" aria-label="Carregando favoritos">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="rounded-2xl bg-card overflow-hidden border border-border/40">
               <div className="aspect-square skeleton-shimmer" />
@@ -120,12 +120,13 @@ export default function Wishlist() {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
-          {items.map((p, idx) => {
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
+          {items.map((p) => {
             const sale = p.sale_price != null ? Number(p.sale_price) : 0;
             const price = Number(p.price);
             const hasSale = sale > 0 && sale < price;
             const final = hasSale ? sale : price;
+            const pixPrice = final * 0.95;
             const isOut = (p.stock ?? 0) <= 0;
             const r = responsiveImage(p.image_url, "(max-width: 640px) 50vw, 25vw", { fallbackWidth: 400 });
             return (
@@ -133,33 +134,68 @@ export default function Wishlist() {
                 key={p.id}
                 className={`group flex flex-col h-full rounded-2xl bg-card overflow-hidden border border-border/50 ${isOut ? "opacity-70" : ""}`}
               >
-                <Link to={`/produto/${p.slug}`} className="relative aspect-square overflow-hidden bg-white block">
-                  <img src={r.src} srcSet={r.srcSet || undefined} sizes={r.sizes} alt={p.name} loading="lazy" decoding="async" width={400} height={400} className="w-full h-full object-cover" />
-                  <WishlistButton productId={p.id} className="absolute top-2 right-2" size="sm" />
+                {/* p-5 sm:p-6 + object-contain — packshots farmacêuticos (caixas
+                    verticais, frascos) ficavam cortados com object-cover. Mesma
+                    convenção usada nos cards do Catalog. */}
+                <Link to={`/produto/${p.slug}`} className="relative aspect-square overflow-hidden bg-white p-5 sm:p-6 flex items-center justify-center">
+                  <img
+                    src={r.src}
+                    srcSet={r.srcSet || undefined}
+                    sizes={r.sizes}
+                    alt={p.name}
+                    loading="lazy"
+                    decoding="async"
+                    width={400}
+                    height={400}
+                    className="max-w-[85%] max-h-[85%] w-auto h-auto object-contain mx-auto transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <WishlistButton productId={p.id} className="absolute top-2.5 right-2.5 z-[1] bg-white/90 hover:bg-white shadow-sm rounded-full" size="sm" />
                   {isOut && (
-                    <span className="badge-pill absolute top-2 left-2 uppercase tracking-wide font-bold bg-foreground/85 text-background">
+                    <span className="badge-pill absolute top-2.5 left-2.5 uppercase tracking-wide font-bold bg-foreground/85 text-background">
                       Esgotado
                     </span>
                   )}
                   {hasSale && !isOut && (
-                    <span className="badge-pill absolute top-2 left-2 uppercase tracking-wide font-bold bg-destructive text-destructive-foreground">
+                    <span className="badge-pill absolute top-2.5 left-2.5 uppercase tracking-wide font-bold bg-secondary text-secondary-foreground">
                       −{Math.round((1 - sale / price) * 100)}%
                     </span>
                   )}
                 </Link>
-                <div className="pt-3 pb-3 px-2.5 flex-1 flex flex-col">
-                  <Link to={`/produto/${p.slug}`} className="font-medium text-[13px] sm:text-sm leading-snug line-clamp-2 min-h-[2.4rem] text-foreground hover:text-primary">{p.name}</Link>
-                  <div className="mt-2 flex flex-col gap-0.5">
-                    {hasSale && <span className="text-caption text-muted-foreground line-through tabular-nums">de {formatBRL(price)}</span>}
-                    <span className="text-base md:text-lg font-extrabold text-primary tabular-nums">{formatBRL(final)}</span>
+                <div className="flex flex-col flex-1 px-3 pt-2 pb-3 sm:px-3.5 sm:pt-3 sm:pb-4">
+                  <Link
+                    to={`/produto/${p.slug}`}
+                    className="font-semibold text-[13px] sm:text-[14px] leading-snug text-foreground line-clamp-2 min-h-[2.8em] hover:text-primary"
+                  >
+                    {p.name}
+                  </Link>
+                  {/* Hierarquia consistente com Catalog: PIX é o preço-âncora
+                      (verde, dominante); preço normal vira referência. */}
+                  <div className="mt-auto pt-2 leading-tight">
+                    {hasSale && (
+                      <div className="text-[11px] sm:text-[12px] text-oldPrice font-medium line-through tabular-nums opacity-80">
+                        {formatBRL(price)}
+                      </div>
+                    )}
+                    <div className="flex items-baseline gap-1.5 mt-0.5">
+                      <span className="text-[17px] sm:text-[20px] font-extrabold text-success tabular-nums tracking-tight leading-none">
+                        {formatBRL(pixPrice)}
+                      </span>
+                      <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-success/80 leading-none whitespace-nowrap">
+                        no PIX
+                      </span>
+                    </div>
+                    <div className="text-[11px] sm:text-[12px] text-muted-foreground tabular-nums leading-tight mt-0.5">
+                      ou {formatBRL(final)}
+                    </div>
                   </div>
+                  {/* CTA h-11 (44px WCAG) — antes era h-10 (40px). */}
                   <button
                     onClick={() => { if (isOut) return; add({ product_id: p.id, slug: p.slug, name: p.name, price: final, image_url: p.image_url }); openCart(); }}
                     disabled={isOut}
                     aria-label={isOut ? `${p.name} esgotado` : `Adicionar ${p.name} ao carrinho`}
-                    className="mt-2.5 inline-flex items-center justify-center gap-1.5 font-bold bg-secondary text-secondary-foreground hover:bg-secondary/90 active:scale-[0.98] transition-all rounded-full w-full text-xs h-10 disabled:opacity-40 disabled:bg-muted disabled:text-muted-foreground"
+                    className="mt-3 btn-cta h-11 w-full !text-[13.5px] !gap-1.5 !px-0 disabled:opacity-40 disabled:!bg-muted disabled:!text-muted-foreground"
                   >
-                    {isOut ? "Indisponível" : (<><ShoppingCart className="h-3.5 w-3.5" />Adicionar</>)}
+                    {isOut ? "Indisponível" : (<><ShoppingCart className="h-4 w-4" strokeWidth={2.2} />Comprar</>)}
                   </button>
                 </div>
               </div>

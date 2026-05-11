@@ -6,7 +6,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { responsiveImage, imageUrl } from "@/lib/image";
 import { prefetchImage, shouldPrefetch } from "@/lib/prefetch";
 import { WishlistButton } from "@/components/wishlist/WishlistButton";
-import { Search, SlidersHorizontal, X, ArrowUpDown, ShoppingCart } from "lucide-react";
+import { Search, SlidersHorizontal, X, ArrowUpDown, ShoppingCart, Check, Tag, Award, Filter } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { SORT_KEYS, SORT_LABELS, type SortKey, getProductPricing, isTirzepatidaCategory, productScore } from "@/lib/catalog";
 import { useCart } from "@/hooks/useCart";
@@ -566,215 +566,374 @@ export default function Catalog() {
         </div>
       </section>
 
-      {/* Filters drawer (mobile + desktop) */}
+      {/* ============================================================
+          FILTERS DRAWER — redesenho clean & profissional
+          ============================================================
+          Hierarquia visual nova:
+          1. Header com ícone, contador de ativos, fechar
+          2. Chips de filtros ATIVOS (removíveis) — só aparece se houver
+          3. Seções com header rico (ícone + título uppercase + contador local)
+          4. CTA contextual "Ver N produtos" (substitui o "Aplicar" que
+             era enganoso — atualização já é live)
+          5. Link "Limpar tudo" subtle como secundário
+       */}
       {filtersOpen && (
         <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Filtros do catálogo">
           <div
-            className="absolute inset-0 bg-foreground/50 backdrop-blur-[2px] animate-in fade-in"
+            className="absolute inset-0 bg-foreground/55 backdrop-blur-[3px] animate-in fade-in duration-200"
             onClick={() => setFiltersOpen(false)}
           />
-          <aside style={{ fontFamily: "'Poppins', system-ui, sans-serif" }} className="absolute right-0 top-0 h-full w-full sm:w-[420px] bg-white flex flex-col animate-in slide-in-from-right duration-200 border-l border-border/60">
-            {/* Header do drawer — padding reduzido em mobile pequeno:
-                px-5 (20px) em <sm, px-7 (28px) em sm+ para preservar respiro
-                em iPhone SE (320px) sem apertar o conteúdo. */}
-            <div className="flex items-start justify-between px-5 sm:px-7 pt-6 sm:pt-7 pb-4 sm:pb-5 border-b border-border/60">
-              <div>
-                <h2 className="text-[22px] font-semibold text-foreground tracking-tight leading-none mb-1.5">
-                  Filtros
-                </h2>
-                <p className="text-[13px] text-muted-foreground/80 leading-snug">
-                  Refine sua busca usando os filtros abaixo
-                </p>
-              </div>
-              {/* Botão fechar: h-11 w-11 (44x44) WCAG tap target.
-                  Antes era h-9 w-9 (36x36) — 8px abaixo do mínimo. */}
-              <button
-                onClick={() => setFiltersOpen(false)}
-                className="h-11 w-11 -mr-2 -mt-2 inline-flex items-center justify-center rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Fechar filtros"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+          <aside className="absolute right-0 top-0 h-full w-full sm:w-[440px] bg-background flex flex-col animate-in slide-in-from-right duration-300 shadow-2xl">
+            {(() => {
+              const activeFilterCount =
+                selectedCats.size +
+                selectedBrands.size +
+                (sort !== "categoria" ? 1 : 0);
 
-            <div className="flex-1 overflow-y-auto px-5 sm:px-7 py-6 scrollbar-thin space-y-7">
-              {/* Ordenar */}
-              <section>
-                <h3 className="text-[13px] font-semibold text-foreground mb-2.5">Ordenar</h3>
-                <div className="flex flex-wrap gap-1.5">
-                  {SORT_KEYS.map((k) => {
-                    const active = sort === k;
-                    return (
-                      <button
-                        key={k}
-                        type="button"
-                        onClick={() => setSort(k)}
-                        aria-pressed={active}
-                        className={`inline-flex items-center h-8 px-3 rounded-md text-[12.5px] transition-colors ${
-                          active
-                            ? "bg-foreground text-background"
-                            : "bg-white text-muted-foreground border border-border/70 hover:border-foreground/40 hover:text-foreground"
-                        }`}
-                      >
-                        {SORT_LABELS[k]}
-                      </button>
-                    );
-                  })}
-                </div>
-              </section>
+              // Limpar TODOS os filtros (não toca em ?q porque busca é fora do drawer)
+              const clearAll = () => {
+                setSelectedCats(new Set());
+                setSelectedBrands(new Set());
+                setSearchParams((curr) => {
+                  const params = new URLSearchParams(curr);
+                  params.delete("marca");
+                  params.delete("categoria");
+                  params.delete("ordenar");
+                  return params;
+                }, { replace: true });
+              };
 
-              {/* Categorias */}
-              <section>
-                <div className="flex items-center justify-between mb-2.5">
-                  <h3 className="text-[13px] font-semibold text-foreground">Categoria</h3>
-                  {selectedCats.size > 0 && (
+              return (
+                <>
+                  {/* ===== HEADER ===== */}
+                  <header className="flex items-center justify-between gap-3 px-5 sm:px-6 h-16 border-b border-border/60 shrink-0">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
+                        <Filter className="h-4 w-4" strokeWidth={2.25} />
+                      </span>
+                      <div className="min-w-0">
+                        <h2 className="text-[17px] font-bold tracking-tight text-foreground leading-none">
+                          Filtros
+                        </h2>
+                        <p className="text-[11px] text-muted-foreground mt-1 leading-none">
+                          {activeFilterCount === 0
+                            ? "Refine seu catálogo"
+                            : `${activeFilterCount} filtro${activeFilterCount === 1 ? "" : "s"} ativo${activeFilterCount === 1 ? "" : "s"}`}
+                        </p>
+                      </div>
+                    </div>
                     <button
-                      onClick={() => setSelectedCats(new Set())}
-                      className="text-[12px] text-muted-foreground hover:text-foreground transition-colors"
+                      onClick={() => setFiltersOpen(false)}
+                      className="h-11 w-11 inline-flex items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors shrink-0"
+                      aria-label="Fechar filtros"
                     >
-                      Limpar
+                      <X className="h-5 w-5" strokeWidth={2} />
                     </button>
-                  )}
-                </div>
-                <ul className="flex flex-col border-y border-border/50 divide-y divide-border/40">
-                  {[...displayedCategories].sort((a, b) => {
-                    const aTirz = isTirzepatidaCategory(a) ? 0 : 1;
-                    const bTirz = isTirzepatidaCategory(b) ? 0 : 1;
-                    if (aTirz !== bTirz) return aTirz - bTirz;
-                    return 0;
-                  }).map((c) => {
-                    const checked = selectedCats.has(c.slug);
-                    const count = countByCat.get(c.slug) ?? 0;
-                    const isPromo = c.slug === "__promos__";
-                    if (isPromo && count === 0) return null;
-                    return (
-                      <li key={c.id}>
-                        <label
-                          className="group flex items-center gap-3 cursor-pointer h-11 transition-colors hover:bg-muted/30"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() => toggleCat(c.slug)}
-                            className="sr-only"
-                          />
-                          <div
-                            className={`h-[16px] w-[16px] rounded border flex items-center justify-center shrink-0 transition-colors ml-1 ${
-                              checked ? "bg-foreground border-foreground" : "border-border bg-white group-hover:border-foreground/50"
-                            }`}
-                            aria-hidden="true"
-                          >
-                            {checked && (
-                              <svg className="h-2.5 w-2.5 text-background" fill="none" stroke="currentColor" strokeWidth="3.5" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                              </svg>
-                            )}
-                          </div>
-                          <span className={`flex-1 text-[13.5px] ${checked ? "text-foreground font-medium" : "text-foreground/80"}`}>
-                            {c.name}
-                          </span>
-                          <span className="text-[11.5px] tabular-nums text-muted-foreground/60 mr-1">
-                            {count}
-                          </span>
-                        </label>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </section>
+                  </header>
 
-              {/* Marcas */}
-              {brands.length > 0 && (
-                <section className="pb-4">
-                  <div className="flex items-center justify-between mb-2.5">
-                    <h3 className="text-[13px] font-semibold text-foreground">Marca</h3>
-                    {selectedBrands.size > 0 && (
-                      <button
-                        onClick={() => {
-                          setSelectedBrands(new Set());
-                          setSearchParams((curr) => {
-                            const params = new URLSearchParams(curr);
-                            params.delete("marca");
-                            return params;
-                          }, { replace: true });
-                        }}
-                        className="text-[12px] text-muted-foreground hover:text-foreground transition-colors"
+                  {/* ===== BODY (scrollable) ===== */}
+                  <div className="flex-1 overflow-y-auto overscroll-contain scrollbar-thin">
+                    {/* ----- Chips de filtros ATIVOS (só aparece se houver) ----- */}
+                    {activeFilterCount > 0 && (
+                      <section className="px-5 sm:px-6 py-4 border-b border-border/50 bg-muted/20">
+                        <div className="flex items-center justify-between gap-2 mb-2.5">
+                          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                            Filtros ativos
+                          </p>
+                          <button
+                            type="button"
+                            onClick={clearAll}
+                            className="text-[11px] font-semibold text-secondary-text hover:underline underline-offset-2 transition-colors"
+                          >
+                            Limpar tudo
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {sort !== "categoria" && (
+                            <ActiveChip
+                              label={SORT_LABELS[sort]}
+                              onRemove={() => setSort("categoria")}
+                            />
+                          )}
+                          {[...selectedCats].map((slug) => {
+                            const cat = displayedCategories.find((c) => c.slug === slug);
+                            if (!cat) return null;
+                            return (
+                              <ActiveChip
+                                key={`cat-${slug}`}
+                                label={cat.name}
+                                onRemove={() => toggleCat(slug)}
+                              />
+                            );
+                          })}
+                          {[...selectedBrands].map((slug) => {
+                            const brand = brands.find((b) => b.slug === slug);
+                            if (!brand) return null;
+                            return (
+                              <ActiveChip
+                                key={`brand-${slug}`}
+                                label={brand.name}
+                                onRemove={() => toggleBrand(slug)}
+                              />
+                            );
+                          })}
+                        </div>
+                      </section>
+                    )}
+
+                    {/* ----- Seção: ORDENAR ----- */}
+                    <FilterSection icon={ArrowUpDown} title="Ordenar por">
+                      <ul className="divide-y divide-border/40 -mx-2 sm:-mx-3">
+                        {SORT_KEYS.map((k) => {
+                          const active = sort === k;
+                          return (
+                            <li key={k}>
+                              <button
+                                type="button"
+                                onClick={() => setSort(k)}
+                                aria-pressed={active}
+                                className="w-full flex items-center justify-between gap-3 px-3 min-h-[44px] py-2 rounded-lg hover:bg-muted/40 transition-colors text-left"
+                              >
+                                <span className={`text-[14px] ${active ? "text-foreground font-semibold" : "text-foreground/80"}`}>
+                                  {SORT_LABELS[k]}
+                                </span>
+                                {/* Radio visual: bolinha preenchida quando ativo */}
+                                <span
+                                  className={`inline-flex h-5 w-5 items-center justify-center rounded-full border-2 transition-all shrink-0 ${
+                                    active
+                                      ? "border-primary bg-primary"
+                                      : "border-border bg-background"
+                                  }`}
+                                  aria-hidden
+                                >
+                                  {active && <span className="h-1.5 w-1.5 rounded-full bg-primary-foreground" />}
+                                </span>
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </FilterSection>
+
+                    {/* ----- Seção: CATEGORIAS ----- */}
+                    <FilterSection
+                      icon={Tag}
+                      title="Categorias"
+                      action={
+                        selectedCats.size > 0 ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedCats(new Set());
+                              setSearchParams((curr) => {
+                                const params = new URLSearchParams(curr);
+                                params.delete("categoria");
+                                return params;
+                              }, { replace: true });
+                            }}
+                            className="text-[11px] font-semibold text-secondary-text hover:underline underline-offset-2"
+                          >
+                            Limpar ({selectedCats.size})
+                          </button>
+                        ) : null
+                      }
+                    >
+                      <ul className="divide-y divide-border/40 -mx-2 sm:-mx-3">
+                        {[...displayedCategories]
+                          .sort((a, b) => {
+                            const aTirz = isTirzepatidaCategory(a) ? 0 : 1;
+                            const bTirz = isTirzepatidaCategory(b) ? 0 : 1;
+                            if (aTirz !== bTirz) return aTirz - bTirz;
+                            return 0;
+                          })
+                          .map((c) => {
+                            const checked = selectedCats.has(c.slug);
+                            const count = countByCat.get(c.slug) ?? 0;
+                            const isPromo = c.slug === "__promos__";
+                            if (isPromo && count === 0) return null;
+                            return (
+                              <li key={c.id}>
+                                <label className="group flex items-center gap-3 cursor-pointer min-h-[44px] px-3 py-2 rounded-lg hover:bg-muted/40 transition-colors">
+                                  <input
+                                    type="checkbox"
+                                    checked={checked}
+                                    onChange={() => toggleCat(c.slug)}
+                                    className="sr-only"
+                                  />
+                                  {/* Checkbox grande (20x20) com check animado */}
+                                  <span
+                                    className={`inline-flex h-5 w-5 items-center justify-center rounded-md border-2 shrink-0 transition-all ${
+                                      checked
+                                        ? "bg-primary border-primary"
+                                        : "border-border bg-background group-hover:border-primary/40"
+                                    }`}
+                                    aria-hidden
+                                  >
+                                    {checked && (
+                                      <Check className="h-3 w-3 text-primary-foreground" strokeWidth={3.5} />
+                                    )}
+                                  </span>
+                                  <span className={`flex-1 text-[14px] ${checked ? "text-foreground font-semibold" : "text-foreground/85"}`}>
+                                    {c.name}
+                                  </span>
+                                  <span
+                                    className={`text-[11px] tabular-nums shrink-0 ${
+                                      checked ? "text-foreground/70 font-semibold" : "text-muted-foreground/70"
+                                    }`}
+                                  >
+                                    {count}
+                                  </span>
+                                </label>
+                              </li>
+                            );
+                          })}
+                      </ul>
+                    </FilterSection>
+
+                    {/* ----- Seção: MARCAS ----- */}
+                    {brands.length > 0 && (
+                      <FilterSection
+                        icon={Award}
+                        title="Marcas"
+                        action={
+                          selectedBrands.size > 0 ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedBrands(new Set());
+                                setSearchParams((curr) => {
+                                  const params = new URLSearchParams(curr);
+                                  params.delete("marca");
+                                  return params;
+                                }, { replace: true });
+                              }}
+                              className="text-[11px] font-semibold text-secondary-text hover:underline underline-offset-2"
+                            >
+                              Limpar ({selectedBrands.size})
+                            </button>
+                          ) : null
+                        }
                       >
-                        Limpar
+                        <div className="flex flex-wrap gap-2">
+                          {brands.map((b) => {
+                            const checked = selectedBrands.has(b.slug);
+                            const count = countByBrand.get(b.slug) ?? 0;
+                            const dim = count === 0 && !checked;
+                            return (
+                              <button
+                                key={b.id}
+                                type="button"
+                                onClick={() => toggleBrand(b.slug)}
+                                aria-pressed={checked}
+                                disabled={dim}
+                                className={`inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full text-[13px] font-medium transition-all ${
+                                  checked
+                                    ? "bg-primary text-primary-foreground border-2 border-primary shadow-sm"
+                                    : dim
+                                      ? "bg-transparent text-muted-foreground/40 border-2 border-border/40 cursor-not-allowed"
+                                      : "bg-background text-foreground/80 border-2 border-border hover:border-primary/40 hover:text-foreground"
+                                }`}
+                              >
+                                {b.name}
+                                {count > 0 && (
+                                  <span
+                                    className={`text-[10.5px] tabular-nums font-semibold ${
+                                      checked ? "text-primary-foreground/80" : "text-muted-foreground/70"
+                                    }`}
+                                  >
+                                    · {count}
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </FilterSection>
+                    )}
+
+                    {/* Padding inferior para garantir respiro antes do footer */}
+                    <div className="h-4" />
+                  </div>
+
+                  {/* ===== FOOTER (CTA contextual) =====
+                      Antes era "Aplicar filtros" que enganava (tudo já é
+                      live-update). Agora mostra a CONTAGEM real e fecha. */}
+                  <footer
+                    className="border-t border-border/60 bg-background px-5 sm:px-6 py-4 shrink-0"
+                    style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)" }}
+                  >
+                    <button
+                      onClick={() => setFiltersOpen(false)}
+                      className="w-full h-12 inline-flex items-center justify-center gap-2 rounded-2xl bg-primary text-primary-foreground text-[14px] font-bold tracking-tight hover:bg-primary-glow active:scale-[0.99] transition-all shadow-elegant"
+                    >
+                      Ver {filtered.length} {filtered.length === 1 ? "produto" : "produtos"}
+                    </button>
+                    {activeFilterCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={clearAll}
+                        className="mt-3 w-full text-center text-[12.5px] font-semibold text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        Limpar todos os filtros
                       </button>
                     )}
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {brands.map((b) => {
-                      const checked = selectedBrands.has(b.slug);
-                      const count = countByBrand.get(b.slug) ?? 0;
-                      const dim = count === 0 && !checked;
-                      return (
-                        <button
-                          key={b.id}
-                          type="button"
-                          onClick={() => toggleBrand(b.slug)}
-                          aria-pressed={checked}
-                          disabled={dim}
-                          className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-[12.5px] transition-colors ${
-                            checked
-                              ? "bg-foreground text-background"
-                              : dim
-                                ? "bg-transparent text-muted-foreground/40 border border-border/40 cursor-not-allowed"
-                                : "bg-white text-muted-foreground border border-border/70 hover:border-foreground/40 hover:text-foreground"
-                          }`}
-                        >
-                          {b.name}
-                          {count > 0 && (
-                            <span className={`text-[10.5px] tabular-nums ${checked ? "text-background/70" : "text-muted-foreground/60"}`}>
-                              {count}
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </section>
-              )}
-            </div>
-
-            {/* Footer do drawer — botões h-11 (44px) WCAG tap target.
-                Layout muda em mobile: stack vertical full-width para dedo
-                grosso; em sm+ fica lado a lado direita. */}
-            <div
-              className="px-5 sm:px-7 py-4 border-t border-border/60 bg-white"
-              style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)" }}
-            >
-              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center sm:justify-end gap-2">
-                <button
-                  onClick={() => {
-                    setSelectedCats(new Set());
-                    setSelectedBrands(new Set());
-                    setQuery("");
-                    setSearchParams((curr) => {
-                      const params = new URLSearchParams(curr);
-                      params.delete("marca");
-                      params.delete("categoria");
-                      params.delete("q");
-                      return params;
-                    }, { replace: true });
-                  }}
-                  className="h-11 px-5 rounded-lg text-[13.5px] font-medium text-foreground bg-white border border-border/70 hover:border-foreground/40 transition-colors"
-                >
-                  Limpar filtros
-                </button>
-                <button
-                  onClick={() => setFiltersOpen(false)}
-                  className="h-11 px-5 rounded-lg bg-foreground text-background text-[13.5px] font-semibold tracking-tight hover:bg-foreground/90 active:scale-[0.99] transition-all"
-                >
-                  Aplicar filtros
-                </button>
-              </div>
-            </div>
+                  </footer>
+                </>
+              );
+            })()}
           </aside>
         </div>
       )}
     </>
+  );
+}
+
+/* ============================================================
+   Helpers do drawer de filtros — locais por simplicidade.
+   ============================================================ */
+
+/** Chip removível de filtro ativo. Mostrado no topo do drawer quando
+ *  há filtros aplicados — permite remover sem rolar até a seção. */
+function ActiveChip({ label, onRemove }: { label: string; onRemove: () => void }) {
+  return (
+    <span className="inline-flex items-center gap-1 h-7 pl-2.5 pr-1 rounded-full bg-primary text-primary-foreground text-[12px] font-semibold tracking-tight">
+      {label}
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label={`Remover filtro ${label}`}
+        className="inline-flex h-5 w-5 items-center justify-center rounded-full hover:bg-primary-foreground/15 transition-colors -mr-0.5"
+      >
+        <X className="h-3 w-3" strokeWidth={2.5} />
+      </button>
+    </span>
+  );
+}
+
+/** Seção do drawer — header rico (ícone + título uppercase + action
+ *  opcional à direita) + container do conteúdo com padding consistente. */
+function FilterSection({
+  icon: Icon,
+  title,
+  action,
+  children,
+}: {
+  icon: typeof Tag;
+  title: string;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="px-5 sm:px-6 py-5 border-b border-border/50 last:border-b-0">
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <h3 className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-foreground/70">
+          <Icon className="h-3.5 w-3.5 text-primary/70" strokeWidth={2.25} />
+          {title}
+        </h3>
+        {action}
+      </div>
+      {children}
+    </section>
   );
 }
 
