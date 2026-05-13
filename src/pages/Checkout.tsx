@@ -14,6 +14,7 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { trackEvent } from "@/lib/analytics";
 import { getAffiliateRefData, clearAffiliateRef } from "@/lib/affiliateRef";
 import { CheckoutStepper } from "@/components/checkout/CheckoutStepper";
+import { useSEO } from "@/hooks/useSEO";
 
 // Sub-components
 import { BuyerSection } from "./checkout/BuyerSection";
@@ -30,6 +31,14 @@ const PIX_DISCOUNT = 0.05;
 
 export default function Checkout() {
   const { lines, total, clear, coupon: cartCouponCode, setCoupon: setCartCoupon } = useCart();
+
+  useSEO({
+    title: "Finalizar compra — Royal Vitta",
+    description:
+       "Conclua seu pedido na Royal Vitta com pagamento seguro via PIX (5% de desconto) ou cartão em até 3x. Frete rastreado para todo o Brasil.",
+    robots: "noindex,follow",
+  });
+
   const { user } = useAuth();
   const nav = useNavigate();
   const settings = useSiteSettings();
