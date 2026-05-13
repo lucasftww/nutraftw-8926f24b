@@ -11,6 +11,7 @@ import { formatBRL, maskCPF, maskPhone, maskCEP } from "@/lib/utils";
 import { CustomerOrderDetail } from "@/components/account/CustomerOrderDetail";
 import { ORDER_STATUS_LABELS } from "@/lib/orderStatus";
 import { friendlyErrorMessage } from "@/lib/friendlyError";
+import { useSEO } from "@/hooks/useSEO";
 
 type Tab = "profile" | "address" | "orders" | "affiliate" | "commissions";
 
@@ -26,6 +27,14 @@ const STATUS_LABELS = ORDER_STATUS_LABELS;
 
 export default function MyAccount() {
   const { user } = useAuth();
+
+  useSEO({
+    title: "Minha conta — Royal Vitta",
+    description:
+      "Gerencie seu perfil, endereços, pedidos, favoritos e comissões de afiliação na sua conta Royal Vitta.",
+    robots: "noindex,follow",
+  });
+
   const nav = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [tab, setTab] = useState<Tab>("profile");
