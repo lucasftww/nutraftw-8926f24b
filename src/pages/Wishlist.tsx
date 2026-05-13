@@ -29,7 +29,9 @@ export default function Wishlist() {
 
    useSEO({
      title: "Meus favoritos",
-     description: "Produtos que você salvou para depois.",
+     description:
+       "Sua lista de produtos favoritos da Royal Vitta — salve itens para comparar, acompanhar promoções e finalizar a compra quando quiser.",
+     robots: "noindex,follow",
    });
 
   useEffect(() => {

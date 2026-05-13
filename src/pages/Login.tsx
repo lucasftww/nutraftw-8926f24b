@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { getAffiliateRef, getAffiliateRefData, setAffiliateRef, clearAffiliateRef, readAttributionFromUrl } from "@/lib/affiliateRef";
 import { friendlyAuthError } from "@/lib/friendlyError";
 import { Users, Eye, EyeOff, Loader2 } from "lucide-react";
+import { useSEO } from "@/hooks/useSEO";
 
 export default function Login() {
   const [params] = useSearchParams();
@@ -34,6 +35,16 @@ export default function Login() {
   // Persistir é EFEITO COLATERAL — não pode rodar durante render (StrictMode
   // duplica e quebra a janela de last-click).
   const [activeRef, setActiveRef] = useState<string | null>(() => getAffiliateRef());
+
+  useSEO({
+    title: mode === "register" ? "Criar conta — Royal Vitta" : "Entrar na sua conta — Royal Vitta",
+    description:
+      mode === "register"
+        ? "Crie sua conta na Royal Vitta para acompanhar pedidos, salvar favoritos e participar do programa de afiliados."
+        : "Acesse sua conta Royal Vitta para ver pedidos, endereços, favoritos e comissões de afiliação.",
+    robots: "noindex,follow",
+  });
+
   useEffect(() => {
     const r = params.get("ref");
     if (r) {
