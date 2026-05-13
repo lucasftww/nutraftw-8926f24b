@@ -27,7 +27,7 @@ export default function ProductDetail() {
   useSEO(
     p
       ? {
-           title: `${p.name}`,
+           title: `${p.name} — Royal Vitta`,
            description:
              (p.description || `Compre ${p.name} com envio para todo o Brasil.`).slice(0, 160),
           image: p.image_url || undefined,
@@ -68,6 +68,44 @@ export default function ProductDetail() {
                       { "@type": "ListItem", position: 3, name: p.name },
                     ]
                   : [{ "@type": "ListItem", position: 2, name: p.name }]),
+              ],
+            },
+            {
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              mainEntity: [
+                {
+                  "@type": "Question",
+                  name: "O produto é original?",
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: "Sim. Trabalhamos exclusivamente com produtos originais, importados e armazenados conforme as recomendações do fabricante. Garantia de procedência em todas as compras.",
+                  },
+                },
+                {
+                  "@type": "Question",
+                  name: "Quanto tempo demora para chegar?",
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: "Enviamos para todo o Brasil. O prazo varia conforme sua região (geralmente 2 a 7 dias úteis após a confirmação do pagamento).",
+                  },
+                },
+                {
+                  "@type": "Question",
+                  name: "Quais formas de pagamento vocês aceitam?",
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: "PIX (com 5% de desconto à vista) e cartão de crédito em até 3x sem juros. Pagamento 100% seguro com criptografia.",
+                  },
+                },
+                {
+                  "@type": "Question",
+                  name: "Como posso falar com o suporte?",
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: "Atendimento humano via WhatsApp em horário comercial. Tire dúvidas antes da compra ou acompanhe seu pedido a qualquer momento.",
+                  },
+                },
               ],
             },
           ],
