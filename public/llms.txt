@@ -1,0 +1,17 @@
+# Royal Vitta
+
+> Loja brasileira de importação farmacêutica: peptídeos, hormônios e medicamentos premium com envio nacional, pagamento seguro (PIX/cartão) e suporte humano via WhatsApp.
+
+A Royal Vitta seleciona produtos farmacêuticos importados originais, com curadoria de procedência. Atende todo o Brasil com frete rastreado, embalagem discreta, PIX com 5% de desconto e cartão em até 3x sem juros.
+
+## Pages
+
+- [Catálogo](/): Catálogo completo de produtos com filtros por categoria e marca.
+- [Sobre](/sobre): Quem somos, curadoria, atendimento e formas de entrega.
+- [Instalar app](/instalar): Como instalar o app PWA da Royal Vitta no celular.
+- [Login / cadastro](/login): Acesso à área do cliente, pedidos e afiliação.
+
+## Optional
+
+- [Favoritos](/favoritos): Lista de produtos salvos pelo cliente (requer login).
+- [Minha conta](/minha-conta): Perfil, endereço, histórico de pedidos e comissões (requer login).
