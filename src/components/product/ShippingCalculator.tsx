@@ -56,12 +56,13 @@ export function ShippingCalculator() {
 
   const formatZip = formatZipDisplay;
 
-  // Auto-calcula no mount se já temos CEP persistido.
+  // Auto-calcula no mount se já temos CEP persistido. Deps vazias é
+  // intencional (mount-only): a digitação do CEP tem seu próprio handler
+  // debounce; não queremos re-disparar a cada keystroke.
   useEffect(() => {
     if (zip.replace(/\D/g, "").length === 8) {
-      calculate(zip);
+      void calculate(zip);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function calculate(zipRaw: string) {
