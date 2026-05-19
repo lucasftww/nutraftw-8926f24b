@@ -3,6 +3,12 @@ dist/
 dist-ssr/
 *.local
 
+# Bun lockfile — projeto usa npm/package-lock.json no Vercel
+bun.lock
+
+# Vercel CLI local
+.vercel/
+
 .env
 .env.local
 data/*.db

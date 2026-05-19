@@ -22,12 +22,13 @@ const isInIframe = (() => {
 })();
 
 const host = window.location.hostname;
+// Hosts onde o SW não deve registrar:
+// - localhost/127.0.0.1: dev local
+// - *.vercel.app: previews por branch/commit (cache do SW polui o preview)
 const isPreviewHost =
-  host.includes("id-preview--") ||
-  host.includes("lovableproject.com") ||
-  host.includes("lovable.dev") ||
   host === "localhost" ||
-  host === "127.0.0.1";
+  host === "127.0.0.1" ||
+  host.endsWith(".vercel.app");
 
 if (isInIframe || isPreviewHost || import.meta.env.DEV) {
   // Defensive: tear down any leftover SW in preview/dev so caches don't poison the editor.

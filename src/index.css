@@ -4,10 +4,6 @@
 @tailwind components;
 @tailwind utilities;
 
-#lovable-badge {
-  display: none !important;
-}
-
 /* Mobile-first refinements */
 @layer base {
   html {

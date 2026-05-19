@@ -6,4 +6,4 @@ Disallow: /checkout
 Disallow: /minha-conta
 Disallow: /favoritos
 
-Sitemap: https://nutraftw.lovable.app/sitemap.xml
+Sitemap: https://royalvitta.com.br/sitemap.xml
