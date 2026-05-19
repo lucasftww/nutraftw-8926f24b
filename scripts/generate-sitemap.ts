@@ -4,7 +4,8 @@ import { writeFileSync } from "fs";
 import { resolve } from "path";
 import { createClient } from "@supabase/supabase-js";
 
-const BASE_URL = "https://nutraftw.lovable.app";
+// Aceita override via env (útil em previews Vercel) — default = produção.
+const BASE_URL = (process.env.VITE_PUBLIC_BASE_URL || "https://royalvitta.com.br").replace(/\/$/, "");
 const SUPABASE_URL =
   process.env.VITE_SUPABASE_URL || "https://idutmqfqnoozqbjeqtui.supabase.co";
 const SUPABASE_ANON =
