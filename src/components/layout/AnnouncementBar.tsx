@@ -13,10 +13,13 @@ import { useEffect, useState } from "react";
  * Em mobile, ocupa 32px (h-8) — economia de 4px vs antes (era h-9 = 36px).
  * Em desktop continua h-9 para presença visual.
  */
+// "BEMVINDO10" foi movido para o FirstPurchaseBanner (vermelho, dismissível,
+// só na 1ª visita) — assim ele não compete pelo airtime com frete/PIX e
+// recupera a prominência que o aviso vermelho original tinha.
 const MESSAGES = [
   { text: "Frete GRÁTIS acima de R$ 800", emoji: "🚚" },
   { text: "5% OFF no PIX em todos os produtos", emoji: "💰" },
-  { text: "Use BEMVINDO10 e ganhe 10% na 1ª compra", emoji: "🎁" },
+  { text: "Envio para todo o Brasil — produtos originais", emoji: "🇧🇷" },
 ];
 
 const ROTATE_MS = 5000;

@@ -2,10 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { X, Package, AlertCircle, Copy, Check } from "lucide-react";
-import { getOrderStatus, paymentLabel } from "@/lib/orderStatus";
+import { X, Package, AlertCircle, Copy, Check, ShoppingCart } from "lucide-react";
+import { paymentLabel } from "@/lib/orderStatus";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
+import { useCart } from "@/hooks/useCart";
+import { toast } from "sonner";
+import { OrderTimeline } from "@/components/account/OrderTimeline";
 
 export function CustomerOrderDetail({ orderId, onClose }: { orderId: string; onClose: () => void }) {
   const [order, setOrder] = useState<any | null>(null);
@@ -13,6 +16,33 @@ export function CustomerOrderDetail({ orderId, onClose }: { orderId: string; onC
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const { add, openCart } = useCart();
+
+  // Re-adiciona todos os itens deste pedido ao carrinho atual. Útil para
+  // "vou comprar de novo o mesmo": cliente VIP, recompra rotineira.
+  function buyAgain() {
+    if (!items.length) return;
+    let added = 0;
+    for (const it of items) {
+      if (!it.product_id || !it.unit_price) continue;
+      add(
+        {
+          product_id: it.product_id,
+          slug: it.product_slug || it.product_id,
+          name: it.product_name,
+          price: Number(it.unit_price),
+          image_url: it.product_image_url,
+        },
+        Math.max(1, Number(it.quantity) || 1),
+      );
+      added++;
+    }
+    if (added > 0) {
+      toast.success(`${added} ${added === 1 ? "item adicionado" : "itens adicionados"} ao carrinho`);
+      openCart();
+      onClose();
+    }
+  }
   // A11y: trava scroll do body + foca primeiro elemento do modal +
   // ESC fecha + ciclo Tab dentro do modal.
   useBodyScrollLock(true);
@@ -47,7 +77,6 @@ export function CustomerOrderDetail({ orderId, onClose }: { orderId: string; onC
     })();
   }, [orderId]);
 
-  const status = order ? getOrderStatus(order.status) : null;
   const showPix =
     order &&
     order.payment_method === "pix" &&
@@ -117,11 +146,9 @@ export function CustomerOrderDetail({ orderId, onClose }: { orderId: string; onC
           </div>
         ) : (
           <>
-            {status && (
-              <div className={`inline-flex px-3 py-1.5 rounded-full text-xs font-semibold ${status.color}`}>
-                {status.label}
-              </div>
-            )}
+            {/* Timeline visual do pedido — substitui o badge simples e
+                comunica progresso (pending → paid → … → delivered). */}
+            <OrderTimeline status={order.status} />
 
             {showPix && (
               <section className="rounded-2xl border-2 border-emerald-500/40 bg-emerald-500/5 p-4 sm:p-5 space-y-3">
@@ -233,8 +260,23 @@ export function CustomerOrderDetail({ orderId, onClose }: { orderId: string; onC
               </div>
             </section>
 
-            <div className="flex justify-end pt-2">
-              <Button variant="outline" onClick={onClose}>Fechar</Button>
+            {/* CTAs do rodapé. "Comprar novamente" só aparece se houver
+                itens com product_id válido (produto pode ter sido removido
+                do catálogo desde a compra original). */}
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={onClose} className="sm:w-auto">
+                Fechar
+              </Button>
+              {items.some((it) => it.product_id) && (
+                <Button
+                  type="button"
+                  onClick={buyAgain}
+                  className="sm:w-auto bg-secondary hover:bg-secondary/90 text-secondary-foreground"
+                >
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  Comprar novamente
+                </Button>
+              )}
             </div>
           </>
         )}

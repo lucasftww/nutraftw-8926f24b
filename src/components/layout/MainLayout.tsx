@@ -3,6 +3,7 @@ import { Header } from "@/components/layout/Header";
 import { ProductFooter } from "@/components/layout/ProductFooter";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
+import { FirstPurchaseBanner } from "@/components/layout/FirstPurchaseBanner";
 import { FloatingWhatsApp } from "@/components/layout/FloatingWhatsApp";
 import { Outlet } from "react-router-dom";
 import { CurrentProductProvider, useCurrentProduct } from "@/contexts/CurrentProductContext";
@@ -32,7 +33,15 @@ export function MainLayout() {
             dentro da página Catalog (mais perto da grade), não aqui — assim
             ele não conflita com a search bar `fixed top-14` que existe
             apenas naquela rota. */}
-        {!isCheckout && <AnnouncementBar />}
+        {!isCheckout && (
+          <>
+            {/* FirstPurchaseBanner aparece UMA VEZ por visitante (localStorage)
+                acima do AnnouncementBar — destaca o cupom BEMVINDO10 em
+                vermelho para não competir com frete/PIX na rotação. */}
+            <FirstPurchaseBanner />
+            <AnnouncementBar />
+          </>
+        )}
         <Header isCheckout={isCheckout} />
         <main className="flex-1">
           <Outlet />
