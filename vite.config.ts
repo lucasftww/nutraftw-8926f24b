@@ -44,15 +44,14 @@ export default defineConfig(() => ({
         background_color: "#ffffff",
         theme_color: "#0B1F6B",
         categories: ["shopping", "medical", "health"],
+        // BUG FIX: `purpose: "any maskable"` é incorreto pela spec W3C —
+        // cada purpose deve ser uma entrada separada. Como o ícone atual
+        // (pwa-512.png) não tem o safe-zone de ~10% para maskable, removemos
+        // a variante maskable até existir um pwa-512-maskable.png próprio.
+        // Sem isso, launchers Android cortavam o conteúdo central do ícone.
         icons: [
-          { src: "/pwa-192.png", sizes: "192x192", type: "image/png" },
-          { src: "/pwa-512.png", sizes: "512x512", type: "image/png" },
-          {
-            src: "/pwa-512.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "any maskable",
-          },
+          { src: "/pwa-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+          { src: "/pwa-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
         ],
         shortcuts: [
           { name: "Catálogo", url: "/catalogo" },
@@ -117,9 +116,17 @@ export default defineConfig(() => ({
             // JS/CSS fora do precache (chunks pesados/raros) são cacheados
             // sob demanda. Mantém first-load enxuto e acelera visitas
             // subsequentes sem fixar todos os bundles no install do SW.
+            //
+            // BUG FIX: `self.location.origin` era avaliado em tempo de BUILD
+            // (Node.js), onde `self` não existe — a regra nunca aplicava JS/CSS
+            // do próprio site. Substituído por exclusão de hosts externos
+            // conhecidos (Supabase, fontes Google) — pega tudo o que sobra,
+            // incluindo o próprio domínio em qualquer preview Vercel.
             urlPattern: ({ request, url }) =>
               (request.destination === "script" || request.destination === "style") &&
-              url.origin === self.location.origin,
+              !url.hostname.includes("supabase.co") &&
+              !url.hostname.includes("googleapis.com") &&
+              !url.hostname.includes("gstatic.com"),
             handler: "StaleWhileRevalidate",
             options: {
               cacheName: `royalvita-assets-${V}`,

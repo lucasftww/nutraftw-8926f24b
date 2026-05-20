@@ -1,0 +1,37 @@
+name: QA Reminder
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Post QA checklist reminder
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: [
+                '## QA Checklist',
+                '',
+                'Antes de aprovar este PR, valide os fluxos críticos em dispositivo real:',
+                '',
+                '- [ ] Catálogo carrega e busca funciona (mobile + desktop)',
+                '- [ ] Adicionar ao carrinho + drawer abre com item correto',
+                '- [ ] Checkout com PIX gera QR Code (status muda em tempo real)',
+                '- [ ] Página `/pedido/:id/sucesso` mostra timeline + recomendações',
+                '- [ ] WhatsApp FAB abre o app com mensagem pré-preenchida',
+                '- [ ] Login + cadastro + reset de senha',
+                '- [ ] PWA instala (Android Chrome / iOS Safari)',
+                '- [ ] Admin: lista pedidos, edita produto, dashboard renderiza',
+                '- [ ] Lighthouse mobile: Performance ≥ 80, A11y ≥ 95, BP ≥ 95'
+              ].join('\\n')
+            })
