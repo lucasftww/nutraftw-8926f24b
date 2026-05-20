@@ -9,7 +9,8 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: [],
-    exclude: ['scripts/**', 'node_modules/**'],
+    // e2e/** é Playwright (browser-based) — não roda no jsdom do vitest
+    exclude: ['scripts/**', 'node_modules/**', 'e2e/**', 'dist/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov', 'html'],

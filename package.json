@@ -16,6 +16,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "e2e:install": "playwright install --with-deps chromium",
     "predev": "npx -y tsx scripts/generate-sitemap.ts",
     "prebuild": "npx -y tsx scripts/generate-sitemap.ts"
   },
@@ -42,6 +45,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@playwright/test": "^1.60.0",
     "@types/node": "^22.5.5",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
@@ -59,5 +63,8 @@
     "vite-plugin-pwa": "^1.2.0",
     "vitest": "^4.0.3",
     "workbox-window": "^7.4.0"
+  },
+  "optionalDependencies": {
+    "@sentry/react": "^8.55.2"
   }
 }

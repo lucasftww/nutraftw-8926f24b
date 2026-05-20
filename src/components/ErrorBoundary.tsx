@@ -1,4 +1,5 @@
 import { Component, ReactNode } from "react";
+import { reportError } from "@/lib/errorReporting";
 
 interface Props { children: ReactNode; resetKey?: string }
 interface State { error: Error | null }
@@ -20,7 +21,12 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
-    console.error("[ErrorBoundary]", error, info);
+    // Loga no console (dev) e envia ao Sentry (prod com DSN configurado).
+    // O reportError trata graceful: sem DSN, vira apenas console.error.
+    reportError(error, {
+      scope: "ErrorBoundary",
+      componentStack: info.componentStack ?? null,
+    });
   }
 
   componentDidUpdate(prevProps: Props) {

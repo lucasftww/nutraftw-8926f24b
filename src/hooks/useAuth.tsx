@@ -124,6 +124,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       currentUidRef.current = newUid;
       setSession(s);
       setUser(s?.user ?? null);
+      // Identifica/desidentifica no Sentry. Só envia o uid (UUID) — sem
+      // email/CPF/nome (LGPD: error reporting deve ser PII-light).
+      void import("@/lib/errorReporting").then(({ setReportingUser }) => {
+        setReportingUser(newUid);
+      }).catch(() => {});
       if (s?.user) {
         const hadCache = applyCachedRole(s.user.id);
         if (!hadCache) setRoleLoading(true);

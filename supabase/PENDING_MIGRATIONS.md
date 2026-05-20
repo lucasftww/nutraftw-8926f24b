@@ -70,9 +70,47 @@ WHERE proname = 'product_view_count_24h';
 
 ---
 
+---
+
+### ⏳ `20260521120000_rate_limit_create_order.sql`
+
+**O que faz:** Cria a infraestrutura de rate limiting server-side:
+- Tabela `rate_limit_events` (user_id, action, created_at)
+- Função `check_rate_limit(action, max, window_seconds)` SECURITY DEFINER
+- Policy RLS para leitura própria
+
+**Por que importa:** O guard `if (submitting) return` no Checkout só
+previne duplo-clique do MESMO browser. Não cobre múltiplas abas, replay
+via DevTools, ou bots. O rate limit no banco é fonte de verdade.
+
+**Pós-aplicação manual:** Edite a função `create_order` (via Dashboard)
+para adicionar, logo após o `BEGIN` do body PL/pgSQL:
+
+```sql
+PERFORM public.check_rate_limit('create_order', 5, 60);
+```
+
+Limite: 5 pedidos/60s por usuário. Generoso para uso real (correção
+de formulário), corta abuso (script 100x/s).
+
+**SQL completo:** ver arquivo
+`supabase/migrations/20260521120000_rate_limit_create_order.sql`
+
+**Como validar:**
+
+```sql
+-- Cria tabela?
+SELECT relname FROM pg_class WHERE relname = 'rate_limit_events';
+-- Função existe?
+SELECT proname FROM pg_proc WHERE proname = 'check_rate_limit';
+```
+
+---
+
 ## Histórico de aplicadas nesta thread
 
 - ✅ `20260510175517_security_fk_fixes.sql` (FK constraints)
-- ✅ `20260510180000_security_hardening.sql` (rate-limit + audit trigger)
+- ✅ `20260510180000_security_hardening.sql` (rate-limit por sessão em product_events)
 - ✅ `20260511120000_rls_perf_and_security.sql` (RLS initplan fix)
-- ⏳ `20260520120000_product_view_count_rpc.sql` ← **pendente**
+- ⏳ `20260520120000_product_view_count_rpc.sql` ← **pendente** (badge "X pessoas viram")
+- ⏳ `20260521120000_rate_limit_create_order.sql` ← **pendente** (rate limit checkout)
