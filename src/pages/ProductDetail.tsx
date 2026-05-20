@@ -205,10 +205,11 @@ export default function ProductDetail() {
             {p.category && (
               <Link
                 to={`/?categoria=${p.category.slug}`}
-                /* text-secondary-text (não text-secondary) — laranja escurecido
-                   AA-safe (5.2:1) para uso como texto sobre fundo claro.
-                   text-[12px] para legibilidade mobile (era [11px]). */
-                className="inline-flex items-center text-[12px] font-bold uppercase tracking-[0.12em] text-secondary-text hover:underline"
+                /* text-secondary-text (laranja AA-safe 5.2:1 sobre branco).
+                   min-h-[36px] + py-2 + -my-2 dão hit area maior que o
+                   texto visível, sem deslocar o layout — WCAG 2.5.5
+                   tap target ampliado pelo padding. */
+                className="inline-flex items-center min-h-[36px] py-2 -my-2 text-[12px] font-bold uppercase tracking-[0.12em] text-secondary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded-sm"
               >
                 {p.category.name}
               </Link>
@@ -392,7 +393,9 @@ export default function ProductDetail() {
             {p.category && (
               <Link
                 to={`/?categoria=${p.category.slug}`}
-                className="text-xs sm:text-sm font-semibold text-primary hover:underline whitespace-nowrap"
+                /* Hit area maior via py-2.5 + -my-2.5 (mantém alinhamento
+                   visual mas dobra a altura clicável). 44px mín WCAG. */
+                className="inline-flex items-center min-h-[40px] py-2.5 -my-2.5 px-1 -mx-1 text-xs sm:text-sm font-semibold text-primary hover:underline whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded-sm"
               >
                 Ver tudo →
               </Link>

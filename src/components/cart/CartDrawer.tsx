@@ -118,7 +118,10 @@ export function CartDrawer() {
               </p>
               <button
                 onClick={closeCart}
-                className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
+                /* min-h-[44px] WCAG 2.5.5 — antes o link tinha só a altura
+                   do texto (~20px). Padding interno preserva a vibe de
+                   "link secundário" mas atende o tap target mínimo. */
+                className="mt-5 inline-flex items-center gap-2 min-h-[44px] px-3 -mx-3 text-sm font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded-md"
               >
                 Explorar catálogo <ArrowRight className="h-4 w-4" />
               </button>

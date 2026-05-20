@@ -129,7 +129,9 @@ function FooterLink({
 }: {
   to?: string; href?: string; external?: boolean; children: React.ReactNode;
 }) {
-  const className = "inline-flex items-center min-h-[36px] hover:text-foreground transition-colors";
+  // min-h-[44px] atende WCAG 2.5.5 (tap target mínimo 44×44px) — antes
+  // estava em 36px, abaixo do mínimo, dificultando o toque no mobile.
+  const className = "inline-flex items-center min-h-[44px] py-1 hover:text-foreground transition-colors";
   if (external && href) {
     return (
       <li>

@@ -145,7 +145,9 @@ export function ShippingCalculator() {
         href="https://buscacepinter.correios.com.br/app/endereco/index.php"
         target="_blank"
         rel="noreferrer"
-        className="inline-block mt-1.5 text-[11px] text-muted-foreground hover:text-primary hover:underline underline-offset-2"
+        /* Hit area ampliada: py-2 + -my-1 mantém posição visual
+           sem mover o resto do layout. WCAG 2.5.5 tap target. */
+        className="inline-flex items-center min-h-[36px] py-2 -my-1 mt-0.5 text-[11px] text-muted-foreground hover:text-primary hover:underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded-sm"
       >
         Não sei meu CEP
       </a>

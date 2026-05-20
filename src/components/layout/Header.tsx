@@ -84,7 +84,10 @@ export function Header({ isCheckout = false }: { isCheckout?: boolean }) {
               <Link
                 to="/"
                 aria-label="Royal Vitta — página inicial"
-                className="group inline-flex items-center min-w-0"
+                /* min-h-[44px] WCAG 2.5.5 — antes a tap area era só o tamanho
+                   da imagem (h-8 = 32px). Mantém visual idêntico mas dobra
+                   a área clicável vertical. */
+                className="group inline-flex items-center min-w-0 min-h-[44px]"
               >
                 {/* width/height refletem aspecto real renderizado para evitar
                     CLS — antes 80x80 reservava 1:1 mas o CSS forçava h-7
