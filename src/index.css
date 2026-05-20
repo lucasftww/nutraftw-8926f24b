@@ -133,6 +133,19 @@
     --input: 220 20% 90%;
     --ring: 222 65% 20%;
 
+    /* Tokens para séries de gráficos (admin/WeeklyReportCharts).
+       Antes os hex estavam hardcoded — bloqueava futuro dark-mode
+       e fugia da paleta de marca. Ordem de uso: primary, secondary,
+       success, warning, destructive, violeta (categoria extra),
+       cyan (categoria extra). */
+    --chart-1: 230 81% 23%;   /* primary navy */
+    --chart-2: 18 95% 54%;    /* secondary orange */
+    --chart-3: 142 71% 41%;   /* emerald */
+    --chart-4: 38 92% 50%;    /* amber */
+    --chart-5: 0 84% 60%;     /* red */
+    --chart-6: 262 83% 58%;   /* violet */
+    --chart-7: 199 89% 48%;   /* sky */
+
     --radius: 0.75rem;
 
     --gradient-primary: linear-gradient(135deg, hsl(222 65% 20%), hsl(222 65% 32%));

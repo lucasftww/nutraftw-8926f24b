@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useFreeShippingMin } from "@/hooks/useFreeShippingMin";
+import { formatBRL } from "@/lib/utils";
 
 /**
  * Barra slim acima do header — gatilhos de conversão visíveis "ao vivo":
@@ -13,26 +15,32 @@ import { useEffect, useState } from "react";
  * Em mobile, ocupa 32px (h-8) — economia de 4px vs antes (era h-9 = 36px).
  * Em desktop continua h-9 para presença visual.
  */
-// "BEMVINDO10" foi movido para o FirstPurchaseBanner (vermelho, dismissível,
-// só na 1ª visita) — assim ele não compete pelo airtime com frete/PIX e
-// recupera a prominência que o aviso vermelho original tinha.
-const MESSAGES = [
-  { text: "Frete GRÁTIS acima de R$ 800", emoji: "🚚" },
-  { text: "5% OFF no PIX em todos os produtos", emoji: "💰" },
-  { text: "Envio para todo o Brasil — produtos originais", emoji: "🇧🇷" },
-];
-
+// "BEMVINDO10" foi movido para o WelcomeCouponPopup (popup discreto,
+// 1x por visitante) — assim ele não compete pelo airtime com frete/PIX
+// e converte sem ocupar viewport permanente.
 const ROTATE_MS = 5000;
 
 export function AnnouncementBar() {
   const [idx, setIdx] = useState(0);
+  const freeShippingMin = useFreeShippingMin();
+
+  // Mensagens montadas dinamicamente para refletir o threshold do admin
+  // — antes "R$ 800" estava hardcoded e dessincronizava com a barra do carrinho.
+  const messages = useMemo(
+    () => [
+      { text: `Frete GRÁTIS acima de ${formatBRL(freeShippingMin)}`, emoji: "🚚" },
+      { text: "5% OFF no PIX em todos os produtos", emoji: "💰" },
+      { text: "Envio para todo o Brasil — produtos originais", emoji: "🇧🇷" },
+    ],
+    [freeShippingMin],
+  );
 
   // Rotação automática das mensagens. Pausa quando aba perde foco para
   // não estourar setInterval em background.
   useEffect(() => {
     const id = window.setInterval(() => {
       if (document.visibilityState === "visible") {
-        setIdx((i) => (i + 1) % MESSAGES.length);
+        setIdx((i) => (i + 1) % messages.length);
       }
     }, ROTATE_MS);
     return () => window.clearInterval(id);
@@ -53,8 +61,8 @@ export function AnnouncementBar() {
           aria-live="polite"
           aria-atomic="true"
         >
-          <span aria-hidden className="mr-1.5">{MESSAGES[idx].emoji}</span>
-          {MESSAGES[idx].text}
+          <span aria-hidden className="mr-1.5">{messages[idx].emoji}</span>
+          {messages[idx].text}
         </p>
       </div>
       {/* Indicadores discretos — confirma que há rotação e permite previsão.
@@ -63,7 +71,7 @@ export function AnnouncementBar() {
         className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:flex items-center gap-1"
         aria-hidden="true"
       >
-        {MESSAGES.map((_, i) => (
+        {messages.map((_, i) => (
           <span
             key={i}
             className={`h-1 w-1 rounded-full transition-all duration-300 ${

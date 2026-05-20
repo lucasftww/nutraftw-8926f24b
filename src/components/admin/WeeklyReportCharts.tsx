@@ -15,14 +15,17 @@ import {
   Legend,
 } from "recharts";
 
+// Paleta vinda dos tokens HSL (index.css :root --chart-1..7).
+// Mantém consistência com a paleta de marca e habilita futuro dark-mode
+// trocando só os valores no CSS — sem tocar o componente.
 const PIE_COLORS = [
-  "hsl(var(--primary))",
-  "hsl(var(--secondary))",
-  "#10b981",
-  "#f59e0b",
-  "#ef4444",
-  "#8b5cf6",
-  "#0ea5e9",
+  "hsl(var(--chart-1))",
+  "hsl(var(--chart-2))",
+  "hsl(var(--chart-3))",
+  "hsl(var(--chart-4))",
+  "hsl(var(--chart-5))",
+  "hsl(var(--chart-6))",
+  "hsl(var(--chart-7))",
 ];
 
 type DailyPoint = {

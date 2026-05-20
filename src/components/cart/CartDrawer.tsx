@@ -11,6 +11,7 @@ import { CouponInput } from "@/components/cart/CouponInput";
 import { prefetchCheckout } from "@/App";
 import { prefetchImage } from "@/lib/prefetch";
 import { CART_MAX_QTY_PER_ITEM } from "@/lib/cart-store";
+import { useFreeShippingMin } from "@/hooks/useFreeShippingMin";
 
 export function CartDrawer() {
   const { lines, total, open, closeCart, setQty, remove } = useCart();
@@ -43,12 +44,11 @@ export function CartDrawer() {
   const itemCount = lines.reduce((acc, l) => acc + l.qty, 0);
   const installment = total / 3;
 
-  // Threshold de frete grátis. Hardcoded em 800 (casa com a AnnouncementBar).
-  // TODO: mover para site_settings (`free_shipping_min`) quando o admin
-  // quiser controlar via dashboard.
-  const FREE_SHIPPING_MIN = 800;
-  const remainingForFreeShipping = Math.max(0, FREE_SHIPPING_MIN - total);
-  const freeShippingProgress = Math.min(100, (total / FREE_SHIPPING_MIN) * 100);
+  // Threshold de frete grátis vindo do admin (site_settings.free_shipping_min)
+  // — fallback R$ 800 quando não configurado.
+  const freeShippingMin = useFreeShippingMin();
+  const remainingForFreeShipping = Math.max(0, freeShippingMin - total);
+  const freeShippingProgress = Math.min(100, (total / freeShippingMin) * 100);
   const hasFreeShipping = remainingForFreeShipping === 0;
 
   return (

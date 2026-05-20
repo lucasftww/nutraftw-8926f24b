@@ -29,14 +29,19 @@ export function MainLayout() {
   return (
     <CurrentProductProvider>
       <div className="min-h-screen flex flex-col bg-background [&_:target]:scroll-mt-24 md:[&_:target]:scroll-mt-28">
-        {/* Barra slim acima do header — escondida no checkout para foco.
-            Nota: o strip de propostas de valor (ValuePropsBar) é renderizado
-            dentro da página Catalog (mais perto da grade), não aqui — assim
-            ele não conflita com a search bar `fixed top-14` que existe
-            apenas naquela rota. */}
+        {/* Skip-to-content (a11y): invisível até receber foco via Tab.
+            Permite teclado/leitor pular header/announcement bar e ir direto
+            ao conteúdo principal — exigência WCAG 2.4.1 (Bypass Blocks). */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] focus:inline-flex focus:items-center focus:h-11 focus:px-4 focus:rounded-full focus:bg-primary focus:text-primary-foreground focus:text-sm focus:font-semibold focus:shadow-lg focus:ring-2 focus:ring-primary focus:ring-offset-2"
+        >
+          Pular para o conteúdo
+        </a>
+        {/* Barra slim acima do header — escondida no checkout para foco. */}
         {!isCheckout && <AnnouncementBar />}
         <Header isCheckout={isCheckout} />
-        <main className="flex-1">
+        <main id="main-content" tabIndex={-1} className="flex-1 focus:outline-none">
           <Outlet />
         </main>
         {/* Footer padronizado em todas as páginas (Home, Catálogo, Produto, etc.) */}
