@@ -6,6 +6,7 @@ import { responsiveImage, imageUrl } from "@/lib/image";
 import { Button } from "@/components/ui/button";
 import { WishlistButton } from "@/components/wishlist/WishlistButton";
 import { ShippingCalculator } from "@/components/product/ShippingCalculator";
+import { SocialProofViewCount } from "@/components/product/SocialProofViewCount";
 import { useCart } from "@/hooks/useCart";
 import { useSEO } from "@/hooks/useSEO";
 import { useRegisterCurrentProduct } from "@/contexts/CurrentProductContext";
@@ -217,6 +218,11 @@ export default function ProductDetail() {
             <h1 className="text-[26px] md:text-4xl font-extrabold text-foreground mt-2 leading-[1.15] tracking-tight break-words">
               {p.name}
             </h1>
+            {/* Prova social (visualizações 24h) — só renderiza se >= 5
+                pessoas viram (componente faz a checagem internamente). */}
+            <div className="mt-3 flex justify-center lg:justify-start">
+              <SocialProofViewCount productId={p.id} />
+            </div>
           </div>
 
           {/* Price card — bloco principal de conversão */}
