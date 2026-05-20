@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { friendlyAuthError } from "@/lib/friendlyError";
+import { KeyRound, Loader2 } from "lucide-react";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
@@ -65,13 +66,30 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="container py-12 md:py-20 max-w-md">
+    <div className="container py-8 md:py-16 max-w-md animate-in fade-in duration-500">
+      {/* Hero — ícone de chave em gradient para reforçar contexto "secure" */}
+      <div className="text-center mb-5 md:mb-7">
+        <div className="inline-flex h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-gradient-brand items-center justify-center shadow-lg shadow-primary/20 mb-3">
+          <KeyRound className="h-6 w-6 md:h-7 md:w-7 text-white" strokeWidth={2} />
+        </div>
+        <p className="text-[11px] sm:text-xs font-bold uppercase tracking-[0.18em] text-secondary-text">
+          Recuperação de senha
+        </p>
+      </div>
+
       <div className="bg-card rounded-2xl border border-border shadow-card p-6 md:p-8">
-        <h1 className="font-display text-3xl font-extrabold text-primary text-center mb-2">
+        <h1 className="font-display text-2xl md:text-3xl font-extrabold text-foreground text-center mb-2 tracking-tight">
           Redefinir senha
         </h1>
-        <p className="text-center text-sm text-muted-foreground mb-6">
-          {ready ? "Escolha uma nova senha para sua conta" : "Validando link de recuperação…"}
+        <p className="text-center text-sm text-muted-foreground mb-6 leading-relaxed">
+          {ready ? (
+            "Escolha uma nova senha. Outros dispositivos logados serão deslogados por segurança."
+          ) : (
+            <span className="inline-flex items-center gap-2">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              Validando link de recuperação…
+            </span>
+          )}
         </p>
 
         <form onSubmit={onSubmit} className="space-y-4">
@@ -87,6 +105,7 @@ export default function ResetPassword() {
               disabled={!ready}
               autoComplete="new-password"
             />
+            <p className="text-[11px] text-muted-foreground">Mínimo 8 caracteres com letra e número.</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="confirm">Confirmar senha</Label>
@@ -102,12 +121,22 @@ export default function ResetPassword() {
             />
           </div>
           <Button type="submit" disabled={loading || !ready} className="w-full" size="lg">
-            {loading ? "Salvando…" : "Salvar nova senha"}
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Salvando…
+              </>
+            ) : "Salvar nova senha"}
           </Button>
         </form>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
-          <Link to="/login" className="hover:text-primary">← Voltar ao login</Link>
+          <Link
+            to="/login"
+            className="inline-flex items-center min-h-[44px] px-3 hover:text-primary"
+          >
+            ← Voltar ao login
+          </Link>
         </p>
       </div>
     </div>
