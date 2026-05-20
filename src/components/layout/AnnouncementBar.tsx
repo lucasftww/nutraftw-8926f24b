@@ -1,23 +1,25 @@
 import { useEffect, useMemo, useState } from "react";
+import { Truck, Wallet, ShieldCheck } from "lucide-react";
 import { useFreeShippingMin } from "@/hooks/useFreeShippingMin";
 import { formatBRL } from "@/lib/utils";
 
 /**
  * Barra slim acima do header — gatilhos de conversão visíveis "ao vivo":
- * frete grátis, desconto PIX, cupom de boas-vindas. Mensagens rotacionam
+ * frete grátis, desconto PIX, garantia de origem. Mensagens rotacionam
  * a cada 5s com indicadores discretos (dots).
  *
  * ⚠️ NÃO é dismissível: em ticket alto (R$ 200-2000), perder o gatilho de
- * "frete grátis acima de R$ 800" porque o usuário fechou uma vez na vida
+ * "frete grátis acima de R$ X" porque o usuário fechou uma vez na vida
  * é queima de conversão recorrente. A barra é slim (32px) e não invade
- * a UX. Persistência removida.
+ * a UX.
  *
- * Em mobile, ocupa 32px (h-8) — economia de 4px vs antes (era h-9 = 36px).
- * Em desktop continua h-9 para presença visual.
+ * IMPORTANTE: usa ÍCONES Lucide (não emojis) — bandeira 🇧🇷 (compound
+ * emoji) não renderiza em Chromium/Windows, virando "BR". Ícones SVG
+ * são 100% confiáveis cross-platform.
  */
-// "BEMVINDO10" foi movido para o WelcomeCouponPopup (popup discreto,
-// 1x por visitante) — assim ele não compete pelo airtime com frete/PIX
-// e converte sem ocupar viewport permanente.
+
+// "BEMVINDO10" foi movido para o WelcomeCouponPopup (popup discreto, 1x
+// por visitante) — assim não compete pelo airtime com frete/PIX/origem.
 const ROTATE_MS = 5000;
 
 export function AnnouncementBar() {
@@ -28,9 +30,9 @@ export function AnnouncementBar() {
   // — antes "R$ 800" estava hardcoded e dessincronizava com a barra do carrinho.
   const messages = useMemo(
     () => [
-      { text: `Frete GRÁTIS acima de ${formatBRL(freeShippingMin)}`, emoji: "🚚" },
-      { text: "5% OFF no PIX em todos os produtos", emoji: "💰" },
-      { text: "Envio para todo o Brasil — produtos originais", emoji: "🇧🇷" },
+      { text: `Frete GRÁTIS acima de ${formatBRL(freeShippingMin)}`, icon: Truck },
+      { text: "5% OFF no PIX em todos os produtos", icon: Wallet },
+      { text: "Produtos originais com garantia de procedência", icon: ShieldCheck },
     ],
     [freeShippingMin],
   );
@@ -44,7 +46,10 @@ export function AnnouncementBar() {
       }
     }, ROTATE_MS);
     return () => window.clearInterval(id);
-  }, []);
+  }, [messages.length]);
+
+  const Current = messages[idx];
+  const Icon = Current.icon;
 
   return (
     <div
@@ -57,12 +62,12 @@ export function AnnouncementBar() {
       <div className="mx-auto flex h-8 md:h-9 max-w-[1400px] items-center justify-center gap-2 px-4 text-center">
         <p
           key={idx}
-          className="text-[12px] sm:text-[13px] font-medium tracking-tight truncate animate-in fade-in slide-in-from-bottom-1 duration-500"
+          className="inline-flex items-center gap-1.5 text-[12px] sm:text-[13px] font-medium tracking-tight truncate animate-in fade-in slide-in-from-bottom-1 duration-500"
           aria-live="polite"
           aria-atomic="true"
         >
-          <span aria-hidden className="mr-1.5">{messages[idx].emoji}</span>
-          {messages[idx].text}
+          <Icon className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} aria-hidden />
+          <span className="truncate">{Current.text}</span>
         </p>
       </div>
       {/* Indicadores discretos — confirma que há rotação e permite previsão.

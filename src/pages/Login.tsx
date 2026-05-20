@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { getAffiliateRef, getAffiliateRefData, setAffiliateRef, clearAffiliateRef, readAttributionFromUrl } from "@/lib/affiliateRef";
 import { friendlyAuthError } from "@/lib/friendlyError";
-import { Users, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Users, Eye, EyeOff, Loader2, Lock, Zap, Package } from "lucide-react";
 import { useSEO } from "@/hooks/useSEO";
 
 export default function Login() {
@@ -336,25 +336,24 @@ export default function Login() {
         </p>
       </div>
 
-      {/* Trust badges abaixo do card — reforça segurança no momento crítico
-          da captura de dados (email + senha). UX clássica de e-commerce
-          (Stripe, ML, etc usam padrão similar). */}
+      {/* Trust badges abaixo do card — reforça segurança no momento crítico.
+          Usa ícones Lucide (não emojis) — consistência cross-platform. */}
       <div className="mt-5 grid grid-cols-3 gap-2 text-center">
-        <div className="rounded-xl bg-muted/40 border border-border/40 px-2 py-2.5">
-          <p className="text-[16px]" aria-hidden>🔒</p>
-          <p className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground mt-0.5 leading-tight">
+        <div className="rounded-xl bg-muted/40 border border-border/40 px-2 py-2.5 flex flex-col items-center">
+          <Lock className="h-4 w-4 text-primary" strokeWidth={2.25} aria-hidden />
+          <p className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground mt-1.5 leading-tight">
             Dados<br />criptografados
           </p>
         </div>
-        <div className="rounded-xl bg-muted/40 border border-border/40 px-2 py-2.5">
-          <p className="text-[16px]" aria-hidden>⚡</p>
-          <p className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground mt-0.5 leading-tight">
+        <div className="rounded-xl bg-muted/40 border border-border/40 px-2 py-2.5 flex flex-col items-center">
+          <Zap className="h-4 w-4 text-secondary" strokeWidth={2.25} aria-hidden />
+          <p className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground mt-1.5 leading-tight">
             Cadastro em<br />30 segundos
           </p>
         </div>
-        <div className="rounded-xl bg-muted/40 border border-border/40 px-2 py-2.5">
-          <p className="text-[16px]" aria-hidden>📦</p>
-          <p className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground mt-0.5 leading-tight">
+        <div className="rounded-xl bg-muted/40 border border-border/40 px-2 py-2.5 flex flex-col items-center">
+          <Package className="h-4 w-4 text-brand-cyan-text" strokeWidth={2.25} aria-hidden />
+          <p className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground mt-1.5 leading-tight">
             Acompanhe<br />pedidos
           </p>
         </div>
