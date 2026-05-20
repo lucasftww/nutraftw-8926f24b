@@ -182,14 +182,30 @@ export default function Login() {
   }
 
   return (
-    <div className="container py-12 md:py-20 max-w-md">
+    <div className="container py-8 md:py-16 max-w-md animate-in fade-in duration-500">
+      {/* Marca acima do card — identidade visual reforçada antes do form.
+          Antes o login era anônimo: cliente que entrava pelo /login?next=...
+          via um form genérico, sem reforço da marca Royal Vitta. */}
+      <div className="text-center mb-5 md:mb-7">
+        <div className="inline-flex h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-gradient-brand items-center justify-center shadow-lg shadow-primary/20 mb-3">
+          <span className="font-display text-white text-xl md:text-2xl font-extrabold tracking-tight">
+            RV
+          </span>
+        </div>
+        <p className="text-[11px] sm:text-xs font-bold uppercase tracking-[0.18em] text-secondary-text">
+          Royal Vitta
+        </p>
+      </div>
+
       <div className="bg-card rounded-2xl border border-border shadow-card p-6 md:p-8">
-        <h1 className="font-display text-3xl font-extrabold text-primary text-center mb-2">
-          {mode === "login" ? "Entrar" : "Criar conta"}
+        <h1 className="font-display text-2xl md:text-3xl font-extrabold text-foreground text-center mb-2 tracking-tight">
+          {mode === "login" ? "Bem-vindo de volta" : "Criar sua conta"}
         </h1>
-         <p className="text-center text-sm text-muted-foreground mb-6">
-           {mode === "login" ? "Acesse sua conta" : "Cadastre-se gratuitamente"}
-         </p>
+        <p className="text-center text-sm text-muted-foreground mb-6">
+          {mode === "login"
+            ? "Acompanhe seus pedidos, favoritos e indicações."
+            : "Cadastro grátis em 30 segundos. Sem complicação."}
+        </p>
 
         <div className="grid grid-cols-2 gap-1 p-1 bg-muted rounded-full mb-6">
           <button
@@ -318,6 +334,30 @@ export default function Login() {
             ← Voltar ao catálogo
           </Link>
         </p>
+      </div>
+
+      {/* Trust badges abaixo do card — reforça segurança no momento crítico
+          da captura de dados (email + senha). UX clássica de e-commerce
+          (Stripe, ML, etc usam padrão similar). */}
+      <div className="mt-5 grid grid-cols-3 gap-2 text-center">
+        <div className="rounded-xl bg-muted/40 border border-border/40 px-2 py-2.5">
+          <p className="text-[16px]" aria-hidden>🔒</p>
+          <p className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground mt-0.5 leading-tight">
+            Dados<br />criptografados
+          </p>
+        </div>
+        <div className="rounded-xl bg-muted/40 border border-border/40 px-2 py-2.5">
+          <p className="text-[16px]" aria-hidden>⚡</p>
+          <p className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground mt-0.5 leading-tight">
+            Cadastro em<br />30 segundos
+          </p>
+        </div>
+        <div className="rounded-xl bg-muted/40 border border-border/40 px-2 py-2.5">
+          <p className="text-[16px]" aria-hidden>📦</p>
+          <p className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground mt-0.5 leading-tight">
+            Acompanhe<br />pedidos
+          </p>
+        </div>
       </div>
     </div>
   );
