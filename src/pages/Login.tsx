@@ -207,10 +207,11 @@ export default function Login() {
             : "Cadastro grátis em 30 segundos. Sem complicação."}
         </p>
 
-        <div className="grid grid-cols-2 gap-1 p-1 bg-muted rounded-full mb-6">
+        <div className="grid grid-cols-2 gap-1 p-1 bg-muted rounded-full mb-6" role="group" aria-label="Modo de acesso">
           <button
             onClick={() => setMode("login")}
-            className={`h-11 rounded-full text-sm font-semibold transition-all ${
+            aria-pressed={mode === "login"}
+            className={`h-11 rounded-full text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 ${
               mode === "login" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
             }`}
           >
@@ -218,7 +219,8 @@ export default function Login() {
           </button>
           <button
             onClick={() => setMode("register")}
-            className={`h-11 rounded-full text-sm font-semibold transition-all ${
+            aria-pressed={mode === "register"}
+            className={`h-11 rounded-full text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 ${
               mode === "register" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
             }`}
           >
@@ -341,19 +343,19 @@ export default function Login() {
       <div className="mt-5 grid grid-cols-3 gap-2 text-center">
         <div className="rounded-xl bg-muted/40 border border-border/40 px-2 py-2.5 flex flex-col items-center">
           <Lock className="h-4 w-4 text-primary" strokeWidth={2.25} aria-hidden />
-          <p className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground mt-1.5 leading-tight">
+          <p className="text-[11px] font-semibold text-muted-foreground mt-1.5 leading-tight">
             Dados<br />criptografados
           </p>
         </div>
         <div className="rounded-xl bg-muted/40 border border-border/40 px-2 py-2.5 flex flex-col items-center">
           <Zap className="h-4 w-4 text-secondary" strokeWidth={2.25} aria-hidden />
-          <p className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground mt-1.5 leading-tight">
+          <p className="text-[11px] font-semibold text-muted-foreground mt-1.5 leading-tight">
             Cadastro em<br />30 segundos
           </p>
         </div>
         <div className="rounded-xl bg-muted/40 border border-border/40 px-2 py-2.5 flex flex-col items-center">
           <Package className="h-4 w-4 text-brand-cyan-text" strokeWidth={2.25} aria-hidden />
-          <p className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground mt-1.5 leading-tight">
+          <p className="text-[11px] font-semibold text-muted-foreground mt-1.5 leading-tight">
             Acompanhe<br />pedidos
           </p>
         </div>

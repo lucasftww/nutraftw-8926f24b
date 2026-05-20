@@ -9,6 +9,7 @@ import { Search, SlidersHorizontal, X, ArrowUpDown, Check, Tag, Award, Filter } 
 import { SORT_KEYS, SORT_LABELS, type SortKey, getProductPricing, isTirzepatidaCategory, productScore } from "@/lib/catalog";
 import { useCart } from "@/hooks/useCart";
 import { useSEO } from "@/hooks/useSEO";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { useProducts, useCategories, useBrands, type ProductRow } from "@/hooks/useProducts";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { ProductCard } from "@/components/product/ProductCard";
@@ -104,6 +105,7 @@ export default function Catalog() {
 
   const loading = loadingProducts;
   const { add, openCart } = useCart();
+  const filterDrawerRef = useFocusTrap<HTMLElement>(filtersOpen, () => setFiltersOpen(false));
   const qc = useQueryClient();
 
   // Pré-carrega o produto quando o usuário sinaliza intenção (hover/touchstart no card).
@@ -661,7 +663,11 @@ export default function Catalog() {
             className="absolute inset-0 bg-foreground/55 backdrop-blur-[3px] animate-in fade-in duration-200"
             onClick={() => setFiltersOpen(false)}
           />
-          <aside className="absolute right-0 top-0 h-full w-full sm:w-[440px] bg-background flex flex-col animate-in slide-in-from-right duration-300 shadow-2xl">
+          <aside
+            ref={filterDrawerRef}
+            tabIndex={-1}
+            className="absolute right-0 top-0 h-full w-full sm:w-[440px] bg-background flex flex-col animate-in slide-in-from-right duration-300 shadow-2xl outline-none"
+          >
             {(() => {
               const activeFilterCount =
                 selectedCats.size +

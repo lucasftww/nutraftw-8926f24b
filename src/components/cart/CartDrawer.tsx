@@ -78,9 +78,12 @@ export function CartDrawer() {
         >
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="relative h-9 w-9 rounded-full bg-primary/10 text-primary inline-flex items-center justify-center shrink-0">
-              <ShoppingBag className="h-4.5 w-4.5" />
+              <ShoppingBag className="h-4.5 w-4.5" aria-hidden />
+              <span className="sr-only">
+                {itemCount === 0 ? "Carrinho vazio" : `${itemCount} ${itemCount === 1 ? "item" : "itens"} no carrinho`}
+              </span>
               {itemCount > 0 && (
-                <span className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 inline-flex items-center justify-center rounded-full bg-secondary text-secondary-foreground text-[11px] font-bold leading-none">
+                <span aria-hidden className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 inline-flex items-center justify-center rounded-full bg-secondary text-[hsl(22_85%_16%)] text-[11px] font-bold leading-none">
                   {itemCount}
                 </span>
               )}
@@ -99,7 +102,7 @@ export function CartDrawer() {
           <button
             onClick={closeCart}
             aria-label="Fechar carrinho"
-            className="h-10 w-10 inline-flex items-center justify-center rounded-full hover:bg-muted active:bg-muted/80 transition-colors shrink-0"
+            className="h-11 w-11 inline-flex items-center justify-center rounded-full hover:bg-muted active:bg-muted/80 transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
           >
             <X className="h-5 w-5" />
           </button>
@@ -149,7 +152,7 @@ export function CartDrawer() {
                       <button
                         onClick={() => remove(l.product_id)}
                         aria-label={`Remover ${l.name}`}
-                        className="-mt-1 -mr-1 h-8 w-8 inline-flex items-center justify-center rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0"
+                        className="-mt-1 -mr-1 h-10 w-10 inline-flex items-center justify-center rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/30"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -162,7 +165,7 @@ export function CartDrawer() {
                         <button
                           onClick={() => setQty(l.product_id, l.qty - 1)}
                           aria-label="Diminuir quantidade"
-                          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted active:bg-muted/80"
+                          className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted active:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                         >
                           <Minus className="h-3.5 w-3.5" />
                         </button>
@@ -174,7 +177,7 @@ export function CartDrawer() {
                           aria-label="Aumentar quantidade"
                           disabled={l.qty >= CART_MAX_QTY_PER_ITEM}
                           title={l.qty >= CART_MAX_QTY_PER_ITEM ? `Máximo de ${CART_MAX_QTY_PER_ITEM} por item` : undefined}
-                          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted active:bg-muted/80 disabled:opacity-40 disabled:cursor-not-allowed"
+                          className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted active:bg-muted/80 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                         >
                           <Plus className="h-3.5 w-3.5" />
                         </button>
@@ -268,7 +271,7 @@ export function CartDrawer() {
               <button
                 type="button"
                 onClick={closeCart}
-                className="text-[12px] font-semibold text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors"
+                className="text-[12px] font-semibold text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded"
               >
                 ← Continuar comprando
               </button>

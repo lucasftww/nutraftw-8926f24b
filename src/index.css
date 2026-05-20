@@ -265,10 +265,13 @@
   }
   .btn-cta {
     @apply inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full
-           bg-secondary text-secondary-foreground font-bold text-sm
+           bg-secondary font-bold text-sm
            hover:brightness-110 active:scale-[0.98] transition-all
            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2
            disabled:opacity-50 disabled:pointer-events-none disabled:saturate-50;
+    /* Texto escuro garante contraste ~7:1 sobre o laranja (#F97415).
+       `text-secondary-foreground` (branco) só atingia 2.66:1 — falha WCAG 1.4.3 AA. */
+    color: hsl(22 85% 16%);
     box-shadow: var(--shadow-cta);
   }
   .btn-cta:hover { box-shadow: var(--shadow-cta-hover); }
