@@ -1,31 +1,24 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Heart, ShoppingCart, ArrowRight } from "lucide-react";
+import { Heart, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useWishlist } from "@/hooks/useWishlist";
-import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
 import { useSEO } from "@/hooks/useSEO";
-import { formatBRL } from "@/lib/utils";
-import { responsiveImage } from "@/lib/image";
-import { WishlistButton } from "@/components/wishlist/WishlistButton";
-
-interface FavProduct {
-  id: string;
-  slug: string;
-  name: string;
-  price: number;
-  sale_price: number | null;
-  image_url: string | null;
-  stock: number;
-}
+import { ProductCard } from "@/components/product/ProductCard";
+import type { ProductRow } from "@/hooks/useProducts";
 
 export default function Wishlist() {
   const { isAuthed, ids } = useWishlist();
-  const { user } = useAuth();
   const { add, openCart } = useCart();
-  const [items, setItems] = useState<FavProduct[]>([]);
+  const [items, setItems] = useState<ProductRow[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Handler estável para adicionar ao carrinho — passado ao ProductCard.
+  const handleAdd = useCallback((p: ProductRow, finalPrice: number) => {
+    add({ product_id: p.id, slug: p.slug, name: p.name, price: finalPrice, image_url: p.image_url });
+    openCart();
+  }, [add, openCart]);
 
    useSEO({
      title: "Meus favoritos",
@@ -42,14 +35,15 @@ export default function Wishlist() {
     // depois de uma nova (ex.: usuário remove favorito e re-favorita
     // rapidamente) e sobrescrever a lista correta com a obsoleta.
     let cancelled = false;
+    // Seleciona todos os campos necessários para o ProductCard reusado.
     supabase
       .from("products")
-      .select("id, slug, name, price, sale_price, image_url, stock")
+      .select("id, slug, name, price, sale_price, image_url, stock, created_at, is_new_release, is_on_offer, category_id, brand_id")
       .eq("is_active", true)
       .in("id", Array.from(ids))
       .then(({ data }) => {
         if (cancelled) return;
-        setItems(((data as any) || []) as FavProduct[]);
+        setItems(((data as any) || []) as ProductRow[]);
         setLoading(false);
       });
     return () => { cancelled = true; };
@@ -122,86 +116,14 @@ export default function Wishlist() {
           </Link>
         </div>
       ) : (
+        // Reusa o ProductCard do Catalog (mesmo layout/regras de badge/preço).
+        // Antes a Wishlist mantinha uma cópia local que ia divergindo (ex.:
+        // não exibia LANÇAMENTO/OFERTA e o badge "Esgotado" era preto, não
+        // vermelho). Agora as duas listas ficam sempre consistentes.
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
-          {items.map((p) => {
-            const sale = p.sale_price != null ? Number(p.sale_price) : 0;
-            const price = Number(p.price);
-            const hasSale = sale > 0 && sale < price;
-            const final = hasSale ? sale : price;
-            const pixPrice = final * 0.95;
-            const isOut = (p.stock ?? 0) <= 0;
-            const r = responsiveImage(p.image_url, "(max-width: 640px) 50vw, 25vw", { fallbackWidth: 400 });
-            return (
-              <div
-                key={p.id}
-                className={`group flex flex-col h-full rounded-2xl bg-card overflow-hidden border border-border/50 ${isOut ? "opacity-70" : ""}`}
-              >
-                {/* p-3 sm:p-5 + object-contain — packshots farmacêuticos.
-                    Imagem ocupa 92% (era 85%) para usar melhor a área do card. */}
-                <Link to={`/produto/${p.slug}`} className="relative aspect-square overflow-hidden bg-white p-3 sm:p-5 flex items-center justify-center">
-                  <img
-                    src={r.src}
-                    srcSet={r.srcSet || undefined}
-                    sizes={r.sizes}
-                    alt={p.name}
-                    loading="lazy"
-                    decoding="async"
-                    width={400}
-                    height={400}
-                    className="max-w-[92%] max-h-[92%] w-auto h-auto object-contain mx-auto transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <WishlistButton productId={p.id} className="absolute top-2.5 right-2.5 z-[1] bg-white/90 hover:bg-white shadow-sm rounded-full" size="sm" />
-                  {isOut && (
-                    <span className="badge-pill absolute top-2.5 left-2.5 uppercase tracking-wide font-bold bg-foreground/85 text-background">
-                      Esgotado
-                    </span>
-                  )}
-                  {hasSale && !isOut && (
-                    <span className="badge-pill absolute top-2.5 left-2.5 uppercase tracking-wide font-bold bg-secondary text-secondary-foreground">
-                      −{Math.round((1 - sale / price) * 100)}%
-                    </span>
-                  )}
-                </Link>
-                <div className="flex flex-col flex-1 px-3 pt-2 pb-3 sm:px-3.5 sm:pt-3 sm:pb-4">
-                  <Link
-                    to={`/produto/${p.slug}`}
-                    className="font-semibold text-[13px] sm:text-[14px] leading-snug text-foreground line-clamp-2 min-h-[2.8em] hover:text-primary"
-                  >
-                    {p.name}
-                  </Link>
-                  {/* Hierarquia consistente com Catalog: PIX é o preço-âncora
-                      (verde, dominante); preço normal vira referência. */}
-                  <div className="mt-auto pt-2 leading-tight">
-                    {hasSale && (
-                      <div className="text-[11px] sm:text-[12px] text-oldPrice font-medium line-through tabular-nums opacity-80">
-                        {formatBRL(price)}
-                      </div>
-                    )}
-                    <div className="flex items-baseline gap-1.5 mt-0.5">
-                      <span className="text-[17px] sm:text-[20px] font-extrabold text-success tabular-nums tracking-tight leading-none">
-                        {formatBRL(pixPrice)}
-                      </span>
-                      <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-success/80 leading-none whitespace-nowrap">
-                        no PIX
-                      </span>
-                    </div>
-                    <div className="text-[11px] sm:text-[12px] text-muted-foreground tabular-nums leading-tight mt-0.5">
-                      ou {formatBRL(final)}
-                    </div>
-                  </div>
-                  {/* CTA h-11 (44px WCAG) — antes era h-10 (40px). */}
-                  <button
-                    onClick={() => { if (isOut) return; add({ product_id: p.id, slug: p.slug, name: p.name, price: final, image_url: p.image_url }); openCart(); }}
-                    disabled={isOut}
-                    aria-label={isOut ? `${p.name} esgotado` : `Adicionar ${p.name} ao carrinho`}
-                    className="mt-3 btn-cta h-11 w-full !text-[13.5px] !gap-1.5 !px-0 disabled:opacity-40 disabled:!bg-muted disabled:!text-muted-foreground"
-                  >
-                    {isOut ? "Indisponível" : (<><ShoppingCart className="h-4 w-4" strokeWidth={2.2} />Comprar</>)}
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+          {items.map((p, i) => (
+            <ProductCard key={p.id} p={p} index={i} onAdd={handleAdd} />
+          ))}
         </div>
       )}
     </section>
