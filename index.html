@@ -11,10 +11,9 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
     />
-    <!-- Preconnect ao Supabase Storage: antecipa DNS+TLS antes do primeiro byte
-         de imagem do catálogo. Reduz ~150-400ms no LCP mobile. -->
-    <link rel="preconnect" href="https://idutmqfqnoozqbjeqtui.supabase.co" crossorigin />
-    <link rel="dns-prefetch" href="https://idutmqfqnoozqbjeqtui.supabase.co" />
+    <!-- Supabase preconnect removido: project ref hardcoded no HTML público
+         expunha o ID do projeto. O browser faz DNS lookup automaticamente
+         na primeira requisição — custo marginal, sem risco de exposição. -->
     <title>Royal Vitta - Importação Farmacêutica com Segurança</title>
     <meta name="description" content="Royal Vitta: importe medicamentos, peptídeos e produtos farmacêuticos com rapidez, segurança e preço justo. Frete para todo o Brasil.">
     <link rel="canonical" href="https://royalvitta.com.br/" />
@@ -71,7 +70,7 @@
       "inLanguage": "pt-BR",
       "potentialAction": {
         "@type": "SearchAction",
-        "target": "https://royalvitta.com.br/?q={search_term_string}",
+        "target": "https://royalvitta.com.br/catalogo?q={search_term_string}",
         "query-input": "required name=search_term_string"
       }
     }

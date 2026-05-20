@@ -11,6 +11,9 @@
   html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
+    /* scroll-padding-top: âncoras internas (#section) não ficam escondidas
+       atrás do header fixo. Ajuste para a altura real do header (~64px). */
+    scroll-padding-top: 4.5rem;
     /* IMPORTANTE: não usar overflow-x:hidden no <html> — quebra
        position: sticky no mobile (iOS Safari e Chrome Android), pois
        o container de scroll deixa de ser o viewport. Bloqueamos rolagem
@@ -169,6 +172,20 @@
     --shadow-cta: 0 8px 24px -8px hsl(18 95% 54% / 0.45);
     --shadow-cta-hover: 0 12px 32px -8px hsl(18 95% 54% / 0.65);
     --shadow-cta-active: 0 4px 12px -4px hsl(18 95% 54% / 0.35);
+
+    /* Espaçamento de seção — padrão uniforme entre blocos da home/internas.
+       Use em padding-top/bottom de <section>. */
+    --section-padding-y: 4rem;
+    --section-padding-y-sm: 2.5rem;
+    --container-padding-x: 1.5rem;
+
+    /* Transições padrão — garante timing consistente entre componentes.
+       fast → micro-interações (hover de ícone, foco de input).
+       base → transições de cor/bg (botões, cards).
+       slow → animações de entrada (modais, drawers). */
+    --transition-fast: 150ms ease;
+    --transition-base: 200ms ease;
+    --transition-slow: 300ms ease;
   }
 
   /* ===== Dark mode tokens — Luminous Editorial =====

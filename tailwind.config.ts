@@ -77,6 +77,19 @@ export default {
           foreground: "hsl(var(--popover-foreground))",
         },
       },
+      fontSize: {
+        /* Escala tipográfica semântica — garante hierarquia consistente
+           em toda a loja sem depender de classes Tailwind arbitrárias.
+           Uso: text-display-lg (hero), text-display-md (section titles),
+           text-body-md (paragraphs), text-label (chips, badges). */
+        "display-lg": ["2.5rem",  { lineHeight: "1.15", fontWeight: "700" }],
+        "display-md": ["2rem",    { lineHeight: "1.2",  fontWeight: "700" }],
+        "display-sm": ["1.5rem",  { lineHeight: "1.25", fontWeight: "600" }],
+        "body-lg":    ["1.125rem",{ lineHeight: "1.7",  fontWeight: "400" }],
+        "body-md":    ["1rem",    { lineHeight: "1.7",  fontWeight: "400" }],
+        "body-sm":    ["0.875rem",{ lineHeight: "1.6",  fontWeight: "400" }],
+        "label":      ["0.75rem", { lineHeight: "1.4",  fontWeight: "500", letterSpacing: "0.04em" }],
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
