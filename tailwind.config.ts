@@ -85,6 +85,7 @@ export default {
         "display-lg": ["2.5rem",  { lineHeight: "1.15", fontWeight: "700" }],
         "display-md": ["2rem",    { lineHeight: "1.2",  fontWeight: "700" }],
         "display-sm": ["1.5rem",  { lineHeight: "1.25", fontWeight: "600" }],
+        "display-xs": ["1.625rem",{ lineHeight: "1.15", fontWeight: "800" }],
         "body-lg":    ["1.125rem",{ lineHeight: "1.7",  fontWeight: "400" }],
         "body-md":    ["1rem",    { lineHeight: "1.7",  fontWeight: "400" }],
         "body-sm":    ["0.875rem",{ lineHeight: "1.6",  fontWeight: "400" }],

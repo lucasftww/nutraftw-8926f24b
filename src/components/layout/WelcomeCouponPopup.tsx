@@ -111,7 +111,7 @@ export function WelcomeCouponPopup() {
             </button>
           </div>
 
-          <p className="mt-3 text-[10.5px] text-muted-foreground/80 leading-tight">
+          <p className="mt-3 text-[11px] text-muted-foreground/80 leading-tight">
             Cupom válido na 1ª compra · não acumula com outras promoções
           </p>
         </div>

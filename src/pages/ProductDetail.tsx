@@ -216,7 +216,7 @@ export default function ProductDetail() {
             )}
             {/* H1: text-[26px] mobile (era text-2xl=24px que ficava tímido para um hero).
                 text-4xl desktop mantido. */}
-            <h1 className="text-[26px] md:text-4xl font-extrabold text-foreground mt-2 leading-[1.15] tracking-tight break-words">
+            <h1 className="text-display-xs md:text-4xl font-extrabold text-foreground mt-2 leading-[1.15] tracking-tight break-words">
               {p.name}
             </h1>
             {/* Prova social (visualizações 24h) — só renderiza se >= 5
@@ -460,7 +460,7 @@ export default function ProductDetail() {
                           NO PIX
                         </span>
                       </div>
-                      <span className="text-[10.5px] text-muted-foreground tabular-nums leading-tight">
+                      <span className="text-[11px] text-muted-foreground tabular-nums leading-tight">
                         ou {formatBRL(rFinal)}
                         {rHasSale && (
                           <span className="line-through ml-1 opacity-70">{formatBRL(rPrice)}</span>

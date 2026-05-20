@@ -124,7 +124,7 @@ export function Header({ isCheckout = false }: { isCheckout?: boolean }) {
                 rel="noreferrer"
                 aria-label="Suporte WhatsApp"
                 title="Suporte WhatsApp"
-                className="hidden md:inline-flex h-11 w-11 items-center justify-center rounded-full text-whatsapp hover:bg-whatsapp/10 transition-colors"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full text-whatsapp hover:bg-whatsapp/10 transition-colors"
               >
                 <MessageCircle className="h-5 w-5" strokeWidth={1.75} />
               </a>

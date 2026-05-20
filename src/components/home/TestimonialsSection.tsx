@@ -44,7 +44,7 @@ export function TestimonialsSection({ items }: { items: Testimonial[] }) {
       aria-labelledby="testimonials-heading"
     >
       <div className="text-center mb-7 md:mb-9">
-        <p className="text-[10.5px] sm:text-xs font-bold uppercase tracking-[0.18em] text-secondary-text mb-2">
+        <p className="text-eyebrow text-secondary-text mb-2">
           Quem comprou recomenda
         </p>
         <h2

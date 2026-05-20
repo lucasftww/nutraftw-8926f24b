@@ -4,7 +4,7 @@ export const SORT_KEYS = ["categoria", "recentes", "az", "preco_asc", "preco_des
 export type SortKey = (typeof SORT_KEYS)[number];
 
 export const SORT_LABELS: Record<SortKey, string> = {
-  categoria: "Por categoria",
+  categoria: "Agrupado por categoria",
   recentes: "Mais recentes",
   az: "A–Z",
   preco_asc: "Menor preço",

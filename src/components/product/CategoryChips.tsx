@@ -89,7 +89,7 @@ export function CategoryChips({
                 <span className="whitespace-nowrap">{c.name}</span>
                 {count != null && count > 0 && (
                   <span
-                    className={`text-[10.5px] tabular-nums leading-none ${
+                    className={`text-[11px] tabular-nums leading-none ${
                       active ? "text-primary-foreground/70" : "text-muted-foreground/70"
                     }`}
                   >

@@ -915,7 +915,7 @@ export default function Catalog() {
                                 {b.name}
                                 {count > 0 && (
                                   <span
-                                    className={`text-[10.5px] tabular-nums font-semibold ${
+                                    className={`text-[11px] tabular-nums font-semibold ${
                                       checked ? "text-primary-foreground/80" : "text-muted-foreground/70"
                                     }`}
                                   >

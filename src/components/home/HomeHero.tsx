@@ -27,7 +27,7 @@ export function HomeHero() {
         />
 
         <div className="relative">
-          <p className="inline-flex items-center gap-1.5 text-[10.5px] sm:text-xs font-bold uppercase tracking-[0.18em] text-secondary-text mb-2.5">
+          <p className="inline-flex items-center gap-1.5 text-eyebrow text-secondary-text mb-2.5">
             <Sparkles className="h-3 w-3" strokeWidth={2.5} />
             Royal Vitta
           </p>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Truck, Wallet, ShieldCheck } from "lucide-react";
+import { Truck, Wallet, ShieldCheck, X } from "lucide-react";
 import { useFreeShippingMin } from "@/hooks/useFreeShippingMin";
 import { formatBRL } from "@/lib/utils";
 
@@ -23,6 +23,9 @@ import { formatBRL } from "@/lib/utils";
 const ROTATE_MS = 5000;
 
 export function AnnouncementBar() {
+  const [dismissed, setDismissed] = useState(
+    () => sessionStorage.getItem("announcebar-v1") === "closed",
+  );
   const [idx, setIdx] = useState(0);
   const freeShippingMin = useFreeShippingMin();
 
@@ -48,6 +51,14 @@ export function AnnouncementBar() {
     return () => window.clearInterval(id);
   }, [messages.length]);
 
+  // Early return após todos os hooks — respeita as Rules of Hooks.
+  if (dismissed) return null;
+
+  const dismiss = () => {
+    sessionStorage.setItem("announcebar-v1", "closed");
+    setDismissed(true);
+  };
+
   const Current = messages[idx];
   const Icon = Current.icon;
 
@@ -70,22 +81,28 @@ export function AnnouncementBar() {
           <span className="truncate">{Current.text}</span>
         </p>
       </div>
-      {/* Indicadores discretos — confirma que há rotação e permite previsão.
-          Em mobile (<sm) escondemos os dots para preservar verticalidade. */}
-      <div
-        className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:flex items-center gap-1"
-        aria-hidden="true"
-      >
-        {messages.map((_, i) => (
-          <span
-            key={i}
-            className={`h-1 w-1 rounded-full transition-all duration-300 ${
-              i === idx
-                ? "bg-primary-foreground w-3"
-                : "bg-primary-foreground/40"
-            }`}
-          />
-        ))}
+      {/* Indicadores discretos + botão fechar à direita */}
+      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+        <div className="hidden sm:flex items-center gap-1" aria-hidden="true">
+          {messages.map((_, i) => (
+            <span
+              key={i}
+              className={`h-1 w-1 rounded-full transition-all duration-300 ${
+                i === idx
+                  ? "bg-primary-foreground w-3"
+                  : "bg-primary-foreground/40"
+              }`}
+            />
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={dismiss}
+          aria-label="Fechar aviso"
+          className="inline-flex h-6 w-6 items-center justify-center rounded-full text-white/60 hover:text-white hover:bg-white/15 transition-colors"
+        >
+          <X className="h-3 w-3" strokeWidth={2.5} />
+        </button>
       </div>
     </div>
   );
