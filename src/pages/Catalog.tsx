@@ -13,6 +13,9 @@ import { useProducts, useCategories, useBrands, type ProductRow } from "@/hooks/
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { ProductCard } from "@/components/product/ProductCard";
 import { CategoryChips } from "@/components/product/CategoryChips";
+import { HomeHero } from "@/components/home/HomeHero";
+import { TestimonialsSection } from "@/components/home/TestimonialsSection";
+import { FAQSection } from "@/components/home/FAQSection";
 
 type Product = ProductRow;
 
@@ -501,6 +504,13 @@ export default function Catalog() {
         </div>
       </div>
 
+      {/* Hero da home — só renderiza quando NÃO há filtros nem busca ativa.
+          Cliente que veio direto de /produto/X com `?categoria=X` ou
+          digitando algo na busca já tem contexto — o hero atrapalharia. */}
+      {!loading && !query && selectedCats.size === 0 && selectedBrands.size === 0 && (
+        <HomeHero />
+      )}
+
       {/* Chips de categoria — atalho 1-tap entre busca e grade.
           UX padrão BR (ML/Magalu/Shopee). Click filtra direto, sem
           abrir o drawer. Reaproveita state de selectedCats/toggleCat. */}
@@ -608,6 +618,17 @@ export default function Catalog() {
           </div>
         </div>
       </section>
+
+      {/* FAQ + Depoimentos — renderiza só na "home" (sem filtros/busca).
+          Ordem mental: produtos → FAQ (responde objeções) → social proof
+          → comprar. Se cliente já está filtrando, ele tem intenção clara
+          e não precisa do FAQ/testimonials no caminho. */}
+      {!loading && !query && selectedCats.size === 0 && selectedBrands.size === 0 && (
+        <>
+          <FAQSection />
+          <TestimonialsSection />
+        </>
+      )}
 
       {/* ============================================================
           FILTERS DRAWER — redesenho clean & profissional

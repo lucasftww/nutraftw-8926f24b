@@ -10,6 +10,8 @@ import { useConfirm } from "@/components/admin/ConfirmDialog";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 import { friendlyErrorMessage } from "@/lib/friendlyError";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import {
   ORDER_STATUSES,
   STATUS_PT,
@@ -375,7 +377,12 @@ export function AdminOrders() {
                 <td className="px-4 py-3 font-mono text-xs">#{o.id.slice(0, 8)}</td>
                 <td className="px-4 py-3 hidden md:table-cell">{o.shipping_full_name || "—"}</td>
                 <td className="px-4 py-3 hidden lg:table-cell text-muted-foreground text-xs">
-                  {new Date(o.created_at).toLocaleDateString("pt-BR")}
+                  <div className="flex flex-col leading-tight">
+                    <span>{new Date(o.created_at).toLocaleDateString("pt-BR")}</span>
+                    <span className="text-[10px] text-muted-foreground/70" title={new Date(o.created_at).toLocaleString("pt-BR")}>
+                      {formatDistanceToNow(new Date(o.created_at), { locale: ptBR, addSuffix: true })}
+                    </span>
+                  </div>
                 </td>
                 <td className="px-4 py-3 text-right font-semibold">{formatBRL(o.total)}</td>
                 <td className="px-4 py-3">
