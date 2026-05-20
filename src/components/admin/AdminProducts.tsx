@@ -741,7 +741,19 @@ export function AdminProducts() {
           <form onSubmit={save} className="space-y-4">
             <div className="grid sm:grid-cols-2 gap-3">
               <div className="space-y-2 sm:col-span-2"><Label>Nome</Label><Input required value={editing.name || ""} onChange={(e) => setEditing({ ...editing, name: e.target.value })} /></div>
-              <div className="space-y-2"><Label>Slug</Label><Input value={editing.slug || ""} placeholder="auto" onChange={(e) => setEditing({ ...editing, slug: e.target.value })} /></div>
+              <div className="space-y-2">
+                <Label>Slug</Label>
+                <Input
+                  value={editing.slug || ""}
+                  placeholder={editing.name ? slugify(editing.name) : "auto"}
+                  onChange={(e) => setEditing({ ...editing, slug: e.target.value })}
+                />
+                {/* Preview da URL final — admin sabe exatamente o link público.
+                    Se vazio, mostra o que SERIA gerado a partir do nome. */}
+                <p className="text-[11px] text-muted-foreground truncate">
+                  URL: <span className="font-mono">/produto/{editing.slug || (editing.name ? slugify(editing.name) : "novo-produto")}</span>
+                </p>
+              </div>
               <div className="space-y-2"><Label>Categoria</Label>
                 <select className="h-11 w-full rounded-xl border border-input bg-background px-4 text-sm" value={editing.category_id || ""} onChange={(e) => setEditing({ ...editing, category_id: e.target.value || null })}>
                   <option value="">— Sem categoria —</option>

@@ -3,7 +3,7 @@ import { Header } from "@/components/layout/Header";
 import { ProductFooter } from "@/components/layout/ProductFooter";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
-import { FirstPurchaseBanner } from "@/components/layout/FirstPurchaseBanner";
+import { WelcomeCouponPopup } from "@/components/layout/WelcomeCouponPopup";
 import { FloatingWhatsApp } from "@/components/layout/FloatingWhatsApp";
 import { Outlet } from "react-router-dom";
 import { CurrentProductProvider, useCurrentProduct } from "@/contexts/CurrentProductContext";
@@ -33,15 +33,7 @@ export function MainLayout() {
             dentro da página Catalog (mais perto da grade), não aqui — assim
             ele não conflita com a search bar `fixed top-14` que existe
             apenas naquela rota. */}
-        {!isCheckout && (
-          <>
-            {/* FirstPurchaseBanner aparece UMA VEZ por visitante (localStorage)
-                acima do AnnouncementBar — destaca o cupom BEMVINDO10 em
-                vermelho para não competir com frete/PIX na rotação. */}
-            <FirstPurchaseBanner />
-            <AnnouncementBar />
-          </>
-        )}
+        {!isCheckout && <AnnouncementBar />}
         <Header isCheckout={isCheckout} />
         <main className="flex-1">
           <Outlet />
@@ -51,6 +43,9 @@ export function MainLayout() {
         <CartDrawer />
         {/* WhatsApp flutuante — recupera o canal #1 de suporte BR. */}
         <FloatingWhatsApp />
+        {/* Popup de cupom (1x por visitante, delay 8s) — replace do banner
+            fixo que ficava preso no topo. Converte sem ocupar viewport. */}
+        {!isCheckout && <WelcomeCouponPopup />}
       </div>
     </CurrentProductProvider>
   );

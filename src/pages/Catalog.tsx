@@ -1204,15 +1204,12 @@ const ProductCard = memo(function ProductCard({
                        ele competia com PIX e era ilegível em 10px
                     4. min-h reservado para alinhar todos os cards */}
                 <div className="mt-auto pt-2 leading-tight min-h-[58px] sm:min-h-[68px] flex flex-col justify-end">
-                  {/* Linha 1 — preço cheio (riscado se há sale) */}
+                  {/* Linha 1 — preço cheio riscado. O "-%" foi REMOVIDO daqui
+                      (já há a badge grande `-X% OFF` no canto da imagem;
+                      duplicar quebrava hierarquia visual). */}
                   {hasSale ? (
-                    <div className="flex items-baseline gap-1.5 tabular-nums">
-                      <span className="text-[11px] sm:text-[12px] text-oldPrice font-medium line-through opacity-80">
-                        {formatBRL(getProductPricing(p).basePrice)}
-                      </span>
-                      <span className="badge-pill-sm bg-secondary/10 text-secondary-text">
-                        -{discountPct}%
-                      </span>
+                    <div className="text-[11px] sm:text-[12px] text-oldPrice font-medium line-through tabular-nums opacity-80">
+                      {formatBRL(getProductPricing(p).basePrice)}
                     </div>
                   ) : (
                     <div aria-hidden className="h-[14px] sm:h-[16px]" />

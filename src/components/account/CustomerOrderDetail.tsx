@@ -9,6 +9,7 @@ import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 import { OrderTimeline } from "@/components/account/OrderTimeline";
+import { PostPurchaseRecommendations } from "@/components/account/PostPurchaseRecommendations";
 
 export function CustomerOrderDetail({ orderId, onClose }: { orderId: string; onClose: () => void }) {
   const [order, setOrder] = useState<any | null>(null);
@@ -75,6 +76,31 @@ export function CustomerOrderDetail({ orderId, onClose }: { orderId: string; onC
         setLoading(false);
       }
     })();
+  }, [orderId]);
+
+  // Realtime: status do pedido atualiza ao vivo. Útil principalmente
+  // logo após pagamento PIX (cliente vê pending → paid em segundos sem
+  // refresh). Subscreve UPDATEs neste pedido específico.
+  useEffect(() => {
+    if (!orderId) return;
+    const channel = supabase
+      .channel(`order:${orderId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "orders",
+          filter: `id=eq.${orderId}`,
+        },
+        (payload) => {
+          // Mescla campos mudados — preserva campos que o realtime payload
+          // não enviar (caso só columns específicas estejam configuradas).
+          setOrder((prev: any) => ({ ...(prev || {}), ...(payload.new || {}) }));
+        },
+      )
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
   }, [orderId]);
 
   const showPix =
@@ -259,6 +285,11 @@ export function CustomerOrderDetail({ orderId, onClose }: { orderId: string; onC
                 <p>Tel: {order.shipping_phone}</p>
               </div>
             </section>
+
+            {/* Recomendações pós-compra — cross-sell barato. Mostra produtos
+                da mesma categoria, exclui os já comprados. Aparece SÓ se
+                houver itens válidos no pedido. */}
+            {items.length > 0 && <PostPurchaseRecommendations items={items} />}
 
             {/* CTAs do rodapé. "Comprar novamente" só aparece se houver
                 itens com product_id válido (produto pode ter sido removido
