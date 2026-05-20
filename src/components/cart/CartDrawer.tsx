@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { CouponInput } from "@/components/cart/CouponInput";
+import { CartCrossSell } from "@/components/cart/CartCrossSell";
 import { prefetchCheckout } from "@/App";
 import { prefetchImage } from "@/lib/prefetch";
 import { CART_MAX_QTY_PER_ITEM } from "@/lib/cart-store";
@@ -189,6 +190,9 @@ export function CartDrawer() {
             className="sticky bottom-0 z-10 border-t border-border bg-background/95 backdrop-blur-md shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.18)] px-4 sm:px-5 pt-3"
             style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.875rem)" }}
           >
+            {/* Cross-sell — só aparece com 1–5 itens no carrinho, da mesma
+                categoria. Aumenta AOV sem atrapalhar o foco no checkout. */}
+            <CartCrossSell />
             {/* Progress bar de frete grátis — booster comprovado de AOV.
                 Cliente vê EXATAMENTE quanto falta para liberar frete
                 grátis, motivando upsell/adicionar mais um item. */}
