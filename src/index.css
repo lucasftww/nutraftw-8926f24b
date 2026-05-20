@@ -1,4 +1,6 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap");
+/* Fonte agora carrega via <link> no index.html — desbloqueia o render
+   da CSS (era @import síncrono). Pesos: 400, 500, 600, 700, 800
+   (font-light/300 não era usado em nenhum lugar; economia ~15KB). */
 
 @tailwind base;
 @tailwind components;

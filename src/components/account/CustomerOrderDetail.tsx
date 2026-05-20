@@ -180,7 +180,7 @@ export function CustomerOrderDetail({ orderId, onClose }: { orderId: string; onC
               <section className="rounded-2xl border-2 border-emerald-500/40 bg-emerald-500/5 p-4 sm:p-5 space-y-3">
                 <div>
                   <h3 className="font-bold text-base flex items-center gap-2 text-emerald-700">
-                    <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-emerald-500 text-white text-xs font-black">PIX</span>
+                    <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-emerald-500 text-white text-xs font-extrabold">PIX</span>
                     Pague para liberar o pedido
                   </h3>
                   <p className="text-xs text-muted-foreground mt-1">

@@ -90,7 +90,7 @@ export function WelcomeCouponPopup() {
           </div>
 
           <div className="mt-4 flex items-center gap-2">
-            <div className="flex-1 inline-flex items-center justify-center h-11 rounded-xl border-2 border-dashed border-secondary/40 bg-secondary/5 px-3 font-mono font-black tracking-[0.18em] text-secondary text-base">
+            <div className="flex-1 inline-flex items-center justify-center h-11 rounded-xl border-2 border-dashed border-secondary/40 bg-secondary/5 px-3 font-mono font-extrabold tracking-[0.18em] text-secondary text-base">
               {COUPON}
             </div>
             <button

@@ -4,6 +4,7 @@ import { ProductFooter } from "@/components/layout/ProductFooter";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { WelcomeCouponPopup } from "@/components/layout/WelcomeCouponPopup";
+import { ScrollToTopButton } from "@/components/layout/ScrollToTopButton";
 import { FloatingWhatsApp } from "@/components/layout/FloatingWhatsApp";
 import { Outlet } from "react-router-dom";
 import { CurrentProductProvider, useCurrentProduct } from "@/contexts/CurrentProductContext";
@@ -43,6 +44,8 @@ export function MainLayout() {
         <CartDrawer />
         {/* WhatsApp flutuante — recupera o canal #1 de suporte BR. */}
         <FloatingWhatsApp />
+        {/* Voltar ao topo — aparece após scrollar >600px, escondido próx. ao topo. */}
+        {!isCheckout && <ScrollToTopButton />}
         {/* Popup de cupom (1x por visitante, delay 8s) — replace do banner
             fixo que ficava preso no topo. Converte sem ocupar viewport. */}
         {!isCheckout && <WelcomeCouponPopup />}
