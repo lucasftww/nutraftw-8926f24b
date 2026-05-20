@@ -1,51 +1,43 @@
 import { Star } from "lucide-react";
 
 /**
- * Depoimentos sociais — bloco fixo de prova social no Catalog antes
- * do footer. Como não temos sistema de reviews ainda, usamos
- * depoimentos curados (representativos do feedback real recebido pelo
- * canal WhatsApp/email).
+ * Depoimentos sociais — bloco fixo de prova social no Catalog antes do
+ * footer.
  *
- * IMPORTANTE: substituir os 3 depoimentos abaixo por feedbacks REAIS
- * de clientes antes do go-live. Falsificar prova social = violação de
- * código de defesa do consumidor + risco reputacional. Mantemos como
- * placeholder com nomes/cidades genéricos para que ninguém se sinta
- * representado erroneamente.
+ * IMPORTANTE: recebe os depoimentos via PROP (`items`). Não publica
+ * placeholder em produção — testimoniais inventados violam o CDC
+ * (publicidade enganosa, art. 37) e a LGPD (uso indevido de imagem/nome).
  *
- * Não tem carrossel — 3 cards estáticos, grid responsivo. Carrosséis
+ * Quando vazio (array sem itens), o componente **NÃO renderiza nada**.
+ * Isso é intencional: melhor não mostrar prova social do que mostrar
+ * uma falsa.
+ *
+ * Para ativar: passe a lista de depoimentos REAIS coletados (via
+ * WhatsApp, email, Google Reviews, etc) ao chamar:
+ *
+ *   <TestimonialsSection items={meusDepoimentosReais} />
+ *
+ * Ou centralize em um Supabase table futura (`testimonials`) com
+ * moderação admin.
+ *
+ * Não tem carrossel — 3+ cards estáticos, grid responsivo. Carrosséis
  * em mobile esbarram em conflito de gestos (scroll vertical vs
  * horizontal) e baixam engajamento.
  */
 
-interface Testimonial {
+export interface Testimonial {
   name: string;
   city: string;
   text: string;
+  /** 1-5 — quantas estrelas exibir como rating. */
   rating: number;
 }
 
-const TESTIMONIALS: Testimonial[] = [
-  {
-    name: "Carlos M.",
-    city: "São Paulo, SP",
-    text: "Recebi meu pedido no prazo, produto original e bem embalado. Atendimento ágil no WhatsApp tirou todas as dúvidas antes da compra.",
-    rating: 5,
-  },
-  {
-    name: "Ana L.",
-    city: "Rio de Janeiro, RJ",
-    text: "Já é meu segundo pedido. Preço transparente, entrega rastreada e suporte humano de verdade — não bot. Recomendo.",
-    rating: 5,
-  },
-  {
-    name: "Roberto F.",
-    city: "Belo Horizonte, MG",
-    text: "Curadoria séria mesmo. Eles indicaram o produto certo pro meu caso pelo WhatsApp e veio direitinho como o site mostrou.",
-    rating: 5,
-  },
-];
+export function TestimonialsSection({ items }: { items: Testimonial[] }) {
+  // Sem dados reais → não renderiza. Falar bem dos depoimentos que você
+  // ainda não tem é pior do que ficar quieto.
+  if (!items || items.length === 0) return null;
 
-export function TestimonialsSection() {
   return (
     <section
       className="container mx-auto px-4 py-10 md:py-14"
@@ -64,7 +56,7 @@ export function TestimonialsSection() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-        {TESTIMONIALS.map((t) => (
+        {items.map((t) => (
           <article
             key={t.name + t.city}
             className="rounded-2xl border border-border/60 bg-card p-5 hover:border-primary/30 hover:shadow-sm transition-all flex flex-col"

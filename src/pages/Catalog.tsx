@@ -622,11 +622,21 @@ export default function Catalog() {
       {/* FAQ + Depoimentos — renderiza só na "home" (sem filtros/busca).
           Ordem mental: produtos → FAQ (responde objeções) → social proof
           → comprar. Se cliente já está filtrando, ele tem intenção clara
-          e não precisa do FAQ/testimonials no caminho. */}
+          e não precisa do FAQ/testimonials no caminho.
+
+          TestimonialsSection recebe array via prop — vazio = não renderiza.
+          Quando tiver feedbacks REAIS, troque por:
+            <TestimonialsSection items={[
+              { name: "Real Name", city: "São Paulo, SP",
+                text: "Feedback real coletado via WhatsApp/email",
+                rating: 5 },
+              ...
+            ]} />
+          Falsificar depoimentos = CDC art. 37 (publicidade enganosa). */}
       {!loading && !query && selectedCats.size === 0 && selectedBrands.size === 0 && (
         <>
           <FAQSection />
-          <TestimonialsSection />
+          <TestimonialsSection items={[]} />
         </>
       )}
 
