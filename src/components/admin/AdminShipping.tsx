@@ -137,8 +137,8 @@ export function AdminShipping() {
             <div className="text-right shrink-0">
               <p className="font-bold text-sm tabular-nums">R$ {Number(s.price).toFixed(2)}</p>
               <div className="flex justify-end gap-0.5 mt-1">
-                <button onClick={() => setEditing(s)} aria-label="Editar" className="p-1.5 hover:bg-muted rounded"><Pencil className="h-4 w-4" /></button>
-                <button onClick={() => del(s.id)} aria-label="Remover" className="p-1.5 hover:bg-destructive/10 text-destructive rounded"><Trash2 className="h-4 w-4" /></button>
+                <button type="button" onClick={() => setEditing(s)} aria-label="Editar" className="p-1.5 hover:bg-muted rounded"><Pencil className="h-4 w-4" /></button>
+                <button type="button" onClick={() => del(s.id)} aria-label="Remover" className="p-1.5 hover:bg-destructive/10 text-destructive rounded"><Trash2 className="h-4 w-4" /></button>
               </div>
             </div>
           </li>
@@ -179,8 +179,8 @@ export function AdminShipping() {
                   </span>
                 </td>
                 <td className="px-4 py-3 text-right whitespace-nowrap">
-                  <button onClick={() => setEditing(s)} className="p-1.5 hover:bg-muted rounded mr-1"><Pencil className="h-4 w-4" /></button>
-                  <button onClick={() => del(s.id)} className="p-1.5 hover:bg-destructive/10 text-destructive rounded"><Trash2 className="h-4 w-4" /></button>
+                  <button type="button" onClick={() => setEditing(s)} className="p-1.5 hover:bg-muted rounded mr-1"><Pencil className="h-4 w-4" /></button>
+                  <button type="button" onClick={() => del(s.id)} className="p-1.5 hover:bg-destructive/10 text-destructive rounded"><Trash2 className="h-4 w-4" /></button>
                 </td>
               </tr>
             ))}

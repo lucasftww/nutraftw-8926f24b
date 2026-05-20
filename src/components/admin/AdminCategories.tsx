@@ -196,7 +196,7 @@ export function AdminCategories() {
             </div>
             {/* Trash: 44x44 mobile + sempre visível. Antes h-8 (32px) + invisível
                 (opacity-60) só dava feedback no hover, ruim em touch. */}
-            <button onClick={() => del(c.id)} aria-label={`Remover ${c.name}`} title="Remover" className="h-11 w-11 md:h-9 md:w-9 inline-flex items-center justify-center rounded-md md:opacity-60 group-hover:opacity-100 hover:bg-destructive/10 text-destructive shrink-0 transition-opacity"><Trash2 className="h-4 w-4" /></button>
+            <button type="button" onClick={() => del(c.id)} aria-label={`Remover ${c.name}`} title="Remover" className="h-11 w-11 md:h-9 md:w-9 inline-flex items-center justify-center rounded-md md:opacity-60 group-hover:opacity-100 hover:bg-destructive/10 text-destructive shrink-0 transition-opacity"><Trash2 className="h-4 w-4" /></button>
           </li>
         ))}
         {items.length === 0 && (

@@ -48,9 +48,9 @@ function ProductMobileRow({ p, sortable, selected, toggleSel, setEditing, duplic
         </div>
       </div>
       <div className="flex items-center justify-end gap-1 mt-2.5 pt-2.5 border-t border-border/60">
-        <button onClick={() => setEditing(p)} aria-label="Editar" title="Editar" className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg hover:bg-muted text-xs"><Pencil className="h-3.5 w-3.5" /> Editar</button>
-        <button onClick={() => duplicate(p)} aria-label="Duplicar" title="Duplicar" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted"><Copy className="h-4 w-4" /></button>
-        <button onClick={() => del(p.id)} aria-label="Remover" title="Remover" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="h-4 w-4" /></button>
+        <button type="button" onClick={() => setEditing(p)} aria-label="Editar" title="Editar" className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg hover:bg-muted text-xs"><Pencil className="h-3.5 w-3.5" /> Editar</button>
+        <button type="button" onClick={() => duplicate(p)} aria-label="Duplicar" title="Duplicar" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted"><Copy className="h-4 w-4" /></button>
+        <button type="button" onClick={() => del(p.id)} aria-label="Remover" title="Remover" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="h-4 w-4" /></button>
       </div>
     </li>
   );
@@ -89,9 +89,9 @@ function ProductTableRow({ p, sortable, selected, toggleSel, setEditing, duplica
         <StockBadge stock={p.stock} />
       </td>
       <td className="px-4 py-3 text-right whitespace-nowrap">
-        <button onClick={() => setEditing(p)} aria-label="Editar" title="Editar" className="p-1.5 hover:bg-muted rounded mr-1"><Pencil className="h-4 w-4" /></button>
-        <button onClick={() => duplicate(p)} aria-label="Duplicar" title="Duplicar" className="p-1.5 hover:bg-muted rounded mr-1"><Copy className="h-4 w-4" /></button>
-        <button onClick={() => del(p.id)} aria-label="Remover" title="Remover" className="p-1.5 hover:bg-destructive/10 text-destructive rounded"><Trash2 className="h-4 w-4" /></button>
+        <button type="button" onClick={() => setEditing(p)} aria-label="Editar" title="Editar" className="p-1.5 hover:bg-muted rounded mr-1"><Pencil className="h-4 w-4" /></button>
+        <button type="button" onClick={() => duplicate(p)} aria-label="Duplicar" title="Duplicar" className="p-1.5 hover:bg-muted rounded mr-1"><Copy className="h-4 w-4" /></button>
+        <button type="button" onClick={() => del(p.id)} aria-label="Remover" title="Remover" className="p-1.5 hover:bg-destructive/10 text-destructive rounded"><Trash2 className="h-4 w-4" /></button>
       </td>
     </tr>
   );

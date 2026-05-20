@@ -159,8 +159,12 @@ export default function Catalog() {
   );
 
   // Handler estável para "Adicionar ao carrinho" no card → evita re-render dos cards.
+  // Bug fix: passa `maxStock` para o cart store rejeitar add além do estoque
+  // disponível. Antes o cliente conseguia colocar 100 itens de produto com
+  // stock=3 — o RPC create_order rejeitava, mas só na hora do checkout
+  // (UX ruim — descoberta tardia).
   const handleAdd = useCallback((p: Product, price: number) => {
-    add({ product_id: p.id, slug: p.slug, name: p.name, price, image_url: p.image_url });
+    add({ product_id: p.id, slug: p.slug, name: p.name, price, image_url: p.image_url }, 1, p.stock ?? undefined);
     openCart();
   }, [add, openCart]);
 

@@ -29,6 +29,7 @@ interface Rec {
   price: number;
   sale_price: number | null;
   image_url: string | null;
+  stock: number;
 }
 
 export function CartCrossSell() {
@@ -74,7 +75,10 @@ export function CartCrossSell() {
         const inList = productIds.map((id) => `"${id}"`).join(",");
         const { data } = await supabase
           .from("products")
-          .select("id, slug, name, price, sale_price, image_url")
+          // Inclui stock no select — necessário para passar maxStock ao
+          // cart store no clique "+", evitando que o cliente coloque mais
+          // unidades do que o disponível.
+          .select("id, slug, name, price, sale_price, image_url, stock")
           .eq("is_active", true)
           .in("category_id", categoryIds)
           .not("id", "in", `(${inList})`)
@@ -129,13 +133,17 @@ export function CartCrossSell() {
                 />
                 <button
                   type="button"
-                  onClick={() => add({
-                    product_id: p.id,
-                    slug: p.slug,
-                    name: p.name,
-                    price: final,
-                    image_url: p.image_url,
-                  })}
+                  onClick={() => add(
+                    {
+                      product_id: p.id,
+                      slug: p.slug,
+                      name: p.name,
+                      price: final,
+                      image_url: p.image_url,
+                    },
+                    1,
+                    p.stock ?? undefined,
+                  )}
                   aria-label={`Adicionar ${p.name} ao carrinho`}
                   className="absolute bottom-1 right-1 inline-flex h-7 w-7 items-center justify-center rounded-full bg-secondary text-secondary-foreground shadow-md hover:bg-secondary/90 active:scale-90 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-1"
                 >

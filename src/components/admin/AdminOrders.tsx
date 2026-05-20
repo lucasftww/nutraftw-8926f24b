@@ -288,7 +288,7 @@ export function AdminOrders() {
             <span className="shrink-0">até</span>
             <Input type="date" className="h-11 flex-1 sm:w-[140px] sm:flex-none min-w-0" value={dateTo} onChange={(e) => setDateTo(e.target.value)} aria-label="Data final" />
             {(dateFrom || dateTo) && (
-              <button onClick={() => { setDateFrom(""); setDateTo(""); }} className="text-xs underline text-muted-foreground hover:text-foreground shrink-0">limpar</button>
+              <button type="button" onClick={() => { setDateFrom(""); setDateTo(""); }} className="text-xs underline text-muted-foreground hover:text-foreground shrink-0">limpar</button>
             )}
           </div>
         </div>
@@ -327,7 +327,7 @@ export function AdminOrders() {
                   <span className="font-bold text-primary text-sm">{formatBRL(o.total)}</span>
                 </div>
               </div>
-              <button onClick={() => setDetailId(o.id)} aria-label="Ver detalhes" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted shrink-0"><Eye className="h-4 w-4" /></button>
+              <button type="button" onClick={() => setDetailId(o.id)} aria-label="Ver detalhes" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted shrink-0"><Eye className="h-4 w-4" /></button>
             </div>
           </li>
         ))}
@@ -397,7 +397,7 @@ export function AdminOrders() {
                   </select>
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <button onClick={() => setDetailId(o.id)} aria-label={`Ver detalhes do pedido ${o.id.slice(0, 8)}`} className="p-1.5 hover:bg-muted rounded"><Eye className="h-4 w-4" /></button>
+                  <button type="button" onClick={() => setDetailId(o.id)} aria-label={`Ver detalhes do pedido ${o.id.slice(0, 8)}`} className="p-1.5 hover:bg-muted rounded"><Eye className="h-4 w-4" /></button>
                 </td>
               </tr>
             ))}

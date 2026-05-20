@@ -282,7 +282,8 @@ export default function ProductDetail() {
                 if ((p.stock ?? 0) <= 0) return;
                 add(
                   { product_id: p.id, slug: p.slug, name: p.name, price: finalPrice, image_url: p.image_url },
-                  1
+                  1,
+                  p.stock ?? undefined,
                 );
                 openCart();
               }}
@@ -522,7 +523,8 @@ export default function ProductDetail() {
               onClick={() => {
                 add(
                   { product_id: p.id, slug: p.slug, name: p.name, price: finalPrice, image_url: p.image_url },
-                  1
+                  1,
+                  p.stock ?? undefined,
                 );
                 openCart();
               }}

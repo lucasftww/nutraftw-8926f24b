@@ -15,8 +15,9 @@ export default function Wishlist() {
   const [loading, setLoading] = useState(true);
 
   // Handler estável para adicionar ao carrinho — passado ao ProductCard.
+  // Passa `maxStock` para evitar adicionar além do estoque (bug fix).
   const handleAdd = useCallback((p: ProductRow, finalPrice: number) => {
-    add({ product_id: p.id, slug: p.slug, name: p.name, price: finalPrice, image_url: p.image_url });
+    add({ product_id: p.id, slug: p.slug, name: p.name, price: finalPrice, image_url: p.image_url }, 1, p.stock ?? undefined);
     openCart();
   }, [add, openCart]);
 

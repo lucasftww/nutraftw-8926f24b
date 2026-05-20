@@ -149,8 +149,8 @@ export function AdminCoupons() {
               </span>
             </div>
             <div className="mt-2.5 pt-2.5 border-t border-border/60 flex items-center justify-end gap-1">
-              <button onClick={() => setEditing(c)} aria-label="Editar cupom" className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg hover:bg-muted text-xs"><Pencil className="h-3.5 w-3.5" /> Editar</button>
-              <button onClick={() => del(c.id)} aria-label="Remover cupom" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="h-4 w-4" /></button>
+              <button type="button" onClick={() => setEditing(c)} aria-label="Editar cupom" className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg hover:bg-muted text-xs"><Pencil className="h-3.5 w-3.5" /> Editar</button>
+              <button type="button" onClick={() => del(c.id)} aria-label="Remover cupom" className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="h-4 w-4" /></button>
             </div>
           </li>
         ))}
@@ -199,8 +199,8 @@ export function AdminCoupons() {
                   </span>
                 </td>
                 <td className="px-4 py-3 text-right whitespace-nowrap">
-                  <button onClick={() => setEditing(c)} aria-label="Editar cupom" title="Editar" className="p-1.5 hover:bg-muted rounded mr-1"><Pencil className="h-4 w-4" /></button>
-                  <button onClick={() => del(c.id)} aria-label="Remover cupom" title="Remover" className="p-1.5 hover:bg-destructive/10 text-destructive rounded"><Trash2 className="h-4 w-4" /></button>
+                  <button type="button" onClick={() => setEditing(c)} aria-label="Editar cupom" title="Editar" className="p-1.5 hover:bg-muted rounded mr-1"><Pencil className="h-4 w-4" /></button>
+                  <button type="button" onClick={() => del(c.id)} aria-label="Remover cupom" title="Remover" className="p-1.5 hover:bg-destructive/10 text-destructive rounded"><Trash2 className="h-4 w-4" /></button>
                 </td>
               </tr>
             ))}
