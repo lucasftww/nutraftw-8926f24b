@@ -12,6 +12,7 @@ import { useSEO } from "@/hooks/useSEO";
 import { useProducts, useCategories, useBrands, type ProductRow } from "@/hooks/useProducts";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { ProductCard } from "@/components/product/ProductCard";
+import { CategoryChips } from "@/components/product/CategoryChips";
 
 type Product = ProductRow;
 
@@ -499,6 +500,28 @@ export default function Catalog() {
           )}
         </div>
       </div>
+
+      {/* Chips de categoria — atalho 1-tap entre busca e grade.
+          UX padrão BR (ML/Magalu/Shopee). Click filtra direto, sem
+          abrir o drawer. Reaproveita state de selectedCats/toggleCat. */}
+      {!loading && displayedCategories.length > 0 && (
+        <div className="container mx-auto px-4 pt-3 md:pt-4">
+          <CategoryChips
+            categories={displayedCategories.filter((c) => c.slug !== "__promos__")}
+            selectedSlugs={selectedCats}
+            onToggle={toggleCat}
+            onClear={() => {
+              setSelectedCats(new Set());
+              setSearchParams((curr) => {
+                const params = new URLSearchParams(curr);
+                params.delete("categoria");
+                return params;
+              }, { replace: true });
+            }}
+            counts={countByCat}
+          />
+        </div>
+      )}
 
       {/* Sections — sem pt compensatório: a busca agora é sticky e ocupa
           espaço no fluxo natural, então NÃO precisamos mais reservar 56px
