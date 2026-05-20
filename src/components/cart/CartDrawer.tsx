@@ -1,4 +1,4 @@
-import { X, Minus, Plus, ShoppingBag, ArrowRight, Trash2, Lock } from "lucide-react";
+import { X, Minus, Plus, ShoppingBag, ArrowRight, Trash2, Lock, Truck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useCart } from "@/hooks/useCart";
@@ -42,6 +42,14 @@ export function CartDrawer() {
 
   const itemCount = lines.reduce((acc, l) => acc + l.qty, 0);
   const installment = total / 3;
+
+  // Threshold de frete grátis. Hardcoded em 800 (casa com a AnnouncementBar).
+  // TODO: mover para site_settings (`free_shipping_min`) quando o admin
+  // quiser controlar via dashboard.
+  const FREE_SHIPPING_MIN = 800;
+  const remainingForFreeShipping = Math.max(0, FREE_SHIPPING_MIN - total);
+  const freeShippingProgress = Math.min(100, (total / FREE_SHIPPING_MIN) * 100);
+  const hasFreeShipping = remainingForFreeShipping === 0;
 
   return (
     <>
@@ -181,6 +189,42 @@ export function CartDrawer() {
             className="sticky bottom-0 z-10 border-t border-border bg-background/95 backdrop-blur-md shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.18)] px-4 sm:px-5 pt-3"
             style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.875rem)" }}
           >
+            {/* Progress bar de frete grátis — booster comprovado de AOV.
+                Cliente vê EXATAMENTE quanto falta para liberar frete
+                grátis, motivando upsell/adicionar mais um item. */}
+            <div className="mb-3 rounded-xl border border-border bg-muted/30 px-3 py-2.5">
+              <div className="flex items-center justify-between gap-2 mb-1.5">
+                <p className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-foreground">
+                  <Truck className="h-3.5 w-3.5 text-success" strokeWidth={2.5} />
+                  {hasFreeShipping ? (
+                    <span className="text-success">Você ganhou frete grátis!</span>
+                  ) : (
+                    <>
+                      Faltam{" "}
+                      <span className="font-extrabold text-foreground tabular-nums">
+                        {formatBRL(remainingForFreeShipping)}
+                      </span>{" "}
+                      <span className="text-muted-foreground">para frete grátis</span>
+                    </>
+                  )}
+                </p>
+              </div>
+              <div
+                className="relative h-1.5 w-full rounded-full bg-muted overflow-hidden"
+                role="progressbar"
+                aria-label="Progresso para frete grátis"
+                aria-valuenow={Math.round(freeShippingProgress)}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              >
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    hasFreeShipping ? "bg-success" : "bg-gradient-brand"
+                  }`}
+                  style={{ width: `${freeShippingProgress}%` }}
+                />
+              </div>
+            </div>
             <div className="mb-3">
               <CouponInput />
             </div>
