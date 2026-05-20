@@ -89,7 +89,9 @@
        3.04:1 — falha AA para texto normal. Para texto sobre fundo claro
        (links, labels) use `--secondary-text` que tem 5.2:1. */
     --secondary: 25 95% 53%;
-    --secondary-foreground: 0 0% 100%;
+    /* Texto escuro sobre laranja: contraste ~7:1 (WCAG AA para qualquer tamanho).
+       Branco (#FFF) sobre hsl(25 95% 53%) = 2.66:1 — falha AA 1.4.3. */
+    --secondary-foreground: 22 85% 16%;
     --secondary-glow: 21 90% 48%;
     /* Variante escura do laranja para uso como TEXTO em fundo claro (AA OK).
        Ex.: link "Voltar à categoria", label de SKU, link "Ver mais". */
@@ -269,9 +271,6 @@
            hover:brightness-110 active:scale-[0.98] transition-all
            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2
            disabled:opacity-50 disabled:pointer-events-none disabled:saturate-50;
-    /* Texto escuro garante contraste ~7:1 sobre o laranja (#F97415).
-       `text-secondary-foreground` (branco) só atingia 2.66:1 — falha WCAG 1.4.3 AA. */
-    color: hsl(22 85% 16%);
     box-shadow: var(--shadow-cta);
   }
   .btn-cta:hover { box-shadow: var(--shadow-cta-hover); }

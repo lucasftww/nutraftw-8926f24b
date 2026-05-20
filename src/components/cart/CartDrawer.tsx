@@ -83,7 +83,7 @@ export function CartDrawer() {
                 {itemCount === 0 ? "Carrinho vazio" : `${itemCount} ${itemCount === 1 ? "item" : "itens"} no carrinho`}
               </span>
               {itemCount > 0 && (
-                <span aria-hidden className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 inline-flex items-center justify-center rounded-full bg-secondary text-[hsl(22_85%_16%)] text-[11px] font-bold leading-none">
+                <span aria-hidden className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 inline-flex items-center justify-center rounded-full bg-secondary text-secondary-foreground text-[11px] font-bold leading-none">
                   {itemCount}
                 </span>
               )}
