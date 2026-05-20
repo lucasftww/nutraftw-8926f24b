@@ -1,116 +1,69 @@
-# Migrations pendentes (aplicar manualmente)
+# Migrations pendentes
 
-Lista de migrations que precisam ser aplicadas ao banco remoto da Supabase
-mas **não puderam ser aplicadas via CLI** no ambiente de desenvolvimento
-atual (Supabase CLI com segfault em algumas builds Windows / faltando
-senha do postgres).
+> **Status atual: TODAS as migrations aplicadas via Management API ✅**
 
-O frontend já está preparado para todas essas migrations — funciona com
-graceful degradation enquanto a RPC não existir.
+Este arquivo é mantido como histórico e procedimento de operação para
+quando uma nova migration entrar na pasta `supabase/migrations/` e
+precisar ser aplicada no banco remoto.
 
-## Como aplicar
+## Procedimento para aplicar uma migration nova
 
-**Opção A — Dashboard Supabase (mais rápido, 30s):**
+**Opção A — Dashboard Supabase (manual, 30s):**
 
 1. Abra https://supabase.com/dashboard/project/idutmqfqnoozqbjeqtui/sql/new
-2. Cole o SQL da migration que está pendente (veja abaixo)
+2. Cole o SQL da migration
 3. Clique em **Run** (Ctrl+Enter)
-4. Marque o item como aplicado nesta lista
 
-**Opção B — CLI (se você tem `supabase` instalado e configurado):**
+**Opção B — CLI:**
 
 ```bash
-cd <projeto>
 supabase db push
 ```
 
----
+**Opção C — Management API via token (usado nesta thread quando o CLI
+estava com segfault no Windows):**
 
-## Pendentes
-
-### ⏳ `20260520120000_product_view_count_rpc.sql`
-
-**O que faz:** Cria a função SECURITY DEFINER `product_view_count_24h`
-que retorna a contagem de DISTINCT session_id que viram um produto nas
-últimas 24h. Usada pelo badge "X pessoas viram nas últimas 24h" no
-ProductDetail (`SocialProofViewCount.tsx`).
-
-**Sem aplicar:** o componente falha silenciosamente — nada quebra, apenas
-o badge não aparece.
-
-**SQL para colar:**
-
-```sql
-CREATE OR REPLACE FUNCTION public.product_view_count_24h(p_product_id uuid)
-RETURNS integer
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT COALESCE(COUNT(DISTINCT session_id)::int, 0)
-  FROM public.product_events
-  WHERE product_id = p_product_id
-    AND event_type = 'view'
-    AND session_id IS NOT NULL
-    AND created_at >= NOW() - INTERVAL '24 hours';
-$$;
-
-GRANT EXECUTE ON FUNCTION public.product_view_count_24h(uuid) TO anon, authenticated;
-```
-
-**Como validar que aplicou:**
-
-```sql
-SELECT proname, pronamespace::regnamespace
-FROM pg_proc
-WHERE proname = 'product_view_count_24h';
--- Deve retornar 1 linha
+```bash
+cd <projeto>
+export SUPABASE_TOKEN="sbp_..."
+export PROJECT_REF="idutmqfqnoozqbjeqtui"
+node --input-type=module -e '
+  const fs = await import("node:fs");
+  const sql = fs.readFileSync(process.argv[2], "utf8");
+  const r = await fetch(
+    `https://api.supabase.com/v1/projects/${process.env.PROJECT_REF}/database/query`,
+    {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.SUPABASE_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ query: sql }),
+    }
+  );
+  console.log("status:", r.status, "body:", await r.text());
+' -- supabase/migrations/SUA_MIGRATION.sql
 ```
 
 ---
 
----
+## Histórico de migrations aplicadas nesta thread
 
-### ⏳ `20260521120000_rate_limit_create_order.sql`
+- ✅ `20260510175517_security_fk_fixes.sql` — FK constraints em order_refunds e wishlists
+- ✅ `20260510180000_security_hardening.sql` — rate-limit por sessão em product_events + audit trigger
+- ✅ `20260511120000_rls_perf_and_security.sql` — RLS initplan fix (auth.uid() em SELECT)
+- ✅ `20260520120000_product_view_count_rpc.sql` — RPC `product_view_count_24h` para badge social proof
+- ✅ `20260521120000_rate_limit_create_order.sql` — Tabela `rate_limit_events` + função `check_rate_limit`
+- ✅ `20260521121500_check_rate_limit_grants.sql` — REVOKE anon de check_rate_limit (tightening)
+- ✅ **Inline edit**: plug `PERFORM public.check_rate_limit('create_order', 5, 60)` em ambas
+  overloads de `create_order` (17 args + 20 args)
 
-**O que faz:** Cria a infraestrutura de rate limiting server-side:
-- Tabela `rate_limit_events` (user_id, action, created_at)
-- Função `check_rate_limit(action, max, window_seconds)` SECURITY DEFINER
-- Policy RLS para leitura própria
+## Validação atual no remote
 
-**Por que importa:** O guard `if (submitting) return` no Checkout só
-previne duplo-clique do MESMO browser. Não cobre múltiplas abas, replay
-via DevTools, ou bots. O rate limit no banco é fonte de verdade.
-
-**Pós-aplicação manual:** Edite a função `create_order` (via Dashboard)
-para adicionar, logo após o `BEGIN` do body PL/pgSQL:
-
-```sql
-PERFORM public.check_rate_limit('create_order', 5, 60);
-```
-
-Limite: 5 pedidos/60s por usuário. Generoso para uso real (correção
-de formulário), corta abuso (script 100x/s).
-
-**SQL completo:** ver arquivo
-`supabase/migrations/20260521120000_rate_limit_create_order.sql`
-
-**Como validar:**
-
-```sql
--- Cria tabela?
-SELECT relname FROM pg_class WHERE relname = 'rate_limit_events';
--- Função existe?
-SELECT proname FROM pg_proc WHERE proname = 'check_rate_limit';
-```
-
----
-
-## Histórico de aplicadas nesta thread
-
-- ✅ `20260510175517_security_fk_fixes.sql` (FK constraints)
-- ✅ `20260510180000_security_hardening.sql` (rate-limit por sessão em product_events)
-- ✅ `20260511120000_rls_perf_and_security.sql` (RLS initplan fix)
-- ⏳ `20260520120000_product_view_count_rpc.sql` ← **pendente** (badge "X pessoas viram")
-- ⏳ `20260521120000_rate_limit_create_order.sql` ← **pendente** (rate limit checkout)
+| Recurso | Status |
+|---|---|
+| `product_view_count_24h(uuid)` | ✅ Existe, GRANT anon+authenticated |
+| `check_rate_limit(text, int, int)` | ✅ Existe, GRANT authenticated only (anon revogado) |
+| `rate_limit_events` table | ✅ Existe, RLS habilitada, policy "User sees own rate-limit events" |
+| `create_order(...,17 args)` overload | ✅ Plug do check_rate_limit confirmado |
+| `create_order(...,20 args)` overload | ✅ Plug do check_rate_limit confirmado |
