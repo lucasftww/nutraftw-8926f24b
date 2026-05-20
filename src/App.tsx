@@ -34,6 +34,10 @@ const AdminLogin = lazy(() => import("@/pages/AdminLogin"));
 const AdminHealth = lazy(() => import("@/pages/AdminHealth"));
 const Wishlist = lazy(() => import("@/pages/Wishlist"));
 const Install = lazy(() => import("@/pages/Install"));
+const OrderSuccess = lazy(() => import("@/pages/OrderSuccess"));
+// Exposto para que o Checkout possa pré-carregar o chunk no momento do submit
+// (URL ainda não navegou, mas já temos JS na mão quando o redirect acontece).
+export const prefetchOrderSuccess = () => import("@/pages/OrderSuccess");
 
 /**
  * Wrap por rota para que cada página lazy mostre um skeleton com a forma
@@ -88,6 +92,10 @@ export default function App() {
                     <Route path="/checkout" element={<Lazy fallback={<CheckoutSkeleton />}><Checkout /></Lazy>} />
                     <Route path="/minha-conta" element={<RequireAuth fallback={<MyAccountSkeleton />}><Lazy fallback={<MyAccountSkeleton />}><MyAccount /></Lazy></RequireAuth>} />
                     <Route path="/favoritos" element={<Lazy fallback={<WishlistSkeleton />}><Wishlist /></Lazy>} />
+                    {/* Página de sucesso pós-checkout — RequireAuth porque o
+                        pedido só é visível para o user_id dono (RLS). Sem login
+                        a RLS bloqueia e a tela mostraria erro. */}
+                    <Route path="/pedido/:id/sucesso" element={<RequireAuth fallback={<GenericPageSkeleton />}><Lazy fallback={<GenericPageSkeleton />}><OrderSuccess /></Lazy></RequireAuth>} />
                     <Route path="/instalar" element={<Lazy fallback={<GenericPageSkeleton />}><Install /></Lazy>} />
                     <Route path="/sobre" element={<About />} />
                     <Route path="/r/:code" element={<ReferralCapture />} />

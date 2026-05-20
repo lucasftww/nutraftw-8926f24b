@@ -580,6 +580,12 @@ export default function Checkout() {
     if (!validate()) return;
     setSubmitting(true);
 
+    // Pré-carrega o chunk da página de sucesso EM PARALELO ao create_order.
+    // Quando o RPC retornar e fizermos nav(/pedido/.../sucesso), o JS já está
+    // pronto — render instantâneo sem flash de skeleton. Import dinâmico
+    // evita ciclo: App.tsx -> Checkout -> App.tsx.
+    void import("@/pages/OrderSuccess").catch(() => {});
+
     // Revalida cupom no momento do envio (pode ter expirado / esgotado durante a sessão).
     if (coupon) {
       const res = await revalidateCouponByCode(coupon.code, { silent: true });
@@ -765,7 +771,9 @@ export default function Checkout() {
         window.location.href = paymentRedirectUrl;
         return;
       }
-      nav(createdOrderId ? `/minha-conta?pedido=${encodeURIComponent(createdOrderId)}` : "/minha-conta");
+      // Página standalone de sucesso (URL compartilhável, deep-link OK).
+      // Substitui o modal antigo que abria em /minha-conta?pedido=ID.
+      nav(createdOrderId ? `/pedido/${encodeURIComponent(createdOrderId)}/sucesso` : "/minha-conta");
     } catch (err: any) {
       const raw: string = err?.message || "Erro ao criar pedido";
       // Mensagens vindas do RPC create_order (Postgres RAISE EXCEPTION)
