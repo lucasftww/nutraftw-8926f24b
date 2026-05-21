@@ -122,11 +122,13 @@ export default function OrderSuccess() {
 
   const isPaid = order && ["paid", "processing", "shipped", "delivered"].includes(order.status);
 
-  const whatsapp = (settings.whatsapp_number || "5511999999999").replace(/\D/g, "");
+  const whatsappRaw = settings.whatsapp_number?.replace(/\D/g, "") || "";
   const waMessage = order
     ? `Olá! Sobre meu pedido #${orderId.slice(0, 8)} — gostaria de tirar uma dúvida.`
     : "Olá! Preciso de ajuda com meu pedido.";
-  const waHref = `https://wa.me/${whatsapp}?text=${encodeURIComponent(waMessage)}`;
+  const waHref = whatsappRaw
+    ? `https://wa.me/${whatsappRaw}?text=${encodeURIComponent(waMessage)}`
+    : null;
 
   if (loading) {
     return (
@@ -234,6 +236,7 @@ export default function OrderSuccess() {
                     <input
                       readOnly
                       value={order.payment_copy_paste}
+                      aria-label="Código PIX para copiar e colar"
                       className="flex-1 min-w-0 px-3 py-2 text-xs bg-background border border-border rounded-lg font-mono truncate"
                       onFocus={(e) => e.currentTarget.select()}
                     />
@@ -341,16 +344,18 @@ export default function OrderSuccess() {
       {items.length > 0 && <PostPurchaseRecommendations items={items} />}
 
       {/* CTAs */}
-      <div className="grid sm:grid-cols-2 gap-2">
-        <a
-          href={waHref}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-2xl bg-whatsapp text-whatsapp-foreground font-semibold text-sm hover:bg-whatsapp-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-whatsapp focus-visible:ring-offset-2"
-        >
-          <MessageCircle className="h-4 w-4" strokeWidth={2.25} />
-          Falar no WhatsApp
-        </a>
+      <div className={`grid gap-2 ${waHref ? "sm:grid-cols-2" : ""}`}>
+        {waHref && (
+          <a
+            href={waHref}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-2xl bg-whatsapp text-whatsapp-foreground font-semibold text-sm hover:bg-whatsapp-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-whatsapp focus-visible:ring-offset-2"
+          >
+            <MessageCircle className="h-4 w-4" strokeWidth={2.25} />
+            Falar no WhatsApp
+          </a>
+        )}
         <Link
           to="/minha-conta"
           className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-2xl border border-input bg-background font-semibold text-sm hover:bg-accent hover:text-accent-foreground transition-colors"

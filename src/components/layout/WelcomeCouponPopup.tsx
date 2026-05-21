@@ -1,5 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 import { Gift, X, Check, Copy } from "lucide-react";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 /**
  * Popup discreto de cupom de boas-vindas — aparece UMA VEZ por visitante,
@@ -17,20 +18,25 @@ import { Gift, X, Check, Copy } from "lucide-react";
  */
 
 const STORAGE_KEY = "rv:welcome:popup:v2";
-const COUPON = "BEMVINDO10";
+const FALLBACK_COUPON = "BEMVINDO10";
 const SHOW_DELAY_MS = 8_000;
 
 export function WelcomeCouponPopup() {
+  const settings = useSiteSettings();
+  // undefined = settings not yet loaded → use fallback; "" = admin disabled popup
+  const rawCoupon = settings.welcome_coupon as string | undefined;
+  const coupon = rawCoupon === undefined ? FALLBACK_COUPON : rawCoupon.trim();
   const [visible, setVisible] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    if (!coupon) return;
     try {
       if (localStorage.getItem(STORAGE_KEY) === "1") return;
     } catch { /* SSR/private mode: seguir */ }
     const t = window.setTimeout(() => setVisible(true), SHOW_DELAY_MS);
     return () => window.clearTimeout(t);
-  }, []);
+  }, [coupon]);
 
   const dismiss = () => {
     setVisible(false);
@@ -39,7 +45,7 @@ export function WelcomeCouponPopup() {
 
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(COUPON);
+      await navigator.clipboard.writeText(coupon);
       setCopied(true);
       window.setTimeout(dismiss, 1500);
     } catch {
@@ -91,7 +97,7 @@ export function WelcomeCouponPopup() {
 
           <div className="mt-4 flex items-center gap-2">
             <div className="flex-1 inline-flex items-center justify-center h-11 rounded-xl border-2 border-dashed border-secondary/40 bg-secondary/5 px-3 font-mono font-extrabold tracking-[0.18em] text-secondary text-base">
-              {COUPON}
+              {coupon}
             </div>
             <button
               type="button"

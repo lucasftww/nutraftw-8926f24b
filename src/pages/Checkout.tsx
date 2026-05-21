@@ -416,7 +416,7 @@ export default function Checkout() {
   // Cada etapa "concluída" exige seus campos mínimos válidos.
   const buyerDone =
     form.full_name.trim().length >= 3 &&
-    /\S+@\S+\.\S+/.test(form.email) &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.email.trim()) &&
     onlyDigits(form.cpf).length === 11 &&
     onlyDigits(form.phone).length >= 10;
   const addressDone =

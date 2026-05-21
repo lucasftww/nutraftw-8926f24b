@@ -26,7 +26,8 @@ const FIELDS: { key: string; label: string; type: "text" | "textarea" | "toggle"
   { key: "whatsapp_number",  label: "WhatsApp (com DDI, só números)", type: "text",     group: "support", help: "Ex.: 5511999999999" },
   { key: "whatsapp_message", label: "Mensagem padrão WhatsApp",       type: "text",     group: "support" },
   // === Catálogo ===
-  { key: "badge_new_days",   label: "Marcar produto como LANÇAMENTO até (dias)", type: "number", group: "catalog" },
+  { key: "badge_new_days",    label: "Marcar produto como LANÇAMENTO até (dias)", type: "number", group: "catalog" },
+  { key: "welcome_coupon",    label: "Cupom de boas-vindas",                      type: "text",   group: "catalog", help: "Exibido no popup de 1ª compra. Deixe em branco para desativar o popup." },
 ];
 
 const GROUP_LABELS: Record<FieldGroup, string> = {

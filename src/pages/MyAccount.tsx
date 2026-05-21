@@ -46,6 +46,7 @@ export default function MyAccount() {
   }, []);
   const [profile, setProfile] = useState<any>({});
   const [orders, setOrders] = useState<any[]>([]);
+  const [profileLoading, setProfileLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [cepLoading, setCepLoading] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
@@ -66,12 +67,18 @@ export default function MyAccount() {
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
-    supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle()
-      .then(({ data }) => { if (!cancelled) setProfile(data || {}); });
-    supabase.from("orders").select("id, status, total, created_at")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .then(({ data }) => { if (!cancelled) setOrders(data || []); });
+    setProfileLoading(true);
+    Promise.all([
+      supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
+      supabase.from("orders").select("id, status, total, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false }),
+    ]).then(([{ data: profileData }, { data: ordersData }]) => {
+      if (cancelled) return;
+      setProfile(profileData || {});
+      setOrders(ordersData || []);
+      setProfileLoading(false);
+    });
     return () => { cancelled = true; };
   }, [user]);
 
@@ -473,7 +480,21 @@ export default function MyAccount() {
       )}
 
       {tab === "orders" && (
-        orders.length === 0 ? (
+        profileLoading ? (
+          <ul className="space-y-1.5 md:space-y-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <li key={i} className="bg-card rounded-2xl border border-border p-3 md:p-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 md:h-10 md:w-10 rounded-xl bg-muted/60 animate-pulse shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3.5 bg-muted/60 rounded animate-pulse w-1/3" />
+                    <div className="h-3 bg-muted/40 rounded animate-pulse w-1/2" />
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : orders.length === 0 ? (
           <div className="bg-card rounded-2xl border border-border text-center py-12 md:py-16 px-6">
             <div className="h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-muted/60 mx-auto flex items-center justify-center mb-3.5">
               <ShoppingBag className="h-5 w-5 md:h-6 md:w-6 text-muted-foreground/70" />
