@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+﻿import { useCallback, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -162,7 +162,7 @@ export function AdminDiagnostics() {
               o site mostra dados antigos até refrescar.
             </p>
             {lastCheck && (
-              <p className="text-[11px] text-muted-foreground mt-1">
+              <p className="text-2xs text-muted-foreground mt-1">
                 Última verificação: {lastCheck.toLocaleTimeString("pt-BR")}
               </p>
             )}
@@ -202,7 +202,7 @@ export function AdminDiagnostics() {
                   </td>
                   <td className="px-4 py-3 text-center">
                     {sync === "ok" && (
-                      <span className="inline-flex items-center gap-1 text-xs text-emerald-400">
+                      <span className="inline-flex items-center gap-1 text-xs text-success">
                         <CheckCircle2 className="h-3.5 w-3.5" /> sincronizado
                       </span>
                     )}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,9 +29,9 @@ type CommissionRow = {
 };
 
 const STATUS_LABELS: Record<string, { label: string; cls: string; icon: any }> = {
-  pending:   { label: "Pendente",  cls: "bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/25",     icon: Clock },
+  pending:   { label: "Pendente",  cls: "bg-warning/15 text-warning ring-1 ring-warning/25",     icon: Clock },
   released:  { label: "Liberada",  cls: "bg-primary/15 text-primary ring-1 ring-primary/25",          icon: Check },
-  paid:      { label: "Paga",      cls: "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/25", icon: DollarSign },
+  paid:      { label: "Paga",      cls: "bg-success/15 text-success ring-1 ring-success/25", icon: DollarSign },
   cancelled: { label: "Cancelada", cls: "bg-muted text-muted-foreground ring-1 ring-border",          icon: XCircle },
   clawback:  { label: "Estorno",   cls: "bg-destructive/15 text-destructive ring-1 ring-destructive/25", icon: AlertTriangle },
 };
@@ -173,9 +173,9 @@ export function AdminAffiliates() {
   }
 
   const cards = [
-    { label: "A liberar (pendente)", value: totals.pending,  cls: "text-amber-400 bg-amber-500/10 ring-1 ring-amber-500/20" },
+    { label: "A liberar (pendente)", value: totals.pending,  cls: "text-warning bg-warning/10 ring-1 ring-warning/20" },
     { label: "A pagar (liberada)",    value: totals.released, cls: "text-primary bg-primary/10 ring-1 ring-primary/20" },
-    { label: "Total pago",            value: totals.paid,     cls: "text-emerald-400 bg-emerald-500/10 ring-1 ring-emerald-500/20" },
+    { label: "Total pago",            value: totals.paid,     cls: "text-success bg-success/10 ring-1 ring-success/20" },
     { label: "Estornos pendentes",    value: totals.clawback, cls: "text-destructive bg-destructive/10 ring-1 ring-destructive/25" },
   ];
 
@@ -184,7 +184,7 @@ export function AdminAffiliates() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {cards.map((c) => (
           <div key={c.label} className="bg-card rounded-2xl border border-border p-3.5">
-            <p className={`inline-block text-[11px] font-semibold px-2 py-0.5 rounded ${c.cls} mb-2`}>{c.label}</p>
+            <p className={`inline-block text-2xs font-semibold px-2 py-0.5 rounded ${c.cls} mb-2`}>{c.label}</p>
             <p className="text-lg font-bold tabular-nums">{formatBRL(c.value)}</p>
           </div>
         ))}
@@ -230,17 +230,17 @@ export function AdminAffiliates() {
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold text-sm truncate">{r.affiliate_name || "—"}</p>
-                  <p className="text-[11px] text-muted-foreground truncate">{r.affiliate_email}</p>
-                  {r.order_id && <p className="text-[11px] text-muted-foreground font-mono mt-0.5">#{r.order_id.slice(0, 8)}</p>}
+                  <p className="text-2xs text-muted-foreground truncate">{r.affiliate_email}</p>
+                  {r.order_id && <p className="text-2xs text-muted-foreground font-mono mt-0.5">#{r.order_id.slice(0, 8)}</p>}
                 </div>
-                <span className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${meta.cls}`}>
+                <span className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-semibold ${meta.cls}`}>
                   <Icon className="h-2.5 w-2.5" />{meta.label}
                 </span>
               </div>
               <div className="mt-2 pt-2 border-t border-border/60 flex items-center justify-between gap-2">
                 <span className="font-bold text-sm tabular-nums">{formatBRL(r.amount)}</span>
                 {r.status === "released" && (
-                  <Button size="sm" variant="outline" disabled={busy === r.id} onClick={() => markPaid(r)} className="h-8 text-[11px] px-2">
+                  <Button size="sm" variant="outline" disabled={busy === r.id} onClick={() => markPaid(r)} className="h-8 text-2xs px-2">
                     {busy === r.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <DollarSign className="h-3 w-3" />} Marcar paga
                   </Button>
                 )}

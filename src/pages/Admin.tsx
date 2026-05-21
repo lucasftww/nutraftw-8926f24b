@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useMemo, useState, type ComponentType } from "react";
+﻿import { Suspense, lazy, useEffect, useMemo, useState, type ComponentType } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -152,7 +152,7 @@ function AdminInner() {
               <Sparkles className="h-4 w-4" strokeWidth={2.5} />
             </div>
             <div className="min-w-0">
-              <div className="font-display text-[15px] font-bold tracking-tight text-foreground leading-none">
+              <div className="font-display text-sm font-bold tracking-tight text-foreground leading-none">
                 Painel<span className="text-primary">.</span>
               </div>
               <p className="text-[9.5px] uppercase tracking-[0.2em] text-muted-foreground/80 mt-1 leading-none">
@@ -183,7 +183,7 @@ function AdminInner() {
                     onMouseEnter={() => preloadTab(t.id)}
                     onFocus={() => preloadTab(t.id)}
                     aria-current={active ? "page" : undefined}
-                    className={`group w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] transition-colors relative ${
+                    className={`group w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm-plus transition-colors relative ${
                       active
                         ? "bg-primary/12 text-primary font-semibold"
                         : "text-muted-foreground/90 hover:text-foreground hover:bg-muted/30"
@@ -199,7 +199,7 @@ function AdminInner() {
                     <t.icon className={`h-4 w-4 shrink-0 ${active ? "text-primary" : "text-muted-foreground/70 group-hover:text-foreground"}`} strokeWidth={active ? 2.25 : 1.75} />
                     <span className="flex-1 text-left">{t.label}</span>
                     {showBadge && (
-                      <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-secondary text-secondary-foreground text-[10px] font-bold leading-none ring-2 ring-card animate-in zoom-in-50 duration-300">
+                      <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-secondary text-secondary-foreground text-2xs font-bold leading-none ring-2 ring-card animate-in zoom-in-50 duration-300">
                         {unseenCount > 9 ? "9+" : unseenCount}
                       </span>
                     )}
@@ -214,19 +214,19 @@ function AdminInner() {
         <div className="border-t border-border/40 p-3">
           <div className="rounded-xl bg-muted/30 border border-border/40 p-2.5 mb-2">
             <div className="flex items-center gap-2.5">
-              <div className="relative w-9 h-9 rounded-lg bg-gradient-to-br from-primary/20 to-brand-cyan/15 text-primary flex items-center justify-center text-[11px] font-bold ring-1 ring-primary/20 shrink-0">
+              <div className="relative w-9 h-9 rounded-lg bg-gradient-to-br from-primary/20 to-brand-cyan/15 text-primary flex items-center justify-center text-2xs font-bold ring-1 ring-primary/20 shrink-0">
                 {(user?.email ?? "?").slice(0, 2).toUpperCase()}
-                <span aria-hidden className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-card" />
+                <span aria-hidden className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-success ring-2 ring-card" />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-[12px] font-semibold text-foreground leading-tight">Administrador</div>
+                <div className="text-xs font-semibold text-foreground leading-tight">Administrador</div>
                 <div className="text-[10.5px] text-muted-foreground/80 truncate leading-tight" title={user?.email}>{user?.email}</div>
               </div>
             </div>
           </div>
           <button
             onClick={logout}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[12px] font-medium text-muted-foreground/80 hover:text-destructive hover:bg-destructive/10 transition-colors"
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-muted-foreground/80 hover:text-destructive hover:bg-destructive/10 transition-colors"
           >
             <LogOut className="h-3.5 w-3.5" />
             Sair da conta
@@ -253,7 +253,7 @@ function AdminInner() {
                   <Sparkles className="h-4 w-4" strokeWidth={2.5} />
                 </div>
                 <div className="min-w-0">
-                  <div className="font-display text-[15px] font-bold tracking-tight leading-none">
+                  <div className="font-display text-sm font-bold tracking-tight leading-none">
                     Painel<span className="text-primary">.</span>
                   </div>
                   <p className="text-[9.5px] uppercase tracking-[0.2em] text-muted-foreground/80 mt-1 leading-none">
@@ -273,12 +273,12 @@ function AdminInner() {
             {/* User card */}
             <div className="px-4 pt-4 pb-2">
               <div className="rounded-xl bg-muted/30 border border-border/40 p-2.5 flex items-center gap-2.5">
-                <div className="relative w-9 h-9 rounded-lg bg-gradient-to-br from-primary/20 to-brand-cyan/15 text-primary flex items-center justify-center text-[11px] font-bold ring-1 ring-primary/20 shrink-0">
+                <div className="relative w-9 h-9 rounded-lg bg-gradient-to-br from-primary/20 to-brand-cyan/15 text-primary flex items-center justify-center text-2xs font-bold ring-1 ring-primary/20 shrink-0">
                   {(user?.email ?? "?").slice(0, 2).toUpperCase()}
-                  <span aria-hidden className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-card" />
+                  <span aria-hidden className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-success ring-2 ring-card" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[12px] font-semibold text-foreground leading-tight">Administrador</div>
+                  <div className="text-xs font-semibold text-foreground leading-tight">Administrador</div>
                   <div className="text-[10.5px] text-muted-foreground/80 truncate leading-tight">{user?.email}</div>
                 </div>
               </div>
@@ -303,7 +303,7 @@ function AdminInner() {
                         key={t.id}
                         onClick={() => { setTab(t.id); setMobileNavOpen(false); }}
                         onTouchStart={() => preloadTab(t.id)}
-                        className={`group w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] transition-colors relative ${
+                        className={`group w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors relative ${
                           active
                             ? "bg-primary/12 text-primary font-semibold"
                             : "text-muted-foreground/90 active:bg-muted/40"
@@ -319,7 +319,7 @@ function AdminInner() {
                         <t.icon className={`h-4 w-4 shrink-0 ${active ? "text-primary" : "text-muted-foreground/70"}`} strokeWidth={active ? 2.25 : 1.75} />
                         <span className="flex-1 text-left">{t.label}</span>
                         {showBadge && (
-                          <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-secondary text-secondary-foreground text-[10px] font-bold leading-none">
+                          <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-secondary text-secondary-foreground text-2xs font-bold leading-none">
                             {unseenCount > 9 ? "9+" : unseenCount}
                           </span>
                         )}
@@ -336,7 +336,7 @@ function AdminInner() {
             >
               <button
                 onClick={logout}
-                className="w-full flex items-center justify-center gap-2 h-11 px-3 rounded-lg text-[13px] font-medium text-muted-foreground/90 hover:text-destructive hover:bg-destructive/10 border border-border/60 transition-colors"
+                className="w-full flex items-center justify-center gap-2 h-11 px-3 rounded-lg text-sm-plus font-medium text-muted-foreground/90 hover:text-destructive hover:bg-destructive/10 border border-border/60 transition-colors"
               >
                 <LogOut className="h-4 w-4" /> Sair da conta
               </button>
@@ -359,7 +359,7 @@ function AdminInner() {
 
           {/* Breadcrumb refinado — gradient subtle no nome do grupo */}
           <div className="hidden sm:flex items-center gap-2 text-sm min-w-0">
-            <span className="text-muted-foreground/70 text-[12px] uppercase tracking-wider font-semibold truncate">
+            <span className="text-muted-foreground/70 text-xs uppercase tracking-wider font-semibold truncate">
               {currentGroup?.label ?? "Admin"}
             </span>
             <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0" />
@@ -377,7 +377,7 @@ function AdminInner() {
               title="Ver pedidos novos"
             >
               <Bell className="h-[18px] w-[18px]" strokeWidth={1.75} />
-              <span className="absolute top-1.5 right-1.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-secondary text-secondary-foreground text-[10px] font-bold leading-none ring-2 ring-card px-1">
+              <span className="absolute top-1.5 right-1.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-secondary text-secondary-foreground text-2xs font-bold leading-none ring-2 ring-card px-1">
                 {unseenCount > 9 ? "9+" : unseenCount}
               </span>
             </button>
@@ -386,12 +386,12 @@ function AdminInner() {
           {/* Busca global — h-11 (44px WCAG). Mobile mostra só ícone num círculo. */}
           <button
             onClick={() => setPaletteOpen(true)}
-            className="group flex items-center gap-2 h-11 w-11 md:w-auto md:px-3.5 justify-center rounded-full bg-background/70 border border-border/70 text-[13px] text-muted-foreground hover:border-primary/40 hover:text-foreground hover:shadow-[0_0_20px_-6px_hsl(var(--primary)/0.5)] transition-all"
+            className="group flex items-center gap-2 h-11 w-11 md:w-auto md:px-3.5 justify-center rounded-full bg-background/70 border border-border/70 text-sm-plus text-muted-foreground hover:border-primary/40 hover:text-foreground hover:shadow-[0_0_20px_-6px_hsl(var(--primary)/0.5)] transition-all"
             aria-label="Buscar (Ctrl+K)"
           >
             <Search className="h-4 w-4 group-hover:text-primary transition-colors" />
             <span className="hidden md:inline font-medium">Buscar pedidos, produtos…</span>
-            <kbd className="hidden md:inline ml-1 text-[10px] font-mono px-1.5 py-0.5 rounded bg-muted/70 text-muted-foreground border border-border/60">{shortcutLabel}</kbd>
+            <kbd className="hidden md:inline ml-1 text-2xs font-mono px-1.5 py-0.5 rounded bg-muted/70 text-muted-foreground border border-border/60">{shortcutLabel}</kbd>
           </button>
         </header>
 
@@ -401,7 +401,7 @@ function AdminInner() {
           <div className="mb-5 md:mb-7">
             <div className="flex items-center gap-2 mb-1.5">
               <span className="inline-block h-1 w-6 rounded-full bg-gradient-to-r from-primary to-brand-cyan" aria-hidden />
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary/80">
+              <p className="text-2xs font-bold uppercase tracking-[0.18em] text-primary/80">
                 {currentGroup?.label}
               </p>
             </div>

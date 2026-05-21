@@ -1,4 +1,4 @@
-import { X, Minus, Plus, ShoppingBag, ArrowRight, Trash2, Lock, Truck } from "lucide-react";
+﻿import { X, Minus, Plus, ShoppingBag, ArrowRight, Trash2, Lock, Truck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useCart } from "@/hooks/useCart";
@@ -83,7 +83,7 @@ export function CartDrawer() {
                 {itemCount === 0 ? "Carrinho vazio" : `${itemCount} ${itemCount === 1 ? "item" : "itens"} no carrinho`}
               </span>
               {itemCount > 0 && (
-                <span aria-hidden className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 inline-flex items-center justify-center rounded-full bg-secondary text-secondary-foreground text-[11px] font-bold leading-none">
+                <span aria-hidden className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 inline-flex items-center justify-center rounded-full bg-secondary text-secondary-foreground text-2xs font-bold leading-none">
                   {itemCount}
                 </span>
               )}
@@ -92,7 +92,7 @@ export function CartDrawer() {
               <h3 className="font-display text-base sm:text-lg font-bold leading-tight truncate">
                 Seu carrinho
               </h3>
-              <p className="text-[11px] text-muted-foreground leading-tight">
+              <p className="text-2xs text-muted-foreground leading-tight">
                 {itemCount === 0
                   ? "Vazio"
                   : `${itemCount} ${itemCount === 1 ? "item" : "itens"}`}
@@ -240,7 +240,7 @@ export function CartDrawer() {
             </div>
             <div className="flex items-end justify-between gap-3 mb-3">
               <div className="min-w-0">
-                <span className="block text-[12px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">
+                <span className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground leading-none">
                   Subtotal no PIX
                 </span>
                 {/* PIX é o preço-âncora — verde, grande. Cliente vê o valor
@@ -253,7 +253,7 @@ export function CartDrawer() {
                   ou {formatBRL(total)} · 3x de {formatBRL(installment)} sem juros
                 </span>
               </div>
-              <span className="text-[11px] text-muted-foreground tabular-nums shrink-0 pb-1">
+              <span className="text-2xs text-muted-foreground tabular-nums shrink-0 pb-1">
                 {itemCount} {itemCount === 1 ? "item" : "itens"}
               </span>
             </div>
@@ -271,11 +271,11 @@ export function CartDrawer() {
               <button
                 type="button"
                 onClick={closeCart}
-                className="text-[12px] font-semibold text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded"
+                className="text-xs font-semibold text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded"
               >
                 ← Continuar comprando
               </button>
-              <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <p className="flex items-center gap-1.5 text-2xs text-muted-foreground">
                 <Lock className="h-3 w-3" />
                 Pagamento seguro
               </p>

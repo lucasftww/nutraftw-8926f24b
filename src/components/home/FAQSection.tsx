@@ -1,4 +1,4 @@
-import { ChevronDown, HelpCircle } from "lucide-react";
+﻿import { ChevronDown, HelpCircle } from "lucide-react";
 
 /**
  * FAQ na Home — perguntas mais comuns de pré-compra (importação,
@@ -82,7 +82,7 @@ export function FAQSection() {
               className="group [&_summary::-webkit-details-marker]:hidden"
             >
               <summary className="flex items-center justify-between gap-3 px-4 sm:px-5 py-4 cursor-pointer list-none hover:bg-muted/40 transition-colors">
-                <span className="text-[14px] sm:text-[15px] font-semibold text-foreground pr-2">
+                <span className="text-sm sm:text-sm font-semibold text-foreground pr-2">
                   {item.question}
                 </span>
                 <ChevronDown
@@ -91,7 +91,7 @@ export function FAQSection() {
                   aria-hidden
                 />
               </summary>
-              <p className="px-4 sm:px-5 pb-4 -mt-1 text-[13px] sm:text-sm text-muted-foreground leading-relaxed">
+              <p className="px-4 sm:px-5 pb-4 -mt-1 text-sm-plus sm:text-sm text-muted-foreground leading-relaxed">
                 {item.answer}
               </p>
             </details>

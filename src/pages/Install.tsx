@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Download, Smartphone, WifiOff, Zap, Sparkles } from "lucide-react";
 
@@ -55,7 +55,7 @@ export default function Install() {
             <Smartphone className="h-8 w-8 md:h-10 md:w-10 text-white" strokeWidth={1.75} />
           </div>
         </div>
-        <p className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-[0.18em] text-secondary-text mb-2">
+        <p className="inline-flex items-center gap-1.5 text-2xs sm:text-xs font-bold uppercase tracking-[0.18em] text-secondary-text mb-2">
           <Sparkles className="h-3.5 w-3.5" strokeWidth={2.5} />
           App Royal Vitta
         </p>
@@ -138,7 +138,7 @@ export default function Install() {
               <Step n={2}>Toque em <strong className="text-foreground">Instalar app</strong> ou <strong className="text-foreground">Adicionar à tela inicial</strong>.</Step>
               <Step n={3}>Confirme.</Step>
             </ol>
-            <p className="text-[11px] text-muted-foreground/80 mt-4 pt-3 border-t border-border/40">
+            <p className="text-2xs text-muted-foreground/80 mt-4 pt-3 border-t border-border/40">
               Dica: o botão de instalação automática aparece após alguns segundos navegando no site publicado.
             </p>
           </div>
@@ -170,8 +170,8 @@ function Benefit({
       <div className={`inline-flex h-9 w-9 rounded-xl items-center justify-center mb-2.5 ${TONE[tone]}`}>
         <Icon className="h-4.5 w-4.5" strokeWidth={2.25} />
       </div>
-      <p className="font-bold text-[14px] text-foreground">{title}</p>
-      <p className="text-[12px] text-muted-foreground mt-1 leading-relaxed">{text}</p>
+      <p className="font-bold text-sm text-foreground">{title}</p>
+      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{text}</p>
     </div>
   );
 }
@@ -179,7 +179,7 @@ function Benefit({
 function Step({ n, children }: { n: number; children: React.ReactNode }) {
   return (
     <li className="flex items-start gap-3">
-      <span className="shrink-0 inline-flex h-6 w-6 rounded-full bg-primary/10 text-primary items-center justify-center text-[11px] font-extrabold tabular-nums">
+      <span className="shrink-0 inline-flex h-6 w-6 rounded-full bg-primary/10 text-primary items-center justify-center text-2xs font-extrabold tabular-nums">
         {n}
       </span>
       <span className="leading-relaxed pt-0.5">{children}</span>

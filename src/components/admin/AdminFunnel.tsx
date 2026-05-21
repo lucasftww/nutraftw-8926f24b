@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Eye, Heart, ShoppingCart, CreditCard, CheckCircle2, TrendingDown, Loader2, Calendar, ArrowRight, Users, ShoppingBag, DollarSign, Sparkles, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -251,10 +251,10 @@ export function AdminFunnel() {
                           <td className="px-4 py-3 text-right tabular-nums hidden md:table-cell">{r.wishlist_adds}</td>
                           <td className="px-4 py-3 text-right tabular-nums">{r.cart_adds}</td>
                           <td className="px-4 py-3 text-right tabular-nums">{r.units_paid}</td>
-                          <td className={`px-4 py-3 text-right tabular-nums font-semibold ${lowVtc ? "text-amber-500" : ""}`}>
+                          <td className={`px-4 py-3 text-right tabular-nums font-semibold ${lowVtc ? "text-warning" : ""}`}>
                             {pct(r.view_to_cart)}
                           </td>
-                          <td className={`px-4 py-3 text-right tabular-nums font-semibold ${lowCtp ? "text-amber-500" : ""}`}>
+                          <td className={`px-4 py-3 text-right tabular-nums font-semibold ${lowCtp ? "text-warning" : ""}`}>
                             {pct(r.cart_to_paid)}
                           </td>
                           <td className="px-2 py-3">
@@ -274,8 +274,8 @@ export function AdminFunnel() {
                 </table>
               </div>
             )}
-            <p className="px-5 py-3 text-[11px] text-muted-foreground border-t border-border bg-muted/20">
-              Em <span className="text-amber-500 font-medium">âmbar</span>: pontos com baixa conversão (View→Cart &lt; 5% com 10+ views, ou Cart→Paid &lt; 20% com 5+ carrinhos).
+            <p className="px-5 py-3 text-2xs text-muted-foreground border-t border-border bg-muted/20">
+              Em <span className="text-warning font-medium">âmbar</span>: pontos com baixa conversão (View→Cart &lt; 5% com 10+ views, ou Cart→Paid &lt; 20% com 5+ carrinhos).
             </p>
           </div>
         </>
@@ -364,7 +364,7 @@ function FunnelFlow({
                   >
                     <Icon className="h-5 w-5" />
                   </span>
-                  <span className="absolute -bottom-1 -right-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-background border border-border text-[10px] font-bold tabular-nums text-foreground">
+                  <span className="absolute -bottom-1 -right-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-background border border-border text-2xs font-bold tabular-nums text-foreground">
                     {i + 1}
                   </span>
                 </div>
@@ -372,7 +372,7 @@ function FunnelFlow({
                 {/* Label + barra + valor */}
                 <div className="min-w-0 flex-1 flex flex-col justify-center gap-1.5">
                   <div className="flex items-baseline justify-between gap-3">
-                    <p className="text-[11px] uppercase tracking-[0.14em] font-semibold text-muted-foreground truncate">
+                    <p className="text-2xs uppercase tracking-[0.14em] font-semibold text-muted-foreground truncate">
                       {s.label}
                     </p>
                     <p className="font-display text-xl md:text-2xl font-extrabold tabular-nums leading-none text-foreground">
@@ -391,25 +391,25 @@ function FunnelFlow({
                 <div className="hidden sm:flex flex-col items-end justify-center min-w-[88px] shrink-0 pl-2 border-l border-border/60">
                   {prev ? (
                     <>
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground leading-none">
+                      <p className="text-2xs uppercase tracking-wider text-muted-foreground leading-none">
                         Conversão
                       </p>
                       <p
                         className={`font-display font-extrabold text-lg tabular-nums leading-tight mt-1 ${
-                          showDrop ? "text-amber-500" : "text-foreground"
+                          showDrop ? "text-warning" : "text-foreground"
                         }`}
                       >
                         {pct(stepConv)}
                       </p>
                       {showDrop && (
-                        <p className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-500 mt-0.5">
+                        <p className="inline-flex items-center gap-1 text-2xs font-semibold text-warning mt-0.5">
                           <AlertTriangle className="h-3 w-3" />
                           −{dropAbs.toLocaleString("pt-BR")}
                         </p>
                       )}
                     </>
                   ) : (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary px-2.5 py-1 text-2xs font-bold uppercase tracking-wider">
                       Topo
                     </span>
                   )}
@@ -418,9 +418,9 @@ function FunnelFlow({
 
               {/* Mobile: conversão abaixo do card */}
               {prev && (
-                <div className="sm:hidden flex items-center justify-between mt-1 px-3.5 text-[11px]">
+                <div className="sm:hidden flex items-center justify-between mt-1 px-3.5 text-2xs">
                   <span className="text-muted-foreground">Conversão da etapa</span>
-                  <span className={`font-bold tabular-nums ${showDrop ? "text-amber-500" : "text-foreground"}`}>
+                  <span className={`font-bold tabular-nums ${showDrop ? "text-warning" : "text-foreground"}`}>
                     {pct(stepConv)}
                     {showDrop && <span className="ml-1 opacity-80">(−{dropAbs.toLocaleString("pt-BR")})</span>}
                   </span>
@@ -431,7 +431,7 @@ function FunnelFlow({
         })}
       </ol>
 
-      <p className="relative mt-6 pt-4 border-t border-border/60 text-[11px] text-muted-foreground/80 leading-relaxed">
+      <p className="relative mt-6 pt-4 border-t border-border/60 text-2xs text-muted-foreground/80 leading-relaxed">
         Etapas vêm de origens diferentes (analytics × pedidos). Foque na tendência relativa, não no número absoluto.
       </p>
     </div>
@@ -451,7 +451,7 @@ function KpiCard({
   const toneMap: Record<KpiTone, { bar: string; iconBg: string; iconFg: string }> = {
     cyan:      { bar: "bg-gradient-to-b from-brand-cyan to-primary",         iconBg: "bg-brand-cyan/15 ring-1 ring-brand-cyan/25", iconFg: "text-brand-cyan" },
     primary:   { bar: "bg-gradient-to-b from-primary to-primary-glow",        iconBg: "bg-primary/15 ring-1 ring-primary/25",       iconFg: "text-primary" },
-    success:   { bar: "bg-gradient-to-b from-emerald-400 to-emerald-600",     iconBg: "bg-emerald-500/15 ring-1 ring-emerald-500/25", iconFg: "text-emerald-400" },
+    success:   { bar: "bg-gradient-to-b from-emerald-400 to-emerald-600",     iconBg: "bg-success/15 ring-1 ring-success/25", iconFg: "text-success" },
     secondary: { bar: "bg-gradient-to-b from-secondary to-secondary-glow",    iconBg: "bg-secondary/15 ring-1 ring-secondary/25",   iconFg: "text-secondary" },
   };
   const t = toneMap[tone];
@@ -459,7 +459,7 @@ function KpiCard({
     <div className={`relative overflow-hidden rounded-2xl border bg-card p-4 shadow-soft ${highlight ? "border-secondary/40 ring-1 ring-secondary/20" : "border-border"}`}>
       <span aria-hidden className={`absolute inset-y-0 left-0 w-1.5 ${t.bar}`} />
       <div className="flex items-start justify-between gap-2">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <p className="text-2xs font-semibold uppercase tracking-wider text-muted-foreground">
           {label}
         </p>
         <span className={`inline-flex h-8 w-8 items-center justify-center rounded-lg ${t.iconBg}`}>
@@ -470,7 +470,7 @@ function KpiCard({
         {value}
       </p>
       {hint && (
-        <p className="text-[11px] mt-1 text-muted-foreground">
+        <p className="text-2xs mt-1 text-muted-foreground">
           {hint}
         </p>
       )}

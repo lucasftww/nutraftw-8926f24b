@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 import { ShieldCheck, Truck, Lock, MessageCircle, ArrowRight, Sparkles } from "lucide-react";
 import { useSEO } from "@/hooks/useSEO";
 
@@ -14,7 +14,7 @@ export default function About() {
     <section className="container max-w-4xl mx-auto px-4 py-10 md:py-14 animate-in fade-in duration-500">
       {/* HERO — eyebrow + título com gradient + lead */}
       <div className="max-w-2xl">
-        <p className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-[0.18em] text-secondary-text mb-3">
+        <p className="inline-flex items-center gap-1.5 text-2xs sm:text-xs font-bold uppercase tracking-[0.18em] text-secondary-text mb-3">
           <Sparkles className="h-3.5 w-3.5" strokeWidth={2.5} />
           Sobre a Royal Vitta
         </p>
@@ -105,8 +105,8 @@ function Pillar({
       <div className={`inline-flex items-center justify-center h-10 w-10 rounded-xl mb-3 ${TONE_CLASSES[tone]}`}>
         <Icon className="h-5 w-5" strokeWidth={2.25} />
       </div>
-      <h3 className="font-bold text-[15px] text-foreground">{title}</h3>
-      <p className="text-[13px] text-muted-foreground mt-1.5 leading-relaxed">{text}</p>
+      <h3 className="font-bold text-sm text-foreground">{title}</h3>
+      <p className="text-sm-plus text-muted-foreground mt-1.5 leading-relaxed">{text}</p>
     </div>
   );
 }

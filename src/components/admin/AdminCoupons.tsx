@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -140,11 +140,11 @@ export function AdminCoupons() {
                   {c.discount_type === "percent" ? `${c.discount_value}% OFF` : `R$ ${Number(c.discount_value).toFixed(2)} OFF`}
                   {Number(c.min_subtotal) > 0 && ` · mín. R$ ${Number(c.min_subtotal).toFixed(2)}`}
                 </p>
-                <p className="text-[11px] text-muted-foreground/80 mt-0.5">
+                <p className="text-2xs text-muted-foreground/80 mt-0.5">
                   {c.uses} usos{c.max_uses ? ` / ${c.max_uses}` : ""}
                 </p>
               </div>
-              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 ${c.active ? "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/25" : "bg-muted text-muted-foreground"}`}>
+              <span className={`text-2xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 ${c.active ? "bg-success/15 text-success ring-1 ring-success/25" : "bg-muted text-muted-foreground"}`}>
                 {c.active ? "Ativo" : "Inativo"}
               </span>
             </div>
@@ -194,7 +194,7 @@ export function AdminCoupons() {
                 <td className="px-4 py-3 text-muted-foreground">R$ {Number(c.min_subtotal).toFixed(2)}</td>
                 <td className="px-4 py-3 text-muted-foreground">{c.uses}{c.max_uses ? ` / ${c.max_uses}` : ""}</td>
                 <td className="px-4 py-3">
-                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${c.active ? "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/25" : "bg-muted text-muted-foreground"}`}>
+                  <span className={`text-2xs font-semibold px-2 py-0.5 rounded-full ${c.active ? "bg-success/15 text-success ring-1 ring-success/25" : "bg-muted text-muted-foreground"}`}>
                     {c.active ? "Ativo" : "Inativo"}
                   </span>
                 </td>

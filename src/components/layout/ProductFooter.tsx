@@ -1,4 +1,4 @@
-import { MessageCircle, ShieldCheck } from "lucide-react";
+﻿import { MessageCircle, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useCurrentProduct } from "@/contexts/CurrentProductContext";
@@ -84,7 +84,7 @@ export function ProductFooter() {
               <MessageCircle className="w-4 h-4" aria-hidden />
               Falar no WhatsApp
             </a>
-            <p className="mt-3 text-[11px] text-muted-foreground/80 leading-relaxed">
+            <p className="mt-3 text-2xs text-muted-foreground/80 leading-relaxed">
               {businessHours}
             </p>
           </div>
@@ -98,7 +98,7 @@ export function ProductFooter() {
 
         {/* ===== Identificação legal (CDC + trust) ===== */}
         {(cnpj || address) && (
-          <p className="mt-6 text-[11px] text-muted-foreground/80 leading-relaxed text-center">
+          <p className="mt-6 text-2xs text-muted-foreground/80 leading-relaxed text-center">
             {brandName}
             {cnpj ? ` · CNPJ ${cnpj}` : ""}
             {address ? ` · ${address}` : ""}

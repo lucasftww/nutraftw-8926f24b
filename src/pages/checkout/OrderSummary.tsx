@@ -1,4 +1,4 @@
-import { useRef, forwardRef } from "react";
+﻿import { useRef, forwardRef } from "react";
 import { ShoppingBag, ChevronDown, Loader2, Lock, Check, CheckCircle2 } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import { CouponField } from "./CouponField";
@@ -74,7 +74,7 @@ export function OrderSummary({
         <div className="flex items-center gap-2 min-w-0">
           <ShoppingBag className="w-5 h-5 text-primary shrink-0" />
           <h2 className="text-base sm:text-xl font-bold tracking-tight">Resumo</h2>
-          <span className="text-[11px] sm:text-xs font-semibold text-muted-foreground tabular-nums">
+          <span className="text-2xs sm:text-xs font-semibold text-muted-foreground tabular-nums">
             · {totalQty} {totalQty === 1 ? "item" : "itens"}
           </span>
         </div>
@@ -152,12 +152,12 @@ export function OrderSummary({
             {formatBRL(grandTotal)}
           </div>
           {form.payment_method === "credit_card" && grandTotal > 0 && (
-            <div className="text-[11px] text-muted-foreground mt-1 tabular-nums">
+            <div className="text-2xs text-muted-foreground mt-1 tabular-nums">
               ou 3x de {formatBRL(grandTotal / 3)} sem juros
             </div>
           )}
           {form.payment_method === "pix" && (couponDiscount + pixDiscount) > 0 && (
-            <div className="text-[11px] text-success font-semibold mt-1">
+            <div className="text-2xs text-success font-semibold mt-1">
               Você economiza {formatBRL(couponDiscount + pixDiscount)}
             </div>
           )}
@@ -182,18 +182,18 @@ export function OrderSummary({
              atendimento" aparecia ANTES do clique no botão, dando impressão
              de que o pedido já estava confirmado. Texto novo é informativo e
              não cria falsa expectativa. */
-          <p className="inline-flex w-full items-center justify-center gap-1.5 text-center text-[11px] text-success font-semibold">
+          <p className="inline-flex w-full items-center justify-center gap-1.5 text-center text-2xs text-success font-semibold">
             <Check className="w-3 h-3" /> PIX gerado na hora · liberação automática
           </p>
         )}
         <div className="flex items-center justify-center gap-3 text-muted-foreground/70">
           <Lock className="w-3 h-3" aria-hidden />
-          <span className="text-[10px] font-semibold tracking-wider uppercase">SSL</span>
+          <span className="text-2xs font-semibold tracking-wider uppercase">SSL</span>
           <span className="w-px h-3 bg-border" />
-          <span className="text-[10px] font-bold tracking-wider">PIX</span>
-          <span className="text-[10px] font-bold tracking-wider">VISA</span>
-          <span className="text-[10px] font-bold tracking-wider">MASTER</span>
-          <span className="text-[10px] font-bold tracking-wider">ELO</span>
+          <span className="text-2xs font-bold tracking-wider">PIX</span>
+          <span className="text-2xs font-bold tracking-wider">VISA</span>
+          <span className="text-2xs font-bold tracking-wider">MASTER</span>
+          <span className="text-2xs font-bold tracking-wider">ELO</span>
         </div>
       </div>
     </aside>

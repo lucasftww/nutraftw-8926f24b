@@ -1,4 +1,4 @@
-import { Loader2 } from "lucide-react";
+﻿import { Loader2 } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 
 interface StickyMobileBarProps {
@@ -32,12 +32,12 @@ export function StickyMobileBar({
     >
       <div className="flex items-center gap-3">
         <div className="flex-1 min-w-0 leading-tight">
-          <span className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider leading-none">Total</span>
+          <span className="block text-2xs font-semibold text-muted-foreground uppercase tracking-wider leading-none">Total</span>
           <span className="block text-lg font-extrabold text-foreground tabular-nums leading-tight mt-0.5">
             {formatBRL(grandTotal)}
           </span>
           {form.payment_method === "pix" && pixDiscount > 0 && (
-            <span className="block text-[11px] text-success font-bold tabular-nums leading-none">
+            <span className="block text-2xs text-success font-bold tabular-nums leading-none">
               PIX · economiza {formatBRL(pixDiscount)}
             </span>
           )}

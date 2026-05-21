@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import { Truck, Loader2, MapPin, AlertCircle, PackageCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
@@ -114,7 +114,7 @@ export function ShippingCalculator() {
         </div>
         <div className="min-w-0">
           <h3 className="text-sm font-bold text-foreground leading-tight">Calcule o frete</h3>
-          <p className="text-[11px] text-muted-foreground leading-tight">Entregamos para todo o Brasil — informe seu CEP</p>
+          <p className="text-2xs text-muted-foreground leading-tight">Entregamos para todo o Brasil — informe seu CEP</p>
         </div>
       </div>
       <div className="relative">
@@ -147,7 +147,7 @@ export function ShippingCalculator() {
         rel="noreferrer"
         /* Hit area ampliada: py-2 + -my-1 mantém posição visual
            sem mover o resto do layout. WCAG 2.5.5 tap target. */
-        className="inline-flex items-center min-h-[36px] py-2 -my-1 mt-0.5 text-[11px] text-muted-foreground hover:text-primary hover:underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded-sm"
+        className="inline-flex items-center min-h-[36px] py-2 -my-1 mt-0.5 text-2xs text-muted-foreground hover:text-primary hover:underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded-sm"
       >
         Não sei meu CEP
       </a>
@@ -176,7 +176,7 @@ export function ShippingCalculator() {
       {opts.length > 0 && (
         <div className="mt-3 animate-fade-in">
           {city && state && (
-            <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground mb-1.5">
+            <p className="flex items-center gap-1.5 text-2xs text-muted-foreground mb-1.5">
               <PackageCheck className="h-3 w-3 text-success" />
               Entrega para <span className="font-semibold text-foreground">{city}/{state}</span>
             </p>
@@ -187,7 +187,7 @@ export function ShippingCalculator() {
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-foreground leading-tight truncate">{o.label}</p>
                   {(o.delivery_days_min || o.delivery_days_max) && (
-                    <p className="text-[11px] text-muted-foreground leading-tight">
+                    <p className="text-2xs text-muted-foreground leading-tight">
                       {o.delivery_days_min && o.delivery_days_max
                         ? `${o.delivery_days_min}–${o.delivery_days_max} dias úteis`
                         : `Até ${o.delivery_days_max ?? o.delivery_days_min} dias úteis`}
@@ -200,7 +200,7 @@ export function ShippingCalculator() {
               </li>
             ))}
           </ul>
-          <p className="mt-2 text-[10px] text-muted-foreground">Prazo a partir da confirmação do pagamento.</p>
+          <p className="mt-2 text-2xs text-muted-foreground">Prazo a partir da confirmação do pagamento.</p>
         </div>
       )}
     </div>

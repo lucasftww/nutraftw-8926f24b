@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+﻿import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -300,7 +300,7 @@ export function OrderDetailModal({ orderId, onClose }: { orderId: string; onClos
                     <div className="flex justify-between"><span>Frete</span><span>{formatBRL(ship)}</span></div>
                     <div className="flex justify-between"><span>Seguro</span><span>{formatBRL(ins)}</span></div>
                     {disc > 0 && (
-                      /* `text-success` em vez de `text-emerald-700` hardcoded
+                      /* `text-success` em vez de `text-success` hardcoded
                          para garantir contraste correto no admin dark mode
                          (emerald-700 sumia em fundo escuro). */
                       <div className="flex justify-between text-success">
@@ -348,7 +348,7 @@ export function OrderDetailModal({ orderId, onClose }: { orderId: string; onClos
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold">{formatBRL(r.amount)} <span className="ml-2 text-xs text-muted-foreground font-normal">{REFUND_REASONS.find(x => x.value === r.reason)?.label ?? r.reason}</span></p>
                         {r.notes && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{r.notes}</p>}
-                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                        <p className="text-2xs text-muted-foreground mt-0.5">
                           {new Date(r.created_at).toLocaleString("pt-BR")}
                           {r.processed_at && ` · processado em ${new Date(r.processed_at).toLocaleString("pt-BR")}`}
                         </p>
@@ -356,9 +356,9 @@ export function OrderDetailModal({ orderId, onClose }: { orderId: string; onClos
                       {/* Tons -400 são mais legíveis no admin dark do que -500.
                           Antes "emerald-500" tinha contraste limítrofe em fundo escuro. */}
                       <span className={`badge-pill text-xs ring-1 ${
-                        r.status === "processed" ? "bg-emerald-500/15 text-emerald-400 ring-emerald-500/30" :
+                        r.status === "processed" ? "bg-success/15 text-success ring-success/30" :
                         r.status === "failed" ? "bg-destructive/15 text-destructive ring-destructive/30" :
-                        "bg-amber-500/15 text-amber-400 ring-amber-500/30"
+                        "bg-warning/15 text-warning ring-amber-500/30"
                       }`}>{REFUND_STATUS_LABEL[r.status] ?? r.status}</span>
                       {r.status === "pending" && (
                         <>

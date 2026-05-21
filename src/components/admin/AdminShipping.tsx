@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -128,10 +128,10 @@ export function AdminShipping() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm truncate">{s.label}</p>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-2xs text-muted-foreground">
                 {s.delivery_days_min && s.delivery_days_max ? `${s.delivery_days_min}–${s.delivery_days_max} dias` : "Prazo —"}
                 {" · "}
-                <span className={s.active ? "text-emerald-400" : "text-muted-foreground"}>{s.active ? "Ativo" : "Inativo"}</span>
+                <span className={s.active ? "text-success" : "text-muted-foreground"}>{s.active ? "Ativo" : "Inativo"}</span>
               </p>
             </div>
             <div className="text-right shrink-0">
@@ -174,7 +174,7 @@ export function AdminShipping() {
                   {s.delivery_days_min && s.delivery_days_max ? `${s.delivery_days_min}–${s.delivery_days_max}` : "—"}
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${s.active ? "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/25" : "bg-muted text-muted-foreground"}`}>
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${s.active ? "bg-success/15 text-success ring-1 ring-success/25" : "bg-muted text-muted-foreground"}`}>
                     {s.active ? "Ativo" : "Inativo"}
                   </span>
                 </td>

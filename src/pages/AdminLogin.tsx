@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -175,7 +175,7 @@ export default function AdminLogin() {
             </Button>
           </form>
 
-          <p className="text-[11px] text-center text-muted-foreground">
+          <p className="text-2xs text-center text-muted-foreground">
             Ao entrar, sua role é validada no banco antes de liberar o acesso.
           </p>
         </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+﻿import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
@@ -496,14 +496,14 @@ export default function Checkout() {
               height={44}
               className="w-full h-full object-contain"
             />
-            <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold inline-flex items-center justify-center leading-none ring-2 ring-card">
+            <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-2xs font-bold inline-flex items-center justify-center leading-none ring-2 ring-card">
               {l.qty}
             </span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-semibold text-foreground leading-tight line-clamp-2">{l.name}</p>
+            <p className="text-sm-plus font-semibold text-foreground leading-tight line-clamp-2">{l.name}</p>
             {l.qty > 1 && (
-              <p className="text-[11px] text-muted-foreground tabular-nums leading-tight mt-0.5">
+              <p className="text-2xs text-muted-foreground tabular-nums leading-tight mt-0.5">
                 {formatBRL(l.price)} · un
               </p>
             )}

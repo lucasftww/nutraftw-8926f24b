@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -119,7 +119,7 @@ export function AdminSettings() {
       <div className="space-y-8">
         {groupedFields.map((g) => (
           <section key={g.group} className="space-y-4">
-            <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary/80">{g.label}</h3>
+            <h3 className="text-2xs font-bold uppercase tracking-[0.14em] text-primary/80">{g.label}</h3>
             {g.fields.map((f) => (
               <div key={f.key} className="space-y-2">
                 {f.type === "toggle" ? (

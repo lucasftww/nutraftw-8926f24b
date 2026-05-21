@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Loader2, ChevronDown } from "lucide-react";
 import { maskCEP } from "@/lib/utils";
 import { useFieldValidation } from "@/hooks/useFieldValidation";
@@ -111,7 +111,7 @@ export function AddressSection({ form, setForm, cepLoading }: AddressSectionProp
               <button
                 type="button"
                 onClick={() => { setForm((f) => ({ ...f, complement: "" })); setComplementOpen(false); }}
-                className="text-[11px] font-semibold text-muted-foreground hover:text-destructive"
+                className="text-2xs font-semibold text-muted-foreground hover:text-destructive"
               >
                 remover
               </button>

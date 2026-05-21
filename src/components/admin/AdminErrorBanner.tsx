@@ -1,4 +1,4 @@
-import { AlertTriangle, RefreshCw, Copy } from "lucide-react";
+﻿import { AlertTriangle, RefreshCw, Copy } from "lucide-react";
 import { toast } from "sonner";
 
 export type AdminErrorInfo = {
@@ -68,7 +68,7 @@ export function AdminErrorBanner({
           <p className="text-sm font-bold text-destructive">{error.scope} — falha ao carregar</p>
           <p className="text-sm text-foreground mt-0.5 break-words">{error.message}</p>
           {(error.code || error.details || error.hint) && (
-            <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
+            <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 text-2xs text-muted-foreground">
               {error.code && (
                 <>
                   <dt className="font-semibold">code</dt>
@@ -113,7 +113,7 @@ export function AdminErrorBanner({
           )}
         </div>
       </div>
-      <p className="text-[11px] text-muted-foreground border-t border-destructive/20 pt-2">
+      <p className="text-2xs text-muted-foreground border-t border-destructive/20 pt-2">
         Detalhes completos foram impressos no console do navegador (DevTools → Console).
       </p>
     </div>

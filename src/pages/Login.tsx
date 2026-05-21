@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -192,7 +192,7 @@ export default function Login() {
             RV
           </span>
         </div>
-        <p className="text-[11px] sm:text-xs font-bold uppercase tracking-[0.18em] text-secondary-text">
+        <p className="text-2xs sm:text-xs font-bold uppercase tracking-[0.18em] text-secondary-text">
           Royal Vitta
         </p>
       </div>
@@ -343,19 +343,19 @@ export default function Login() {
       <div className="mt-5 grid grid-cols-3 gap-2 text-center">
         <div className="rounded-xl bg-muted/40 border border-border/40 px-2 py-2.5 flex flex-col items-center">
           <Lock className="h-4 w-4 text-primary" strokeWidth={2.25} aria-hidden />
-          <p className="text-[11px] font-semibold text-muted-foreground mt-1.5 leading-tight">
+          <p className="text-2xs font-semibold text-muted-foreground mt-1.5 leading-tight">
             Dados<br />criptografados
           </p>
         </div>
         <div className="rounded-xl bg-muted/40 border border-border/40 px-2 py-2.5 flex flex-col items-center">
           <Zap className="h-4 w-4 text-secondary" strokeWidth={2.25} aria-hidden />
-          <p className="text-[11px] font-semibold text-muted-foreground mt-1.5 leading-tight">
+          <p className="text-2xs font-semibold text-muted-foreground mt-1.5 leading-tight">
             Cadastro em<br />30 segundos
           </p>
         </div>
         <div className="rounded-xl bg-muted/40 border border-border/40 px-2 py-2.5 flex flex-col items-center">
           <Package className="h-4 w-4 text-brand-cyan-text" strokeWidth={2.25} aria-hidden />
-          <p className="text-[11px] font-semibold text-muted-foreground mt-1.5 leading-tight">
+          <p className="text-2xs font-semibold text-muted-foreground mt-1.5 leading-tight">
             Acompanhe<br />pedidos
           </p>
         </div>

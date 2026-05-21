@@ -1,4 +1,4 @@
-import { Check, Clock, CreditCard, Package, Truck, Home, XCircle, RotateCcw } from "lucide-react";
+﻿import { Check, Clock, CreditCard, Package, Truck, Home, XCircle, RotateCcw } from "lucide-react";
 import { type OrderStatusKey } from "@/lib/orderStatus";
 
 /**
@@ -97,14 +97,14 @@ export function OrderTimeline({ status }: { status: string | null | undefined })
             </span>
             <div className="min-w-0 sm:text-center">
               <p
-                className={`text-[12px] sm:text-[11px] font-bold leading-tight ${
+                className={`text-xs sm:text-2xs font-bold leading-tight ${
                   future ? "text-muted-foreground" : "text-foreground"
                 }`}
               >
                 {step.label}
               </p>
               {current && (
-                <p className="text-[10px] text-primary font-semibold mt-0.5 hidden sm:block">
+                <p className="text-2xs text-primary font-semibold mt-0.5 hidden sm:block">
                   Agora
                 </p>
               )}

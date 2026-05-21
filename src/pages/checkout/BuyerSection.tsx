@@ -1,4 +1,4 @@
-import { maskCPF, maskPhone } from "@/lib/utils";
+﻿import { maskCPF, maskPhone } from "@/lib/utils";
 import { useFieldValidation } from "@/hooks/useFieldValidation";
 import { validateFullName, validateEmail, validatePhoneBR, validateCPF } from "@/lib/validators";
 import { FieldHint } from "./FieldHint";
@@ -103,7 +103,7 @@ export function BuyerSection({ form, setForm }: BuyerSectionProps) {
             {vCPF.status === "idle" && (
               /* Microcopy explicando o "porquê" do CPF — campo de maior
                  abandono em checkouts BR. Reduz fricção/desconfiança. */
-              <p id="co-cpf-help" className="text-[11px] text-muted-foreground mt-1 ml-0.5">
+              <p id="co-cpf-help" className="text-2xs text-muted-foreground mt-1 ml-0.5">
                 Necessário para emissão da nota fiscal e segurança da entrega.
               </p>
             )}

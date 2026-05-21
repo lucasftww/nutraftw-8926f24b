@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
@@ -113,12 +113,12 @@ export function PostPurchaseRecommendations({ items }: { items: Item[] }) {
                 />
               </div>
               <div className="p-2 pt-1.5">
-                <p className="text-[11px] sm:text-[12px] font-medium leading-tight line-clamp-2 min-h-[2.4em]">
+                <p className="text-2xs sm:text-xs font-medium leading-tight line-clamp-2 min-h-[2.4em]">
                   {p.name}
                 </p>
-                <p className="text-[12px] sm:text-[13px] font-extrabold text-success tabular-nums leading-none mt-1">
+                <p className="text-xs sm:text-sm-plus font-extrabold text-success tabular-nums leading-none mt-1">
                   {formatBRL(final * 0.95)}
-                  <span className="ml-1 text-[9px] font-bold uppercase tracking-wider text-success/80 align-middle">
+                  <span className="ml-1 text-2xs font-bold uppercase tracking-wider text-success/80 align-middle">
                     PIX
                   </span>
                 </p>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useState } from "react";
 import { ADMIN_STATUS_COLORS as STATUS_COLORS, STATUS_PT } from "@/lib/orderStatus";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
@@ -128,8 +128,8 @@ export function AdminDashboard() {
   ];
   const TONE: Record<string, string> = {
     primary:     "text-primary bg-primary/10 ring-1 ring-primary/15",
-    success:     "text-emerald-400 bg-emerald-500/10 ring-1 ring-emerald-500/20",
-    amber:       "text-amber-400 bg-amber-500/10 ring-1 ring-amber-500/20",
+    success:     "text-success bg-success/10 ring-1 ring-success/20",
+    amber:       "text-warning bg-warning/10 ring-1 ring-warning/20",
     destructive: "text-destructive bg-destructive/10 ring-1 ring-destructive/25",
     neutral:     "text-muted-foreground bg-muted/50 ring-1 ring-border",
   };
@@ -174,8 +174,8 @@ export function AdminDashboard() {
             <span
               aria-hidden
               className={`pointer-events-none absolute -top-12 -right-12 h-32 w-32 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity ${
-                c.tone === "success"     ? "bg-emerald-500/20"
-                : c.tone === "amber"     ? "bg-amber-500/20"
+                c.tone === "success"     ? "bg-success/20"
+                : c.tone === "amber"     ? "bg-warning/20"
                 : c.tone === "destructive" ? "bg-destructive/20"
                 : "bg-primary/20"
               }`}
@@ -185,7 +185,7 @@ export function AdminDashboard() {
                 <c.icon className="h-3.5 w-3.5" strokeWidth={2.25} />
               </span>
             </div>
-            <p className="relative text-[10px] uppercase tracking-[0.14em] text-muted-foreground/80 font-medium leading-tight">{c.label}</p>
+            <p className="relative text-2xs uppercase tracking-[0.14em] text-muted-foreground/80 font-medium leading-tight">{c.label}</p>
             <p className="relative text-lg md:text-xl font-bold mt-1 tabular-nums truncate text-foreground">{c.value}</p>
           </div>
         ))}
@@ -281,14 +281,14 @@ function WelcomeBanner({ revenue, ordersToday }: { revenue: number; ordersToday:
         <div className="min-w-0">
           <div className="flex items-center gap-2 mb-2">
             <span className="inline-block h-1 w-6 rounded-full bg-gradient-to-r from-primary to-brand-cyan" aria-hidden />
-            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary/90">
+            <p className="text-2xs font-bold uppercase tracking-[0.22em] text-primary/90">
               Painel Administrativo
             </p>
           </div>
           <h2 className="font-brand text-2xl md:text-4xl font-bold tracking-tight uppercase text-foreground leading-tight">
             {greeting}, admin
           </h2>
-          <p className="text-[13px] md:text-[15px] text-muted-foreground mt-2 max-w-md leading-relaxed">
+          <p className="text-sm-plus md:text-sm text-muted-foreground mt-2 max-w-md leading-relaxed">
             {ordersToday > 0
               ? <>
                   <span className="font-bold text-foreground tabular-nums">{ordersToday}</span>{" "}
@@ -298,7 +298,7 @@ function WelcomeBanner({ revenue, ordersToday }: { revenue: number; ordersToday:
           </p>
         </div>
         <div className="md:text-right shrink-0">
-          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground/80">
+          <p className="text-2xs font-bold uppercase tracking-[0.18em] text-muted-foreground/80">
             Receita acumulada
           </p>
           <p className="font-display text-2xl md:text-4xl font-extrabold tabular-nums mt-1.5 bg-gradient-to-r from-primary via-primary-glow to-brand-cyan bg-clip-text text-transparent leading-none">
@@ -333,7 +333,7 @@ function Last24hPanel({ data }: { data: Last24h }) {
             </span>
             <div>
               <h3 className="font-bold text-sm">Últimas 24h · Vendas</h3>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-2xs text-muted-foreground">
                 {data.ordersCount} {data.ordersCount === 1 ? "pedido" : "pedidos"} · {data.paidCount} pagos · {formatBRL(data.revenue)}
               </p>
             </div>
@@ -347,7 +347,7 @@ function Last24hPanel({ data }: { data: Last24h }) {
               <li key={o.id} className="py-2.5 flex items-center justify-between gap-3 text-sm">
                 <div className="min-w-0 flex-1">
                   <p className="font-medium truncate">{o.shipping_full_name || "Cliente"}</p>
-                  <p className="text-[11px] text-muted-foreground font-mono">
+                  <p className="text-2xs text-muted-foreground font-mono">
                     #{o.id.slice(0, 8)} · {timeAgo(o.created_at)}
                   </p>
                 </div>
@@ -355,7 +355,7 @@ function Last24hPanel({ data }: { data: Last24h }) {
                   <p className="font-bold tabular-nums">{formatBRL(o.total)}</p>
                   {/* Reusa a paleta admin centralizada — antes tinha um mapeamento
                       próprio (não-DRY) que mostrava status raw em inglês. */}
-                  <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full mt-0.5 font-semibold ${STATUS_COLORS[o.status as keyof typeof STATUS_COLORS] ?? "bg-muted text-muted-foreground ring-1 ring-border"}`}>
+                  <span className={`inline-block text-2xs px-2 py-0.5 rounded-full mt-0.5 font-semibold ${STATUS_COLORS[o.status as keyof typeof STATUS_COLORS] ?? "bg-muted text-muted-foreground ring-1 ring-border"}`}>
                     {STATUS_PT[o.status as keyof typeof STATUS_PT] ?? o.status}
                   </span>
                 </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -45,7 +45,7 @@ export function SocialProofViewCount({ productId }: { productId: string }) {
 
   return (
     <div
-      className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 text-primary px-3 py-1 text-[11px] sm:text-[12px] font-semibold animate-in fade-in duration-300"
+      className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 text-primary px-3 py-1 text-2xs sm:text-xs font-semibold animate-in fade-in duration-300"
       aria-live="polite"
     >
       <Eye className="h-3.5 w-3.5" strokeWidth={2.5} />

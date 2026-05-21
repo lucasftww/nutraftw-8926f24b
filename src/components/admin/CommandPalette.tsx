@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, Package, ShoppingBag, ArrowRight, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
@@ -233,7 +233,7 @@ export function CommandPalette({
             aria-label="Termo de busca"
           />
           {loading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
-          <kbd className="hidden sm:inline text-[10px] font-mono px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border">Esc</kbd>
+          <kbd className="hidden sm:inline text-2xs font-mono px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border">Esc</kbd>
         </div>
         <div ref={listRef} className="max-h-[60vh] overflow-y-auto">
           {actions.length === 0 ? (
@@ -243,7 +243,7 @@ export function CommandPalette({
           ) : (
             groups.map((g) => (
               <div key={g.name} className="py-1">
-                <div className="px-4 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{g.name}</div>
+                <div className="px-4 pt-2 pb-1 text-2xs font-bold uppercase tracking-wider text-muted-foreground">{g.name}</div>
                 {g.items.map(({ a, idx }) => {
                   const Icon = a.icon;
                   return (
@@ -264,7 +264,7 @@ export function CommandPalette({
             ))
           )}
         </div>
-        <div className="hidden sm:flex items-center justify-between gap-3 px-4 py-2 border-t border-border text-[10px] text-muted-foreground">
+        <div className="hidden sm:flex items-center justify-between gap-3 px-4 py-2 border-t border-border text-2xs text-muted-foreground">
           <span><kbd className="px-1 py-0.5 rounded bg-muted border border-border">↑↓</kbd> navegar · <kbd className="px-1 py-0.5 rounded bg-muted border border-border">Enter</kbd> abrir</span>
           <span><kbd className="px-1 py-0.5 rounded bg-muted border border-border">Cmd/Ctrl + K</kbd> alternar</span>
         </div>

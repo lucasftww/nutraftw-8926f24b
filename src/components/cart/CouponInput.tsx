@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Loader2, Ticket, Check, X, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/hooks/useCart";
@@ -105,7 +105,7 @@ export function CouponInput() {
           <Check className="h-4 w-4 text-success shrink-0" />
           <div className="min-w-0">
             <p className="text-xs font-bold text-success leading-tight truncate">{coupon} aplicado</p>
-            <p className="text-[11px] text-success/80 leading-tight">−{formatBRL(discount)}</p>
+            <p className="text-2xs text-success/80 leading-tight">−{formatBRL(discount)}</p>
           </div>
         </div>
         <button onClick={remove} aria-label="Remover cupom" className="h-7 w-7 inline-flex items-center justify-center rounded-full hover:bg-success/15 text-success transition-colors">
@@ -124,7 +124,7 @@ export function CouponInput() {
             <AlertCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
             <div className="min-w-0">
               <p className="text-xs font-bold text-destructive leading-tight">{coupon} indisponível</p>
-              <p className="text-[11px] text-destructive/80 leading-snug mt-0.5">{warning}</p>
+              <p className="text-2xs text-destructive/80 leading-snug mt-0.5">{warning}</p>
             </div>
           </div>
           <button onClick={remove} aria-label="Remover cupom" className="h-6 w-6 inline-flex items-center justify-center rounded-full hover:bg-destructive/15 text-destructive transition-colors shrink-0">
@@ -158,7 +158,7 @@ export function CouponInput() {
         </button>
       </div>
       {error && (
-        <p role="alert" className="flex items-start gap-1.5 text-[11px] font-medium text-destructive animate-fade-in">
+        <p role="alert" className="flex items-start gap-1.5 text-2xs font-medium text-destructive animate-fade-in">
           <AlertCircle className="h-3 w-3 mt-0.5 shrink-0" />
           <span>{error}</span>
         </p>

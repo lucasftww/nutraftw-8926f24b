@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -189,8 +189,8 @@ export function AdminWishlist() {
                             <div className="font-medium text-foreground truncate max-w-[280px]">{r.product_name}</div>
                             <div className="text-xs text-muted-foreground flex items-center gap-2">
                               <span>{formatBRL(finalPrice)}</span>
-                              {!r.is_active && <span className="text-amber-500">• inativo</span>}
-                              {r.is_on_offer && <span className="text-emerald-500">• promo</span>}
+                              {!r.is_active && <span className="text-warning">• inativo</span>}
+                              {r.is_on_offer && <span className="text-success">• promo</span>}
                             </div>
                           </div>
                         </div>
@@ -208,7 +208,7 @@ export function AdminWishlist() {
                             {fav}
                           </div>
                         </div>
-                        <div className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
+                        <div className="text-2xs text-muted-foreground mt-1 flex items-center gap-1">
                           <UsersIcon className="h-3 w-3" /> {r.unique_users} {r.unique_users === 1 ? "cliente" : "clientes"}
                         </div>
                       </td>
@@ -224,11 +224,11 @@ export function AdminWishlist() {
                             <TrendingDown className="h-3 w-3" /> Esgotado
                           </span>
                         ) : isLow ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-500 text-xs font-medium">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-warning/15 text-warning text-xs font-medium">
                             <AlertTriangle className="h-3 w-3" /> {stock}
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-500 text-xs font-medium">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-success/15 text-success text-xs font-medium">
                             <Package className="h-3 w-3" /> {stock}
                           </span>
                         )}
@@ -256,7 +256,7 @@ function StatCard({ icon: Icon, label, value, tone, hint }: { icon: any; label: 
   const toneMap = {
     rose:  "from-rose-500/15 to-rose-500/5 text-rose-500",
     cyan:  "from-cyan-500/15 to-cyan-500/5 text-cyan-500",
-    amber: "from-amber-500/15 to-amber-500/5 text-amber-500",
+    amber: "from-amber-500/15 to-amber-500/5 text-warning",
   } as const;
   return (
     <div className={`rounded-xl border border-border/60 bg-gradient-to-br ${toneMap[tone]} p-4`}>
@@ -264,7 +264,7 @@ function StatCard({ icon: Icon, label, value, tone, hint }: { icon: any; label: 
         <Icon className="h-4 w-4" /> <span className="text-muted-foreground">{label}</span>
       </div>
       <div className="mt-2 text-2xl font-semibold text-foreground tabular-nums">{value}</div>
-      {hint && <div className="text-[11px] text-muted-foreground mt-1">{hint}</div>}
+      {hint && <div className="text-2xs text-muted-foreground mt-1">{hint}</div>}
     </div>
   );
 }

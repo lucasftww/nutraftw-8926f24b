@@ -1,4 +1,4 @@
-import { useParams, Link, useNavigate } from "react-router-dom";
+﻿import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { ShoppingCart, Package, MessageCircle, CreditCard, QrCode, ChevronDown, ArrowLeft } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
@@ -209,7 +209,7 @@ export default function ProductDetail() {
                    min-h-[36px] + py-2 + -my-2 dão hit area maior que o
                    texto visível, sem deslocar o layout — WCAG 2.5.5
                    tap target ampliado pelo padding. */
-                className="inline-flex items-center min-h-[36px] py-2 -my-2 text-[12px] font-bold uppercase tracking-[0.12em] text-secondary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded-sm"
+                className="inline-flex items-center min-h-[36px] py-2 -my-2 text-xs font-bold uppercase tracking-[0.12em] text-secondary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded-sm"
               >
                 {p.category.name}
               </Link>
@@ -232,7 +232,7 @@ export default function ProductDetail() {
               <div className="flex items-center justify-center lg:justify-start gap-2 mb-2">
                 {/* Pílula verde de economia — gatilho de conversão acima do preço.
                     Mais visível que o "Você economiza" cinza embaixo. */}
-                <span className="inline-flex items-center rounded-full bg-success/10 text-success px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider">
+                <span className="inline-flex items-center rounded-full bg-success/10 text-success px-2.5 py-1 text-2xs font-bold uppercase tracking-wider">
                   Economize {formatBRL(Number(p.price) - finalPrice)} (-{discountPct}%)
                 </span>
                 <span className="text-sm font-medium text-oldPrice line-through tabular-nums">
@@ -256,12 +256,12 @@ export default function ProductDetail() {
             <div className="mt-3 flex items-center gap-2.5 rounded-xl bg-success/8 border border-success/20 px-3 py-2.5">
               <QrCode className="h-5 w-5 text-success shrink-0" strokeWidth={2.25} />
               <div className="flex-1 min-w-0 text-left">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-success leading-none">
+                <p className="text-2xs font-bold uppercase tracking-wider text-success leading-none">
                   No PIX
                 </p>
                 <p className="text-base font-extrabold text-foreground tabular-nums leading-tight mt-0.5">
                   {formatBRL(finalPrice * 0.95)}{" "}
-                  <span className="text-[11px] font-semibold text-success uppercase tracking-wider align-middle">
+                  <span className="text-2xs font-semibold text-success uppercase tracking-wider align-middle">
                     5% off
                   </span>
                 </p>
@@ -292,9 +292,9 @@ export default function ProductDetail() {
               {(p.stock ?? 0) <= 0 ? "Esgotado" : "Comprar agora"}
             </Button>
             {(p.stock ?? 0) > 0 && (p.stock ?? 0) <= 5 && (
-              // text-[13px] (era text-xs/12px) — gatilho de urgência precisa
+              // text-sm-plus (era text-xs/12px) — gatilho de urgência precisa
               // ser bem legível em mobile.
-              <p className="text-center text-[13px] font-bold text-destructive flex items-center justify-center gap-1.5">
+              <p className="text-center text-sm-plus font-bold text-destructive flex items-center justify-center gap-1.5">
                 <Package className="h-3.5 w-3.5" />
                 {p.stock === 1 ? "Última unidade disponível!" : `Restam apenas ${p.stock} unidades`}
               </p>
@@ -446,21 +446,21 @@ export default function ProductDetail() {
                     )}
                   </div>
                   <div className="flex flex-col flex-1 pt-3 pb-3 px-2.5 sm:px-3">
-                    <h3 className="font-medium text-[13px] sm:text-sm leading-snug line-clamp-2 min-h-[2.5rem] text-foreground">
+                    <h3 className="font-medium text-sm-plus sm:text-sm leading-snug line-clamp-2 min-h-[2.5rem] text-foreground">
                       {r.name}
                     </h3>
                     {/* Mesma hierarquia dos cards do catálogo: PIX dominante,
                         preço normal como secundário (texto sutil). */}
                     <div className="mt-1.5 flex flex-col gap-0.5 mb-2">
                       <div className="flex items-baseline gap-1">
-                        <span className="text-[15px] sm:text-base font-extrabold text-success tabular-nums leading-tight">
+                        <span className="text-sm sm:text-base font-extrabold text-success tabular-nums leading-tight">
                           {formatBRL(rFinal * 0.95)}
                         </span>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-success/80 leading-none">
+                        <span className="text-2xs font-bold uppercase tracking-wider text-success/80 leading-none">
                           NO PIX
                         </span>
                       </div>
-                      <span className="text-[11px] text-muted-foreground tabular-nums leading-tight">
+                      <span className="text-2xs text-muted-foreground tabular-nums leading-tight">
                         ou {formatBRL(rFinal)}
                         {rHasSale && (
                           <span className="line-through ml-1 opacity-70">{formatBRL(rPrice)}</span>
@@ -468,7 +468,7 @@ export default function ProductDetail() {
                       </span>
                     </div>
                     {/* CTA discreto — convida o clique sem competir com o card-link */}
-                    <span className="mt-auto inline-flex items-center justify-center gap-1 h-9 rounded-full border border-border text-[12px] font-semibold text-foreground/80 group-hover:border-secondary group-hover:text-secondary group-hover:bg-secondary/5 transition-colors">
+                    <span className="mt-auto inline-flex items-center justify-center gap-1 h-9 rounded-full border border-border text-xs font-semibold text-foreground/80 group-hover:border-secondary group-hover:text-secondary group-hover:bg-secondary/5 transition-colors">
                       Ver produto →
                     </span>
                   </div>
@@ -490,7 +490,7 @@ export default function ProductDetail() {
           {/* Faixinha de urgência DENTRO da sticky bar quando estoque baixo.
               Cliente que rolou até FAQ esqueceu da urgência — agora vê de novo. */}
           {(p.stock ?? 0) <= 5 && (
-            <div className="bg-warning/15 text-warning border-b border-warning/20 text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 text-center">
+            <div className="bg-warning/15 text-warning border-b border-warning/20 text-2xs font-extrabold uppercase tracking-wider px-3 py-1 text-center">
               {p.stock === 1 ? "Última unidade!" : `Restam apenas ${p.stock} unidades`}
             </div>
           )}
@@ -508,13 +508,13 @@ export default function ProductDetail() {
             <div className="flex-1 min-w-0 leading-tight">
               {/* PIX é o preço-âncora — verde, dominante. Mesma hierarquia
                   do card do catálogo: cliente decide pelo valor real (5% off). */}
-              <span className="block text-[10px] font-bold uppercase tracking-wider text-success/80 leading-none">
+              <span className="block text-2xs font-bold uppercase tracking-wider text-success/80 leading-none">
                 no PIX
               </span>
               <span className="block text-lg font-extrabold text-success tabular-nums leading-tight mt-0.5">
                 {formatBRL(finalPrice * 0.95)}
               </span>
-              <span className="block text-[11px] text-muted-foreground tabular-nums leading-none">
+              <span className="block text-2xs text-muted-foreground tabular-nums leading-none">
                 ou {formatBRL(finalPrice)}
               </span>
             </div>

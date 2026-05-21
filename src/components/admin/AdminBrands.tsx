@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -139,11 +139,11 @@ export function AdminBrands() {
                 ) : (
                   <button type="button" className="text-left w-full py-1.5 min-h-[44px]" onClick={() => { setEditingId(c.id); setEditName(c.name); }}>
                     <p className="font-medium text-sm hover:text-primary transition-colors">{c.name}</p>
-                    <p className="text-[11px] text-muted-foreground/70 font-mono">{c.slug}</p>
+                    <p className="text-2xs text-muted-foreground/70 font-mono">{c.slug}</p>
                   </button>
                 )}
               </div>
-              <span className="text-[11px] tabular-nums text-muted-foreground bg-muted/60 rounded-full px-2 py-0.5 shrink-0">{count} prod.</span>
+              <span className="text-2xs tabular-nums text-muted-foreground bg-muted/60 rounded-full px-2 py-0.5 shrink-0">{count} prod.</span>
               {/* Trash 44x44 mobile, sempre visível (sem invisível no touch). */}
               <button type="button" onClick={() => del(c.id)} aria-label={`Remover ${c.name}`} title="Remover" className="h-11 w-11 md:h-9 md:w-9 inline-flex items-center justify-center rounded-md md:opacity-60 group-hover:opacity-100 hover:bg-destructive/10 text-destructive shrink-0 transition-opacity"><Trash2 className="h-4 w-4" /></button>
             </li>
@@ -155,7 +155,7 @@ export function AdminBrands() {
           </li>
         )}
       </ul>
-      <p className="mt-4 text-[11px] text-muted-foreground/80">Clique no nome para renomear · use as setas para reordenar.</p>
+      <p className="mt-4 text-2xs text-muted-foreground/80">Clique no nome para renomear · use as setas para reordenar.</p>
     </div>
   );
 }

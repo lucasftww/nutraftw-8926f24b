@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useSEO } from "@/hooks/useSEO";
@@ -177,7 +177,7 @@ export default function OrderSuccess() {
               ? "Falta só o pagamento. Use o QR Code ou o código PIX abaixo."
               : "Acompanhe o status abaixo."}
         </p>
-        <p className="mt-3 inline-flex items-center gap-2 text-[12px] font-mono text-muted-foreground bg-muted/50 rounded-full px-3 py-1">
+        <p className="mt-3 inline-flex items-center gap-2 text-xs font-mono text-muted-foreground bg-muted/50 rounded-full px-3 py-1">
           <Package className="h-3.5 w-3.5" />
           #{orderId.slice(0, 8)}
           <span className="text-muted-foreground/60">·</span>
@@ -197,13 +197,13 @@ export default function OrderSuccess() {
 
       {/* PIX em destaque (se aplicável) */}
       {showPix && (
-        <section className="rounded-2xl border-2 border-emerald-500/40 bg-emerald-500/5 p-5 sm:p-6 space-y-4">
+        <section className="rounded-2xl border-2 border-success/40 bg-success/5 p-5 sm:p-6 space-y-4">
           <div className="flex items-start gap-3">
-            <span className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-emerald-500 text-white text-sm font-extrabold shrink-0">
+            <span className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-success text-white text-sm font-extrabold shrink-0">
               PIX
             </span>
             <div className="min-w-0">
-              <h2 className="font-bold text-base sm:text-lg text-emerald-700 leading-tight">
+              <h2 className="font-bold text-base sm:text-lg text-success leading-tight">
                 Pague para liberar o pedido
               </h2>
               <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
@@ -227,7 +227,7 @@ export default function OrderSuccess() {
             <div className="space-y-3 min-w-0">
               {order.payment_copy_paste && (
                 <div className="space-y-2">
-                  <div className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground">
+                  <div className="text-2xs uppercase tracking-wide font-semibold text-muted-foreground">
                     PIX copia e cola
                   </div>
                   <div className="flex gap-2">
@@ -240,7 +240,7 @@ export default function OrderSuccess() {
                     <Button
                       type="button"
                       onClick={copyPix}
-                      className="shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white"
+                      className="shrink-0 bg-success hover:bg-success/90 text-white"
                     >
                       {copied ? <><Check className="h-4 w-4 mr-1" /> Copiado</> : <><Copy className="h-4 w-4 mr-1" /> Copiar</>}
                     </Button>
@@ -300,13 +300,13 @@ export default function OrderSuccess() {
                 <div className="flex justify-between"><span className="text-muted-foreground">Frete</span><span className="tabular-nums">{formatBRL(ship)}</span></div>
                 {ins > 0 && <div className="flex justify-between"><span className="text-muted-foreground">Seguro</span><span className="tabular-nums">{formatBRL(ins)}</span></div>}
                 {disc > 0 && (
-                  <div className="flex justify-between text-emerald-700">
+                  <div className="flex justify-between text-success">
                     <span>Cupom{order.coupon_code ? ` (${order.coupon_code})` : ""}</span>
                     <span className="tabular-nums">− {formatBRL(disc)}</span>
                   </div>
                 )}
                 {pixDisc > 0 && (
-                  <div className="flex justify-between text-emerald-700">
+                  <div className="flex justify-between text-success">
                     <span>Desconto PIX (5%)</span>
                     <span className="tabular-nums">− {formatBRL(pixDisc)}</span>
                   </div>
@@ -315,7 +315,7 @@ export default function OrderSuccess() {
                   <span>Total</span>
                   <span className="text-primary tabular-nums">{formatBRL(total)}</span>
                 </div>
-                <p className="text-[11px] text-muted-foreground pt-1.5">
+                <p className="text-2xs text-muted-foreground pt-1.5">
                   Pagamento: {paymentLabel(order.payment_method)}
                 </p>
               </>
@@ -372,7 +372,7 @@ export default function OrderSuccess() {
 
       {/* TRUST FOOTER */}
       <div className="text-center pt-4 border-t border-border/40">
-        <p className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+        <p className="inline-flex items-center gap-1.5 text-2xs text-muted-foreground">
           <ShieldCheck className="h-3.5 w-3.5 text-success" />
           Pagamento processado com segurança · SSL/TLS
         </p>

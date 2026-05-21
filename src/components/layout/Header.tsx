@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+﻿import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Menu, X, ShoppingCart, MessageCircle, User, Heart, Info, LayoutGrid, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -163,7 +163,7 @@ export function Header({ isCheckout = false }: { isCheckout?: boolean }) {
                   // o zoom-in — micro-recompensa visual ao adicionar produto.
                   <span
                     key={count}
-                    className="absolute -top-0.5 -right-0.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-secondary px-1 text-[10px] font-semibold text-secondary-foreground ring-2 ring-background shadow-sm tabular-nums animate-in zoom-in-50 duration-300"
+                    className="absolute -top-0.5 -right-0.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-secondary px-1 text-2xs font-semibold text-secondary-foreground ring-2 ring-background shadow-sm tabular-nums animate-in zoom-in-50 duration-300"
                   >
                     {count > 99 ? "99+" : count}
                   </span>
@@ -272,7 +272,7 @@ function DrawerLink({
     <li>
       <Link
         to={to}
-        className="grid h-12 grid-cols-[20px_1fr_16px] items-center gap-3 border-b border-border/40 text-[15px] font-semibold text-primary transition-colors hover:bg-primary/5"
+        className="grid h-12 grid-cols-[20px_1fr_16px] items-center gap-3 border-b border-border/40 text-sm font-semibold text-primary transition-colors hover:bg-primary/5"
       >
         <Icon className="h-5 w-5 text-primary/60" strokeWidth={1.6} />
         <span>{label}</span>

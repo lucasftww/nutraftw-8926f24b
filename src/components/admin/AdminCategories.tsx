@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -190,7 +190,7 @@ export function AdminCategories() {
                   onClick={() => { setEditingId(c.id); setEditName(c.name); }}
                 >
                   <p className="font-medium text-sm hover:text-primary transition-colors">{c.name}</p>
-                  <p className="text-[11px] text-muted-foreground/70 font-mono">{c.slug}</p>
+                  <p className="text-2xs text-muted-foreground/70 font-mono">{c.slug}</p>
                 </button>
               )}
             </div>
@@ -210,7 +210,7 @@ export function AdminCategories() {
           </li>
         )}
       </ul>
-      <p className="mt-4 text-[11px] text-muted-foreground/80">Clique no nome para renomear · use as setas para reordenar.</p>
+      <p className="mt-4 text-2xs text-muted-foreground/80">Clique no nome para renomear · use as setas para reordenar.</p>
     </div>
   );
 }

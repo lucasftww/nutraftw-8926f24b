@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -257,15 +257,15 @@ export function AdminUsers() {
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="font-semibold text-sm truncate">{u.full_name || "—"}</p>
-                    <p className="text-[11px] text-muted-foreground truncate">{u.email}</p>
+                    <p className="text-2xs text-muted-foreground truncate">{u.email}</p>
                   </div>
                   {u.is_admin && (
-                    <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-semibold">
+                    <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-2xs font-semibold">
                       <Shield className="h-2.5 w-2.5" /> Admin
                     </span>
                   )}
                 </div>
-                <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5 text-[11px] text-muted-foreground">
+                <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5 text-2xs text-muted-foreground">
                   {u.phone && (
                     <a href={whatsappLink(u.phone)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-success hover:underline">
                       <Phone className="h-3 w-3" /> {formatPhone(u.phone)}
@@ -278,7 +278,7 @@ export function AdminUsers() {
                   )}
                 </div>
                 <div className="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-border/60">
-                  <div className="text-[11px] text-muted-foreground inline-flex items-center gap-1">
+                  <div className="text-2xs text-muted-foreground inline-flex items-center gap-1">
                     <ShoppingBag className="h-3 w-3" />
                     <span className="tabular-nums">{u.orders_count}</span>
                     <span className="mx-1">·</span>
@@ -287,7 +287,7 @@ export function AdminUsers() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-7 text-[11px] px-2"
+                    className="h-7 text-2xs px-2"
                     disabled={busy === u.user_id || u.user_id === me?.id}
                     onClick={() => toggleAdmin(u)}
                   >
@@ -309,7 +309,7 @@ export function AdminUsers() {
       <div className="hidden md:block bg-card rounded-2xl border border-border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[820px]">
-            <thead className="bg-muted/40 text-[11px] uppercase tracking-wider text-muted-foreground">
+            <thead className="bg-muted/40 text-2xs uppercase tracking-wider text-muted-foreground">
               <tr>
                 <th className="text-left px-4 py-3 font-medium">Cliente</th>
                 <th className="text-left px-4 py-3 font-medium">Contato</th>
@@ -334,7 +334,7 @@ export function AdminUsers() {
                           {u.full_name || "—"}
                           {u.is_admin && <Shield className="h-3 w-3 text-primary shrink-0" />}
                         </p>
-                        <p className="text-[11px] text-muted-foreground">
+                        <p className="text-2xs text-muted-foreground">
                           Cadastro {new Date(u.created_at).toLocaleDateString("pt-BR")}
                         </p>
                       </div>
@@ -413,7 +413,7 @@ function StatCard({ label, value, accent }: { label: string; value: string; acce
   const accentCls = accent === "primary" ? "text-primary" : accent === "success" ? "text-success" : "text-foreground";
   return (
     <div className="bg-card rounded-2xl border border-border p-3.5">
-      <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
+      <p className="text-2xs uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
       <p className={`mt-1 font-display text-lg md:text-xl font-semibold tabular-nums ${accentCls}`}>{value}</p>
     </div>
   );

@@ -1,62 +1,43 @@
-/* Fonte agora carrega via <link> no index.html — desbloqueia o render
-   da CSS (era @import síncrono). Pesos: 400, 500, 600, 700, 800
-   (font-light/300 não era usado em nenhum lugar; economia ~15KB). */
+/* Fonte carrega via <link> no index.html — desbloqueia o render da CSS
+   (era @import síncrono). Pesos: 400, 500, 600, 700, 800. */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Mobile-first refinements */
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
-    /* scroll-padding-top: âncoras internas (#section) não ficam escondidas
-       atrás do header fixo. Ajuste para a altura real do header (~64px). */
+    /* scroll-padding-top: âncoras internas não ficam escondidas atrás do header fixo. */
     scroll-padding-top: 4.5rem;
-    /* IMPORTANTE: não usar overflow-x:hidden no <html> — quebra
-       position: sticky no mobile (iOS Safari e Chrome Android), pois
-       o container de scroll deixa de ser o viewport. Bloqueamos rolagem
-       horizontal apenas no <body> com overflow-x: clip (não cria novo
-       contexto de scroll, então sticky continua funcionando). */
-    /* scroll-behavior: smooth removido — causava efeito "kicking" no mobile
-       quando imagens lazy/conteúdo acima carregavam após F5 e o navegador
-       animava o reajuste do scroll. Mantemos smooth só em âncoras (:target). */
+    /* IMPORTANTE: não usar overflow-x:hidden no <html> — quebra position:sticky
+       no iOS Safari/Chrome Android. overflow-x:clip no body não cria scroll context. */
   }
   body {
     -webkit-tap-highlight-color: transparent;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-    /* clip > hidden: não estabelece um scroll container, preservando o
-       comportamento de position: sticky do header. */
     overflow-x: clip;
     max-width: 100%;
-    /* Evita que o navegador "puxe" o scroll quando elementos acima da
-       viewport mudam de altura (lazy images, banners, etc.) — principal
-       causa do efeito de kicking no mobile durante o carregamento. */
+    /* Evita que o navegador "puxe" o scroll quando lazy images/banners carregam. */
     overflow-anchor: none;
   }
-  /* Evita zoom indesejado em iOS quando o usuário toca em inputs (font-size < 16px) */
+  /* Evita zoom indesejado no iOS quando o usuário toca em inputs < 16px */
   @media (max-width: 640px) {
-    input, select, textarea {
-      font-size: 16px;
-    }
+    input, select, textarea { font-size: 16px; }
   }
   img { max-width: 100%; height: auto; }
-  /* Tap targets mínimos em mobile */
   @media (hover: none) and (pointer: coarse) {
-    button, a[role="button"], [data-tap] {
-      touch-action: manipulation;
-    }
+    button, a[role="button"], [data-tap] { touch-action: manipulation; }
   }
 }
 
- /* Design System — Azul marinho profissional */
+/* ===== Design System — Azul marinho profissional ===== */
 @layer base {
   :root {
     --background: 40 20% 99%;
-    /* Texto principal — azul-marinho profundo #061A3A */
-    --foreground: 218 73% 12%;
+    --foreground: 218 73% 12%;        /* Azul-marinho profundo #061A3A */
 
     --card: 0 0% 100%;
     --card-foreground: 222 39% 14%;
@@ -64,72 +45,48 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 39% 14%;
 
-     /* Deep Blue (#0B1F6B / deep royal) */
+    /* Deep Blue (#0B1F6B) */
     --primary: 230 81% 23%;
     --primary-foreground: 0 0% 100%;
     --primary-glow: 226 70% 36%;
 
-     /* Brand cyan — (#3FC1E5) — usar em badges,
-       hovers de destaque, micro-acentos. NÃO usar como CTA principal.
-       ⚠️ Contraste sobre branco = 2.4:1 (FALHA AA texto normal). Usar
-       SOMENTE em:
-       - Gradients (com mistura de cores)
-       - Microelementos visuais (linhas finas, glow, indicadores)
-       - Texto: usar `brand-cyan-text` (versão escurecida AA-safe) */
+    /* Brand cyan (#3FC1E5) — NÃO usar como texto sobre branco (contraste 2.4:1).
+       Usar brand-cyan-text (versão escurecida AA-safe 6.2:1) para texto. */
     --brand-cyan: 194 74% 57%;
     --brand-cyan-foreground: 230 81% 18%;
-    /* Variante de texto cyan para uso sobre fundo claro — 194 80% 32% =
-       ~#0E7AA7. Contraste 6.2:1 sobre branco — AA passa para texto normal.
-       Use em links, labels secundárias que precisam de "vibe Royal Vitta". */
     --brand-cyan-text: 194 80% 32%;
 
-    /* Laranja de conversão — CTA "Comprar" (#F97316 / orange-500)
-       hover #EA580C, pressed #C2410C.
-       USO: APENAS como fundo de botões/badges. Em fundo branco tem contraste
-       3.04:1 — falha AA para texto normal. Para texto sobre fundo claro
-       (links, labels) use `--secondary-text` que tem 5.2:1. */
+    /* Laranja de conversão (#F97316) — APENAS fundo de botões/badges.
+       Para texto sobre fundo claro, usar secondary-text (5.2:1). */
     --secondary: 25 95% 53%;
-    /* Texto escuro sobre laranja: contraste ~7:1 (WCAG AA para qualquer tamanho).
-       Branco (#FFF) sobre hsl(25 95% 53%) = 2.66:1 — falha AA 1.4.3. */
-    --secondary-foreground: 22 85% 16%;
+    --secondary-foreground: 22 85% 16%;  /* Contraste ~7:1 sobre laranja — AA */
     --secondary-glow: 21 90% 48%;
-    /* Variante escura do laranja para uso como TEXTO em fundo claro (AA OK).
-       Ex.: link "Voltar à categoria", label de SKU, link "Ver mais". */
-    --secondary-text: 18 88% 42%;
+    --secondary-text: 18 88% 42%;        /* Laranja escuro AA para links/labels */
 
     --muted: 220 25% 96%;
     --muted-foreground: 220 12% 44%;
 
-    /* Accent — usado primariamente como hover sutil em botões outline
-       (hover:bg-accent). Mantido como cinza-azulado neutro para não
-       brigar com a paleta primary/secondary. Antes era ciano vibrante,
-       o que destoava em hovers de botões neutros. */
+    /* Accent — hover sutil em botões outline. Cinza-azulado neutro. */
     --accent: 220 25% 94%;
     --accent-foreground: 222 39% 14%;
 
     --destructive: 0 89% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Preço riscado — convenção universal de e-commerce é cinza neutro
-       (Amazon, ML, Magalu). Antes era #C26565 (vermelho-rosado), que o
-       cérebro lê como "alerta/erro" e rouba atenção do preço novo. Cinza
-       neutro reforça por contraste que o preço novo é o importante. */
+    /* Preço riscado — cinza neutro (convenção Amazon/ML/Magalu).
+       Vermelho rouba atenção do preço novo; cinza reforça por contraste. */
     --old-price: 220 9% 56%;
     --old-price-foreground: 0 0% 100%;
 
-    /* Verde — exclusivo para PIX, WhatsApp, economia/sucesso (#128A3E).
-       Antes era #16A34A (L=36% / contraste ~3.78:1 sobre branco — falha
-       AA texto normal). Escurecido para 30% L (#128A3E), contraste 5.4:1
-       — passa AA para texto e badges PIX/Economize. */
+    /* Verde — exclusivo para PIX, WhatsApp, sucesso (#128A3E, contraste 5.4:1). */
     --success: 142 76% 30%;
     --success-foreground: 0 0% 100%;
 
-    /* Âmbar — "atenção" sem ser erro. Antes qualquer aviso caía em
-       destructive (vermelho), assustando. #B45309 tem AA 4.7:1. */
+    /* Âmbar — atenção sem erro (#B45309, AA 4.7:1). */
     --warning: 30 90% 36%;
     --warning-foreground: 0 0% 100%;
 
-    /* WhatsApp brand color — #25D366 em HSL */
+    /* WhatsApp brand #25D366 */
     --whatsapp: 142 70% 49%;
     --whatsapp-foreground: 0 0% 100%;
     --whatsapp-hover: 142 70% 42%;
@@ -138,73 +95,74 @@
     --input: 220 20% 90%;
     --ring: 222 65% 20%;
 
-    /* Tokens para séries de gráficos (admin/WeeklyReportCharts).
-       Antes os hex estavam hardcoded — bloqueava futuro dark-mode
-       e fugia da paleta de marca. Ordem de uso: primary, secondary,
-       success, warning, destructive, violeta (categoria extra),
-       cyan (categoria extra). */
-    --chart-1: 230 81% 23%;   /* primary navy */
-    --chart-2: 18 95% 54%;    /* secondary orange */
-    --chart-3: 142 71% 41%;   /* emerald */
-    --chart-4: 38 92% 50%;    /* amber */
-    --chart-5: 0 84% 60%;     /* red */
-    --chart-6: 262 83% 58%;   /* violet */
-    --chart-7: 199 89% 48%;   /* sky */
+    /* Tokens para gráficos (admin/WeeklyReportCharts) */
+    --chart-1: 230 81% 23%;
+    --chart-2: 18 95% 54%;
+    --chart-3: 142 71% 41%;
+    --chart-4: 38 92% 50%;
+    --chart-5: 0 84% 60%;
+    --chart-6: 262 83% 58%;
+    --chart-7: 199 89% 48%;
 
+    /* ===== Radius semântico =====
+       --radius-pill  → botões, badges, chips (fully rounded)
+       --radius       → inputs, botões quadrados (base = 0.75rem)
+       --radius-card  → product cards, drawers (1rem)
+       --radius-hero  → hero sections, modais grandes (1.5rem) */
     --radius: 0.75rem;
+    --radius-pill: 9999px;
+    --radius-card: 1rem;
+    --radius-hero: 1.5rem;
 
     --gradient-primary: linear-gradient(135deg, hsl(222 65% 20%), hsl(222 65% 32%));
-    --gradient-hero: linear-gradient(135deg, hsl(222 65% 16%) 0%, hsl(222 65% 26%) 100%);
-    --gradient-cta: linear-gradient(135deg, hsl(18 95% 54%), hsl(14 92% 48%));
-    --gradient-price: linear-gradient(135deg, hsl(222 65% 20%), hsl(199 89% 40%));
-    --gradient-soft: linear-gradient(180deg, hsl(40 20% 99%), hsl(0 0% 100%));
-    /* Gradient de IDENTIDADE — replica o gradient da logo Royal Vitta:
-       R navy royal (#0B1F6B / primary) → V cyan (#3FC1E5 / brand-cyan).
-       Cyan final escurecido para 45% (não 57%) para garantir contraste AA
-       quando há texto branco em cima — o ponto mais claro do gradient
-       atinge ~4.5:1 nessa configuração.
-       Use em: AnnouncementBar, badges Lançamento, accents de section. */
+    --gradient-hero:    linear-gradient(135deg, hsl(222 65% 16%) 0%, hsl(222 65% 26%) 100%);
+    --gradient-cta:     linear-gradient(135deg, hsl(18 95% 54%), hsl(14 92% 48%));
+    --gradient-price:   linear-gradient(135deg, hsl(222 65% 20%), hsl(199 89% 40%));
+    --gradient-soft:    linear-gradient(180deg, hsl(40 20% 99%), hsl(0 0% 100%));
+    /* Gradient de identidade — replica o gradiente da logo (navy → cyan). */
     --gradient-brand: linear-gradient(135deg, hsl(230 81% 23%) 0%, hsl(194 80% 40%) 100%);
-    --shadow-elegant: 0 10px 30px -10px hsl(222 65% 20% / 0.28);
-    --shadow-card: 0 2px 12px -4px hsl(222 39% 14% / 0.08);
-    --shadow-soft: 0 1px 2px hsl(222 39% 14% / 0.04), 0 4px 12px -4px hsl(222 39% 14% / 0.06);
-    --shadow-pop: 0 12px 32px -12px hsl(222 65% 20% / 0.25);
-    /* Sombra do CTA com 3 estados — botão "respira" no hover/active.
-       Antes só shadow-cta estático: microinteração desperdiçada. */
-    --shadow-cta: 0 8px 24px -8px hsl(18 95% 54% / 0.45);
-    --shadow-cta-hover: 0 12px 32px -8px hsl(18 95% 54% / 0.65);
+
+    /* ===== Hierarquia de sombras =====
+       shadow-soft     → separadores e divisores muito sutis
+       shadow-card     → card em repouso (default)
+       shadow-elegant  → card elevado, dropdowns, popovers
+       shadow-pop      → estado hover de cards interativos
+       shadow-cta      → botão CTA laranja (+ hover/active variants) */
+    --shadow-soft:       0 1px 2px hsl(222 39% 14% / 0.04), 0 4px 12px -4px hsl(222 39% 14% / 0.06);
+    --shadow-card:       0 2px 12px -4px hsl(222 39% 14% / 0.08);
+    --shadow-elegant:    0 10px 30px -10px hsl(222 65% 20% / 0.28);
+    --shadow-pop:        0 12px 32px -12px hsl(222 65% 20% / 0.25);
+    --shadow-cta:        0 8px 24px -8px hsl(18 95% 54% / 0.45);
+    --shadow-cta-hover:  0 12px 32px -8px hsl(18 95% 54% / 0.65);
     --shadow-cta-active: 0 4px 12px -4px hsl(18 95% 54% / 0.35);
 
-    /* Espaçamento de seção — padrão uniforme entre blocos da home/internas.
-       Use em padding-top/bottom de <section>. */
-    --section-padding-y: 4rem;
+    /* Espaçamento de seção — padrão uniforme entre blocos */
+    --section-padding-y:    4rem;
     --section-padding-y-sm: 2.5rem;
-    --container-padding-x: 1.5rem;
+    --container-padding-x:  1.5rem;
 
-    /* Transições padrão — garante timing consistente entre componentes.
-       fast → micro-interações (hover de ícone, foco de input).
-       base → transições de cor/bg (botões, cards).
-       slow → animações de entrada (modais, drawers). */
+    /* Transições padrão:
+       fast → micro-interações (hover de ícone, foco de input)
+       base → transições de cor/bg (botões, cards)
+       slow → animações de entrada (modais, drawers) */
     --transition-fast: 150ms ease;
     --transition-base: 200ms ease;
     --transition-slow: 300ms ease;
   }
 
-  /* ===== Dark mode tokens — Luminous Editorial =====
-     Usado no /admin (wrapper .dark). Preto profundo com accent ciano-glow.
-     Mantém os nomes semânticos para reaproveitar todos os componentes. */
+  /* ===== Dark mode — Luminous Editorial =====
+     Preto profundo com accent ciano-glow. Usado no /admin (.dark wrapper). */
   .dark {
-    --background: 180 13% 4%;       /* #0a0c0c — void */
+    --background: 180 13% 4%;
     --foreground: 210 12% 90%;
 
-    --card: 180 8% 9%;              /* #131616 — surface */
+    --card: 180 8% 9%;
     --card-foreground: 210 12% 92%;
 
     --popover: 180 8% 7%;
     --popover-foreground: 210 12% 92%;
 
-    /* Accent ciano-glow — substituem o azul-marinho do tema claro */
-    --primary: 182 87% 70%;         /* #70f3f5 */
+    --primary: 182 87% 70%;
     --primary-foreground: 180 13% 6%;
     --primary-glow: 182 87% 78%;
 
@@ -213,7 +171,7 @@
     --secondary-glow: 18 95% 68%;
 
     --muted: 180 6% 14%;
-    --muted-foreground: 180 5% 55%; /* #849191 */
+    --muted-foreground: 180 5% 55%;
 
     --accent: 180 6% 16%;
     --accent-foreground: 210 12% 92%;
@@ -221,7 +179,6 @@
     --destructive: 350 80% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Mesma justificativa do tema claro — cinza neutro, não vermelho. */
     --old-price: 220 8% 50%;
     --old-price-foreground: 0 0% 100%;
 
@@ -231,7 +188,6 @@
     --warning: 38 90% 56%;
     --warning-foreground: 180 13% 6%;
 
-    /* Variante de texto laranja no dark mode — AA sobre #131616 */
     --secondary-text: 22 90% 65%;
 
     --whatsapp: 142 70% 49%;
@@ -242,11 +198,11 @@
     --input: 180 6% 14%;
     --ring: 182 87% 70%;
 
+    --shadow-soft:    0 1px 2px hsl(0 0% 0% / 0.5), 0 4px 12px -4px hsl(0 0% 0% / 0.4);
+    --shadow-card:    0 2px 12px -4px hsl(0 0% 0% / 0.6);
     --shadow-elegant: 0 10px 30px -10px hsl(0 0% 0% / 0.7);
-    --shadow-card: 0 2px 12px -4px hsl(0 0% 0% / 0.6);
-    --shadow-soft: 0 1px 2px hsl(0 0% 0% / 0.5), 0 4px 12px -4px hsl(0 0% 0% / 0.4);
-    --shadow-pop: 0 16px 40px -16px hsl(0 0% 0% / 0.8);
-    --shadow-glow: 0 0 24px -4px hsl(182 87% 70% / 0.35);
+    --shadow-pop:     0 16px 40px -16px hsl(0 0% 0% / 0.8);
+    --shadow-glow:    0 0 24px -4px hsl(182 87% 70% / 0.35);
   }
 
   * { @apply border-border; }
@@ -258,6 +214,8 @@
 }
 
 @layer components {
+  /* ===== Botões globais — manter para retrocompatibilidade.
+     Novos componentes devem usar <Button variant="..."> em vez destas classes. ===== */
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full
            bg-primary text-primary-foreground font-semibold text-sm
@@ -267,13 +225,13 @@
   }
   .btn-cta {
     @apply inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full
-           bg-secondary font-bold text-sm
+           bg-secondary text-secondary-foreground font-bold text-sm
            hover:brightness-110 active:scale-[0.98] transition-all
            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2
            disabled:opacity-50 disabled:pointer-events-none disabled:saturate-50;
     box-shadow: var(--shadow-cta);
   }
-  .btn-cta:hover { box-shadow: var(--shadow-cta-hover); }
+  .btn-cta:hover  { box-shadow: var(--shadow-cta-hover); }
   .btn-cta:active { box-shadow: var(--shadow-cta-active); }
   .btn-outline {
     @apply inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full
@@ -282,8 +240,6 @@
            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
            disabled:opacity-50 disabled:pointer-events-none;
   }
-
-  /* CTA WhatsApp padronizado — usa o token de marca, não cor hardcoded */
   .btn-whatsapp {
     @apply inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full
            bg-whatsapp text-whatsapp-foreground font-semibold text-sm
@@ -293,56 +249,55 @@
   }
 
   /* ===== Tipografia padronizada — escala única do projeto =====
-     Use estas classes em vez de text-[10px]/[11px]/[13px] arbitrários
-     para manter consistência visual em todo o site. */
+     Use estas classes em vez de text-[Xpx] arbitrários.
+     Para valores menores que text-xs, usar os tokens text-2xs / text-sm-plus
+     definidos no tailwind.config.ts. */
 
-  /* Eyebrow / label uppercase — BUMP de 10px para 11px para legibilidade mobile */
+  /* Eyebrow / label uppercase — usado em section labels, tags de categoria */
   .text-eyebrow {
-    @apply text-[11px] font-semibold uppercase tracking-[0.14em] leading-none;
+    @apply text-2xs font-semibold uppercase tracking-[0.14em] leading-none;
   }
-
   /* Caption — metadados, datas, "de R$ X", legendas auxiliares */
   .text-caption {
-    @apply text-[11px] leading-[1.4];
+    @apply text-2xs leading-[1.4];
   }
-
-  /* Texto secundário em cards (descrições curtas, ajuda inline) */
+  /* Texto secundário em cards — descrições curtas, ajuda inline */
   .text-card-meta {
-    @apply text-[13px] leading-[1.5];
+    @apply text-sm-plus leading-[1.5];
   }
 
-  /* Badge / pill — status, contadores, tags */
+  /* ===== Badges / Pills — componente centralizado =====
+     Preferir o componente <Badge> (src/components/ui/badge.tsx).
+     Estas classes utilitárias existem para casos simples sem JSX (e.g., admin puro HTML). */
   .badge-pill {
     @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full
-           text-[11px] font-semibold leading-[1.2] whitespace-nowrap;
+           text-2xs font-semibold leading-[1.2] whitespace-nowrap;
   }
-  .badge-pill-sm { /* BUMP 10px -> 11px */
+  .badge-pill-sm {
     @apply inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full
-           text-[11px] font-semibold leading-none whitespace-nowrap;
+           text-2xs font-semibold leading-none whitespace-nowrap;
   }
 
-  /* ===== Mobile tap targets — garante 44x44 mínimo por WCAG 2.5.5 (AAA: 44px) ===== */
+  /* ===== Mobile tap targets — mínimo 44x44 por WCAG 2.5.5 ===== */
   @media (hover: none) and (pointer: coarse) {
-    .tap-target {
-      min-height: 44px;
-      min-width: 44px;
-    }
+    .tap-target { min-height: 44px; min-width: 44px; }
   }
 
-  /* ===== Foco visível padronizado — para qualquer botão/link interativo ===== */
+  /* ===== Foco visível padronizado ===== */
   .focus-ring {
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
   }
 
+  /* ===== Product card — layout base reutilizável ===== */
   .product-card {
-    @apply flex flex-col w-full h-full bg-card rounded-2xl border border-border/50
-           shadow-sm hover:shadow-xl hover:border-primary/20
+    @apply flex flex-col w-full h-full bg-card rounded-card border border-border/50
+           shadow-card hover:shadow-pop hover:border-primary/20
            transition-all duration-300 overflow-hidden;
   }
 
-  /* ===== Checkout — visual KA Imports (cards grandes, inputs h-12 border-2) ===== */
+  /* ===== Checkout ===== */
   .checkout-card {
-    @apply bg-card p-4 sm:p-6 rounded-2xl shadow-sm border border-border/60;
+    @apply bg-card p-4 sm:p-6 rounded-card shadow-card border border-border/60;
   }
   .checkout-section-title {
     @apply text-base sm:text-2xl font-bold mb-4 sm:mb-6 tracking-tight;
@@ -351,15 +306,16 @@
     @apply w-full space-y-1.5;
   }
   .checkout-label {
-    @apply text-[13px] font-semibold text-foreground/80 ml-0.5 block;
+    @apply text-sm-plus font-semibold text-foreground/80 ml-0.5 block;
   }
   .checkout-input {
-    @apply flex h-12 w-full rounded-xl border-2 border-border bg-white px-4 py-2 text-base
+    @apply flex h-12 w-full rounded-lg border-2 border-border bg-white px-4 py-2 text-base
            placeholder:text-muted-foreground
            focus-visible:outline-none focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/10
            transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50;
   }
-  /* Estados de validação inline (data-status="valid" | "invalid") */
+  /* Estados de validação — preferir o Input component com prop status="error|success".
+     Mantidos aqui para o Checkout que usa .checkout-input diretamente. */
   .checkout-input[data-status="valid"] {
     @apply border-success focus-visible:border-success focus-visible:ring-success/15;
   }
@@ -367,19 +323,18 @@
     @apply border-destructive focus-visible:border-destructive focus-visible:ring-destructive/15;
   }
   .field-hint {
-    @apply text-[12px] mt-1 ml-0.5 inline-flex items-start gap-1 leading-tight;
+    @apply text-xs mt-1 ml-0.5 inline-flex items-start gap-1 leading-tight;
   }
   .field-hint-error { @apply text-destructive font-medium; }
-  .field-hint-ok { @apply text-success font-medium; }
+  .field-hint-ok    { @apply text-success font-medium; }
+
   .glass {
     @apply bg-background/80 backdrop-blur-md;
   }
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { scrollbar-width: none; }
+
   .skeleton-shimmer {
-    /* Usa apenas tokens — antes tinha hsl(210 40% 92%) hard-coded que
-       no dark mode (admin) virava flash branco sobre fundo escuro.
-       Com `--muted / 0.4` o shimmer permanece coerente nos dois temas. */
     background: linear-gradient(
       90deg,
       hsl(var(--muted)) 0%,
@@ -387,13 +342,14 @@
       hsl(var(--muted)) 100%
     );
     background-size: 200% 100%;
-    animation: shimmer 1.4s ease-in-out infinite;
+    animation: skeleton-shimmer 1.4s ease-in-out infinite;
   }
-  @keyframes shimmer {
-    0% { background-position: 200% 0; }
+  @keyframes skeleton-shimmer {
+    0%   { background-position: 200% 0; }
     100% { background-position: -200% 0; }
   }
-  /* Glow sutil para badge de economia — chama o olho sem distrair */
+
+  /* Glow sutil para badge de economia */
   .badge-pulse {
     animation: badge-pulse 2.4s ease-in-out infinite;
   }
@@ -403,27 +359,16 @@
   }
 }
 
-/* ===== Scrollbars =====
-   Loja (tema claro): scrollbar fina e discreta sobre o background.
-   Admin (.dark): scrollbar fina e escura para combinar com o tema.
-   Resolve o problema da scrollbar branca grossa visível no admin. */
+/* ===== Scrollbars ===== */
 @layer utilities {
-  /* Scrollbar da loja (tema claro) — fina e discreta apenas no documento.
-     Escopada em html/body para evitar regressões em containers internos
-     (drawers, modais, listas) que controlam o próprio scrollbar. */
   html {
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
   }
   html::-webkit-scrollbar,
-  body::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
+  body::-webkit-scrollbar { width: 8px; height: 8px; }
   html::-webkit-scrollbar-track,
-  body::-webkit-scrollbar-track {
-    background: transparent;
-  }
+  body::-webkit-scrollbar-track { background: transparent; }
   html::-webkit-scrollbar-thumb,
   body::-webkit-scrollbar-thumb {
     background: hsl(var(--muted-foreground) / 0.28);
@@ -434,38 +379,19 @@
     background: hsl(var(--muted-foreground) / 0.45);
   }
 
-  /* Scrollbar dark global dentro do admin */
-  .dark ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
-  .dark ::-webkit-scrollbar-track {
-    background: hsl(var(--background));
-  }
+  .dark ::-webkit-scrollbar { width: 10px; height: 10px; }
+  .dark ::-webkit-scrollbar-track { background: hsl(var(--background)); }
   .dark ::-webkit-scrollbar-thumb {
     background: hsl(var(--muted));
     border-radius: 999px;
     border: 2px solid hsl(var(--background));
   }
-  .dark ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground) / 0.45);
-  }
-  .dark * {
-    scrollbar-width: thin;
-    scrollbar-color: hsl(var(--muted)) transparent;
-  }
+  .dark ::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.45); }
+  .dark * { scrollbar-width: thin; scrollbar-color: hsl(var(--muted)) transparent; }
 
-  /* Variante "thin" — para listas internas (modal, promos, drawers) */
-  .scrollbar-thin {
-    scrollbar-width: thin;
-  }
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  .scrollbar-thin::-webkit-scrollbar-track {
-    background: transparent;
-  }
+  .scrollbar-thin { scrollbar-width: thin; }
+  .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
   .scrollbar-thin::-webkit-scrollbar-thumb {
     background: hsl(var(--muted-foreground) / 0.25);
     border-radius: 999px;
@@ -474,7 +400,7 @@
     background: hsl(var(--muted-foreground) / 0.4);
   }
 
-  /* Glow ciano sutil no foco (usado no admin) */
+  /* Glow ciano no foco (admin dark mode) */
   .focus-glow:focus-within,
   .focus-glow:focus {
     box-shadow: 0 0 0 1px hsl(var(--primary) / 0.6), 0 0 18px -4px hsl(var(--primary) / 0.45);

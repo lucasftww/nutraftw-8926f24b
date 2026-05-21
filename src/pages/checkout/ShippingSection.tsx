@@ -1,4 +1,4 @@
-import { Loader2, Truck, Check } from "lucide-react";
+﻿import { Loader2, Truck, Check } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 import type { CheckoutFormState } from "./types";
 
@@ -39,7 +39,7 @@ export function ShippingSection({
           <h2 className="checkout-section-title !mb-0">Entrega</h2>
         </div>
         {shippingLoading && (
-          <span className="ml-auto inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground" aria-live="polite">
+          <span className="ml-auto inline-flex items-center gap-1.5 text-2xs font-medium text-muted-foreground" aria-live="polite">
             <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
             atualizando…
           </span>
@@ -131,7 +131,7 @@ export function ShippingSection({
             </span>
           </label>
           {!insuranceOn && (
-            <p className="mt-2 ml-8 text-[11px] leading-snug text-muted-foreground">
+            <p className="mt-2 ml-8 text-2xs leading-snug text-muted-foreground">
               Pedidos sem seguro são de responsabilidade do comprador. Não nos responsabilizamos por problemas no transporte.
             </p>
           )}

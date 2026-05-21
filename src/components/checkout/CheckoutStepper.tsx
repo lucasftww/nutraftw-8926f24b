@@ -2,9 +2,8 @@ import { memo } from "react";
 import { Check } from "lucide-react";
 
 /**
- * Stepper extraído + memoizado. Layout: bolinhas numeradas equidistantes
- * conectadas por uma linha de progresso, com label centralizado embaixo.
- * Visualmente mais limpo, alinhado e profissional.
+ * Stepper memoizado do checkout. Bolinhas numeradas equidistantes conectadas
+ * por linha de progresso animada.
  */
 export interface CheckoutStepperProps {
   buyerDone: boolean;
@@ -21,19 +20,17 @@ function StepperImpl({ buyerDone, addressDone, shippingDone, paymentDone }: Chec
   ];
   const activeIdx = steps.findIndex((s) => !s.done);
   const activeN = activeIdx === -1 ? steps.length : steps[activeIdx].n;
-  // Progresso da barra: 0 / 50 / 100% — calculado pelos passos concluídos.
   const completedCount = steps.filter((s) => s.done).length;
   const progressPct = (completedCount / (steps.length - 1)) * 100;
 
   return (
     <nav className="mb-6 sm:mb-8 px-2" aria-label="Progresso do checkout">
       <ol className="relative flex items-start justify-between">
-        {/* Trilho de fundo — alinhado ao centro vertical das bolinhas (h-9 → 18px do topo). */}
+        {/* Trilho de fundo — top-[18px] = metade da bolinha h-9 (36px / 2) */}
         <div
           aria-hidden
           className="absolute left-0 right-0 top-[18px] h-[2px] bg-border rounded-full mx-[14%]"
         />
-        {/* Barra de progresso — preenche conforme passos concluídos. */}
         <div
           aria-hidden
           className="absolute top-[18px] h-[2px] bg-primary rounded-full mx-[14%] transition-all duration-500 ease-out"
@@ -66,7 +63,7 @@ function StepperImpl({ buyerDone, addressDone, shippingDone, paymentDone }: Chec
               </span>
               <span
                 className={[
-                  "text-[11px] sm:text-xs font-semibold text-center leading-tight transition-colors",
+                  "text-2xs sm:text-xs font-semibold text-center leading-tight transition-colors",
                   s.done || isActive ? "text-foreground" : "text-muted-foreground",
                 ].join(" ")}
               >

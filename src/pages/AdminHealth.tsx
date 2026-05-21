@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -437,7 +437,7 @@ export default function AdminHealth() {
 
         <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
           <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-            <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0 text-amber-600" />
+            <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0 text-warning" />
             Testes manuais fazem signIn em outras contas e restauram sua sessão admin
             ao final. Use credenciais de teste, não de produção.
           </p>
@@ -559,13 +559,13 @@ function CheckRow({ check }: { check: Check }) {
             : null;
   const tone =
     check.status === "pass"
-      ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/25"
+      ? "text-success bg-success/10 border-emerald-500/25"
       : check.status === "fail"
         ? "text-destructive bg-destructive/10 border-destructive/25"
         : check.status === "running"
           ? "text-primary bg-primary/10 border-primary/25"
           : check.status === "skipped"
-            ? "text-amber-400 bg-amber-500/10 border-amber-500/25"
+            ? "text-warning bg-warning/10 border-amber-500/25"
             : "text-muted-foreground bg-card border-border";
 
   return (
@@ -582,12 +582,12 @@ function CheckRow({ check }: { check: Check }) {
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <p className="text-sm font-semibold">{check.title}</p>
             {check.durationMs !== undefined && (
-              <span className="text-[10px] tabular-nums opacity-60">{check.durationMs}ms</span>
+              <span className="text-2xs tabular-nums opacity-60">{check.durationMs}ms</span>
             )}
           </div>
           <p className="text-xs opacity-80 mt-0.5">{check.description}</p>
           {check.detail && (
-            <p className="text-[11px] mt-1.5 font-mono break-words bg-background/60 rounded p-2 border border-current/10">
+            <p className="text-2xs mt-1.5 font-mono break-words bg-background/60 rounded p-2 border border-current/10">
               {check.detail}
             </p>
           )}
@@ -608,15 +608,15 @@ function SummaryPill({
 }) {
   const cls =
     tone === "ok"
-      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/25"
+      ? "bg-success/10 text-success border-emerald-500/25"
       : tone === "danger"
         ? "bg-destructive/10 text-destructive border-destructive/25"
         : tone === "warn"
-          ? "bg-amber-500/10 text-amber-400 border-amber-500/25"
+          ? "bg-warning/10 text-warning border-amber-500/25"
           : "bg-card text-muted-foreground border-border";
   return (
     <div className={`rounded-2xl border p-3 ${cls}`}>
-      <p className="text-[11px] uppercase tracking-wide opacity-70">{label}</p>
+      <p className="text-2xs uppercase tracking-wide opacity-70">{label}</p>
       <p className="text-2xl font-bold tabular-nums mt-1">{value}</p>
     </div>
   );
@@ -625,7 +625,7 @@ function SummaryPill({
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg border border-border bg-background px-3 py-2">
-      <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</dt>
+      <dt className="text-2xs uppercase tracking-wide text-muted-foreground">{label}</dt>
       <dd className="font-mono text-xs mt-0.5 break-all">{value}</dd>
     </div>
   );

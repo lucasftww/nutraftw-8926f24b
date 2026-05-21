@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -581,7 +581,7 @@ export function AdminProducts() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input className="pl-9 pr-24" placeholder="Buscar produto ou princípio ativo…" value={query} onChange={(e) => setQuery(e.target.value)} />
           {totalCount != null && (
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-muted-foreground tabular-nums pointer-events-none">
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-2xs text-muted-foreground tabular-nums pointer-events-none">
               {totalCount} {totalCount === 1 ? "produto" : "produtos"}
             </span>
           )}
@@ -750,7 +750,7 @@ export function AdminProducts() {
                 />
                 {/* Preview da URL final — admin sabe exatamente o link público.
                     Se vazio, mostra o que SERIA gerado a partir do nome. */}
-                <p className="text-[11px] text-muted-foreground truncate">
+                <p className="text-2xs text-muted-foreground truncate">
                   URL: <span className="font-mono">/produto/{editing.slug || (editing.name ? slugify(editing.name) : "novo-produto")}</span>
                 </p>
               </div>
@@ -779,7 +779,7 @@ export function AdminProducts() {
                   disabled
                   title="Editável apenas pela aba Promoções (registra histórico)"
                 />
-                <p className="text-[11px] text-muted-foreground">Use a aba <strong>Promoções</strong> para alterar (mantém histórico).</p>
+                <p className="text-2xs text-muted-foreground">Use a aba <strong>Promoções</strong> para alterar (mantém histórico).</p>
               </div>
               <div className="space-y-2"><Label>Estoque</Label><Input type="number" min="0" value={editing.stock ?? 0} onChange={(e) => setEditing({ ...editing, stock: e.target.value })} /></div>
               <div className="space-y-2 sm:col-span-2">
@@ -808,7 +808,7 @@ export function AdminProducts() {
                   placeholder={editing.name ? `${editing.name} | ${brandName}` : "Use o nome do produto se vazio"}
                   onChange={(e) => setEditing({ ...editing, meta_title: e.target.value })}
                 />
-                <p className="text-[11px] text-muted-foreground">{(editing.meta_title || "").length}/60</p>
+                <p className="text-2xs text-muted-foreground">{(editing.meta_title || "").length}/60</p>
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label>Meta descrição <span className="text-xs text-muted-foreground font-normal">(até 160 caracteres)</span></Label>
@@ -819,7 +819,7 @@ export function AdminProducts() {
                   placeholder="Texto curto que aparece no Google/redes sociais"
                   onChange={(e) => setEditing({ ...editing, meta_description: e.target.value })}
                 />
-                <p className="text-[11px] text-muted-foreground">{(editing.meta_description || "").length}/160</p>
+                <p className="text-2xs text-muted-foreground">{(editing.meta_description || "").length}/160</p>
               </div>
               <div className="sm:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-border">
                 <label className="flex items-center gap-2 text-sm">
@@ -829,13 +829,13 @@ export function AdminProducts() {
                 <label className="flex items-center gap-2 text-sm">
                   <input type="checkbox" checked={!!editing.is_new_release} onChange={(e) => setEditing({ ...editing, is_new_release: e.target.checked })} />
                   <span className="inline-flex items-center gap-1.5">
-                    <span className="inline-flex items-center rounded-full bg-primary text-primary-foreground text-[9px] font-bold px-1.5 py-0.5 leading-none">LANÇAMENTO</span>
+                    <span className="inline-flex items-center rounded-full bg-primary text-primary-foreground text-2xs font-bold px-1.5 py-0.5 leading-none">LANÇAMENTO</span>
                   </span>
                 </label>
                 <label className="flex items-center gap-2 text-sm">
                   <input type="checkbox" checked={!!editing.is_on_offer} disabled title="Gerenciado pela aba Promoções" />
                   <span className="inline-flex items-center gap-1.5">
-                    <span className="inline-flex items-center rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold px-1.5 py-0.5 leading-none">OFERTA</span>
+                    <span className="inline-flex items-center rounded-full bg-destructive text-destructive-foreground text-2xs font-bold px-1.5 py-0.5 leading-none">OFERTA</span>
                   </span>
                 </label>
                 <label className="flex items-center gap-2 text-sm">

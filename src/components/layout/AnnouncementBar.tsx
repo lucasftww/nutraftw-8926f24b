@@ -4,22 +4,12 @@ import { useFreeShippingMin } from "@/hooks/useFreeShippingMin";
 import { formatBRL } from "@/lib/utils";
 
 /**
- * Barra slim acima do header — gatilhos de conversão visíveis "ao vivo":
- * frete grátis, desconto PIX, garantia de origem. Mensagens rotacionam
- * a cada 5s com indicadores discretos (dots).
+ * Barra slim acima do header — gatilhos de conversão: frete grátis, PIX, garantia.
+ * Mensagens rotacionam a cada 5s. Não dismissível por padrão (ver comentário abaixo).
  *
- * ⚠️ NÃO é dismissível: em ticket alto (R$ 200-2000), perder o gatilho de
- * "frete grátis acima de R$ X" porque o usuário fechou uma vez na vida
- * é queima de conversão recorrente. A barra é slim (32px) e não invade
- * a UX.
- *
- * IMPORTANTE: usa ÍCONES Lucide (não emojis) — bandeira 🇧🇷 (compound
- * emoji) não renderiza em Chromium/Windows, virando "BR". Ícones SVG
- * são 100% confiáveis cross-platform.
+ * Usa ícones Lucide (não emojis) — emojis compostos (🇧🇷) não renderizam
+ * em Chromium/Windows. Ícones SVG são 100% cross-platform.
  */
-
-// "BEMVINDO10" foi movido para o WelcomeCouponPopup (popup discreto, 1x
-// por visitante) — assim não compete pelo airtime com frete/PIX/origem.
 const ROTATE_MS = 5000;
 
 export function AnnouncementBar() {
@@ -29,8 +19,6 @@ export function AnnouncementBar() {
   const [idx, setIdx] = useState(0);
   const freeShippingMin = useFreeShippingMin();
 
-  // Mensagens montadas dinamicamente para refletir o threshold do admin
-  // — antes "R$ 800" estava hardcoded e dessincronizava com a barra do carrinho.
   const messages = useMemo(
     () => [
       { text: `Frete GRÁTIS acima de ${formatBRL(freeShippingMin)}`, icon: Truck },
@@ -40,8 +28,6 @@ export function AnnouncementBar() {
     [freeShippingMin],
   );
 
-  // Rotação automática das mensagens. Pausa quando aba perde foco para
-  // não estourar setInterval em background.
   useEffect(() => {
     const id = window.setInterval(() => {
       if (document.visibilityState === "visible") {
@@ -51,7 +37,6 @@ export function AnnouncementBar() {
     return () => window.clearInterval(id);
   }, [messages.length]);
 
-  // Early return após todos os hooks — respeita as Rules of Hooks.
   if (dismissed) return null;
 
   const dismiss = () => {
@@ -64,8 +49,6 @@ export function AnnouncementBar() {
 
   return (
     <div
-      // Bg gradient da MARCA (navy → cyan da logo) substitui bg-primary flat.
-      // Cria identidade visual logo no topo e dá sensação premium sem custo.
       className="relative bg-gradient-brand text-white"
       role="region"
       aria-label="Avisos da loja"
@@ -73,7 +56,7 @@ export function AnnouncementBar() {
       <div className="mx-auto flex h-8 md:h-9 max-w-[1400px] items-center justify-center gap-2 px-4 text-center">
         <p
           key={idx}
-          className="inline-flex items-center gap-1.5 text-[12px] sm:text-[13px] font-medium tracking-tight truncate animate-in fade-in slide-in-from-bottom-1 duration-500"
+          className="inline-flex items-center gap-1.5 text-xs sm:text-sm-plus font-medium tracking-tight truncate animate-in fade-in slide-in-from-bottom-1 duration-500"
           aria-live="polite"
           aria-atomic="true"
         >
@@ -81,16 +64,16 @@ export function AnnouncementBar() {
           <span className="truncate">{Current.text}</span>
         </p>
       </div>
-      {/* Indicadores discretos + botão fechar à direita */}
+
       <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
         <div className="hidden sm:flex items-center gap-1" aria-hidden="true">
           {messages.map((_, i) => (
             <span
               key={i}
-              className={`h-1 w-1 rounded-full transition-all duration-300 ${
+              className={`h-1 rounded-full transition-all duration-300 ${
                 i === idx
                   ? "bg-primary-foreground w-3"
-                  : "bg-primary-foreground/40"
+                  : "bg-primary-foreground/40 w-1"
               }`}
             />
           ))}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Gift, X, Check, Copy } from "lucide-react";
 
 /**
@@ -80,10 +80,10 @@ export function WelcomeCouponPopup() {
               <Gift className="h-5 w-5" strokeWidth={2.25} />
             </span>
             <div className="min-w-0">
-              <p id="welcome-coupon-title" className="font-bold text-[15px] text-foreground leading-tight">
+              <p id="welcome-coupon-title" className="font-bold text-sm text-foreground leading-tight">
                 Sua 1ª compra tem 10% OFF
               </p>
-              <p className="text-[12px] text-muted-foreground leading-snug mt-0.5">
+              <p className="text-xs text-muted-foreground leading-snug mt-0.5">
                 Use o cupom no checkout para resgatar
               </p>
             </div>
@@ -111,7 +111,7 @@ export function WelcomeCouponPopup() {
             </button>
           </div>
 
-          <p className="mt-3 text-[11px] text-muted-foreground/80 leading-tight">
+          <p className="mt-3 text-2xs text-muted-foreground/80 leading-tight">
             Cupom válido na 1ª compra · não acumula com outras promoções
           </p>
         </div>

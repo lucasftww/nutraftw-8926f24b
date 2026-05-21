@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Fonte única de verdade para metadados de status e pagamento de pedido.
  *
  * Antes, `STATUS_COLORS`, `STATUS_PT` e `paymentLabel` apareciam DUPLICADOS
@@ -7,8 +7,8 @@
  * "Enviado" em outra. Este módulo centraliza tudo.
  *
  * Duas paletas de cor:
- *  - `color` (light, cliente):  text-amber-600 / emerald-600 — fundos claros
- *  - `colorDark` (admin dark):  text-amber-400 / emerald-400 — fundos escuros
+ *  - `color` (light, cliente):  text-warning / emerald-600 — fundos claros
+ *  - `colorDark` (admin dark):  text-warning / emerald-400 — fundos escuros
  *
  * Use `getOrderStatus(status)` no front do cliente e
  * `getAdminOrderStatus(status)` no admin.
@@ -56,26 +56,26 @@ export const STATUS_PT: Record<OrderStatusKey, string> = {
  * Tom mais explicativo: "Aguardando pagamento" > "Pendente".
  */
 export const ORDER_STATUS_LABELS: Record<OrderStatusKey, { label: string; color: string }> = {
-  pending:    { label: "Aguardando pagamento", color: "bg-amber-500/15 text-amber-600 ring-1 ring-amber-500/25" },
-  paid:       { label: "Pago",                 color: "bg-emerald-500/15 text-emerald-600 ring-1 ring-emerald-500/25" },
+  pending:    { label: "Aguardando pagamento", color: "bg-warning/15 text-warning ring-1 ring-warning/25" },
+  paid:       { label: "Pago",                 color: "bg-success/15 text-success ring-1 ring-success/25" },
   processing: { label: "Em preparação",        color: "bg-primary/15 text-primary ring-1 ring-primary/25" },
   shipped:    { label: "Enviado",              color: "bg-indigo-500/15 text-indigo-500 ring-1 ring-indigo-500/25" },
-  delivered:  { label: "Entregue",             color: "bg-emerald-500/15 text-emerald-600 ring-1 ring-emerald-500/25" },
+  delivered:  { label: "Entregue",             color: "bg-success/15 text-success ring-1 ring-success/25" },
   cancelled:  { label: "Cancelado",            color: "bg-destructive/15 text-destructive ring-1 ring-destructive/25" },
   refunded:   { label: "Reembolsado",          color: "bg-muted text-muted-foreground ring-1 ring-border" },
 };
 
 /**
  * Classes para badges no admin (dark mode). Tons mais CLAROS de
- * amber/emerald (-400) porque o fundo é escuro — text-amber-600 ficaria
+ * amber/emerald (-400) porque o fundo é escuro — text-warning ficaria
  * com contraste ruim sobre o admin.
  */
 export const ADMIN_STATUS_COLORS: Record<OrderStatusKey, string> = {
-  pending:    "bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/25",
-  paid:       "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/25",
+  pending:    "bg-warning/15 text-warning ring-1 ring-warning/25",
+  paid:       "bg-success/15 text-success ring-1 ring-success/25",
   processing: "bg-primary/15 text-primary ring-1 ring-primary/25",
   shipped:    "bg-primary/20 text-primary ring-1 ring-primary/25",
-  delivered:  "bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/30",
+  delivered:  "bg-success/20 text-success/80 ring-1 ring-success/30",
   cancelled:  "bg-destructive/15 text-destructive ring-1 ring-destructive/25",
   refunded:   "bg-muted text-muted-foreground ring-1 ring-border",
 };

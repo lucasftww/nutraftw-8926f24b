@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -72,7 +72,7 @@ export default function ResetPassword() {
         <div className="inline-flex h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-gradient-brand items-center justify-center shadow-lg shadow-primary/20 mb-3">
           <KeyRound className="h-6 w-6 md:h-7 md:w-7 text-white" strokeWidth={2} />
         </div>
-        <p className="text-[11px] sm:text-xs font-bold uppercase tracking-[0.18em] text-secondary-text">
+        <p className="text-2xs sm:text-xs font-bold uppercase tracking-[0.18em] text-secondary-text">
           Recuperação de senha
         </p>
       </div>
@@ -105,7 +105,7 @@ export default function ResetPassword() {
               disabled={!ready}
               autoComplete="new-password"
             />
-            <p className="text-[11px] text-muted-foreground">Mínimo 8 caracteres com letra e número.</p>
+            <p className="text-2xs text-muted-foreground">Mínimo 8 caracteres com letra e número.</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="confirm">Confirmar senha</Label>

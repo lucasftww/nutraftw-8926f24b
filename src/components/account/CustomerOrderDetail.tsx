@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -177,10 +177,10 @@ export function CustomerOrderDetail({ orderId, onClose }: { orderId: string; onC
             <OrderTimeline status={order.status} />
 
             {showPix && (
-              <section className="rounded-2xl border-2 border-emerald-500/40 bg-emerald-500/5 p-4 sm:p-5 space-y-3">
+              <section className="rounded-2xl border-2 border-success/40 bg-success/5 p-4 sm:p-5 space-y-3">
                 <div>
-                  <h3 className="font-bold text-base flex items-center gap-2 text-emerald-700">
-                    <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-emerald-500 text-white text-xs font-extrabold">PIX</span>
+                  <h3 className="font-bold text-base flex items-center gap-2 text-success">
+                    <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-success text-white text-xs font-extrabold">PIX</span>
                     Pague para liberar o pedido
                   </h3>
                   <p className="text-xs text-muted-foreground mt-1">
@@ -200,7 +200,7 @@ export function CustomerOrderDetail({ orderId, onClose }: { orderId: string; onC
                 )}
                 {order.payment_copy_paste && (
                   <div className="space-y-2">
-                    <div className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground">
+                    <div className="text-2xs uppercase tracking-wide font-semibold text-muted-foreground">
                       PIX copia e cola
                     </div>
                     <div className="flex gap-2">
@@ -210,7 +210,7 @@ export function CustomerOrderDetail({ orderId, onClose }: { orderId: string; onC
                         className="flex-1 px-3 py-2 text-xs bg-background border border-border rounded-lg font-mono truncate"
                         onFocus={(e) => e.currentTarget.select()}
                       />
-                      <Button type="button" onClick={copyPix} className="shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white">
+                      <Button type="button" onClick={copyPix} className="shrink-0 bg-success hover:bg-success/90 text-white">
                         {copied ? <><Check className="h-4 w-4 mr-1" /> Copiado</> : <><Copy className="h-4 w-4 mr-1" /> Copiar</>}
                       </Button>
                     </div>
@@ -255,13 +255,13 @@ export function CustomerOrderDetail({ orderId, onClose }: { orderId: string; onC
                     <div className="flex justify-between"><span>Frete</span><span>{formatBRL(ship)}</span></div>
                     {ins > 0 && <div className="flex justify-between"><span>Seguro</span><span>{formatBRL(ins)}</span></div>}
                     {disc > 0 && (
-                      <div className="flex justify-between text-emerald-700">
+                      <div className="flex justify-between text-success">
                         <span>Cupom{order.coupon_code ? ` (${order.coupon_code})` : ""}</span>
                         <span>− {formatBRL(disc)}</span>
                       </div>
                     )}
                     {pixDisc > 0 && (
-                      <div className="flex justify-between text-emerald-700">
+                      <div className="flex justify-between text-success">
                         <span>Desconto PIX (5%)</span>
                         <span>− {formatBRL(pixDisc)}</span>
                       </div>

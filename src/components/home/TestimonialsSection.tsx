@@ -1,4 +1,4 @@
-import { Star } from "lucide-react";
+﻿import { Star } from "lucide-react";
 
 /**
  * Depoimentos sociais — bloco fixo de prova social no Catalog antes do
@@ -62,7 +62,7 @@ export function TestimonialsSection({ items }: { items: Testimonial[] }) {
             className="rounded-2xl border border-border/60 bg-card p-5 hover:border-primary/30 hover:shadow-sm transition-all flex flex-col"
           >
             <div
-              className="flex gap-0.5 text-amber-400 mb-3"
+              className="flex gap-0.5 text-warning mb-3"
               aria-label={`${t.rating} de 5 estrelas`}
             >
               {Array.from({ length: 5 }).map((_, i) => (
@@ -74,11 +74,11 @@ export function TestimonialsSection({ items }: { items: Testimonial[] }) {
                 />
               ))}
             </div>
-            <blockquote className="text-[13px] md:text-sm text-foreground/85 leading-relaxed flex-1">
+            <blockquote className="text-sm-plus md:text-sm text-foreground/85 leading-relaxed flex-1">
               &ldquo;{t.text}&rdquo;
             </blockquote>
             <footer className="mt-4 pt-3 border-t border-border/40">
-              <p className="font-semibold text-[13px] text-foreground">{t.name}</p>
+              <p className="font-semibold text-sm-plus text-foreground">{t.name}</p>
               <p className="text-[11.5px] text-muted-foreground">{t.city}</p>
             </footer>
           </article>

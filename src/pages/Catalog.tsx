@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+﻿import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -486,7 +486,7 @@ export default function Catalog() {
                   <SlidersHorizontal className="h-4 w-4" />
                   {activeFilterCount > 0 && (
                     <span
-                      className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold leading-none ring-2 ring-background tabular-nums"
+                      className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground text-2xs font-bold leading-none ring-2 ring-background tabular-nums"
                       aria-hidden
                     >
                       {activeFilterCount}
@@ -498,7 +498,7 @@ export default function Catalog() {
           </div>
 
           {query && (
-            <p className="mt-1.5 truncate text-[11px] md:text-xs font-medium text-muted-foreground">
+            <p className="mt-1.5 truncate text-2xs md:text-xs font-medium text-muted-foreground">
               Buscando por: <span className="text-primary">"{query}"</span>
               {!loading && (
                 <span className="text-muted-foreground/70">
@@ -570,7 +570,7 @@ export default function Catalog() {
                   <Search className="h-6 w-6 text-muted-foreground" strokeWidth={1.75} />
                 </div>
                 <p className="text-foreground font-bold text-base">Nenhum produto encontrado</p>
-                <p className="text-muted-foreground text-[13px] md:text-sm mt-1.5 max-w-xs mx-auto">
+                <p className="text-muted-foreground text-sm-plus md:text-sm mt-1.5 max-w-xs mx-auto">
                   Tente remover filtros ou ajustar a busca acima.
                 </p>
                 {(selectedCats.size > 0 || selectedBrands.size > 0 || query) && (
@@ -696,10 +696,10 @@ export default function Catalog() {
                         <Filter className="h-4 w-4" strokeWidth={2.25} />
                       </span>
                       <div className="min-w-0">
-                        <h2 className="text-[17px] font-bold tracking-tight text-foreground leading-none">
+                        <h2 className="text-price font-bold tracking-tight text-foreground leading-none">
                           Filtros
                         </h2>
-                        <p className="text-[11px] text-muted-foreground mt-1 leading-none">
+                        <p className="text-2xs text-muted-foreground mt-1 leading-none">
                           {activeFilterCount === 0
                             ? "Refine seu catálogo"
                             : `${activeFilterCount} filtro${activeFilterCount === 1 ? "" : "s"} ativo${activeFilterCount === 1 ? "" : "s"}`}
@@ -721,13 +721,13 @@ export default function Catalog() {
                     {activeFilterCount > 0 && (
                       <section className="px-5 sm:px-6 py-4 border-b border-border/50 bg-muted/20">
                         <div className="flex items-center justify-between gap-2 mb-2.5">
-                          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                          <p className="text-2xs font-bold uppercase tracking-[0.14em] text-muted-foreground">
                             Filtros ativos
                           </p>
                           <button
                             type="button"
                             onClick={clearAll}
-                            className="text-[11px] font-semibold text-secondary-text hover:underline underline-offset-2 transition-colors"
+                            className="text-2xs font-semibold text-secondary-text hover:underline underline-offset-2 transition-colors"
                           >
                             Limpar tudo
                           </button>
@@ -778,7 +778,7 @@ export default function Catalog() {
                                 aria-pressed={active}
                                 className="w-full flex items-center justify-between gap-3 px-3 min-h-[44px] py-2 rounded-lg hover:bg-muted/40 transition-colors text-left"
                               >
-                                <span className={`text-[14px] ${active ? "text-foreground font-semibold" : "text-foreground/80"}`}>
+                                <span className={`text-sm ${active ? "text-foreground font-semibold" : "text-foreground/80"}`}>
                                   {SORT_LABELS[k]}
                                 </span>
                                 {/* Radio visual: bolinha preenchida quando ativo */}
@@ -815,7 +815,7 @@ export default function Catalog() {
                                 return params;
                               }, { replace: true });
                             }}
-                            className="text-[11px] font-semibold text-secondary-text hover:underline underline-offset-2"
+                            className="text-2xs font-semibold text-secondary-text hover:underline underline-offset-2"
                           >
                             Limpar ({selectedCats.size})
                           </button>
@@ -857,11 +857,11 @@ export default function Catalog() {
                                       <Check className="h-3 w-3 text-primary-foreground" strokeWidth={3.5} />
                                     )}
                                   </span>
-                                  <span className={`flex-1 text-[14px] ${checked ? "text-foreground font-semibold" : "text-foreground/85"}`}>
+                                  <span className={`flex-1 text-sm ${checked ? "text-foreground font-semibold" : "text-foreground/85"}`}>
                                     {c.name}
                                   </span>
                                   <span
-                                    className={`text-[11px] tabular-nums shrink-0 ${
+                                    className={`text-2xs tabular-nums shrink-0 ${
                                       checked ? "text-foreground/70 font-semibold" : "text-muted-foreground/70"
                                     }`}
                                   >
@@ -891,7 +891,7 @@ export default function Catalog() {
                                   return params;
                                 }, { replace: true });
                               }}
-                              className="text-[11px] font-semibold text-secondary-text hover:underline underline-offset-2"
+                              className="text-2xs font-semibold text-secondary-text hover:underline underline-offset-2"
                             >
                               Limpar ({selectedBrands.size})
                             </button>
@@ -910,7 +910,7 @@ export default function Catalog() {
                                 onClick={() => toggleBrand(b.slug)}
                                 aria-pressed={checked}
                                 disabled={dim}
-                                className={`inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full text-[13px] font-medium transition-all ${
+                                className={`inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full text-sm-plus font-medium transition-all ${
                                   checked
                                     ? "bg-primary text-primary-foreground border-2 border-primary shadow-sm"
                                     : dim
@@ -921,7 +921,7 @@ export default function Catalog() {
                                 {b.name}
                                 {count > 0 && (
                                   <span
-                                    className={`text-[11px] tabular-nums font-semibold ${
+                                    className={`text-2xs tabular-nums font-semibold ${
                                       checked ? "text-primary-foreground/80" : "text-muted-foreground/70"
                                     }`}
                                   >
@@ -948,7 +948,7 @@ export default function Catalog() {
                   >
                     <button
                       onClick={() => setFiltersOpen(false)}
-                      className="w-full h-12 inline-flex items-center justify-center gap-2 rounded-2xl bg-primary text-primary-foreground text-[14px] font-bold tracking-tight hover:bg-primary-glow active:scale-[0.99] transition-all shadow-elegant"
+                      className="w-full h-12 inline-flex items-center justify-center gap-2 rounded-2xl bg-primary text-primary-foreground text-sm font-bold tracking-tight hover:bg-primary-glow active:scale-[0.99] transition-all shadow-elegant"
                     >
                       Ver {filtered.length} {filtered.length === 1 ? "produto" : "produtos"}
                     </button>
@@ -980,7 +980,7 @@ export default function Catalog() {
  *  há filtros aplicados — permite remover sem rolar até a seção. */
 function ActiveChip({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
-    <span className="inline-flex items-center gap-1 h-7 pl-2.5 pr-1 rounded-full bg-primary text-primary-foreground text-[12px] font-semibold tracking-tight">
+    <span className="inline-flex items-center gap-1 h-7 pl-2.5 pr-1 rounded-full bg-primary text-primary-foreground text-xs font-semibold tracking-tight">
       {label}
       <button
         type="button"
@@ -1011,7 +1011,7 @@ function FilterSection({
   return (
     <section className="px-5 sm:px-6 py-5 border-b border-border/50 last:border-b-0">
       <div className="flex items-center justify-between gap-2 mb-3">
-        <h3 className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-foreground/70">
+        <h3 className="inline-flex items-center gap-2 text-2xs font-bold uppercase tracking-[0.14em] text-foreground/70">
           <span className="inline-block h-3 w-0.5 rounded-full bg-gradient-brand" aria-hidden />
           <Icon className="h-3.5 w-3.5 text-primary/70" strokeWidth={2.25} />
           {title}

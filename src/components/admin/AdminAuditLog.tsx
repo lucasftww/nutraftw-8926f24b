@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -158,7 +158,7 @@ export function AdminAuditLog() {
                       <span className="text-xs uppercase tracking-wide text-muted-foreground">{e.entity}</span>
                     </div>
                     <p className="text-sm text-foreground mt-0.5 truncate">{e.summary || "(sem resumo)"}</p>
-                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-[11px] text-muted-foreground">
+                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-2xs text-muted-foreground">
                       <span>{e.user_email || e.user_id?.slice(0, 8) || "—"}</span>
                       <span>{new Date(e.created_at).toLocaleString("pt-BR")}</span>
                       {e.entity_id && <span className="font-mono">id: {String(e.entity_id).slice(0, 8)}</span>}
@@ -170,7 +170,7 @@ export function AdminAuditLog() {
                 </button>
                 {isOpen && e.diff && (
                   <div className="px-4 pb-4 -mt-1">
-                    <pre className="text-[11px] bg-muted/40 rounded-lg p-3 overflow-x-auto max-h-80 leading-relaxed">
+                    <pre className="text-2xs bg-muted/40 rounded-lg p-3 overflow-x-auto max-h-80 leading-relaxed">
                       {JSON.stringify(e.diff, null, 2)}
                     </pre>
                   </div>

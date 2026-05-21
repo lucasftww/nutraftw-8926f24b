@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -319,7 +319,7 @@ export function AdminOrders() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</span>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${ADMIN_STATUS_COLORS[o.status as keyof typeof ADMIN_STATUS_COLORS] || "bg-muted text-muted-foreground"}`}>{STATUS_PT[o.status as keyof typeof STATUS_PT] ?? o.status}</span>
+                  <span className={`text-2xs px-2 py-0.5 rounded-full font-semibold ${ADMIN_STATUS_COLORS[o.status as keyof typeof ADMIN_STATUS_COLORS] || "bg-muted text-muted-foreground"}`}>{STATUS_PT[o.status as keyof typeof STATUS_PT] ?? o.status}</span>
                 </div>
                 <p className="font-semibold text-sm leading-tight truncate mt-1">{o.shipping_full_name || "—"}</p>
                 <div className="flex items-center justify-between mt-1.5">
@@ -379,7 +379,7 @@ export function AdminOrders() {
                 <td className="px-4 py-3 hidden lg:table-cell text-muted-foreground text-xs">
                   <div className="flex flex-col leading-tight">
                     <span>{new Date(o.created_at).toLocaleDateString("pt-BR")}</span>
-                    <span className="text-[10px] text-muted-foreground/70" title={new Date(o.created_at).toLocaleString("pt-BR")}>
+                    <span className="text-2xs text-muted-foreground/70" title={new Date(o.created_at).toLocaleString("pt-BR")}>
                       {formatDistanceToNow(new Date(o.created_at), { locale: ptBR, addSuffix: true })}
                     </span>
                   </div>

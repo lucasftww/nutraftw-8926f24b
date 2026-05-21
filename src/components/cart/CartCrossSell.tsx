@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/hooks/useCart";
 import { formatBRL } from "@/lib/utils";
@@ -100,7 +100,7 @@ export function CartCrossSell() {
     <section className="mb-3 rounded-xl border border-border bg-gradient-to-br from-primary/[0.04] to-secondary/[0.04] p-3">
       <div className="flex items-center gap-1.5 mb-2.5">
         <Sparkles className="h-3.5 w-3.5 text-secondary" strokeWidth={2.5} />
-        <p className="text-[12px] font-bold text-foreground">
+        <p className="text-xs font-bold text-foreground">
           Que tal incluir também?
         </p>
       </div>
@@ -151,10 +151,10 @@ export function CartCrossSell() {
                 </button>
               </div>
               <div className="px-2 py-1.5">
-                <p className="text-[11px] font-medium leading-tight line-clamp-2 min-h-[2.2em] text-foreground">
+                <p className="text-2xs font-medium leading-tight line-clamp-2 min-h-[2.2em] text-foreground">
                   {p.name}
                 </p>
-                <p className="text-[12px] font-extrabold text-success tabular-nums mt-0.5 leading-none">
+                <p className="text-xs font-extrabold text-success tabular-nums mt-0.5 leading-none">
                   {formatBRL(final * 0.95)}
                   <span className="ml-0.5 text-[8.5px] font-bold uppercase tracking-wider text-success/80 align-middle">
                     PIX

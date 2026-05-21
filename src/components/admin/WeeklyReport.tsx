@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useMemo, useState } from "react";
+﻿import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "./AdminErrorBanner";
@@ -367,10 +367,10 @@ export function WeeklyReport() {
   }
 
   const cards = [
-    { label: "Receita",        value: formatBRL(revenue),    delta: pctDelta(revenue, prevRevenue),         icon: DollarSign,  color: "text-emerald-400",       bg: "bg-emerald-500/10 ring-1 ring-emerald-500/20" },
+    { label: "Receita",        value: formatBRL(revenue),    delta: pctDelta(revenue, prevRevenue),         icon: DollarSign,  color: "text-success",       bg: "bg-success/10 ring-1 ring-success/20" },
     { label: "Pedidos pagos",  value: ordersCount,           delta: pctDelta(ordersCount, prevOrdersCount), icon: ShoppingBag, color: "text-primary",            bg: "bg-primary/10 ring-1 ring-primary/20" },
     { label: "Ticket médio",   value: formatBRL(aov),        delta: pctDelta(aov, prevAov),                 icon: Receipt,     color: "text-brand-cyan",         bg: "bg-brand-cyan/10 ring-1 ring-brand-cyan/20" },
-    { label: "Itens vendidos", value: itemsSold,             delta: null as number | null,                  icon: Package,     color: "text-amber-400",          bg: "bg-amber-500/10 ring-1 ring-amber-500/20" },
+    { label: "Itens vendidos", value: itemsSold,             delta: null as number | null,                  icon: Package,     color: "text-warning",          bg: "bg-warning/10 ring-1 ring-warning/20" },
   ];
 
   // ───────── Daily series filtrada/paginada ─────────
@@ -483,7 +483,7 @@ export function WeeklyReport() {
                   <c.icon className="h-4 w-4" />
                 </div>
                 {c.delta !== null && !loading && (
-                  <span className={`inline-flex items-center gap-0.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full ring-1 ${positive ? "text-emerald-400 bg-emerald-500/15 ring-emerald-500/25" : "text-destructive bg-destructive/10 ring-destructive/30"}`}>
+                  <span className={`inline-flex items-center gap-0.5 text-2xs font-bold px-1.5 py-0.5 rounded-full ring-1 ${positive ? "text-success bg-success/15 ring-success/25" : "text-destructive bg-destructive/10 ring-destructive/30"}`}>
                     {positive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                     {Math.abs(c.delta).toFixed(0)}%
                   </span>
@@ -685,7 +685,7 @@ export function WeeklyReport() {
           <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
             <h3 className="font-bold">Validação financeira</h3>
             {reconciliation.totalMismatches.length === 0 && reconciliation.itemsMismatches.length === 0 ? (
-              <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/25">
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-success/15 text-success ring-1 ring-success/25">
                 <CheckCircle2 className="h-3.5 w-3.5" /> Tudo bate ({reconciliation.ordersChecked} pedidos)
               </span>
             ) : (
@@ -710,7 +710,7 @@ export function WeeklyReport() {
             />
           </div>
 
-          <p className="text-[11px] text-muted-foreground mt-3 leading-relaxed">
+          <p className="text-2xs text-muted-foreground mt-3 leading-relaxed">
             Fórmula: <span className="font-mono">total = subtotal + frete + seguro − cupom − pix(5%)</span>.
             Reconciliação também valida que <span className="font-mono">subtotal</span> da ordem é igual à soma dos itens (
             {formatBRL(reconciliation.sumItemsSubtotal)} vs {formatBRL(reconciliation.sumSubtotal)} — diff{" "}
@@ -752,8 +752,8 @@ export function WeeklyReport() {
                 </details>
               )}
               {reconciliation.itemsMismatches.length > 0 && (
-                <details className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
-                  <summary className="text-xs font-bold text-amber-400 cursor-pointer">
+                <details className="rounded-lg border border-amber-500/30 bg-warning/10 p-3">
+                  <summary className="text-xs font-bold text-warning cursor-pointer">
                     Pedidos com subtotal ≠ soma dos itens ({reconciliation.itemsMismatches.length})
                   </summary>
                   <div className="mt-2 overflow-x-auto">
@@ -772,7 +772,7 @@ export function WeeklyReport() {
                             <td className="py-1 pr-2 font-mono">#{m.id.slice(0, 8)}</td>
                             <td className="py-1 px-2 text-right tabular-nums">{formatBRL(m.orderSubtotal)}</td>
                             <td className="py-1 px-2 text-right tabular-nums">{formatBRL(m.itemsSubtotal)}</td>
-                            <td className="py-1 pl-2 text-right tabular-nums font-bold text-amber-800">
+                            <td className="py-1 pl-2 text-right tabular-nums font-bold text-warning">
                               {m.diff > 0 ? "+" : ""}
                               {formatBRL(m.diff)}
                             </td>
@@ -824,13 +824,13 @@ function Stat({
     tone === "danger"
       ? "text-destructive"
       : tone === "ok"
-        ? "text-emerald-700"
+        ? "text-success"
         : highlight
           ? "text-primary"
           : "text-foreground";
   return (
     <div className="rounded-xl border border-border bg-background px-3 py-2">
-      <p className="text-[11px] text-muted-foreground">{label}</p>
+      <p className="text-2xs text-muted-foreground">{label}</p>
       <p className={`text-sm font-bold tabular-nums mt-0.5 ${toneClass}`}>{value}</p>
     </div>
   );
@@ -848,7 +848,7 @@ function Pager({
   if (totalPages <= 1) return null;
   return (
     <div className="flex items-center justify-between gap-2 mt-3">
-      <span className="text-[11px] text-muted-foreground">
+      <span className="text-2xs text-muted-foreground">
         Página {page} de {totalPages}
       </span>
       <div className="inline-flex items-center gap-1">

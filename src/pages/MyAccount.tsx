@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -280,7 +280,7 @@ export default function MyAccount() {
               <h1 className="font-display text-base md:text-3xl font-extrabold leading-tight line-clamp-2 mt-0.5">
                 {profile?.full_name || "Bem-vindo"}
               </h1>
-              <p className="text-[11px] md:text-sm text-white/85 flex items-start gap-1.5 mt-0.5">
+              <p className="text-2xs md:text-sm text-white/85 flex items-start gap-1.5 mt-0.5">
                 <Mail className="h-3 w-3 shrink-0 opacity-80 mt-1" />
                 <span className="break-all">{user?.email}</span>
               </p>
@@ -299,16 +299,16 @@ export default function MyAccount() {
         {/* Stats embutidos no hero — mobile-first */}
         <div className="relative grid grid-cols-3 gap-1.5 md:gap-3 mt-4 md:mt-6">
           <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl px-2.5 py-2 md:p-4">
-            <p className="text-[10px] md:text-xs uppercase tracking-wide text-white/75 font-semibold">Pedidos</p>
+            <p className="text-2xs md:text-xs uppercase tracking-wide text-white/75 font-semibold">Pedidos</p>
             <p className="text-base md:text-2xl font-extrabold mt-1 tabular-nums leading-none">{stats.count}</p>
           </div>
           <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl px-2.5 py-2 md:p-4">
-            <p className="text-[10px] md:text-xs uppercase tracking-wide text-white/75 font-semibold">Gasto</p>
-            <p className="text-[13px] md:text-2xl font-extrabold mt-1 truncate tabular-nums leading-none">{formatBRL(stats.total)}</p>
+            <p className="text-2xs md:text-xs uppercase tracking-wide text-white/75 font-semibold">Gasto</p>
+            <p className="text-sm-plus md:text-2xl font-extrabold mt-1 truncate tabular-nums leading-none">{formatBRL(stats.total)}</p>
           </div>
           <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl px-2.5 py-2 md:p-4">
-            <p className="text-[10px] md:text-xs uppercase tracking-wide text-white/75 font-semibold">Desde</p>
-            <p className="text-[13px] md:text-2xl font-extrabold mt-1 leading-none">
+            <p className="text-2xs md:text-xs uppercase tracking-wide text-white/75 font-semibold">Desde</p>
+            <p className="text-sm-plus md:text-2xl font-extrabold mt-1 leading-none">
               {profile?.created_at
                 ? (() => {
                     // toLocaleDateString("pt-BR", {month:"short"}) retorna "mai." e
@@ -365,8 +365,8 @@ export default function MyAccount() {
                   <t.icon className="h-3.5 w-3.5" aria-hidden="true" />
                 </span>
                 <span className="flex-1 min-w-0">
-                  <span className={`block text-[13px] font-semibold leading-tight ${active ? "text-primary" : "text-foreground"}`}>{t.label}</span>
-                  <span className="block text-[11px] text-muted-foreground line-clamp-2 mt-0.5">{t.description}</span>
+                  <span className={`block text-sm-plus font-semibold leading-tight ${active ? "text-primary" : "text-foreground"}`}>{t.label}</span>
+                  <span className="block text-2xs text-muted-foreground line-clamp-2 mt-0.5">{t.description}</span>
                 </span>
                 <ChevronRight aria-hidden="true" className={`h-4 w-4 shrink-0 transition-transform ${active ? "rotate-90 text-primary" : "text-muted-foreground/70"}`} />
               </button>
@@ -478,8 +478,8 @@ export default function MyAccount() {
             <div className="h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-muted/60 mx-auto flex items-center justify-center mb-3.5">
               <ShoppingBag className="h-5 w-5 md:h-6 md:w-6 text-muted-foreground/70" />
             </div>
-            <p className="text-foreground font-semibold text-[14px] md:text-[15px]">Nenhum pedido ainda</p>
-            <p className="text-[12px] md:text-[13px] text-muted-foreground mt-1">Quando você comprar, ele aparece aqui.</p>
+            <p className="text-foreground font-semibold text-sm md:text-sm">Nenhum pedido ainda</p>
+            <p className="text-xs md:text-sm-plus text-muted-foreground mt-1">Quando você comprar, ele aparece aqui.</p>
             <Button className="mt-4 md:mt-5" onClick={() => nav("/")}>Explorar produtos</Button>
           </div>
         ) : (
@@ -499,7 +499,7 @@ export default function MyAccount() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
                         <p className="font-mono text-eyebrow text-muted-foreground tracking-wider">#{o.id.slice(0, 8)}</p>
-                        <p className="font-display font-extrabold text-primary text-[14px] md:text-[15px] tabular-nums">{formatBRL(o.total)}</p>
+                        <p className="font-display font-extrabold text-primary text-sm md:text-sm tabular-nums">{formatBRL(o.total)}</p>
                       </div>
                       <div className="flex items-center justify-between gap-2 mt-1">
                         <span className={`badge-pill ${status.color}`}>
@@ -530,8 +530,8 @@ export default function MyAccount() {
                 <Users className="h-4 w-4 md:h-5 md:w-5" />
               </div>
               <div className="min-w-0">
-                <h2 className="font-display text-[15px] md:text-xl font-extrabold text-primary leading-tight">Programa de indicações</h2>
-                <p className="text-[12px] md:text-sm text-muted-foreground mt-0.5 leading-relaxed">
+                <h2 className="font-display text-sm md:text-xl font-extrabold text-primary leading-tight">Programa de indicações</h2>
+                <p className="text-xs md:text-sm text-muted-foreground mt-0.5 leading-relaxed">
                   Compartilhe seu link e ganhe <strong className="text-foreground">1% de comissão</strong> em cada compra aprovada.
                 </p>
               </div>
@@ -541,7 +541,7 @@ export default function MyAccount() {
             <div className="mt-3.5 space-y-2">
               <div className="flex items-center gap-2 bg-card border border-border rounded-xl px-3 py-2">
                 <span className="text-eyebrow text-muted-foreground shrink-0">Link</span>
-                <span className="font-mono text-[11px] md:text-xs text-foreground truncate flex-1">{affiliateUrl || "—"}</span>
+                <span className="font-mono text-2xs md:text-xs text-foreground truncate flex-1">{affiliateUrl || "—"}</span>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <Button type="button" onClick={shareLink} size="lg" className="w-full">
@@ -561,38 +561,38 @@ export default function MyAccount() {
           {/* Stats — 2 colunas no mobile (3 linhas simétricas), 5 em desktop */}
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-1.5 md:gap-3">
             <div className="bg-card rounded-2xl border border-border p-2.5 md:p-4">
-              <p className="text-[9px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Pendentes</p>
-              <p className="text-[15px] md:text-2xl font-extrabold mt-1 text-amber-600 truncate tabular-nums leading-none">{formatBRL(affStats.pending)}</p>
+              <p className="text-2xs md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Pendentes</p>
+              <p className="text-sm md:text-2xl font-extrabold mt-1 text-warning truncate tabular-nums leading-none">{formatBRL(affStats.pending)}</p>
             </div>
             <div className="bg-card rounded-2xl border border-border p-2.5 md:p-4">
-              <p className="text-[9px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Liberadas</p>
-              <p className="text-[15px] md:text-2xl font-extrabold mt-1 text-primary truncate tabular-nums leading-none">{formatBRL(affStats.released)}</p>
+              <p className="text-2xs md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Liberadas</p>
+              <p className="text-sm md:text-2xl font-extrabold mt-1 text-primary truncate tabular-nums leading-none">{formatBRL(affStats.released)}</p>
             </div>
             <div className="bg-card rounded-2xl border border-border p-2.5 md:p-4 col-span-2 lg:col-span-1">
-              <p className="text-[9px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Pagas</p>
-              <p className="text-[15px] md:text-2xl font-extrabold mt-1 text-emerald-600 truncate tabular-nums leading-none">{formatBRL(affStats.paid)}</p>
+              <p className="text-2xs md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Pagas</p>
+              <p className="text-sm md:text-2xl font-extrabold mt-1 text-success truncate tabular-nums leading-none">{formatBRL(affStats.paid)}</p>
             </div>
             <div className="bg-card rounded-2xl border border-border p-2.5 md:p-4">
-              <p className="text-[9px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Indic. ativas</p>
-              <p className="text-[15px] md:text-2xl font-extrabold mt-1 tabular-nums leading-none">{affStats.activeRefs}</p>
+              <p className="text-2xs md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Indic. ativas</p>
+              <p className="text-sm md:text-2xl font-extrabold mt-1 tabular-nums leading-none">{affStats.activeRefs}</p>
             </div>
             <div className="bg-card rounded-2xl border border-border p-2.5 md:p-4">
-              <p className="text-[9px] md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Indic. inativas</p>
-              <p className="text-[15px] md:text-2xl font-extrabold mt-1 tabular-nums leading-none">{affStats.inactiveRefs}</p>
+              <p className="text-2xs md:text-xs text-muted-foreground uppercase tracking-wide font-semibold">Indic. inativas</p>
+              <p className="text-sm md:text-2xl font-extrabold mt-1 tabular-nums leading-none">{affStats.inactiveRefs}</p>
             </div>
           </div>
 
-          <div className="bg-muted/40 rounded-2xl border border-border/70 p-3.5 md:p-4 text-[11px] md:text-xs text-muted-foreground leading-relaxed">
-            <strong className="text-foreground block mb-1 text-[12px] md:text-[13px]">Como funciona</strong>
-            Ao pedido aprovar, a comissão fica <span className="text-amber-600 font-semibold">pendente</span> por 7 dias.
-            Depois é <span className="text-primary font-semibold">liberada</span> automaticamente e, quando o administrador efetua o repasse, passa a <span className="text-emerald-600 font-semibold">paga</span>.
+          <div className="bg-muted/40 rounded-2xl border border-border/70 p-3.5 md:p-4 text-2xs md:text-xs text-muted-foreground leading-relaxed">
+            <strong className="text-foreground block mb-1 text-xs md:text-sm-plus">Como funciona</strong>
+            Ao pedido aprovar, a comissão fica <span className="text-warning font-semibold">pendente</span> por 7 dias.
+            Depois é <span className="text-primary font-semibold">liberada</span> automaticamente e, quando o administrador efetua o repasse, passa a <span className="text-success font-semibold">paga</span>.
           </div>
 
           {/* Pixel do Facebook */}
           <div className="bg-card rounded-2xl border border-border p-3.5 md:p-5 space-y-3">
             <div>
-              <h3 className="font-display font-bold text-primary text-[14px] md:text-base">Pixel do Facebook</h3>
-              <p className="text-[11px] md:text-sm text-muted-foreground mt-0.5 leading-relaxed">Adicione seu Pixel para rastrear as conversões das suas indicações.</p>
+              <h3 className="font-display font-bold text-primary text-sm md:text-base">Pixel do Facebook</h3>
+              <p className="text-2xs md:text-sm text-muted-foreground mt-0.5 leading-relaxed">Adicione seu Pixel para rastrear as conversões das suas indicações.</p>
             </div>
             <Input
               value={profile.facebook_pixel || ""}
@@ -625,8 +625,8 @@ export default function MyAccount() {
               <div className="bg-card rounded-2xl border border-border p-3.5 md:p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <h2 className="font-display text-[14px] md:text-lg font-bold text-primary">Histórico de comissões</h2>
-                    <p className="text-[11px] md:text-sm text-muted-foreground mt-0.5">Geradas pelas suas indicações.</p>
+                    <h2 className="font-display text-sm md:text-lg font-bold text-primary">Histórico de comissões</h2>
+                    <p className="text-2xs md:text-sm text-muted-foreground mt-0.5">Geradas pelas suas indicações.</p>
                   </div>
                   <span className="badge-pill bg-primary/10 text-primary tabular-nums shrink-0">
                     {filteredCount} {filteredCount === 1 ? "item" : "itens"}
@@ -643,7 +643,7 @@ export default function MyAccount() {
                       value={commFilter}
                       onChange={(e) => setCommFilter(e.target.value)}
                       aria-label="Filtrar comissões por status"
-                      className="appearance-none w-full h-11 rounded-xl border border-input bg-background pl-4 pr-10 text-[13px] font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring"
+                      className="appearance-none w-full h-11 rounded-xl border border-input bg-background pl-4 pr-10 text-sm-plus font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring"
                     >
                       {FILTERS.map((f) => (
                         <option key={f.id} value={f.id}>
@@ -681,7 +681,7 @@ export default function MyAccount() {
             if (loadingComm) {
               return (
                 <div className="bg-card rounded-2xl border border-border p-10 flex items-center justify-center text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" /> <span className="ml-2 text-[13px]">Carregando…</span>
+                  <Loader2 className="h-4 w-4 animate-spin" /> <span className="ml-2 text-sm-plus">Carregando…</span>
                 </div>
               );
             }
@@ -689,16 +689,16 @@ export default function MyAccount() {
             const filtered = filteredComm;
             if (filtered.length === 0) {
               return (
-                <div className="bg-card rounded-2xl border border-border p-10 text-center text-[13px] md:text-sm text-muted-foreground">
+                <div className="bg-card rounded-2xl border border-border p-10 text-center text-sm-plus md:text-sm text-muted-foreground">
                   <Wallet className="h-9 w-9 mx-auto text-muted-foreground/40 mb-3" />
                   Nenhuma comissão {commFilter === "all" ? "registrada" : "com este status"} no momento.
                 </div>
               );
             }
             const statusBadge: Record<string, string> = {
-                pending: "bg-amber-100 text-amber-700",
+                pending: "bg-warning/15 text-warning",
                 released: "bg-blue-100 text-blue-700",
-                paid: "bg-emerald-100 text-emerald-700",
+                paid: "bg-success/15 text-success",
                 cancelled: "bg-red-100 text-red-700",
                 clawback: "bg-orange-100 text-orange-700",
             };
@@ -723,7 +723,7 @@ export default function MyAccount() {
                           </p>
                           <p className="text-lg font-extrabold text-primary leading-none mt-1.5 tabular-nums">{formatBRL(Number(c.amount || 0))}</p>
                           {c.orders?.total != null && (
-                            <p className="text-[11px] text-muted-foreground mt-1">
+                            <p className="text-2xs text-muted-foreground mt-1">
                               do pedido {formatBRL(Number(c.orders.total))}
                             </p>
                           )}
@@ -788,7 +788,7 @@ export default function MyAccount() {
                               {statusLabel[c.status] || c.status}
                             </span>
                             {c.cancellation_reason && (c.status === "cancelled" || c.status === "clawback") && (
-                              <div className="text-[11px] text-muted-foreground mt-1 max-w-[260px] whitespace-normal">
+                              <div className="text-2xs text-muted-foreground mt-1 max-w-[260px] whitespace-normal">
                                 {c.cancellation_reason}
                               </div>
                             )}

@@ -1,4 +1,4 @@
-import { QrCode } from "lucide-react";
+﻿import { QrCode } from "lucide-react";
 import { formatBRL } from "@/lib/utils";
 
 /**
@@ -78,11 +78,11 @@ export function PaymentOption({
         </div>
         <div className="flex-1 min-w-0">
           <div className="font-bold text-sm leading-tight">{title}</div>
-          <div className="text-[12px] text-muted-foreground mt-0.5 leading-tight">{subtitle}</div>
+          <div className="text-xs text-muted-foreground mt-0.5 leading-tight">{subtitle}</div>
         </div>
       </div>
       <div className={`mt-3 pt-3 border-t border-dashed ${active ? "border-primary/30" : "border-border"} flex items-end justify-between gap-2`}>
-        <div className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground leading-none">
+        <div className="text-2xs uppercase tracking-wider font-semibold text-muted-foreground leading-none">
           {totalLabel}
         </div>
         <div className="text-right">
@@ -90,7 +90,7 @@ export function PaymentOption({
             {formatBRL(totalValue)}
           </div>
           {installment && (
-            <div className="text-[10px] text-muted-foreground mt-1 tabular-nums">{installment}</div>
+            <div className="text-2xs text-muted-foreground mt-1 tabular-nums">{installment}</div>
           )}
         </div>
       </div>
