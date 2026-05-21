@@ -322,23 +322,58 @@ function timeAgo(iso: string): string {
 }
 
 function Last24hPanel({ data }: { data: Last24h }) {
+  // Mini funil das últimas 24h usando os dados do RPC
+  const funnelSteps = [
+    { icon: Eye,          label: "Views",     value: data.views,            color: "text-brand-cyan" },
+    { icon: Heart,        label: "Favoritos", value: data.wishlist,          color: "text-primary" },
+    { icon: ShoppingCart, label: "Carrinho",  value: data.cartAdds,         color: "text-primary" },
+    { icon: CreditCard,   label: "Checkout",  value: data.checkoutStarted,  color: "text-secondary" },
+    { icon: CheckCircle2, label: "Pagos",     value: data.paidCount,        color: "text-success" },
+  ];
+
   return (
-    <div className="grid grid-cols-1 gap-4">
-      {/* Vendas das últimas 24h */}
-      <div className="rounded-2xl border border-border bg-card p-5 shadow-soft">
-        <header className="flex items-center justify-between gap-3 mb-4">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-success text-white shadow-sm">
-              <Zap className="h-4 w-4" />
-            </span>
-            <div>
-              <h3 className="font-bold text-sm">Últimas 24h · Vendas</h3>
-              <p className="text-2xs text-muted-foreground">
-                {data.ordersCount} {data.ordersCount === 1 ? "pedido" : "pedidos"} · {data.paidCount} pagos · {formatBRL(data.revenue)}
-              </p>
-            </div>
+    <div className="space-y-4">
+      {/* Mini funil rápido */}
+      <div className="rounded-2xl border border-border bg-card p-4 md:p-5 shadow-soft">
+        <header className="flex items-center gap-2 mb-4">
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-success/70 to-success text-success-foreground shadow-sm">
+            <Zap className="h-4 w-4" />
+          </span>
+          <div>
+            <h3 className="font-bold text-sm">Últimas 24h</h3>
+            <p className="text-2xs text-muted-foreground">
+              {data.ordersCount} {data.ordersCount === 1 ? "pedido" : "pedidos"} · {data.paidCount} pagos · {formatBRL(data.revenue)}
+            </p>
           </div>
         </header>
+
+        {/* Linha de funil */}
+        <div className="grid grid-cols-5 gap-1 md:gap-2">
+          {funnelSteps.map((step, i) => {
+            const Icon = step.icon;
+            const prev = i > 0 ? funnelSteps[i - 1].value : 0;
+            const conv = prev > 0 ? Math.round((step.value / prev) * 100) : null;
+            return (
+              <div key={step.label} className="flex flex-col items-center text-center gap-1">
+                <span className={`inline-flex h-9 w-9 items-center justify-center rounded-xl bg-muted/60 ${step.color} relative z-10`}>
+                  <Icon className="h-4 w-4" strokeWidth={1.75} />
+                </span>
+                <p className="font-bold text-base md:text-lg tabular-nums leading-none">{step.value.toLocaleString("pt-BR")}</p>
+                <p className="text-2xs text-muted-foreground leading-tight">{step.label}</p>
+                {conv !== null && (
+                  <span className={`text-2xs font-semibold tabular-nums ${conv < 20 ? "text-warning" : "text-muted-foreground"}`}>
+                    {conv}%
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Vendas recentes */}
+      <div className="rounded-2xl border border-border bg-card p-4 md:p-5 shadow-soft">
+        <h3 className="font-bold text-sm mb-3">Vendas recentes</h3>
         {data.recentSales.length === 0 ? (
           <p className="text-sm text-muted-foreground py-6 text-center">Nenhuma venda nas últimas 24 horas.</p>
         ) : (
@@ -353,8 +388,6 @@ function Last24hPanel({ data }: { data: Last24h }) {
                 </div>
                 <div className="text-right shrink-0">
                   <p className="font-bold tabular-nums">{formatBRL(o.total)}</p>
-                  {/* Reusa a paleta admin centralizada — antes tinha um mapeamento
-                      próprio (não-DRY) que mostrava status raw em inglês. */}
                   <span className={`inline-block text-2xs px-2 py-0.5 rounded-full mt-0.5 font-semibold ${STATUS_COLORS[o.status as keyof typeof STATUS_COLORS] ?? "bg-muted text-muted-foreground ring-1 ring-border"}`}>
                     {STATUS_PT[o.status as keyof typeof STATUS_PT] ?? o.status}
                   </span>

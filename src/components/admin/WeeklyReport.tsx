@@ -752,7 +752,7 @@ export function WeeklyReport() {
                 </details>
               )}
               {reconciliation.itemsMismatches.length > 0 && (
-                <details className="rounded-lg border border-amber-500/30 bg-warning/10 p-3">
+                <details className="rounded-lg border border-warning/30 bg-warning/10 p-3">
                   <summary className="text-xs font-bold text-warning cursor-pointer">
                     Pedidos com subtotal ≠ soma dos itens ({reconciliation.itemsMismatches.length})
                   </summary>
@@ -768,7 +768,7 @@ export function WeeklyReport() {
                       </thead>
                       <tbody>
                         {reconciliation.itemsMismatches.slice(0, 20).map((m) => (
-                          <tr key={m.id} className="border-t border-amber-200">
+                          <tr key={m.id} className="border-t border-warning/25">
                             <td className="py-1 pr-2 font-mono">#{m.id.slice(0, 8)}</td>
                             <td className="py-1 px-2 text-right tabular-nums">{formatBRL(m.orderSubtotal)}</td>
                             <td className="py-1 px-2 text-right tabular-nums">{formatBRL(m.itemsSubtotal)}</td>

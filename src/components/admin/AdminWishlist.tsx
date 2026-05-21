@@ -254,9 +254,9 @@ export function AdminWishlist() {
 
 function StatCard({ icon: Icon, label, value, tone, hint }: { icon: any; label: string; value: number; tone: "rose" | "cyan" | "amber"; hint?: string }) {
   const toneMap = {
-    rose:  "from-rose-500/15 to-rose-500/5 text-rose-500",
-    cyan:  "from-cyan-500/15 to-cyan-500/5 text-cyan-500",
-    amber: "from-amber-500/15 to-amber-500/5 text-warning",
+    rose:  "from-destructive/15 to-destructive/5 text-destructive",
+    cyan:  "from-brand-cyan/15 to-brand-cyan/5 text-brand-cyan-text",
+    amber: "from-warning/15 to-warning/5 text-warning",
   } as const;
   return (
     <div className={`rounded-xl border border-border/60 bg-gradient-to-br ${toneMap[tone]} p-4`}>

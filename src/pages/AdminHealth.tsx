@@ -559,13 +559,13 @@ function CheckRow({ check }: { check: Check }) {
             : null;
   const tone =
     check.status === "pass"
-      ? "text-success bg-success/10 border-emerald-500/25"
+      ? "text-success bg-success/10 border-success/25"
       : check.status === "fail"
         ? "text-destructive bg-destructive/10 border-destructive/25"
         : check.status === "running"
           ? "text-primary bg-primary/10 border-primary/25"
           : check.status === "skipped"
-            ? "text-warning bg-warning/10 border-amber-500/25"
+            ? "text-warning bg-warning/10 border-warning/25"
             : "text-muted-foreground bg-card border-border";
 
   return (
@@ -608,11 +608,11 @@ function SummaryPill({
 }) {
   const cls =
     tone === "ok"
-      ? "bg-success/10 text-success border-emerald-500/25"
+      ? "bg-success/10 text-success border-success/25"
       : tone === "danger"
         ? "bg-destructive/10 text-destructive border-destructive/25"
         : tone === "warn"
-          ? "bg-warning/10 text-warning border-amber-500/25"
+          ? "bg-warning/10 text-warning border-warning/25"
           : "bg-card text-muted-foreground border-border";
   return (
     <div className={`rounded-2xl border p-3 ${cls}`}>

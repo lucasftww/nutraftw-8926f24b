@@ -124,11 +124,11 @@ export function AdminFunnel() {
     // (intenção) → success (conversão). Cada etapa tem cor própria pra
     // facilitar leitura visual rápida.
     return [
-      { key: "views",    label: "Visualizações",       value: s.views,            icon: Eye,          gradient: "from-sky-400 to-cyan-500",        accent: "text-sky-600" },
-      { key: "wishlist", label: "Favoritos",           value: s.wishlist_adds,    icon: Heart,        gradient: "from-cyan-500 to-primary",         accent: "text-cyan-700" },
-      { key: "cart",     label: "Adições ao carrinho", value: s.cart_adds,        icon: ShoppingCart, gradient: "from-primary to-primary-glow",     accent: "text-primary" },
-      { key: "checkout", label: "Checkout iniciado",   value: s.checkout_started, icon: CreditCard,   gradient: "from-secondary to-amber-500",      accent: "text-secondary" },
-      { key: "paid",     label: "Pedidos pagos",       value: s.orders_paid,      icon: CheckCircle2, gradient: "from-emerald-500 to-success",      accent: "text-success" },
+      { key: "views",    label: "Visualizações",       value: s.views,            icon: Eye,          gradient: "from-brand-cyan/50 to-brand-cyan",  accent: "text-brand-cyan-text" },
+      { key: "wishlist", label: "Favoritos",           value: s.wishlist_adds,    icon: Heart,        gradient: "from-brand-cyan to-primary",        accent: "text-brand-cyan-text" },
+      { key: "cart",     label: "Adições ao carrinho", value: s.cart_adds,        icon: ShoppingCart, gradient: "from-primary to-primary-glow",      accent: "text-primary" },
+      { key: "checkout", label: "Checkout iniciado",   value: s.checkout_started, icon: CreditCard,   gradient: "from-secondary to-secondary-glow",  accent: "text-secondary" },
+      { key: "paid",     label: "Pedidos pagos",       value: s.orders_paid,      icon: CheckCircle2, gradient: "from-success/70 to-success",        accent: "text-success" },
     ];
   }, [summary]);
 
@@ -451,7 +451,7 @@ function KpiCard({
   const toneMap: Record<KpiTone, { bar: string; iconBg: string; iconFg: string }> = {
     cyan:      { bar: "bg-gradient-to-b from-brand-cyan to-primary",         iconBg: "bg-brand-cyan/15 ring-1 ring-brand-cyan/25", iconFg: "text-brand-cyan" },
     primary:   { bar: "bg-gradient-to-b from-primary to-primary-glow",        iconBg: "bg-primary/15 ring-1 ring-primary/25",       iconFg: "text-primary" },
-    success:   { bar: "bg-gradient-to-b from-emerald-400 to-emerald-600",     iconBg: "bg-success/15 ring-1 ring-success/25", iconFg: "text-success" },
+    success:   { bar: "bg-gradient-to-b from-success/60 to-success",           iconBg: "bg-success/15 ring-1 ring-success/25", iconFg: "text-success" },
     secondary: { bar: "bg-gradient-to-b from-secondary to-secondary-glow",    iconBg: "bg-secondary/15 ring-1 ring-secondary/25",   iconFg: "text-secondary" },
   };
   const t = toneMap[tone];
