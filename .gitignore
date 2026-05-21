@@ -19,3 +19,4 @@ public/uploads/products/*
 
 # Supabase CLI local state (link config, tokens) — must not be committed
 supabase/.temp/
+.vercel

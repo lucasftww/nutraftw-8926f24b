@@ -33,9 +33,10 @@ export function Header({ isCheckout = false }: { isCheckout?: boolean }) {
   const location = useLocation();
   const settings = useSiteSettings();
 
-  const wa = (settings.whatsapp_number || "5511999999999").replace(/\D/g, "");
+  const wa = (settings.whatsapp_number || "").replace(/\D/g, "");
   const waMsg = encodeURIComponent(settings.whatsapp_message || "");
-  const waHref = `https://wa.me/${wa}${waMsg ? `?text=${waMsg}` : ""}`;
+  // Só gera link se o número estiver configurado no painel admin
+  const waHref = wa.length >= 10 ? `https://wa.me/${wa}${waMsg ? `?text=${waMsg}` : ""}` : null;
 
   const [menuOpen, setMenuOpen] = useState(false);
   const closeMenu = () => setMenuOpen(false);
@@ -118,6 +119,7 @@ export function Header({ isCheckout = false }: { isCheckout?: boolean }) {
             {/* Direita: ações — OCULTAS no checkout para focar na conversão */}
             {!isCheckout && (
               <nav className="flex items-center gap-0.5 md:gap-1" aria-label="Ações da conta">
+              {waHref && (
               <a
                 href={waHref}
                 target="_blank"
@@ -128,6 +130,7 @@ export function Header({ isCheckout = false }: { isCheckout?: boolean }) {
               >
                 <MessageCircle className="h-5 w-5" strokeWidth={1.75} />
               </a>
+              )}
 
               <Link
                 to={accountHref}
@@ -242,6 +245,7 @@ export function Header({ isCheckout = false }: { isCheckout?: boolean }) {
               className="border-t border-border/50 px-4 py-3"
               style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.75rem)" }}
             >
+              {waHref ? (
               <a
                 href={waHref}
                 target="_blank"
@@ -251,6 +255,11 @@ export function Header({ isCheckout = false }: { isCheckout?: boolean }) {
                 <MessageCircle className="h-4 w-4" strokeWidth={2} />
                 Suporte WhatsApp
               </a>
+              ) : (
+              <p className="text-center text-xs text-muted-foreground py-1">
+                Suporte via WhatsApp não configurado
+              </p>
+              )}
             </div>
           </aside>
         </div>

@@ -640,10 +640,7 @@ export default function Catalog() {
             ]} />
           Falsificar depoimentos = CDC art. 37 (publicidade enganosa). */}
       {!loading && !query && selectedCats.size === 0 && selectedBrands.size === 0 && (
-        <>
-          <FAQSection />
-          <TestimonialsSection items={[]} />
-        </>
+        <FAQSection />
       )}
 
       {/* ============================================================

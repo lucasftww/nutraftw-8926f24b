@@ -6,7 +6,8 @@ import { formatBRL } from "@/lib/utils";
 
 export function ProductFooter() {
   const settings = useSiteSettings();
-  const whatsapp = (settings.whatsapp_number || "5511999999999").replace(/\D/g, "");
+  const whatsapp = (settings.whatsapp_number || "").replace(/\D/g, "");
+  const hasWhatsApp = whatsapp.length >= 10;
   const year = new Date().getFullYear();
   const { current } = useCurrentProduct();
 
@@ -49,12 +50,14 @@ export function ProductFooter() {
 
           {/* Atendimento */}
           <FooterColumn title="Atendimento">
-            <FooterLink
-              href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(ctaText)}`}
-              external
-            >
-              WhatsApp
-            </FooterLink>
+            {hasWhatsApp && (
+              <FooterLink
+                href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(ctaText)}`}
+                external
+              >
+                WhatsApp
+              </FooterLink>
+            )}
             <FooterLink to="/minha-conta">Minha conta</FooterLink>
             <FooterLink to="/minha-conta">Meus pedidos</FooterLink>
             <FooterLink to="/favoritos">Favoritos</FooterLink>
@@ -75,6 +78,7 @@ export function ProductFooter() {
             <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
               Dúvidas pré-compra? Fale conosco no WhatsApp.
             </p>
+            {hasWhatsApp ? (
             <a
               href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(ctaText)}`}
               target="_blank"
@@ -84,6 +88,11 @@ export function ProductFooter() {
               <MessageCircle className="w-4 h-4" aria-hidden />
               Falar no WhatsApp
             </a>
+            ) : (
+            <p className="mt-4 text-sm text-muted-foreground">
+              Suporte via WhatsApp em breve.
+            </p>
+            )}
             <p className="mt-3 text-2xs text-muted-foreground/80 leading-relaxed">
               {businessHours}
             </p>

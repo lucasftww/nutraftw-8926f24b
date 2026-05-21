@@ -66,15 +66,14 @@ export const ProductCard = memo(function ProductCard({
     };
   }, [p.slug, onPrefetchFull]);
 
-  void badgeNewDays;
-
   const { hasSale, discountPct, finalPrice, basePrice } = getProductPricing(p);
   const isOut = (p.stock ?? 0) <= 0;
   const createdMs = p.created_at ? new Date(p.created_at).getTime() : NaN;
   const ageDays = Number.isFinite(createdMs) ? (Date.now() - createdMs) / 86400000 : Infinity;
-  const _isNew = !isOut && ageDays <= badgeNewDays;
-  void _isNew;
-  const isLaunch = !!p.is_new_release;
+  // Produto é "lançamento" se flag manual estiver ativa OU se foi criado
+  // dentro da janela de badgeNewDays (padrão 30 dias).
+  const isNew = !isOut && ageDays <= badgeNewDays;
+  const isLaunch = !!p.is_new_release || isNew;
   const isOffer = !!p.is_on_offer;
 
   /* Classe compartilhada dos badges de canto — posicionamento + estética de produto */
