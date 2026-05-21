@@ -156,7 +156,7 @@ export function CartCrossSell() {
                 </p>
                 <p className="text-xs font-extrabold text-success tabular-nums mt-0.5 leading-none">
                   {formatBRL(final * 0.95)}
-                  <span className="ml-0.5 text-[8.5px] font-bold uppercase tracking-wider text-success/80 align-middle">
+                  <span className="ml-0.5 text-2xs font-bold uppercase tracking-wider text-success/80 align-middle">
                     PIX
                   </span>
                 </p>

@@ -696,11 +696,11 @@ export default function MyAccount() {
               );
             }
             const statusBadge: Record<string, string> = {
-                pending: "bg-warning/15 text-warning",
-                released: "bg-blue-100 text-blue-700",
-                paid: "bg-success/15 text-success",
-                cancelled: "bg-red-100 text-red-700",
-                clawback: "bg-orange-100 text-orange-700",
+                pending:  "bg-warning/15 text-warning",
+                released: "bg-primary/10 text-primary",
+                paid:     "bg-success/15 text-success",
+                cancelled:"bg-destructive/15 text-destructive",
+                clawback: "bg-warning/15 text-warning",
             };
             const statusLabel: Record<string, string> = {
                 pending: "Pendente",
@@ -728,7 +728,7 @@ export default function MyAccount() {
                             </p>
                           )}
                         </div>
-                        <span className={`badge-pill shrink-0 ${statusBadge[c.status] || "bg-gray-100 text-gray-700"}`}>
+                        <span className={`badge-pill shrink-0 ${statusBadge[c.status] || "bg-muted text-muted-foreground"}`}>
                           {statusLabel[c.status] || c.status}
                         </span>
                       </div>
@@ -784,7 +784,7 @@ export default function MyAccount() {
                           </td>
                           <td className="px-4 py-3 font-semibold text-primary">{formatBRL(Number(c.amount || 0))}</td>
                           <td className="px-4 py-3">
-                            <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${statusBadge[c.status] || "bg-gray-100 text-gray-700"}`}>
+                            <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${statusBadge[c.status] || "bg-muted text-muted-foreground"}`}>
                               {statusLabel[c.status] || c.status}
                             </span>
                             {c.cancellation_reason && (c.status === "cancelled" || c.status === "clawback") && (

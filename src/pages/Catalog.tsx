@@ -956,7 +956,7 @@ export default function Catalog() {
                       <button
                         type="button"
                         onClick={clearAll}
-                        className="mt-3 w-full text-center text-[12.5px] font-semibold text-muted-foreground hover:text-foreground transition-colors"
+                        className="mt-3 w-full text-center text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
                       >
                         Limpar todos os filtros
                       </button>

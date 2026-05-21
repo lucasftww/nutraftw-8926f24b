@@ -155,7 +155,7 @@ function AdminInner() {
               <div className="font-display text-sm font-bold tracking-tight text-foreground leading-none">
                 Painel<span className="text-primary">.</span>
               </div>
-              <p className="text-[9.5px] uppercase tracking-[0.2em] text-muted-foreground/80 mt-1 leading-none">
+              <p className="text-2xs uppercase tracking-[0.2em] text-muted-foreground/80 mt-1 leading-none">
                 Administrativo
               </p>
             </div>
@@ -167,7 +167,7 @@ function AdminInner() {
             <div key={g.id} className="space-y-0.5">
               <div className="flex items-center gap-2 px-3 mb-2">
                 <span className="h-px w-3 bg-primary/40" aria-hidden />
-                <p className="text-[9.5px] font-bold uppercase tracking-[0.22em] text-muted-foreground/70">
+                <p className="text-2xs font-bold uppercase tracking-[0.22em] text-muted-foreground/70">
                   {g.label}
                 </p>
               </div>
@@ -220,7 +220,7 @@ function AdminInner() {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="text-xs font-semibold text-foreground leading-tight">Administrador</div>
-                <div className="text-[10.5px] text-muted-foreground/80 truncate leading-tight" title={user?.email}>{user?.email}</div>
+                <div className="text-2xs text-muted-foreground/80 truncate leading-tight" title={user?.email}>{user?.email}</div>
               </div>
             </div>
           </div>
@@ -256,7 +256,7 @@ function AdminInner() {
                   <div className="font-display text-sm font-bold tracking-tight leading-none">
                     Painel<span className="text-primary">.</span>
                   </div>
-                  <p className="text-[9.5px] uppercase tracking-[0.2em] text-muted-foreground/80 mt-1 leading-none">
+                  <p className="text-2xs uppercase tracking-[0.2em] text-muted-foreground/80 mt-1 leading-none">
                     Administrativo
                   </p>
                 </div>
@@ -279,7 +279,7 @@ function AdminInner() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="text-xs font-semibold text-foreground leading-tight">Administrador</div>
-                  <div className="text-[10.5px] text-muted-foreground/80 truncate leading-tight">{user?.email}</div>
+                  <div className="text-2xs text-muted-foreground/80 truncate leading-tight">{user?.email}</div>
                 </div>
               </div>
             </div>
@@ -289,7 +289,7 @@ function AdminInner() {
                 <div key={g.id} className="space-y-0.5">
                   <div className="flex items-center gap-2 px-3 mb-2">
                     <span className="h-px w-3 bg-primary/40" aria-hidden />
-                    <p className="text-[9.5px] font-bold uppercase tracking-[0.22em] text-muted-foreground/70">
+                    <p className="text-2xs font-bold uppercase tracking-[0.22em] text-muted-foreground/70">
                       {g.label}
                     </p>
                   </div>

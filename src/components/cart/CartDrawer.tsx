@@ -204,7 +204,7 @@ export function CartDrawer() {
                 grátis, motivando upsell/adicionar mais um item. */}
             <div className="mb-3 rounded-xl border border-border bg-muted/30 px-3 py-2.5">
               <div className="flex items-center justify-between gap-2 mb-1.5">
-                <p className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-foreground">
+                <p className="inline-flex items-center gap-1.5 text-2xs font-semibold text-foreground">
                   <Truck className="h-3.5 w-3.5 text-success" strokeWidth={2.5} />
                   {hasFreeShipping ? (
                     <span className="text-success">Você ganhou frete grátis!</span>
@@ -249,7 +249,7 @@ export function CartDrawer() {
                 <span className="block font-display text-2xl sm:text-[1.6rem] font-extrabold text-success tabular-nums leading-tight mt-1">
                   {formatBRL(total * 0.95)}
                 </span>
-                <span className="block text-[11.5px] text-muted-foreground tabular-nums leading-tight mt-0.5">
+                <span className="block text-2xs text-muted-foreground tabular-nums leading-tight mt-0.5">
                   ou {formatBRL(total)} · 3x de {formatBRL(installment)} sem juros
                 </span>
               </div>

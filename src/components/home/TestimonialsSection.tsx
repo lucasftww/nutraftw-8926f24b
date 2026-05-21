@@ -79,7 +79,7 @@ export function TestimonialsSection({ items }: { items: Testimonial[] }) {
             </blockquote>
             <footer className="mt-4 pt-3 border-t border-border/40">
               <p className="font-semibold text-sm-plus text-foreground">{t.name}</p>
-              <p className="text-[11.5px] text-muted-foreground">{t.city}</p>
+              <p className="text-2xs text-muted-foreground">{t.city}</p>
             </footer>
           </article>
         ))}
