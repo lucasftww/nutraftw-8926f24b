@@ -22,6 +22,38 @@ export interface ProductRow {
   brand: { id: string; name: string; slug: string } | null;
 }
 
+/**
+ * Versão completa do produto — retornada por useProductBySlug (select *).
+ * Diferença de ProductRow: brand não é join (só brand_id), category é join
+ * restrito (name, slug sem id).
+ */
+export interface ProductDetailRow {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  price: number;
+  sale_price: number | null;
+  image_url: string | null;
+  is_featured: boolean;
+  is_new_release?: boolean | null;
+  is_on_offer?: boolean | null;
+  active_principle?: string | null;
+  composition?: string | null;
+  offer_order?: number | null;
+  stock: number;
+  created_at: string;
+  updated_at?: string | null;
+  display_order?: number | null;
+  is_active?: boolean | null;
+  category_id?: string | null;
+  brand_id?: string | null;
+  /** URL do vídeo do produto (YouTube embed, etc.). */
+  video_url?: string | null;
+  /** Join de categoria: apenas name e slug (sem id). */
+  category: { name: string; slug: string } | null;
+}
+
 export interface CategoryRow {
   id: string;
   name: string;
@@ -101,7 +133,7 @@ export function useProducts() {
 }
 
 export function useProductBySlug(slug: string | undefined) {
-  return useQuery<any | null>({
+  return useQuery<ProductDetailRow | null>({
     enabled: !!slug,
     queryKey: queryKeys.products.detail(slug ?? ""),
     queryFn: async () => {
@@ -112,7 +144,9 @@ export function useProductBySlug(slug: string | undefined) {
         .eq("is_active", true)
         .maybeSingle();
       if (error) throw error;
-      return data;
+      // Cast necessário: Supabase infere tipo interno que não bate 1:1 com
+      // nossa interface, mas os campos são estruturalmente compatíveis.
+      return data as ProductDetailRow | null;
     },
     // Alinha com o staleTime usado em prefetchProduct() no Catálogo:
     // se a página de detalhe for aberta logo após o prefetch, reaproveita o
@@ -121,8 +155,17 @@ export function useProductBySlug(slug: string | undefined) {
   });
 }
 
+export interface RelatedProductRow {
+  id: string;
+  slug: string;
+  name: string;
+  price: number;
+  sale_price: number | null;
+  image_url: string | null;
+}
+
 export function useRelatedProducts(categoryId: string | undefined, excludeId: string | undefined) {
-  return useQuery<any[]>({
+  return useQuery<RelatedProductRow[]>({
     enabled: !!categoryId && !!excludeId,
     queryKey: queryKeys.products.related(categoryId, excludeId),
     queryFn: async () => {
@@ -134,7 +177,7 @@ export function useRelatedProducts(categoryId: string | undefined, excludeId: st
         .neq("id", excludeId!)
         .limit(4);
       if (error) throw error;
-      return (data as any) || [];
+      return (data as RelatedProductRow[]) || [];
     },
     staleTime: 2 * 60_000,
   });

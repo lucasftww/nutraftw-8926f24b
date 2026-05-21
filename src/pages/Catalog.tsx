@@ -498,7 +498,11 @@ export default function Catalog() {
           </div>
 
           {query && (
-            <p className="mt-1.5 truncate text-2xs md:text-xs font-medium text-muted-foreground">
+            <p
+              className="mt-1.5 truncate text-2xs md:text-xs font-medium text-muted-foreground"
+              aria-live="polite"
+              aria-atomic="true"
+            >
               Buscando por: <span className="text-primary">"{query}"</span>
               {!loading && (
                 <span className="text-muted-foreground/70">

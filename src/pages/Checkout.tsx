@@ -26,8 +26,7 @@ import { StickyMobileBar } from "./checkout/StickyMobileBar";
 import { loadPersistedForm, FORM_STORAGE_KEY } from "./checkout/storage";
 import type { CheckoutFormState } from "./checkout/types";
 
-const INSURANCE_RATE = 0.1;
-const PIX_DISCOUNT = 0.05;
+// Taxas centralizadas em calcTotals (lib/checkoutMath.ts) — não duplicar aqui.
 
 export default function Checkout() {
   const { lines, total, clear, coupon: cartCouponCode, setCoupon: setCartCoupon } = useCart();

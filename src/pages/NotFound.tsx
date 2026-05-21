@@ -94,7 +94,7 @@ export default function NotFound() {
       <div className="mt-12 pt-8 border-t border-border/40">
         <p className="text-xs text-muted-foreground mb-3">Ou procure direto:</p>
         <Link
-          to="/?q="
+          to="/"
           className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
         >
           <Search className="h-4 w-4" strokeWidth={2.25} />

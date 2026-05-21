@@ -261,6 +261,7 @@ export function AdminFunnel() {
                             <Link
                               to={`/produto/${r.product_slug}`}
                               target="_blank"
+                              rel="noreferrer"
                               className="inline-flex items-center justify-center h-8 w-8 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10"
                               aria-label={`Ver ${r.product_name}`}
                             >
