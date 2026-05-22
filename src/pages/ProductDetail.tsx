@@ -28,9 +28,14 @@ export default function ProductDetail() {
   useSEO(
     p
       ? {
-           title: `${p.name} — Royal Vitta`,
-           description:
-             (p.description || `Compre ${p.name} com envio para todo o Brasil.`).slice(0, 160),
+           // Usa meta_title/meta_description do admin se disponíveis (precedência
+           // SEO). Fallback: nome do produto + descrição ou texto padrão.
+           title: p.meta_title || `${p.name} — Royal Vitta`,
+           description: (
+             p.meta_description ||
+             p.description ||
+             `Compre ${p.name} com envio para todo o Brasil.`
+           ).slice(0, 160),
           image: p.image_url || undefined,
           type: "product",
           jsonLd: [

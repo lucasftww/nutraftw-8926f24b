@@ -147,6 +147,11 @@ export default function Checkout() {
   // usuário (toast leve) para preencher manualmente. Marcamos um ref para
   // não repetir o mesmo aviso quando o useEffect re-roda no mesmo CEP.
   const lastCepNotFoundRef = useRef<string | null>(null);
+  // Rastreia qual CEP preencheu os campos de endereço por último. Quando o
+  // usuário troca para um CEP diferente, os campos são sobrepostos com os
+  // dados do novo endereço (evita que "Rua X / SP" permaneça ao mudar p/ RJ).
+  // Se o mesmo CEP for digitado novamente, respeita edições manuais do usuário.
+  const lastCepFilledRef = useRef<string | null>(null);
   useEffect(() => {
     const cep = onlyDigits(form.zip);
     if (cep.length !== 8) return;
@@ -166,12 +171,17 @@ export default function Checkout() {
             return;
           }
           lastCepNotFoundRef.current = null;
+          // Se o CEP mudou desde o último preenchimento, sobrepõe os campos
+          // de endereço (logradouro/bairro/cidade/UF) com os dados do novo CEP.
+          // Caso seja o mesmo CEP, respeita edições manuais do usuário (|| f.*).
+          const isNewCep = lastCepFilledRef.current !== cep;
+          lastCepFilledRef.current = cep;
           setForm((f) => ({
             ...f,
-            street: f.street || d.logradouro || "",
-            district: f.district || d.bairro || "",
-            city: f.city || d.localidade || "",
-            state: f.state || d.uf || "",
+            street:   isNewCep ? (d.logradouro || "") : (f.street   || d.logradouro || ""),
+            district: isNewCep ? (d.bairro     || "") : (f.district || d.bairro     || ""),
+            city:     isNewCep ? (d.localidade || "") : (f.city     || d.localidade || ""),
+            state:    isNewCep ? (d.uf         || "") : (f.state    || d.uf         || ""),
           }));
         })
         .catch(() => {})

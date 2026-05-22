@@ -50,6 +50,10 @@ export interface ProductDetailRow {
   brand_id?: string | null;
   /** URL do vídeo do produto (YouTube embed, etc.). */
   video_url?: string | null;
+  /** Título personalizado para SEO (Google/redes sociais). Máx 60 chars. */
+  meta_title?: string | null;
+  /** Descrição personalizada para SEO (Google/redes sociais). Máx 160 chars. */
+  meta_description?: string | null;
   /** Join de categoria: apenas name e slug (sem id). */
   category: { name: string; slug: string } | null;
 }

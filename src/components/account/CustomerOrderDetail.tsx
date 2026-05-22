@@ -21,20 +21,34 @@ export function CustomerOrderDetail({ orderId, onClose }: { orderId: string; onC
 
   // Re-adiciona todos os itens deste pedido ao carrinho atual. Útil para
   // "vou comprar de novo o mesmo": cliente VIP, recompra rotineira.
-  function buyAgain() {
+  // Busca os slugs atuais dos produtos para garantir links válidos no carrinho
+  // (order_items não armazena product_slug — fallback para UUID causava 404).
+  async function buyAgain() {
     if (!items.length) return;
+    const validItems = items.filter((it) => it.product_id && it.unit_price);
+    if (!validItems.length) return;
+
+    // Busca slug e stock atuais para links e controle de quantidade no carrinho.
+    const productIds = validItems.map((it) => it.product_id) as string[];
+    const { data: products } = await supabase
+      .from("products")
+      .select("id, slug, stock")
+      .in("id", productIds);
+    const productMap = new Map((products || []).map((p: any) => [p.id, p]));
+
     let added = 0;
-    for (const it of items) {
-      if (!it.product_id || !it.unit_price) continue;
+    for (const it of validItems) {
+      const current = productMap.get(it.product_id);
       add(
         {
           product_id: it.product_id,
-          slug: it.product_slug || it.product_id,
+          slug: current?.slug || "",
           name: it.product_name,
           price: Number(it.unit_price),
           image_url: it.product_image_url,
         },
         Math.max(1, Number(it.quantity) || 1),
+        current?.stock ?? undefined,
       );
       added++;
     }
