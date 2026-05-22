@@ -26,6 +26,8 @@ export function WelcomeCouponPopup() {
   // undefined = settings not yet loaded → use fallback; "" = admin disabled popup
   const rawCoupon = settings.welcome_coupon as string | undefined;
   const coupon = rawCoupon === undefined ? FALLBACK_COUPON : rawCoupon.trim();
+  // Rótulo do desconto configurável pelo admin (ex.: "10% OFF"). Fallback genérico.
+  const couponLabel = (settings.welcome_coupon_label as string | undefined)?.trim() || "desconto exclusivo";
   const [visible, setVisible] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -87,7 +89,7 @@ export function WelcomeCouponPopup() {
             </span>
             <div className="min-w-0">
               <p id="welcome-coupon-title" className="font-bold text-sm text-foreground leading-tight">
-                Sua 1ª compra tem 10% OFF
+                Sua 1ª compra com {couponLabel}
               </p>
               <p className="text-xs text-muted-foreground leading-snug mt-0.5">
                 Use o cupom no checkout para resgatar

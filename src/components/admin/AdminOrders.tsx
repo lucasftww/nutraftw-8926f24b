@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatBRL } from "@/lib/utils";
 import { toast } from "sonner";
-import { Search, Eye, ShoppingBag, Download, Check, Calendar } from "lucide-react";
+import { Search, Eye, ShoppingBag, Download, Check, Calendar, RefreshCcw, Wifi } from "lucide-react";
 import { OrderDetailModal } from "@/components/admin/OrderDetailModal";
 import { useConfirm } from "@/components/admin/ConfirmDialog";
 import { EmptyState } from "@/components/admin/EmptyState";
@@ -34,6 +34,7 @@ export function AdminOrders() {
   const [detailId, setDetailId] = useState<string | null>(null);
   const [error, setError] = useState<AdminErrorInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [liveIndicator, setLiveIndicator] = useState(false);
   const { confirm, promptText } = useConfirm();
   const PAGE_SIZE = 50;
   const [page, setPage] = useState(0);
@@ -86,6 +87,40 @@ export function AdminOrders() {
     }
     load();
   }, [page, filter, paymentFilter, dateFrom, dateTo]);
+
+  // Realtime: novo pedido ou status atualizado — recarrega a página atual
+  // sem limpar estado (seleção, filtros). Só na página 0 para evitar
+  // inserir itens fora de ordem em páginas avançadas.
+  useEffect(() => {
+    const channel = supabase
+      .channel("admin-orders-realtime")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "orders" },
+        (payload) => {
+          const name = (payload.new as any)?.shipping_full_name || "Novo cliente";
+          toast.success(`Novo pedido de ${name}`, { duration: 6000 });
+          // Pisca o indicador "ao vivo"
+          setLiveIndicator(true);
+          setTimeout(() => setLiveIndicator(false), 3000);
+          if (page === 0) load();
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "orders" },
+        (payload) => {
+          // Atualiza só o item afetado — sem recarregar toda a lista.
+          setItems((prev) =>
+            prev.map((o) =>
+              o.id === (payload.new as any)?.id ? { ...o, ...(payload.new as any) } : o
+            )
+          );
+        },
+      )
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [page]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -268,6 +303,21 @@ export function AdminOrders() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input className="pl-9" placeholder="Buscar por ID, nome ou CPF…" value={query} onChange={(e) => setQuery(e.target.value)} />
           </div>
+          {/* Indicador realtime — pisca quando um novo pedido chega */}
+          <div
+            className={`hidden sm:inline-flex items-center gap-1.5 px-3 rounded-xl border text-xs font-semibold transition-all ${
+              liveIndicator
+                ? "border-success/50 bg-success/10 text-success"
+                : "border-border bg-muted/30 text-muted-foreground"
+            }`}
+            title="Atualização em tempo real ativa"
+          >
+            <Wifi className={`h-3.5 w-3.5 ${liveIndicator ? "text-success animate-pulse" : ""}`} />
+            <span>Ao vivo</span>
+          </div>
+          <Button variant="outline" onClick={() => load()} disabled={loading} className="shrink-0" aria-label="Recarregar lista">
+            <RefreshCcw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+          </Button>
           <Button variant="outline" onClick={exportCSV} disabled={loading} className="shrink-0">
             <Download className="h-4 w-4" /> <span className="hidden sm:inline">Exportar CSV</span>
           </Button>

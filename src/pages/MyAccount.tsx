@@ -83,10 +83,11 @@ export default function MyAccount() {
   }, [user]);
 
   // Abre automaticamente o modal do pedido recém-criado quando o checkout
-  // redireciona para /minha-conta?pedido=<id>. Antes, o param era ignorado
-  // e o cliente ficava sem feedback visual do pedido criado.
+  // redireciona para /minha-conta?pedido=<id>. Também suporta ?tab=<tab>
+  // para deep-linking direto em uma aba específica (ex.: footer "Meus pedidos").
   useEffect(() => {
     const pedidoId = searchParams.get("pedido");
+    const tabParam = searchParams.get("tab") as Tab | null;
     if (pedidoId) {
       setTab("orders");
       setOrderId(pedidoId);
@@ -94,6 +95,14 @@ export default function MyAccount() {
       setSearchParams((curr) => {
         const params = new URLSearchParams(curr);
         params.delete("pedido");
+        return params;
+      }, { replace: true });
+    } else if (tabParam && TABS.some((t) => t.id === tabParam)) {
+      setTab(tabParam);
+      // Limpa o param da URL para URL limpa, mantendo o estado na UI.
+      setSearchParams((curr) => {
+        const params = new URLSearchParams(curr);
+        params.delete("tab");
         return params;
       }, { replace: true });
     }

@@ -2,7 +2,7 @@
 import { ADMIN_STATUS_COLORS as STATUS_COLORS, STATUS_PT } from "@/lib/orderStatus";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/utils";
-import { Package, ShoppingBag, DollarSign, Users, TrendingUp, Clock, Receipt, Boxes, Sparkles, Eye, Heart, ShoppingCart, CreditCard, CheckCircle2, Zap } from "lucide-react";
+import { Package, ShoppingBag, DollarSign, Users, TrendingUp, Clock, Receipt, Boxes, Sparkles, Eye, Heart, ShoppingCart, CreditCard, CheckCircle2, Zap, RefreshCcw } from "lucide-react";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "./AdminErrorBanner";
 import { ProductThumb } from "./ProductThumb";
 import { EmptyState } from "./EmptyState";
@@ -37,6 +37,8 @@ export function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [last24h, setLast24h] = useState<Last24h | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [error, setError] = useState<AdminErrorInfo | null>(null);
 
   const load = useCallback(async () => {
@@ -80,7 +82,9 @@ export function AdminDashboard() {
         checkoutStarted: Number(l24.checkout_started || 0),
         recentSales: Array.isArray(l24.recent_sales) ? l24.recent_sales : [],
       });
+      setLastUpdated(new Date());
       setLoading(false);
+      setRefreshing(false);
     } catch (e: any) {
       const info = logSupabaseError("Dashboard", e);
       setError(info);
@@ -138,8 +142,32 @@ export function AdminDashboard() {
   // em vez de só números zerados — ajuda o admin novo a entender a tela.
   const hasNoSales = stats.totalOrders === 0;
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await load();
+  };
+
   return (
     <div className="space-y-4 md:space-y-6">
+      {/* Barra de ação com refresh manual + timestamp */}
+      <div className="flex items-center justify-end gap-3">
+        {lastUpdated && (
+          <span className="text-2xs text-muted-foreground tabular-nums">
+            Atualizado às {lastUpdated.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+          </span>
+        )}
+        <button
+          type="button"
+          onClick={handleRefresh}
+          disabled={refreshing || loading}
+          aria-label="Atualizar dados do dashboard"
+          className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-border text-xs font-semibold text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-50 disabled:pointer-events-none"
+        >
+          <RefreshCcw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} strokeWidth={2.25} />
+          Atualizar
+        </button>
+      </div>
+
       {/* Banner de boas-vindas com saudação por horário */}
       <WelcomeBanner
         revenue={stats.totalRevenue}

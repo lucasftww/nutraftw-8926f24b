@@ -9,7 +9,7 @@ import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/compo
 import { logAdminAction } from "@/lib/auditLog";
 import { friendlyErrorMessage } from "@/lib/friendlyError";
 
-type FieldGroup = "brand" | "checkout" | "support" | "catalog";
+type FieldGroup = "brand" | "checkout" | "support" | "catalog" | "shipping";
 
 const FIELDS: { key: string; label: string; type: "text" | "textarea" | "toggle" | "number"; help?: string; group: FieldGroup }[] = [
   // === Identidade da marca (aparece no footer, declarações de envio, e-mails) ===
@@ -22,17 +22,21 @@ const FIELDS: { key: string; label: string; type: "text" | "textarea" | "toggle"
   { key: "checkout_enable_pix",  label: "Aceitar PIX no checkout",       type: "toggle",  group: "checkout" },
   { key: "checkout_enable_card", label: "Aceitar cartão de crédito",     type: "toggle",  group: "checkout" },
   { key: "insurance_optional",   label: "Seguro de envio é opcional",    type: "toggle",  group: "checkout", help: "Se desligado, o seguro de 10% é cobrado sempre." },
+  // === Envio ===
+  { key: "free_shipping_min", label: "Frete grátis a partir de (R$)", type: "number", group: "shipping", help: "Valor mínimo do pedido para frete gratuito. Exibido na barra de anúncios e no carrinho. Padrão: 800." },
   // === Suporte ===
   { key: "whatsapp_number",  label: "WhatsApp (com DDI, só números)", type: "text",     group: "support", help: "Ex.: 5511999999999" },
   { key: "whatsapp_message", label: "Mensagem padrão WhatsApp",       type: "text",     group: "support" },
   // === Catálogo ===
-  { key: "badge_new_days",    label: "Marcar produto como LANÇAMENTO até (dias)", type: "number", group: "catalog" },
-  { key: "welcome_coupon",    label: "Cupom de boas-vindas",                      type: "text",   group: "catalog", help: "Exibido no popup de 1ª compra. Deixe em branco para desativar o popup." },
+  { key: "badge_new_days",         label: "Marcar produto como LANÇAMENTO até (dias)", type: "number", group: "catalog" },
+  { key: "welcome_coupon",         label: "Cupom de boas-vindas",                      type: "text",   group: "catalog", help: "Exibido no popup de 1ª compra. Deixe em branco para desativar o popup." },
+  { key: "welcome_coupon_label",   label: "Texto do desconto de boas-vindas",          type: "text",   group: "catalog", help: "Ex.: 10% OFF · Se vazio, exibe só o código do cupom." },
 ];
 
 const GROUP_LABELS: Record<FieldGroup, string> = {
   brand: "Identidade da marca",
   checkout: "Checkout",
+  shipping: "Envio & frete",
   support: "Suporte ao cliente",
   catalog: "Catálogo",
 };
@@ -71,6 +75,14 @@ export function AdminSettings() {
     if (wa && (wa.length < 10 || wa.length > 15)) {
       toast.error("Número WhatsApp inválido. Use DDI + DDD + número (ex: 5511999999999).");
       return;
+    }
+    const freeMin = values["free_shipping_min"];
+    if (freeMin !== "" && freeMin !== undefined) {
+      const freeMinN = Number(String(freeMin).replace(",", "."));
+      if (!Number.isFinite(freeMinN) || freeMinN < 0) {
+        toast.error("'Frete grátis a partir de' deve ser um valor positivo (ex: 800).");
+        return;
+      }
     }
     setSaving(true);
     try {

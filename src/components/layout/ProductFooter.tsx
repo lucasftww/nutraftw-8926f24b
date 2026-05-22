@@ -59,7 +59,7 @@ export function ProductFooter() {
               </FooterLink>
             )}
             <FooterLink to="/minha-conta">Minha conta</FooterLink>
-            <FooterLink to="/minha-conta">Meus pedidos</FooterLink>
+            <FooterLink to="/minha-conta?tab=orders">Meus pedidos</FooterLink>
             <FooterLink to="/favoritos">Favoritos</FooterLink>
           </FooterColumn>
 
