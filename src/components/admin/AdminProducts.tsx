@@ -814,12 +814,12 @@ export function AdminProducts() {
                 <Label>Meta descrição <span className="text-xs text-muted-foreground font-normal">(até 160 caracteres)</span></Label>
                 <textarea
                   className="w-full rounded-xl border border-input bg-background p-3 text-sm min-h-[60px]"
-                  maxLength={180}
+                  maxLength={160}
                   value={editing.meta_description || ""}
                   placeholder="Texto curto que aparece no Google/redes sociais"
                   onChange={(e) => setEditing({ ...editing, meta_description: e.target.value })}
                 />
-                <p className="text-2xs text-muted-foreground">{(editing.meta_description || "").length}/160</p>
+                <p className={`text-2xs ${(editing.meta_description || "").length >= 145 ? "text-warning" : "text-muted-foreground"}`}>{(editing.meta_description || "").length}/160</p>
               </div>
               <div className="sm:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-border">
                 <label className="flex items-center gap-2 text-sm">
