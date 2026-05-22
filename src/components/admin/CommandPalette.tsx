@@ -157,7 +157,7 @@ export function CommandPalette({
         hint: `${formatBRL(p.price)} · stock ${p.stock}${p.is_active ? "" : " · inativo"}`,
         group: "Produtos",
         icon: Package,
-        run: () => { window.open(`/produto/${p.slug}`, "_blank"); onClose(); },
+        run: () => { window.open(`/produto/${p.slug}`, "_blank", "noopener,noreferrer"); onClose(); },
       })
     );
     orders.forEach((o) =>

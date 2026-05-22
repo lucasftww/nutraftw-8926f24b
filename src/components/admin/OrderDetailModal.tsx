@@ -33,7 +33,7 @@ const REFUND_STATUS_LABEL: Record<string, string> = {
  * etiqueta 10x15 (depende do CSS @page abaixo).
  */
 function openPrintWindow(html: string) {
-  const w = window.open("", "_blank", "width=820,height=900");
+  const w = window.open("", "_blank", "width=820,height=900,noopener");
   if (!w) { toast.error("Permita pop-ups para imprimir"); return; }
   w.document.write(html);
   w.document.close();
