@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, Pencil } from "lucide-react";
+import { Plus, Trash2, Pencil, CalendarClock } from "lucide-react";
 import { toast } from "sonner";
 import { AdminErrorBanner, type AdminErrorInfo, logSupabaseError } from "@/components/admin/AdminErrorBanner";
 import { friendlyErrorMessage } from "@/lib/friendlyError";
@@ -22,6 +22,16 @@ export function AdminCoupons() {
   const [error, setError] = useState<AdminErrorInfo | null>(null);
   const qc = useQueryClient();
   const { confirm } = useConfirm();
+
+  function fmtExpiry(iso: string | null | undefined): string | null {
+    if (!iso) return null;
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return null;
+    const now = Date.now();
+    const expired = d.getTime() < now;
+    const label = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
+    return expired ? `Expirou ${label}` : `Expira ${label}`;
+  }
 
   // Converte ISO UTC -> string "YYYY-MM-DDTHH:mm" no fuso local p/ datetime-local.
   function toLocalInput(iso: string | null | undefined) {
@@ -143,6 +153,12 @@ export function AdminCoupons() {
                 <p className="text-2xs text-muted-foreground/80 mt-0.5">
                   {c.uses} usos{c.max_uses ? ` / ${c.max_uses}` : ""}
                 </p>
+                {fmtExpiry(c.expires_at) && (
+                  <p className={`text-2xs mt-0.5 inline-flex items-center gap-1 ${c.expires_at && new Date(c.expires_at).getTime() < Date.now() ? "text-destructive/80" : "text-muted-foreground/70"}`}>
+                    <CalendarClock className="h-2.5 w-2.5 shrink-0" />
+                    {fmtExpiry(c.expires_at)}
+                  </p>
+                )}
               </div>
               <span className={`text-2xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 ${c.active ? "bg-success/15 text-success ring-1 ring-success/25" : "bg-muted text-muted-foreground"}`}>
                 {c.active ? "Ativo" : "Inativo"}
@@ -180,6 +196,7 @@ export function AdminCoupons() {
               <th className="text-left px-4 py-3">Desconto</th>
               <th className="text-left px-4 py-3">Mín. compra</th>
               <th className="text-left px-4 py-3">Usos</th>
+              <th className="text-left px-4 py-3 hidden lg:table-cell">Validade</th>
               <th className="text-left px-4 py-3">Estado</th>
               <th className="px-4 py-3"></th>
             </tr>
@@ -193,6 +210,16 @@ export function AdminCoupons() {
                 </td>
                 <td className="px-4 py-3 text-muted-foreground">R$ {Number(c.min_subtotal).toFixed(2)}</td>
                 <td className="px-4 py-3 text-muted-foreground">{c.uses}{c.max_uses ? ` / ${c.max_uses}` : ""}</td>
+                <td className="px-4 py-3 hidden lg:table-cell">
+                  {fmtExpiry(c.expires_at) ? (
+                    <span className={`inline-flex items-center gap-1 text-xs ${c.expires_at && new Date(c.expires_at).getTime() < Date.now() ? "text-destructive/80" : "text-muted-foreground"}`}>
+                      <CalendarClock className="h-3 w-3 shrink-0" />
+                      {fmtExpiry(c.expires_at)}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground/60">—</span>
+                  )}
+                </td>
                 <td className="px-4 py-3">
                   <span className={`text-2xs font-semibold px-2 py-0.5 rounded-full ${c.active ? "bg-success/15 text-success ring-1 ring-success/25" : "bg-muted text-muted-foreground"}`}>
                     {c.active ? "Ativo" : "Inativo"}
@@ -205,7 +232,7 @@ export function AdminCoupons() {
               </tr>
             ))}
             {items.length === 0 && (
-              <tr><td colSpan={6}>
+              <tr><td colSpan={7}>
                 <EmptyState
                   icon={Ticket}
                   title="Nenhum cupom cadastrado"

@@ -126,7 +126,7 @@ export default function OrderSuccess() {
   const waMessage = order
     ? `Olá! Sobre meu pedido #${orderId.slice(0, 8)} — gostaria de tirar uma dúvida.`
     : "Olá! Preciso de ajuda com meu pedido.";
-  const waHref = whatsappRaw
+  const waHref = whatsappRaw.length >= 10
     ? `https://wa.me/${whatsappRaw}?text=${encodeURIComponent(waMessage)}`
     : null;
 

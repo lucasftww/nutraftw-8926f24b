@@ -531,7 +531,7 @@ export function AdminProducts() {
     toast.info("Gerando CSV…");
     let q = supabase
       .from("products")
-      .select("id, name, slug, price, sale_price, stock, is_active, is_featured, is_new_release, is_on_offer, active_principle, composition, description, meta_title, meta_description, category:categories(name)")
+      .select("id, name, slug, price, sale_price, stock, is_active, is_featured, is_new_release, is_on_offer, active_principle, composition, description, meta_title, meta_description, category:categories(name), brand:brands(name)")
       .order("created_at", { ascending: false })
       .limit(5000);
     if (debouncedQuery) {
@@ -553,11 +553,11 @@ export function AdminProducts() {
       if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
       return /[",\n;]/.test(s) ? `"${s}"` : s;
     };
-    const headers = ["id","name","slug","category","price","sale_price","stock","is_active","is_featured","is_new_release","is_on_offer","active_principle","composition","description","meta_title","meta_description"];
+    const headers = ["id","name","slug","category","brand","price","sale_price","stock","is_active","is_featured","is_new_release","is_on_offer","active_principle","composition","description","meta_title","meta_description"];
     const lines = [headers.join(",")];
     for (const r of rows as any[]) {
       lines.push([
-        r.id, r.name, r.slug, r.category?.name ?? "",
+        r.id, r.name, r.slug, r.category?.name ?? "", r.brand?.name ?? "",
         r.price, r.sale_price ?? "", r.stock,
         r.is_active, r.is_featured, r.is_new_release, r.is_on_offer,
         r.active_principle ?? "", r.composition ?? "", r.description ?? "",
@@ -637,7 +637,7 @@ export function AdminProducts() {
 
       {canReorder && !loading && items.length > 0 && (
         <p className="text-xs text-muted-foreground mb-2 hidden md:block">
-          💡 Arraste pelo ícone <GripVertical className="inline h-3 w-3" /> para reordenar como aparecerá no site.
+          Arraste pelo ícone <GripVertical className="inline h-3 w-3" /> para reordenar como aparecerá no site.
         </p>
       )}
       <ul className="md:hidden space-y-2">
@@ -803,12 +803,12 @@ export function AdminProducts() {
               <div className="space-y-2 sm:col-span-2">
                 <Label>Meta título <span className="text-xs text-muted-foreground font-normal">(até 60 caracteres)</span></Label>
                 <Input
-                  maxLength={70}
+                  maxLength={60}
                   value={editing.meta_title || ""}
                   placeholder={editing.name ? `${editing.name} | ${brandName}` : "Use o nome do produto se vazio"}
                   onChange={(e) => setEditing({ ...editing, meta_title: e.target.value })}
                 />
-                <p className="text-2xs text-muted-foreground">{(editing.meta_title || "").length}/60</p>
+                <p className={`text-2xs ${(editing.meta_title || "").length >= 55 ? "text-warning" : "text-muted-foreground"}`}>{(editing.meta_title || "").length}/60</p>
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label>Meta descrição <span className="text-xs text-muted-foreground font-normal">(até 160 caracteres)</span></Label>
